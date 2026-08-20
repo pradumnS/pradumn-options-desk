@@ -12,6 +12,12 @@
    (unstamped) case and the explicit [data-theme="light"] stamp.
    ============================================================ */
 :root {
+  /* Freshness state. Defined here as well as on the state classes, because
+     a token that exists only inside .mock.ok resolves to nothing before the
+     verdict is known -- the bar would render with no colour at all. */
+  --fresh:     #66798B;
+  --fresh-dim: rgba(102,121,139,.10);
+
   --bg:        #0B0F14;
   --surface:   #121821;
   --surface-2: #18202B;
@@ -3730,10 +3736,10 @@ table.ledger { min-width: 800px; }
             "holiday or before the evening run, otherwise run  ./desk.sh";
     } else {
       tag = "STALE"; state = "stale";
-      msg = "Data through " + have + " — " + behind +
+      msg = "Data through " + have + " \u2014 " + behind +
             " sessions behind " + want + ". Run  ./desk.sh";
     }
-    msg += "  ·  " + m.sessionsStored + " sessions stored";
+    msg += "  \u00b7  " + m.sessionsStored + " sessions stored";
     return { tag: tag, state: state, msg: msg, age: age };
   }
 
