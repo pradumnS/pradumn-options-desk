@@ -130,15 +130,23 @@ body {
 .mock {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 7px 16px;
-  background: var(--puts-dim);
+  background: var(--fresh-dim, var(--puts-dim));
   border-bottom: 1px solid var(--line);
+  border-left: 3px solid var(--fresh, var(--puts));
   font-size: 11.5px; color: var(--ink-2);
 }
 .mock strong {
   font-family: var(--font-num); font-size: 10.5px; letter-spacing: .09em;
-  color: var(--puts); border: 1px solid var(--puts); border-radius: 3px;
+  color: var(--fresh, var(--puts));
+  border: 1px solid var(--fresh, var(--puts)); border-radius: 3px;
   padding: 2px 7px; text-transform: uppercase;
 }
+/* The one thing a glance must answer: is what I am looking at current? */
+.mock.ok    { --fresh: var(--up);   --fresh-dim: rgba(63,185,80,.10); }
+.mock.warn  { --fresh: var(--maxpain); --fresh-dim: rgba(230,159,0,.12); }
+.mock.stale { --fresh: var(--down); --fresh-dim: rgba(248,81,73,.12); }
+.mock .age { margin-left: auto; font-family: var(--font-num); font-size: 10.5px;
+             color: var(--ink-3); }
 
 /* ---------- shell ---------- */
 .shell { display: grid; grid-template-columns: 208px minmax(0,1fr); min-height: 100vh; }
@@ -998,6 +1006,7 @@ table.ledger { min-width: 800px; }
 <div class="mock" id="freshness" hidden>
   <strong id="freshTag">Loading</strong>
   <span id="freshMsg">Reading snapshot&hellip;</span>
+  <span class="age" id="freshAge"></span>
 </div>
 
 <div class="shell">
@@ -3655,11 +3664,77 @@ table.ledger { min-width: 800px; }
     CLOCK_TIMER = setInterval(paintLiveStamp, 1000);
   }
 
-  function setFresh(tag, msg) {
+  function setFresh(tag, msg, state, age) {
     var bar = document.getElementById("freshness");
     bar.hidden = false;
+    bar.className = "mock" + (state ? " " + state : "");
     document.getElementById("freshTag").textContent = tag;
     document.getElementById("freshMsg").textContent = msg;
+    document.getElementById("freshAge").textContent = age || "";
+  }
+
+  /* The last session that should have settled by now.
+
+     NSE publishes the day's closes well after the bell, so before the
+     evening run the newest settled session is the PREVIOUS weekday.
+     Holidays are not modelled -- which is why one session behind is
+     reported as "check", not as stale. Two or more is unambiguous. */
+  function expectedSession() {
+    /* Shift the epoch by IST's offset and read it with UTC getters. Using
+       local getters here double-counts the viewer's own offset -- on a
+       UTC+4 machine it reported the previous session as the expected one,
+       so a current desk would have shown "CHECK". */
+    var ist = new Date(Date.now() + 330 * 60000);
+    var d = new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(),
+                              ist.getUTCDate()));
+    if (ist.getUTCHours() < 18) d.setUTCDate(d.getUTCDate() - 1);
+    while (d.getUTCDay() === 0 || d.getUTCDay() === 6) {
+      d.setUTCDate(d.getUTCDate() - 1);
+    }
+    return d.toISOString().slice(0, 10);
+  }
+
+  function sessionsBetween(from, to) {
+    var a = new Date(from + "T00:00:00"), b = new Date(to + "T00:00:00"), n = 0;
+    while (a < b) {
+      a.setDate(a.getDate() + 1);
+      if (a.getDay() !== 0 && a.getDay() !== 6) n++;
+    }
+    return n;
+  }
+
+  function freshness(m, man) {
+    var want = expectedSession();
+    var have = m.tradeDate || "";
+    var behind = have && have < want ? sessionsBetween(have, want) : 0;
+
+    var gen = (man && man.generatedAt) || "";
+    var age = "";
+    if (gen) {
+      var mins = Math.round((Date.now() - new Date(gen).getTime()) / 60000);
+      age = mins < 0 ? "just now"
+          : mins < 60 ? "updated " + mins + "m ago"
+          : mins < 1440 ? "updated " + Math.round(mins / 60) + "h ago"
+          : "updated " + Math.round(mins / 1440) + "d ago";
+    }
+
+    var tag, state, msg;
+    if (!have) {
+      tag = "NO DATA"; state = "stale"; msg = "The snapshot has no trade date.";
+    } else if (behind === 0) {
+      tag = "UP TO DATE"; state = "ok";
+      msg = "Data through " + have + ", the latest settled session.";
+    } else if (behind === 1) {
+      tag = "CHECK"; state = "warn";
+      msg = "Data through " + have + "; " + want + " is not in yet. Normal on a " +
+            "holiday or before the evening run, otherwise run  ./desk.sh";
+    } else {
+      tag = "STALE"; state = "stale";
+      msg = "Data through " + have + " — " + behind +
+            " sessions behind " + want + ". Run  ./desk.sh";
+    }
+    msg += "  ·  " + m.sessionsStored + " sessions stored";
+    return { tag: tag, state: state, msg: msg, age: age };
   }
 
   function boot() {
@@ -3696,13 +3771,11 @@ table.ledger { min-width: 800px; }
       render();
       startLive();
       var m = MODEL[state.idx];
-      setFresh("Live &middot; EOD " + m.tradeDate,
-        m.sessionsStored + " session" + (m.sessionsStored === 1 ? "" : "s") +
-        " stored &middot; " + m.nStrikes + " strikes &middot; generated " +
-        (MANIFEST.generatedAt || "").replace("T", " "));
+      var fr = freshness(m, MANIFEST);
+      setFresh(fr.tag, fr.msg, fr.state, fr.age);
     }).catch(function (err) {
-      setFresh("No data", "Could not read snapshot (" + err.message +
-        "). Run  python run_daily.py  then reload.");
+      setFresh("NO DATA", "Could not read the snapshot (" + err.message +
+        "). Run  ./desk.sh  then reload.", "stale", "");
     });
   }
 
