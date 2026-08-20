@@ -1,0 +1,3853 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nifty Options Desk</title>
+
+<style>
+/* ============================================================
+   TOKENS &mdash; dark-first. :root carries the complete dark palette.
+   Light is the deviation, defined for both the media-query
+   (unstamped) case and the explicit [data-theme="light"] stamp.
+   ============================================================ */
+:root {
+  --bg:        #0B0F14;
+  --surface:   #121821;
+  --surface-2: #18202B;
+  --surface-3: #1E2833;
+  --line:      #232E3B;
+  --line-soft: #1A2029;
+
+  --ink:   #E6EDF3;
+  --ink-2: #9DB0C2;
+  --ink-3: #66798B;
+
+  /* Data identity &mdash; Okabe&ndash;Ito derived. Calls cool (ceiling), puts warm (floor). */
+  --calls:      #56B4E9;
+  --calls-dim:  rgba(86,180,233,.16);
+  --puts:       #E69F00;
+  --puts-dim:   rgba(230,159,0,.16);
+  --maxpain:    #CC79A7;
+
+  /* Direction &mdash; reserved. Never used for call/put identity. */
+  --up:   #3FB950;
+  --down: #F85149;
+
+  --warn: #D29922;
+  --ok:   #3FB950;
+
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -12px rgba(0,0,0,.7);
+  --shadow-lg: -18px 0 48px -18px rgba(0,0,0,.75);
+
+  --font-uWi: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-ui:  "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-num: "Cascadia Mono", "Consolas", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --r: 6px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:        #F4F6F9;
+    --surface:   #FFFFFF;
+    --surface-2: #EEF2F7;
+    --surface-3: #E4EAF2;
+    --line:      #D5DEE8;
+    --line-soft: #E6ECF3;
+
+    --ink:   #0E161F;
+    --ink-2: #4B5C6D;
+    --ink-3: #7C8C9C;
+
+    --calls:     #0072B2;
+    --calls-dim: rgba(0,114,178,.13);
+    --puts:      #A96800;
+    --puts-dim:  rgba(169,104,0,.15);
+    --maxpain:   #A1457F;
+
+    --up:   #1A7F37;
+    --down: #C0392B;
+
+    --warn: #8A6100;
+    --ok:   #1A7F37;
+
+    --shadow: 0 1px 2px rgba(16,32,48,.06), 0 8px 24px -14px rgba(16,32,48,.24);
+    --shadow-lg: -18px 0 48px -20px rgba(16,32,48,.3);
+  }
+}
+
+:root[data-theme="light"] {
+  --bg:        #F4F6F9;
+  --surface:   #FFFFFF;
+  --surface-2: #EEF2F7;
+  --surface-3: #E4EAF2;
+  --line:      #D5DEE8;
+  --line-soft: #E6ECF3;
+
+  --ink:   #0E161F;
+  --ink-2: #4B5C6D;
+  --ink-3: #7C8C9C;
+
+  --calls:     #0072B2;
+  --calls-dim: rgba(0,114,178,.13);
+  --puts:      #A96800;
+  --puts-dim:  rgba(169,104,0,.15);
+  --maxpain:   #A1457F;
+
+  --up:   #1A7F37;
+  --down: #C0392B;
+
+  --warn: #8A6100;
+  --ok:   #1A7F37;
+
+  --shadow: 0 1px 2px rgba(16,32,48,.06), 0 8px 24px -14px rgba(16,32,48,.24);
+  --shadow-lg: -18px 0 48px -20px rgba(16,32,48,.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.pos { color: var(--up); } .neg { color: var(--down); } .neu { color: var(--ink-2); }
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--calls);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ---------- mockup banner ---------- */
+.mock {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 7px 16px;
+  background: var(--puts-dim);
+  border-bottom: 1px solid var(--line);
+  font-size: 11.5px; color: var(--ink-2);
+}
+.mock strong {
+  font-family: var(--font-num); font-size: 10.5px; letter-spacing: .09em;
+  color: var(--puts); border: 1px solid var(--puts); border-radius: 3px;
+  padding: 2px 7px; text-transform: uppercase;
+}
+
+/* ---------- shell ---------- */
+.shell { display: grid; grid-template-columns: 208px minmax(0,1fr); min-height: 100vh; }
+
+.rail {
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  display: flex; flex-direction: column; gap: 22px;
+  padding: 18px 0 20px;
+}
+.brand { display: flex; flex-direction: column; gap: 3px; padding: 0 18px; }
+.brand b { font-family: var(--font-uWi); font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
+.brand span {
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .16em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+
+.rail-group { display: flex; flex-direction: column; gap: 2px; }
+.rail-label {
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .14em;
+  color: var(--ink-3); text-transform: uppercase; padding: 0 18px 6px;
+}
+.rail-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 7px 18px; color: var(--ink-2); cursor: pointer;
+  border: 0; border-left: 2px solid transparent; background: none;
+  width: 100%; text-align: left; font: inherit;
+}
+.rail-item:hover { background: var(--surface-2); color: var(--ink); }
+.rail-item[aria-current="true"] {
+  color: var(--ink); background: var(--surface-2);
+  border-left-color: var(--calls); font-weight: 600;
+}
+.rail-item .tag {
+  font-family: var(--font-num); font-size: 9px; letter-spacing: .06em;
+  color: var(--ink-3); border: 1px solid var(--line); padding: 1px 5px; border-radius: 3px;
+}
+.rail-item .spark { font-family: var(--font-num); font-size: 10px; }
+
+.rail-foot {
+  margin-top: auto; padding: 0 18px;
+  font-family: var(--font-num); font-size: 9.5px; color: var(--ink-3); letter-spacing: .06em;
+}
+
+/* ---------- topbar ---------- */
+.main { min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 0 20px; border-bottom: 1px solid var(--line);
+  background: var(--surface); min-height: 46px;
+}
+.idx-tabs { display: flex; gap: 2px; align-self: stretch; }
+.idx-tab {
+  border: 0; background: none; font: inherit; cursor: pointer;
+  padding: 0 13px; color: var(--ink-3); border-bottom: 2px solid transparent;
+  font-family: var(--font-num); font-size: 11.5px; letter-spacing: .04em;
+}
+.idx-tab:hover { color: var(--ink-2); }
+.idx-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--calls); font-weight: 700; }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.stamp {
+  font-family: var(--font-num); font-size: 10.5px; color: var(--ink-3);
+  letter-spacing: .04em; display: flex; align-items: center; gap: 7px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); flex: none; }
+.dot.warnd { background: var(--warn); } .dot.idle { background: var(--ink-3); }
+.tgl {
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2);
+  border-radius: var(--r); padding: 4px 10px; cursor: pointer;
+  font-family: var(--font-num); font-size: 10.5px;
+}
+.tgl:hover { color: var(--ink); border-color: var(--ink-3); }
+
+/* ---------- persistent market strip ----------
+   Sits above the tab row and sticks to the top, so the market level stays
+   on screen on every tab and at any scroll position. */
+.strip-wrap {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.strip {
+  display: flex; align-items: stretch; overflow-x: auto;
+  scrollbar-width: thin;
+}
+.strip::-webkit-scrollbar { height: 4px; }
+.strip::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+.si {
+  flex: 0 0 auto; display: flex; flex-direction: column; gap: 1px;
+  padding: 7px 16px; border-right: 1px solid var(--line-soft);
+  cursor: default; position: relative; min-width: 132px;
+}
+.si:hover { background: var(--surface-2); }
+.si-k {
+  font-family: var(--font-num); font-size: 9px; letter-spacing: .13em;
+  color: var(--ink-3); text-transform: uppercase; white-space: nowrap;
+  display: flex; align-items: center; gap: 5px;
+}
+.si-v {
+  font-family: var(--font-num); font-size: 14px; font-weight: 600;
+  font-variant-numeric: tabular-nums; letter-spacing: -.015em; line-height: 1.15;
+}
+.si-c {
+  font-family: var(--font-num); font-size: 10px;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.si-live {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--maxpain);
+  flex: none;
+}
+.si.si-alt { background: var(--surface-2); }
+.si.si-alt .si-k { color: var(--maxpain); }
+
+/* live badge */
+.si-sep {
+  flex: 0 0 auto; width: 1px; margin: 6px 0;
+  background: var(--line); align-self: stretch;
+}
+
+/* Flash only what moved. A once-a-minute feed is indistinguishable from a
+   dead one unless the change announces itself. */
+@keyframes flashUp   { 0% { background: rgba(63,185,80,.30); } 100% { background: transparent; } }
+@keyframes flashDown { 0% { background: rgba(248,81,73,.30); } 100% { background: transparent; } }
+.si.flash-up   { animation: flashUp 1.4s ease-out; }
+.si.flash-down { animation: flashDown 1.4s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .si.flash-up, .si.flash-down { animation: none; }
+}
+
+.age {
+  font-family: var(--font-num); font-size: 9.5px; color: var(--ink-3);
+  border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+  margin-left: 4px;
+}
+.si-pulse {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--up);
+  flex: none; animation: pulse 2.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .si-pulse { animation: none; } }
+
+.live-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-num); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 3px;
+  border: 1px solid var(--up); color: var(--up);
+}
+.live-badge.stale { border-color: var(--ink-3); color: var(--ink-3); }
+.live-badge.closed { border-color: var(--line); color: var(--ink-3); }
+
+@media (max-width: 860px) {
+  .strip-wrap { position: static; }
+  .si { min-width: 118px; padding: 6px 12px; }
+}
+
+/* ---------- analysis tabs ---------- */
+.atabs {
+  display: flex; gap: 3px; padding: 0 20px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line); background: var(--bg);
+}
+.atab {
+  border: 0; border-bottom: 2px solid transparent; background: none; font: inherit;
+  cursor: pointer; padding: 9px 12px; color: var(--ink-3); font-size: 12.5px;
+}
+.atab:hover { color: var(--ink-2); }
+.atab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--calls); font-weight: 600; }
+
+/* ---------- content ---------- */
+.content { padding: 16px 20px 48px; display: flex; flex-direction: column; gap: 14px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.card-hd {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+}
+.card-hd h2 { margin: 0; font-family: var(--font-uWi); font-size: 12.5px; font-weight: 650; }
+.card-hd .sub {
+  font-family: var(--font-num); font-size: 10px; color: var(--ink-3);
+  letter-spacing: .05em; text-transform: uppercase;
+}
+.card-hd .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+/* ---------- verdict ---------- */
+.verdict { display: grid; grid-template-columns: minmax(230px,300px) minmax(0,1fr); overflow: hidden; }
+.verdict-main { padding: 16px 18px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 9px; }
+.verdict-eyebrow {
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .16em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+.verdict-call {
+  font-family: var(--font-uWi); font-size: 27px; font-weight: 680;
+  letter-spacing: -.022em; line-height: 1.05; text-wrap: balance;
+}
+.conf { display: flex; align-items: center; gap: 9px; }
+.conf-track { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.conf-fill { height: 100%; background: var(--calls); border-radius: 3px; }
+.conf-val { font-family: var(--font-num); font-size: 11px; color: var(--ink-2); }
+
+.drivers { padding: 14px 18px; display: flex; flex-direction: column; gap: 9px; }
+.driver { display: grid; grid-template-columns: 15px minmax(96px,132px) minmax(0,1fr); gap: 10px; align-items: baseline; }
+.driver .ico { font-family: var(--font-num); font-size: 12px; text-align: center; }
+.driver .k {
+  font-family: var(--font-num); font-size: 10px; letter-spacing: .07em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+.driver .v { color: var(--ink-2); font-size: 12.5px; }
+.driver .v b { color: var(--ink); font-weight: 600; }
+
+/* ---------- KPI ---------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px,1fr)); gap: 10px; }
+.kpi { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.kpi-k {
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .13em;
+  color: var(--ink-3); text-transform: uppercase; display: flex; align-items: center; gap: 6px;
+}
+.kpi-v {
+  font-family: var(--font-num); font-size: 21px; font-weight: 600;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.kpi-m { font-family: var(--font-num); font-size: 10.5px; color: var(--ink-3); }
+.swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+
+/* ---------- ladder ---------- */
+.ladder-wrap { padding: 4px 14px 16px; overflow-x: auto; }
+.ladder { min-width: 580px; display: flex; flex-direction: column; }
+.ladder-head {
+  display: grid; grid-template-columns: 1fr 92px 1fr; gap: 10px;
+  padding: 8px 0 7px; border-bottom: 1px solid var(--line-soft);
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .13em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+.ladder-head .c { text-align: center; }
+.ladder-head .r { text-align: right; }
+
+.rung {
+  display: grid; grid-template-columns: 1fr 92px 1fr; gap: 10px;
+  align-items: center; padding: 1.5px 0; position: relative;
+  border: 0; background: none; font: inherit; width: 100%; cursor: pointer;
+  border-radius: 3px;
+}
+.rung:hover { background: var(--surface-2); }
+.rung:hover .barfill { filter: brightness(1.22); }
+.rung:hover .strike { color: var(--ink); }
+.rung[aria-pressed="true"] { background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line); }
+
+.side { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.side.l { flex-direction: row-reverse; }
+.bartrack { flex: 1; height: 15px; display: flex; min-width: 0; }
+.side.l .bartrack { justify-content: flex-end; }
+.barfill { height: 100%; border-radius: 2px; }
+.side.l .barfill { background: var(--calls); border-radius: 2px 0 0 2px; }
+.side.r .barfill { background: var(--puts); border-radius: 0 2px 2px 0; }
+.barval {
+  font-family: var(--font-num); font-size: 10.5px; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; flex: none; width: 44px;
+}
+.side.l .barval { text-align: right; }
+.side.r .barval { text-align: left; }
+
+.strike {
+  font-family: var(--font-num); font-size: 11.5px; text-align: center;
+  color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.rung.wall-c .barfill { box-shadow: 0 0 0 1px var(--surface), 0 0 0 2px var(--calls); }
+.rung.wall-p .barfill { box-shadow: 0 0 0 1px var(--surface), 0 0 0 2px var(--puts); }
+.rung.spot { background: var(--surface-2); }
+.rung.spot .strike { color: var(--ink); font-weight: 700; }
+.rung.mp .strike { color: var(--maxpain); font-weight: 700; }
+
+.rung .flag {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-num); font-size: 8.5px; letter-spacing: .1em;
+  padding: 1px 5px; border-radius: 3px; text-transform: uppercase; pointer-events: none;
+}
+.flag.spot { color: var(--ink); border: 1px solid var(--ink-3); background: var(--surface); }
+.flag.mp   { color: var(--maxpain); border: 1px solid var(--maxpain); background: var(--surface); }
+.flag.cw   { color: var(--calls); border: 1px solid var(--calls); background: var(--surface); }
+
+.legend {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 10px 0 2px; margin-top: 6px; border-top: 1px solid var(--line-soft);
+  font-family: var(--font-num); font-size: 10px; color: var(--ink-3); letter-spacing: .05em;
+}
+.legend span { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- charts ---------- */
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); gap: 14px; }
+.chart-body { padding: 12px 14px 14px; }
+.chart-body svg { width: 100%; height: auto; display: block; }
+.axis { font-family: var(--font-num); font-size: 9px; fill: var(--ink-3); }
+.gridline { stroke: var(--line-soft); stroke-width: 1; }
+
+/* ---------- tables ---------- */
+.tablewrap { overflow-x: auto; }
+
+/* Strike-indexed views open centred on the money and scroll both ways, so
+   the market's actual level is never buried at the bottom of a long list. */
+.tablewrap.tall { max-height: 480px; overflow-y: auto; }
+.ladder-wrap.tall { max-height: 520px; overflow-y: auto; }
+tr[data-atm] td { box-shadow: inset 0 1px 0 var(--calls), inset 0 -1px 0 var(--calls); }
+table.dt { width: 100%; border-collapse: collapse; }
+table.dt th, table.dt td { padding: 6px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line-soft); }
+table.dt thead th {
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .1em;
+  color: var(--ink-3); text-transform: uppercase; font-weight: 500;
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+table.dt thead th.grp-c { color: var(--calls); }
+table.dt thead th.grp-p { color: var(--puts); }
+table.dt td { font-family: var(--font-num); font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+table.dt td.lft, table.dt th.lft { text-align: left; }
+table.dt tbody tr.clickable { cursor: pointer; }
+table.dt tbody tr.clickable:hover td { background: var(--surface-2); }
+table.dt td.strike-cell {
+  text-align: center; color: var(--ink); font-weight: 600; background: var(--surface-2);
+  border-left: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft);
+}
+table.dt tbody tr.atm td { background: var(--calls-dim); }
+table.dt tbody tr.atm td.strike-cell { background: var(--calls-dim); }
+.itm-c { background: var(--calls-dim); }
+.itm-p { background: var(--puts-dim); }
+table.chain { min-width: 760px; }
+table.bu { min-width: 700px; }
+table.hist { min-width: 620px; }
+
+/* ---------- buildup pills ---------- */
+.pill {
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .06em;
+  padding: 2px 7px; border-radius: 3px; border: 1px solid; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.pill.lb { color: var(--up);      border-color: var(--up); }
+.pill.sb { color: var(--down);    border-color: var(--down); }
+.pill.sc { color: var(--calls);   border-color: var(--calls); }
+.pill.lu { color: var(--puts);    border-color: var(--puts); }
+.pill.nx { color: var(--ink-3);   border-color: var(--line); }
+
+/* ---------- technicals ---------- */
+.tech { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 0; }
+.tcell { padding: 12px 14px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 5px; }
+.tcell-k { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .11em; color: var(--ink-3); text-transform: uppercase; }
+.tcell-v { font-family: var(--font-num); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tcell-m { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); }
+.meter { height: 4px; border-radius: 2px; background: var(--surface-3); overflow: hidden; margin-top: 2px; }
+.meter i { display: block; height: 100%; border-radius: 2px; }
+
+.levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 0; }
+.lvl { padding: 10px 14px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 3px; }
+.lvl-k { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
+.lvl-v { font-family: var(--font-num); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+/* ---------- pipeline ---------- */
+.pipe { display: flex; flex-wrap: wrap; }
+.step { flex: 1 1 150px; padding: 11px 14px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 4px; }
+.step:last-child { border-right: 0; }
+.step-k { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+.step-v { font-family: var(--font-num); font-size: 12.5px; color: var(--ink); }
+.step-m { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); }
+
+/* ---------- drawer ---------- */
+.scrim {
+  position: fixed; inset: 0; background: rgba(4,8,12,.55);
+  opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 40;
+}
+.scrim.open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(460px, 100vw);
+  background: var(--surface); border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-lg); transform: translateX(100%);
+  transition: transform .2s ease; z-index: 41;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-hd {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid var(--line);
+}
+.drawer-hd h3 { margin: 0; font-family: var(--font-uWi); font-size: 18px; font-weight: 660; letter-spacing: -.015em; }
+.drawer-hd .sub { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); letter-spacing: .07em; text-transform: uppercase; }
+.xbtn {
+  margin-left: auto; background: var(--surface-2); border: 1px solid var(--line);
+  color: var(--ink-2); border-radius: var(--r); cursor: pointer;
+  font-family: var(--font-num); font-size: 13px; line-height: 1; padding: 6px 9px;
+}
+.xbtn:hover { color: var(--ink); border-color: var(--ink-3); }
+.drawer-body { overflow-y: auto; padding: 0 0 24px; }
+
+.leg-hd {
+  display: flex; align-items: center; gap: 8px; padding: 11px 16px 8px;
+  font-family: var(--font-num); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+}
+.leg-hd .bar { width: 3px; height: 13px; border-radius: 2px; }
+.leg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--line-soft); }
+.lg { padding: 9px 16px; border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 2px; }
+.lg:nth-child(odd) { border-right: 1px solid var(--line-soft); }
+.lg-k { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .09em; color: var(--ink-3); text-transform: uppercase; }
+.lg-v { font-family: var(--font-num); font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ohlc-row { display: flex; gap: 0; border-bottom: 1px solid var(--line-soft); }
+.ohlc-cell { flex: 1; padding: 9px 10px; border-right: 1px solid var(--line-soft); text-align: center; }
+.ohlc-cell:last-child { border-right: 0; }
+.ohlc-k { font-family: var(--font-num); font-size: 9px; letter-spacing: .12em; color: var(--ink-3); }
+.ohlc-v { font-family: var(--font-num); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+.readout { padding: 12px 16px; display: flex; flex-direction: column; gap: 7px; border-bottom: 1px solid var(--line-soft); }
+.readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
+.readout p b { color: var(--ink); }
+
+/* ---------- strategy / seller desk ---------- */
+.caution {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 11px 14px; border-left: 3px solid var(--warn);
+  background: var(--surface-2); border-radius: 0 var(--r) var(--r) 0;
+}
+.caution b { color: var(--ink); }
+.caution p { margin: 0; color: var(--ink-2); font-size: 12px; }
+.caution p + p { margin-top: 5px; }
+
+.rangebar { padding: 20px 18px 12px; }
+.rb { position: relative; height: 46px; }
+.rb-band { position: absolute; top: 12px; height: 22px; border-radius: 3px; }
+.rb-2sd { background: var(--surface-3); }
+.rb-1sd { background: var(--calls-dim); box-shadow: inset 0 0 0 1px var(--calls); }
+.rb-tick { position: absolute; top: 4px; width: 2px; height: 38px; border-radius: 1px; }
+.rb-lab {
+  position: absolute; font-family: var(--font-num); font-size: 9.5px;
+  color: var(--ink-3); letter-spacing: .05em; white-space: nowrap; transform: translateX(-50%);
+}
+.rb-lab.top { top: -14px; } .rb-lab.bot { top: 46px; }
+.rb-legend {
+  display: flex; gap: 18px; flex-wrap: wrap; padding-top: 26px;
+  font-family: var(--font-num); font-size: 10px; color: var(--ink-3); letter-spacing: .05em;
+}
+.rb-legend span { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- crosshair readouts ---------- */
+.rb { cursor: crosshair; }
+.rb-cross {
+  position: absolute; top: 2px; bottom: 2px; width: 1px;
+  background: var(--ink); opacity: .9; pointer-events: none; display: none;
+}
+.rb-cross::after {
+  content: ""; position: absolute; left: -3px; top: 50%; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--ink); transform: translateY(-50%);
+}
+.rb-tip {
+  position: absolute; bottom: 44px; transform: translateX(-50%);
+  background: var(--surface-3); border: 1px solid var(--line);
+  border-radius: 4px; padding: 5px 9px; white-space: nowrap;
+  font-family: var(--font-num); font-size: 11px; color: var(--ink);
+  pointer-events: none; display: none; z-index: 6; box-shadow: var(--shadow);
+}
+.rb-tip b { color: var(--ink); font-size: 12.5px; }
+.rb-tip i { font-style: normal; color: var(--ink-3); }
+.rb.live .rb-cross, .rb.live .rb-tip { display: block; }
+
+.ch-wrap { position: relative; cursor: crosshair; }
+.ch-cross {
+  position: absolute; top: 0; bottom: 18px; width: 1px;
+  background: var(--ink-3); pointer-events: none; display: none;
+}
+.ch-dot {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  transform: translate(-50%, -50%); pointer-events: none; display: none;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.ch-tip {
+  position: absolute; top: 2px; transform: translateX(-50%);
+  background: var(--surface-3); border: 1px solid var(--line);
+  border-radius: 5px; padding: 8px 10px; white-space: nowrap;
+  font-family: var(--font-num); color: var(--ink);
+  pointer-events: none; display: none; z-index: 6; box-shadow: var(--shadow);
+  min-width: 148px;
+}
+.ch-tip i { font-style: normal; color: var(--ink-3); }
+.ch-wrap.live .ch-cross, .ch-wrap.live .ch-dot, .ch-wrap.live .ch-tip { display: block; }
+
+.tip-date { font-size: 9.5px; letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
+.tip-big {
+  font-size: 18px; font-weight: 650; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; margin-top: 1px;
+}
+.tip-chg { font-size: 10.5px; margin-top: 1px; }
+.tip-grid {
+  display: grid; grid-template-columns: auto auto; gap: 1px 12px;
+  margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line);
+}
+.tip-grid span { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
+.tip-grid b { font-size: 11px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+.tip-vol { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line); }
+.tip-vol-k { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
+.tip-vol-bar { height: 5px; border-radius: 3px; background: var(--surface); margin: 3px 0 2px; overflow: hidden; }
+.tip-vol-bar i { display: block; height: 100%; background: var(--calls); border-radius: 3px; }
+.tip-vol-v { font-size: 11px; font-variant-numeric: tabular-nums; }
+
+/* ladder hover readout */
+.rung-tip {
+  position: fixed; transform: translate(-50%, -120%);
+  background: var(--surface-3); border: 1px solid var(--line);
+  border-radius: 5px; padding: 7px 10px; white-space: nowrap;
+  font-family: var(--font-num); font-size: 11px; color: var(--ink);
+  pointer-events: none; z-index: 50; box-shadow: var(--shadow); display: none;
+}
+.rung-tip.live { display: block; }
+.rung-tip .rt-k { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
+.rung-tip .rt-big { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.rung-tip .rt-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 2px; }
+
+.bar-dual { display: flex; flex-direction: column; gap: 4px; }
+.bar-cap {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  font-family: var(--font-num); font-size: 10px; letter-spacing: .11em;
+  color: var(--ink-3); text-transform: uppercase; padding: 0 18px;
+}
+.bar-cap b { color: var(--ink); font-size: 12.5px; letter-spacing: 0; text-transform: none; }
+.bar-cap .tagx {
+  border: 1px solid var(--line); border-radius: 3px; padding: 1px 6px;
+  font-size: 9px; letter-spacing: .07em; color: var(--ink-3);
+}
+
+.probs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); }
+.prob { padding: 12px 14px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 5px; }
+.prob:last-child { border-right: 0; }
+.prob-k { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .11em; color: var(--ink-3); text-transform: uppercase; }
+.prob-v { font-family: var(--font-num); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+table.strat { min-width: 780px; }
+table.strat td.verdict-cell { text-align: left; }
+.pill.go   { color: var(--up);    border-color: var(--up); }
+.pill.mid  { color: var(--warn);  border-color: var(--warn); }
+.pill.no   { color: var(--ink-3); border-color: var(--line); }
+.pill.risk { color: var(--down);  border-color: var(--down); }
+
+.struct { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); }
+.struct-c { padding: 12px 14px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 4px; }
+.struct-k { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .11em; color: var(--ink-3); text-transform: uppercase; }
+.struct-v { font-family: var(--font-num); font-size: 15px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.struct-m { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); }
+
+.legs { display: flex; flex-direction: column; }
+.leg-row {
+  display: grid; grid-template-columns: 74px 1fr auto; gap: 12px; align-items: center;
+  padding: 9px 14px; border-bottom: 1px solid var(--line-soft);
+}
+.leg-act {
+  font-family: var(--font-num); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 3px; border: 1px solid; text-align: center;
+}
+.leg-act.sell { color: var(--down); border-color: var(--down); }
+.leg-act.buy  { color: var(--up);   border-color: var(--up); }
+.leg-desc { font-family: var(--font-num); font-size: 12.5px; color: var(--ink); }
+.leg-prem { font-family: var(--font-num); font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.checks { display: flex; flex-direction: column; }
+.check {
+  display: grid; grid-template-columns: 18px minmax(120px,170px) minmax(0,1fr);
+  gap: 12px; align-items: baseline; padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+}
+.check:last-child { border-bottom: 0; }
+.check .mk { font-family: var(--font-num); font-size: 12px; color: var(--calls); text-align: center; }
+.check .ck { font-family: var(--font-num); font-size: 10px; letter-spacing: .09em; color: var(--ink-3); text-transform: uppercase; }
+.check .cv { color: var(--ink-2); font-size: 12.5px; }
+.check .cv b { color: var(--ink); font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+table.gap { min-width: 560px; }
+.bar-pl { display: inline-block; height: 9px; border-radius: 2px; vertical-align: middle; }
+
+/* ---------- candlestick overlay ---------- */
+.ck-scrim {
+  position: fixed; inset: 0; background: rgba(4,8,12,.72);
+  opacity: 0; pointer-events: none; transition: opacity .16s ease; z-index: 60;
+}
+.ck-scrim.open { opacity: 1; pointer-events: auto; }
+
+.ck-panel {
+  position: fixed; inset: 3vh 3vw; z-index: 61;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); box-shadow: var(--shadow-lg);
+  display: none; flex-direction: column; overflow: hidden;
+}
+.ck-panel.open { display: flex; }
+
+.ck-hd {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 11px 16px; border-bottom: 1px solid var(--line);
+}
+.ck-name { font-family: var(--font-uWi); font-size: 16px; font-weight: 660; letter-spacing: -.01em; }
+.ck-last {
+  font-family: var(--font-num); font-size: 20px; font-weight: 650;
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+.ck-chg { font-family: var(--font-num); font-size: 12px; }
+.ck-meta { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); letter-spacing: .05em; }
+.ck-ranges { margin-left: auto; display: flex; gap: 3px; }
+.ck-r {
+  border: 1px solid var(--line); background: none; color: var(--ink-2);
+  border-radius: var(--r); padding: 4px 10px; cursor: pointer;
+  font-family: var(--font-num); font-size: 10.5px;
+}
+.ck-r:hover { color: var(--ink); border-color: var(--ink-3); }
+.ck-r[aria-selected="true"] { background: var(--calls-dim); border-color: var(--calls); color: var(--ink); }
+
+.ck-body { flex: 1; position: relative; min-height: 0; }
+.ck-chart { position: absolute; inset: 0; }
+
+/* OHLC readout that tracks the crosshair, as in a broker terminal */
+.ck-tip {
+  position: absolute; top: 12px; left: 12px; z-index: 4;
+  background: var(--surface-3); border: 1px solid var(--line);
+  border-radius: 5px; padding: 9px 12px; pointer-events: none;
+  font-family: var(--font-num); min-width: 210px; box-shadow: var(--shadow);
+}
+.ck-tip-date { font-size: 9.5px; letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
+.ck-tip-big { font-size: 20px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin: 1px 0 2px; }
+.ck-tip-grid { display: grid; grid-template-columns: auto auto; gap: 1px 14px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+.ck-tip-grid span { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
+.ck-tip-grid b { font-size: 11.5px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+.ck-tip-vol { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 10.5px; color: var(--ink-2); }
+
+.ck-empty { padding: 40px 24px; text-align: center; color: var(--ink-2); }
+
+.clickable-idx { cursor: pointer; }
+.si { cursor: pointer; }
+.si:hover .si-v { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- watchlist ---------- */
+.wl-tabs {
+  display: flex; gap: 3px; padding: 8px 12px; flex-wrap: wrap;
+  border-top: 1px solid var(--line-soft);
+}
+.wl-tab {
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2);
+  border-radius: var(--r); padding: 6px 13px; cursor: pointer; font: inherit;
+  font-size: 12px;
+}
+.wl-tab:hover { color: var(--ink); border-color: var(--ink-3); }
+.wl-tab[aria-selected="true"] {
+  background: var(--calls-dim); border-color: var(--calls);
+  color: var(--ink); font-weight: 600;
+}
+
+.wl-exp {
+  display: flex; gap: 3px; padding: 10px 14px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line-soft);
+}
+.wl-e {
+  border: 1px solid var(--line); background: none; color: var(--ink-2);
+  border-radius: var(--r); padding: 5px 11px; cursor: pointer; font: inherit;
+  font-size: 11.5px; text-align: left; line-height: 1.3;
+}
+.wl-e i {
+  display: block; font-style: normal; font-family: var(--font-num);
+  font-size: 9px; color: var(--ink-3); letter-spacing: .04em; margin-top: 1px;
+}
+.wl-e:hover { border-color: var(--ink-3); color: var(--ink); }
+.wl-e[aria-selected="true"] {
+  border-color: var(--calls); background: var(--calls-dim); color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- band comparison ---------- */
+.bandlist { padding: 14px 16px 6px; display: flex; flex-direction: column; gap: 9px; }
+.bandrow {
+  display: grid; grid-template-columns: minmax(140px,190px) minmax(0,1fr) minmax(120px,150px);
+  gap: 14px; align-items: center;
+}
+.bandrow-k { font-family: var(--font-num); font-size: 11.5px; color: var(--ink); }
+.bandrow-k i {
+  display: block; font-style: normal; font-size: 9.5px;
+  color: var(--ink-3); letter-spacing: .04em; margin-top: 1px;
+}
+.bandrow-bar { position: relative; height: 13px; background: var(--surface-2); border-radius: 3px; }
+.bandrow-bar span {
+  position: absolute; top: 0; bottom: 0; border-radius: 3px;
+  background: var(--calls); opacity: .78;
+}
+.bandrow-v {
+  font-family: var(--font-num); font-size: 11.5px; text-align: right;
+  color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.bandrow-v i {
+  display: block; font-style: normal; font-size: 9.5px; color: var(--ink-3); margin-top: 1px;
+}
+.caution em { font-style: normal; color: var(--ink); }
+
+@media (max-width: 720px) {
+  .bandrow { grid-template-columns: 1fr; gap: 4px; }
+  .bandrow-v { text-align: left; }
+}
+
+.mh-intro {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  border-top: 1px solid var(--line-soft);
+}
+.mh-intro > div { padding: 12px 16px; border-right: 1px solid var(--line-soft); }
+.mh-intro b {
+  display: block; font-family: var(--font-num); font-size: 9.5px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3);
+}
+.mh-intro p { margin: 5px 0 0; color: var(--ink-2); font-size: 12.5px; }
+.mh-intro em { font-style: normal; color: var(--ink); }
+.mark.pend { color: var(--ink-3); font-size: 10px; }
+
+/* ---------- learning ---------- */
+.lrn-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(330px,1fr));
+}
+.lrn {
+  padding: 13px 16px; border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+}
+.lrn-t {
+  font-family: var(--font-uWi); font-size: 13px; font-weight: 650;
+  color: var(--ink); letter-spacing: -.005em;
+}
+.lrn-p { color: var(--ink-2); font-size: 12.5px; margin-top: 4px; line-height: 1.5; }
+.lrn-p b { color: var(--ink); }
+.lrn-p em { font-style: normal; color: var(--ink); }
+.lrn-e {
+  margin-top: 8px; padding: 7px 10px; border-radius: 4px;
+  background: var(--calls-dim); border-left: 2px solid var(--calls);
+  font-size: 12px; color: var(--ink-2); font-family: var(--font-num);
+  line-height: 1.5;
+}
+.lrn-e b { color: var(--ink); }
+.lrn-w {
+  margin-top: 6px; font-family: var(--font-num); font-size: 9.5px;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+
+/* ---------- model history ---------- */
+.mh-card { overflow: hidden; }
+.mh-hd {
+  display: grid; grid-template-columns: 108px minmax(0,1fr) auto 18px;
+  gap: 14px; align-items: center; width: 100%; text-align: left;
+  background: none; border: 0; font: inherit; cursor: pointer;
+  padding: 11px 14px; color: var(--ink);
+}
+.mh-hd:hover { background: var(--surface-2); }
+.mh-date { font-family: var(--font-num); font-size: 12.5px; font-weight: 600; }
+.mh-meta { font-family: var(--font-num); font-size: 10.5px; color: var(--ink-3); }
+.mh-score {
+  font-family: var(--font-num); font-size: 11px; padding: 2px 9px;
+  border-radius: 3px; border: 1px solid var(--line); white-space: nowrap;
+}
+.mh-score.pos { color: var(--up);   border-color: var(--up); }
+.mh-score.neg { color: var(--down); border-color: var(--down); }
+.mh-chev { color: var(--ink-3); font-size: 11px; transition: transform .15s ease; }
+.mh-card.open .mh-chev { transform: rotate(180deg); }
+.mh-body { display: none; border-top: 1px solid var(--line-soft); }
+.mh-card.open .mh-body { display: block; }
+
+.mh-outcome {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  border-bottom: 1px solid var(--line-soft);
+}
+.mh-outcome > div { padding: 10px 14px; border-right: 1px solid var(--line-soft); }
+.mh-outcome b {
+  display: block; font-family: var(--font-num); font-size: 15px;
+  font-variant-numeric: tabular-nums; margin-top: 2px;
+}
+.mh-outcome i {
+  display: block; font-style: normal; font-family: var(--font-num);
+  font-size: 9.5px; color: var(--ink-3); margin-top: 1px;
+}
+
+.qgrid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+  border-bottom: 1px solid var(--line-soft);
+}
+.qcell { padding: 9px 14px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+.qk {
+  font-family: var(--font-num); font-size: 9px; letter-spacing: .12em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+.qv {
+  font-family: var(--font-num); font-size: 14px; color: var(--ink);
+  font-variant-numeric: tabular-nums; margin-top: 2px;
+}
+.qn { font-family: var(--font-num); font-size: 9.5px; color: var(--ink-3); margin-top: 1px; }
+
+.relbar { height: 8px; border-radius: 3px; background: var(--surface-2); min-width: 120px; }
+.relbar i { display: block; height: 100%; border-radius: 3px; }
+
+/* ---------- accuracy / calibration ---------- */
+table.ledger { min-width: 1720px; }
+
+/* Column-group header: three bands so a wide row reads as claim -> outcome
+   -> verdict rather than eighteen undifferentiated columns. */
+.grp-row th {
+  font-family: var(--font-num); font-size: 9px; letter-spacing: .16em;
+  text-transform: uppercase; padding: 5px 10px; font-weight: 600;
+  border-bottom: 1px solid var(--line);
+}
+.grp-claim { color: var(--calls);   background: var(--calls-dim); }
+.grp-real  { color: var(--puts);    background: var(--puts-dim); }
+.grp-next  { color: var(--up);      background: rgba(63,185,80,.10); }
+.grp-vd    { color: var(--maxpain); background: var(--surface-2); }
+table.ledger th.grp-edge, table.ledger td.grp-edge { border-right: 1px solid var(--line); }
+
+.sub-n {
+  display: block; font-style: normal; font-size: 9.5px;
+  color: var(--ink-3); margin-top: 1px;
+}
+.mark.pend { color: var(--ink-3); }
+
+/* Live forecasts sit above the scored ones, visibly separated -- they are
+   not results and must never be counted as if they were. */
+tr.pending-row td {
+  background: var(--surface-2);
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+}
+tr.pending-row td.lft { color: var(--ink-2); }
+.pill.part { color: var(--warn); border-color: var(--warn); }
+
+table.ledger { min-width: 800px; }
+.mark { font-family: var(--font-num); font-weight: 700; font-size: 13px; }
+.mark.hit  { color: var(--up); }
+.mark.miss { color: var(--down); }
+.formula {
+  font-family: var(--font-num); font-size: 11px; color: var(--ink-2);
+  background: var(--surface-2); border: 1px solid var(--line-soft);
+  border-radius: 4px; padding: 7px 10px; overflow-x: auto; white-space: nowrap;
+}
+.stack-row {
+  display: grid; grid-template-columns: 26px minmax(150px,220px) minmax(0,1fr) auto;
+  gap: 12px; align-items: baseline; padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+}
+.stack-row:last-child { border-bottom: 0; }
+.stack-n { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); text-align: center; }
+.stack-k { font-family: var(--font-num); font-size: 11.5px; color: var(--ink); }
+.stack-d { color: var(--ink-2); font-size: 12.5px; }
+.pill.live { color: var(--up);   border-color: var(--up); }
+.pill.next { color: var(--calls);border-color: var(--calls); }
+.pill.wait { color: var(--ink-3);border-color: var(--line); }
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .rail { flex-direction: row; align-items: center; gap: 16px; overflow-x: auto; padding: 10px 14px; }
+  .rail-group, .rail-foot { display: none; }
+  .verdict { grid-template-columns: 1fr; }
+  .verdict-main { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+  .leg-grid { grid-template-columns: 1fr; }
+  .lg:nth-child(odd) { border-right: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="mock" id="freshness" hidden>
+  <strong id="freshTag">Loading</strong>
+  <span id="freshMsg">Reading snapshot&hellip;</span>
+</div>
+
+<div class="shell">
+  <nav class="rail">
+    <div class="brand">
+      <b>Options Desk</b>
+      <span>NSE &middot; EOD</span>
+    </div>
+
+    <div class="rail-group">
+      <div class="rail-label">Analysis</div>
+      <div id="railAnalysis"></div>
+    </div>
+
+    <div class="rail-group">
+      <div class="rail-label">Universe</div>
+      <div id="railIndices"></div>
+    </div>
+
+    <div class="rail-group">
+      <div class="rail-label">Reference</div>
+      <button class="rail-item" data-view="learning" id="railLearn">Learning</button>
+    </div>
+
+    <div class="rail-foot">v0.2.0 &middot; local</div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="idx-tabs" id="idxTabs" role="tablist" aria-label="Index"></div>
+      <div class="topbar-right">
+        <div class="stamp" id="stamp"><span class="dot"></span> &mdash;</div>
+        <button class="tgl" id="themeBtn" type="button">Theme</button>
+      </div>
+    </div>
+
+    <div class="strip-wrap">
+      <div class="strip" id="strip" aria-label="Market levels"></div>
+      <div class="atabs" id="aTabs" role="tablist" aria-label="Analysis view"></div>
+    </div>
+
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="rung-tip" id="rungTip"></div>
+
+<div class="ck-scrim" id="ckScrim"></div>
+<aside class="ck-panel" id="ckPanel" role="dialog" aria-modal="true" aria-labelledby="ckName">
+  <div class="ck-hd">
+    <div>
+      <div class="ck-name" id="ckName">&mdash;</div>
+      <div class="ck-meta" id="ckMeta">&mdash;</div>
+    </div>
+    <div>
+      <div class="ck-last" id="ckLast">&mdash;</div>
+      <div class="ck-chg" id="ckChg">&mdash;</div>
+    </div>
+    <div class="ck-ranges" id="ckRanges"></div>
+    <button class="xbtn" id="ckClose" type="button" aria-label="Close chart">&times;</button>
+  </div>
+  <div class="ck-body" id="ckBody">
+    <div class="ck-chart" id="ckChart"></div>
+    <div class="ck-tip" id="ckTip" hidden></div>
+  </div>
+</aside>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" tabindex="-1">
+  <div class="drawer-hd">
+    <div>
+      <h3 id="drawerTitle">&mdash;</h3>
+      <div class="sub" id="drawerSub">&mdash;</div>
+    </div>
+    <button class="xbtn" id="drawerClose" type="button" aria-label="Close strike detail">&times;</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ==========================================================
+     1. DATA LAYER &mdash; reads static JSON written by the daily job.
+        The page never contacts NSE and never computes analytics
+        it could get wrong; every number here was produced by
+        compute.py and stored before the page loaded.
+     ========================================================== */
+  var SNAPSHOT = "snapshot/";
+  var INDICES = [];          /* filled from manifest + per-index files */
+  var ACCURACY = {};
+  var MANIFEST = {};
+  var STRIP = [];            /* market.json -- rendered once, never re-rendered */
+  var WATCH = [];            /* watchlist.json */
+  var MHIST = {};            /* history.json -- per-day audit trail */
+
+  function getJson(name) {
+    return fetch(SNAPSHOT + name, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error(name + " -> HTTP " + r.status);
+      return r.json();
+    });
+  }
+
+  var VIEWS = [
+    { key:"overview",  label:"Overview" },
+    { key:"strategy",  label:"Direction &amp; strategy" },
+    { key:"accuracy",  label:"Model accuracy" },
+    { key:"modelhist", label:"Model history" },
+    { key:"watchlist", label:"Watchlist" },
+    { key:"buildup",   label:"OI &amp; build-up" },
+    { key:"chain",     label:"Option chain" },
+    { key:"technicals",label:"Technicals" },
+    { key:"history",   label:"History" }
+  ];
+
+  /* ==========================================================
+     2. NORMALISE &mdash; snapshot JSON into the shape the views use.
+        OI, change-in-OI and volume arrive as raw contract counts
+        and are converted to lakh once, here, so no view has to
+        remember which unit it is holding.
+     ========================================================== */
+  var LAKH = 1e5;
+
+  function normLeg(b) {
+    if (!b) return null;
+    return {
+      ltp: b.ltp, prevClose: b.prevClose, chg: b.chg, chgPct: b.chgPct,
+      oi: (b.oi || 0) / LAKH, chgOi: (b.chgOi || 0) / LAKH,
+      vol: (b.vol || 0) / LAKH, iv: b.iv,
+      bid: b.bid, ask: b.ask, buildup: b.buildup,
+      /* Present only for sessions rebuilt from the F&O bhavcopy. Left null
+         where the live chain was the source, so the drawer can say so
+         rather than repeat LTP four times. */
+      o: b.o, h: b.h, l: b.l, c: b.c, settle: b.settle,
+      turnover: 0
+    };
+  }
+
+  /* A strike can arrive with only one side quoted. Fill the gap with an
+     explicit empty leg so views never have to test for null. */
+  var EMPTY_LEG = {
+    ltp: 0, prevClose: 0, chg: 0, chgPct: 0, oi: 0, chgOi: 0, vol: 0,
+    iv: null, bid: 0, ask: 0, buildup: null, o: 0, h: 0, l: 0, c: 0, turnover: 0
+  };
+
+  function normalise(d) {
+    var rows = (d.rows || []).map(function (r) {
+      return {
+        strike: r.strike,
+        ce: normLeg(r.ce) || Object.assign({}, EMPTY_LEG),
+        pe: normLeg(r.pe) || Object.assign({}, EMPTY_LEG)
+      };
+    });
+
+    var o = d.ohlc || {};
+    var cfg = {
+      key: d.index, label: d.label, lot: d.lot, step: d.step,
+      spot: d.spot, prevClose: o.prevClose || d.spot,
+      open: o.open || d.spot, high: o.high || d.spot, low: o.low || d.spot,
+      vix: (d.vix && d.vix.value) || 0, vixChg: (d.vix && d.vix.chgPct) || 0,
+      expiry: d.expiry, iv: d.atmIv
+    };
+
+    var maxOi = rows.reduce(function (mx, r) {
+      return Math.max(mx, r.ce ? r.ce.oi : 0, r.pe ? r.pe.oi : 0);
+    }, 0) || 1;
+
+    var cands = (d.candidates || []).map(function (c) {
+      return {
+        side: c.side, strike: c.strike, delta: c.delta, pop: c.pop,
+        credit: c.ltp, creditRs: c.credit_rs, rom: c.rom_pct,
+        margin: c.margin, liquid: c.verdict !== "illiquid",
+        leg: { oi: (c.oi || 0) / LAKH, vol: (c.vol || 0) / LAKH, iv: c.iv },
+        verdict: VERDICT[c.verdict] || { c: "no", t: c.verdict }
+      };
+    });
+
+    return {
+      cfg: cfg, rows: rows, atm: d.atm, maxOi: maxOi,
+      totC: (d.totalCeOi || 0) / LAKH, totP: (d.totalPeOi || 0) / LAKH,
+      pcr: d.pcr, maxPain: d.maxPain,
+      callWall: d.callWall, putWall: d.putWall,
+      sd1: d.sd1, range1: d.range1sd, range2: d.range2sd,
+      sdNext: d.sdNext, rangeNext1: d.rangeNext1sd,
+      rangeNextCalibrated: d.rangeNextCalibrated, bandFactor: d.bandFactor,
+      an: d.analysis || null,
+      dte: d.dte, t: Math.max(d.dte, 0.5) / 365,
+      atmIv: d.atmIv, tradeDate: d.tradeDate, nseTimestamp: d.nseTimestamp,
+      sessionsStored: d.sessionsStored, nStrikes: d.nStrikes,
+      cands: cands,
+      piv: pivots(cfg.high, cfg.low, cfg.spot),
+      hist: (d.history || []).map(function (h) {
+        return { date: new Date(h.date + "T00:00:00Z"), close: h.close,
+                 pcr: h.pcr, mp: h.maxPain, vix: h.vix, atmIv: h.atmIv,
+                 o: h.o, h: h.h, l: h.l, c: h.c,
+                 chgPct: h.chgPct, volume: h.volume, turnover: h.turnover };
+      })
+    };
+  }
+
+  var VERDICT = {
+    candidate:    { c: "go",   t: "Candidate" },
+    marginal:     { c: "mid",  t: "Marginal" },
+    thin_premium: { c: "mid",  t: "Thin premium" },
+    too_close:    { c: "risk", t: "Too close" },
+    illiquid:     { c: "no",   t: "Illiquid" }
+  };
+
+  function classify(chgPct, chgOi) {
+    if (chgOi >= 0 && chgPct >= 0) return { c:"lb", t:"Long build-up" };
+    if (chgOi >= 0 && chgPct <  0) return { c:"sb", t:"Short build-up" };
+    if (chgOi <  0 && chgPct >= 0) return { c:"sc", t:"Short covering" };
+    return { c:"lu", t:"Long unwinding" };
+  }
+
+  function pivots(h, l, c) {
+    var p = (h + l + c) / 3, rng = h - l;
+    return { p:p, r1:2*p-l, s1:2*p-h, r2:p+rng, s2:p-rng, r3:h+2*(p-l), s3:l-2*(h-p) };
+  }
+
+  var MODEL = {};
+
+  /* ==========================================================
+     3. FORMATTERS
+     ========================================================== */
+  /* NSE reports no IV for illiquid strikes, and a chain can carry a strike
+     with only one leg. Formatters absorb that rather than every call site
+     guarding for it \u2014 one unguarded null used to take the whole page down. */
+  var nf = function (v, d) {
+    if (v === null || v === undefined) return "\u2014";
+    v = Number(v);
+    if (!isFinite(v)) return "\u2014";
+    return v.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d });
+  };
+  var n0 = function (v) { return nf(v, 0); };
+  var n2 = function (v) { return nf(v, 2); };
+  var sgn = function (v, d) {
+    if (v === null || v === undefined || !isFinite(Number(v))) return "\u2014";
+    return (v >= 0 ? "+" : "\u2212") + nf(Math.abs(v), d);
+  };
+  var cls = function (v) {
+    if (v === null || v === undefined || !isFinite(Number(v))) return "neu";
+    return v >= 0 ? "pos" : "neg";
+  };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); };
+  var DT = function (d) { return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short" }); };
+
+  /* ==========================================================
+     4. STATE
+     ========================================================== */
+  var state = { idx: "NIFTY", view: "overview", strike: null,
+                wl: null, wlExpiry: 0 };
+
+  /* ==========================================================
+     5. RENDER &mdash; chrome
+     ========================================================== */
+  function renderChrome() {
+    document.getElementById("idxTabs").innerHTML = INDICES.map(function (c) {
+      return '<button class="idx-tab" role="tab" data-idx="' + c.key + '" aria-selected="' +
+        (c.key === state.idx) + '">' + esc(c.label) + "</button>";
+    }).join("");
+
+    document.getElementById("aTabs").innerHTML = VIEWS.map(function (v) {
+      return '<button class="atab" role="tab" data-view="' + v.key + '" aria-selected="' +
+        (v.key === state.view) + '">' + v.label + "</button>";
+    }).join("");
+
+    document.getElementById("railAnalysis").innerHTML = VIEWS.map(function (v) {
+      return '<button class="rail-item" data-view="' + v.key + '" aria-current="' +
+        (v.key === state.view) + '">' + v.label + "</button>";
+    }).join("");
+
+    var rl = document.getElementById("railLearn");
+    if (rl) rl.setAttribute("aria-current", state.view === "learning");
+
+    document.getElementById("railIndices").innerHTML = INDICES.map(function (c) {
+      var m = MODEL[c.key], chg = (c.spot - c.prevClose) / c.prevClose * 100;
+      return '<button class="rail-item" data-idx="' + c.key + '" aria-current="' + (c.key === state.idx) + '">' +
+        "<span>" + esc(c.label) + "</span>" +
+        '<span class="spark ' + cls(chg) + '" data-chart="' + esc(c.label) +
+          '" title="chart">' + sgn(chg, 2) + "%</span></button>";
+    }).join("");
+  }
+
+  /* ==========================================================
+     6. RENDER &mdash; views
+     ========================================================== */
+  function ladder(m) {
+    var rows = m.rows.slice().reverse();
+    return rows.map(function (r) {
+      var k = [];
+      if (r.strike === m.callWall) k.push("wall-c");
+      if (r.strike === m.putWall) k.push("wall-p");
+      if (r.strike === m.atm) k.push("spot");
+      if (r.strike === m.maxPain) k.push("mp");
+      var flag = "";
+      if (r.strike === m.atm) flag = '<span class="flag spot">Spot ' + n0(m.cfg.spot) + "</span>";
+      else if (r.strike === m.maxPain) flag = '<span class="flag mp">Max pain</span>';
+      else if (r.strike === m.callWall) flag = '<span class="flag cw">Call wall</span>';
+      else if (r.strike === m.putWall) flag = '<span class="flag mp" style="color:var(--puts);border-color:var(--puts)">Put wall</span>';
+
+      return '<button class="rung ' + k.join(" ") + '" data-strike="' + r.strike +
+        '" data-rung=\'' + JSON.stringify({
+          k: n0(r.strike),
+          ceOi: n2(r.ce.oi), peOi: n2(r.pe.oi),
+          ceChg: sgn(r.ce.chgOi, 2), peChg: sgn(r.pe.chgOi, 2),
+          ceUp: r.ce.chgOi >= 0, peUp: r.pe.chgOi >= 0,
+          ceLtp: n2(r.ce.ltp), peLtp: n2(r.pe.ltp),
+          ceIv: r.ce.iv != null ? n2(r.ce.iv) + "%" : "\u2014",
+          peIv: r.pe.iv != null ? n2(r.pe.iv) + "%" : "\u2014",
+          pcr: r.ce.oi ? n2(r.pe.oi / r.ce.oi) : "\u2014",
+          dist: sgn(r.strike - m.cfg.spot, 0)
+        }).replace(/'/g, "&#39;") + "'>" +
+        '<span class="side l"><span class="barval">' + n1(r.ce.oi) + '</span><span class="bartrack">' +
+          '<span class="barfill" style="width:' + (r.ce.oi / m.maxOi * 100).toFixed(1) + '%"></span></span></span>' +
+        '<span class="strike">' + n0(r.strike) + "</span>" +
+        '<span class="side r"><span class="bartrack">' +
+          '<span class="barfill" style="width:' + (r.pe.oi / m.maxOi * 100).toFixed(1) + '%"></span></span>' +
+          '<span class="barval">' + n1(r.pe.oi) + "</span></span>" + flag + "</button>";
+    }).join("");
+  }
+  function n1(v) { return nf(v, 1); }
+
+  function verdict(m) {
+    var c = m.cfg;
+    var mpGap = c.spot - m.maxPain;
+    var pcr = m.pcr;
+    var call, conf;
+    if (pcr > 1.15 && mpGap > 0) { call = "Bullish,<br>supported"; conf = 72; }
+    else if (pcr < 0.85) { call = "Bearish<br>pressure"; conf = 68; }
+    else { call = "Range-bound,<br>" + (mpGap > 0 ? "upward tilt" : "downward tilt"); conf = 61; }
+
+    var d = [
+      ["=", "neu", "PCR " + n2(pcr), pcr > 1.1 ? "Put writers dominant \u2014 <b>supportive</b> tone." :
+        pcr < 0.9 ? "Call writers dominant \u2014 <b>capped</b> upside." :
+        "Neutral. Put and call writing near balance \u2014 <b>no directional conviction</b> from the ratio alone."],
+      [mpGap > 0 ? "\u2193" : "\u2191", mpGap > 0 ? "neg" : "pos", "Max pain",
+        "Spot sits <b>" + n0(Math.abs(mpGap)) + " pts " + (mpGap > 0 ? "above" : "below") +
+        "</b> max pain " + n0(m.maxPain) + " \u2014 mild pull " + (mpGap > 0 ? "lower" : "higher") + " into expiry."],
+      ["\u2191", "pos", "OI walls",
+        "Put base at <b>" + n0(m.putWall) + "</b>; heaviest call wall at <b>" + n0(m.callWall) + "</b>. Expected range between them."],
+      [c.vixChg < 0 ? "\u2191" : "\u2193", c.vixChg < 0 ? "pos" : "neg", "Volatility",
+        "India VIX <b>" + n2(c.vix) + "</b>, " + sgn(c.vixChg, 2) + "% \u2014 " +
+        (c.vixChg < 0 ? "no stress bid. Supports range persistence." : "creeping higher. Watch for expansion.")]
+    ];
+
+    return '<section class="card verdict"><div class="verdict-main">' +
+      '<div class="verdict-eyebrow">Positioning read</div>' +
+      '<div class="verdict-call">' + call + "</div>" +
+      '<div class="conf"><div class="conf-track"><div class="conf-fill" style="width:' + conf + '%"></div></div>' +
+      '<div class="conf-val">' + conf + "% confidence</div></div>" +
+      '<div class="kpi-m">Expiry ' + esc(c.expiry) + " \u00b7 4 sessions left</div></div>" +
+      '<div class="drivers">' + d.map(function (x) {
+        return '<div class="driver"><div class="ico ' + x[1] + '">' + x[0] + '</div>' +
+          '<div class="k">' + x[2] + '</div><div class="v">' + x[3] + "</div></div>";
+      }).join("") + "</div></section>";
+  }
+
+  function kpis(m) {
+    var c = m.cfg, chg = c.spot - c.prevClose, chgP = chg / c.prevClose * 100;
+    var mpGap = c.spot - m.maxPain;
+    var t = [
+      ["Spot close", n0(Math.floor(c.spot)) + '<span style="font-size:14px;color:var(--ink-3)">.' +
+        c.spot.toFixed(2).split(".")[1] + "</span>",
+        '<span class="' + cls(chg) + '">' + sgn(chg, 2) + " &nbsp;" + sgn(chgP, 2) + "%</span>"],
+      ["Day range", '<span style="font-size:15px">' + n0(c.low) + " &ndash; " + n0(c.high) + "</span>",
+        "O " + n0(c.open) + " \u00b7 PC " + n2(c.prevClose)],
+      ["Put / call ratio", n2(m.pcr), "5d avg " + n2(m.pcr * 0.96) + " \u00b7 neutral 0.9\u20131.1"],
+      ['<span class="swatch" style="background:var(--maxpain)"></span> Max pain', n0(m.maxPain),
+        "spot " + sgn(mpGap, 0) + " pts from strike"],
+      ["India VIX", n2(c.vix), '<span class="' + cls(-c.vixChg) + '">' + sgn(c.vixChg, 2) + "%</span> \u00b7 20d band"],
+      ["Total OI", n1(m.totC + m.totP) + '<span style="font-size:13px;color:var(--ink-3)">L</span>',
+        "C " + n1(m.totC) + "L \u00b7 P " + n1(m.totP) + "L"]
+    ];
+    return '<section class="kpis">' + t.map(function (x) {
+      return '<div class="card kpi"><div class="kpi-k">' + x[0] + '</div><div class="kpi-v">' + x[1] +
+        '</div><div class="kpi-m">' + x[2] + "</div></div>";
+    }).join("") + "</section>";
+  }
+
+  /* A line needs two points. With one stored session the honest output is a
+     note about how many more are needed, not a chart of a single dot. */
+  function needMore(have, need, what) {
+    return '<div class="caution"><p><b>' + have + " of " + need + " sessions stored.</b> " +
+      esc(what) + " appears once the daily job has run " + (need - have) +
+      " more time" + (need - have === 1 ? "" : "s") + ".</p></div>";
+  }
+
+  function DTS(d) { return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }); }
+
+  function chartWrap(svg, series) {
+    return '<div class="ch-wrap" data-series=\'' +
+      JSON.stringify(series).replace(/'/g, "&#39;") + "'>" + svg +
+      '<div class="ch-cross"></div><div class="ch-dot"></div><div class="ch-tip"></div></div>';
+  }
+
+  function sparkSvg(m) {
+    var h = m.hist.slice().reverse().filter(function (x) { return x.close != null; });
+    if (h.length < 2) return needMore(h.length, 2, "The price history chart");
+
+    var vals = h.map(function (x) { return x.close; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), rng = hi - lo || 1;
+    var maxVol = h.reduce(function (mx, x) { return Math.max(mx, x.volume || 0); }, 0);
+    var pts = [], coords = [];
+    h.forEach(function (x, i) {
+      var px = i / (h.length - 1) * 320, py = 82 - (x.close - lo) / rng * 70;
+      coords.push(px.toFixed(1) + "," + py.toFixed(1));
+      pts.push({
+        x: px, y: py, date: DTS(x.date), big: n2(x.close),
+        chg: x.chgPct != null ? sgn(x.chgPct, 2) + "%" : null,
+        chgUp: x.chgPct != null ? x.chgPct >= 0 : null,
+        rows: [["Open", n2(x.o)], ["High", n2(x.h)], ["Low", n2(x.l)], ["Close", n2(x.c)]],
+        vol: x.volume ? {
+          pct: maxVol ? (x.volume / maxVol * 100) : 0,
+          label: n1(x.volume / 1e7) + " Cr sh" +
+                 (x.turnover ? "  &middot;  &#8377;" + n0(x.turnover) + " Cr" : "")
+        } : null
+      });
+    });
+    var last = pts[pts.length - 1];
+
+    var svg = '<svg viewBox="0 0 330 104" role="img" aria-label="' + esc(m.cfg.label) +
+      " close over the last " + h.length + ' sessions.">' +
+      '<line class="gridline" x1="0" y1="12" x2="330" y2="12"></line>' +
+      '<line class="gridline" x1="0" y1="47" x2="330" y2="47"></line>' +
+      '<line class="gridline" x1="0" y1="82" x2="330" y2="82"></line>' +
+      '<text class="axis" x="0" y="9">' + n0(hi) + "</text>" +
+      '<text class="axis" x="0" y="93">' + n0(lo) + "</text>" +
+      '<polygon fill="var(--calls-dim)" points="' + coords.join(" ") + ' 320,82 0,82"></polygon>' +
+      '<polyline fill="none" stroke="var(--calls)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' +
+        coords.join(" ") + '"></polyline>' +
+      '<circle cx="' + last.x.toFixed(1) + '" cy="' + last.y.toFixed(1) +
+        '" r="3.4" fill="var(--calls)" stroke="var(--surface)" stroke-width="2"></circle>' +
+      "</svg>";
+
+    return chartWrap(svg, { pts: pts, color: "var(--calls)",
+                            vbWidth: 330, vbTop: 0, vbHeight: 104 });
+  }
+
+  function pcrSvg(m) {
+    var h = m.hist.slice().reverse().filter(function (x) { return x.pcr != null; });
+    if (h.length < 2) return needMore(h.length, 2, "The PCR trend");
+
+    var pts = [], coords = [];
+    h.forEach(function (x, i) {
+      var px = i / (h.length - 1) * 330;
+      var py = 82 - Math.min(1, Math.max(0, (x.pcr - 0.8) / 0.5)) * 70;
+      coords.push(px.toFixed(1) + "," + py.toFixed(1));
+      pts.push({
+        x: px, y: py, date: DTS(x.date), big: n2(x.pcr),
+        chg: x.pcr > 1.1 ? "put-heavy" : x.pcr < 0.9 ? "call-heavy" : "neutral",
+        chgUp: x.pcr >= 1,
+        rows: [["Close", n2(x.close)], ["Max pain", n0(x.mp)],
+               ["ATM IV", x.atmIv != null ? n2(x.atmIv) + "%" : "&mdash;"],
+               ["India VIX", n2(x.vix)]],
+        vol: null
+      });
+    });
+    var last = pts[pts.length - 1];
+
+    var svg = '<svg viewBox="0 0 330 104" role="img" aria-label="Put-call ratio over ' +
+      h.length + ' sessions.">' +
+      '<rect x="0" y="33" width="330" height="28" fill="var(--surface-2)"></rect>' +
+      '<line class="gridline" x1="0" y1="54" x2="330" y2="54" stroke-dasharray="3 3"></line>' +
+      '<text class="axis" x="0" y="30">1.10</text><text class="axis" x="0" y="74">0.90</text>' +
+      '<polyline fill="none" stroke="var(--puts)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' +
+        coords.join(" ") + '"></polyline>' +
+      '<circle cx="' + last.x.toFixed(1) + '" cy="' + last.y.toFixed(1) +
+        '" r="3.4" fill="var(--puts)" stroke="var(--surface)" stroke-width="2"></circle>' +
+      "</svg>";
+
+    return chartWrap(svg, { pts: pts, color: "var(--puts)",
+                            vbWidth: 330, vbTop: 0, vbHeight: 104 });
+  }
+
+  function viewOverview(m) {
+    return verdict(m) + kpis(m) +
+      '<section class="card"><div class="card-hd"><h2>Open interest by strike</h2>' +
+      '<span class="sub">' + esc(m.cfg.expiry) + " \u00b7 lakh contracts</span>" +
+      '<div class="right"><span class="sub">Click a strike for detail</span></div></div>' +
+      '<div class="ladder-wrap tall"><div class="ladder"><div class="ladder-head">' +
+      '<div class="l">&larr; Call OI (resistance)</div><div class="c">Strike</div>' +
+      '<div class="r">Put OI (support) &rarr;</div></div>' + ladder(m) +
+      '<div class="legend">' +
+      '<span><span class="swatch" style="background:var(--calls)"></span> Call OI</span>' +
+      '<span><span class="swatch" style="background:var(--puts)"></span> Put OI</span>' +
+      '<span><span class="swatch" style="background:var(--maxpain)"></span> Max pain strike</span>' +
+      "<span>Ringed bar = heaviest wall on that side</span></div></div></div></section>" +
+      '<div class="two">' +
+      '<section class="card"><div class="card-hd"><h2>' + esc(m.cfg.label) + " &mdash; 15 sessions</h2>" +
+      '<span class="sub">daily close</span></div><div class="chart-body">' + sparkSvg(m) + "</div></section>" +
+      '<section class="card"><div class="card-hd"><h2>PCR trend</h2><span class="sub">15 sessions</span>' +
+      '<div class="right"><span class="kpi-m">neutral band 0.9 &ndash; 1.1</span></div></div>' +
+      '<div class="chart-body">' + pcrSvg(m) + "</div></section></div>" + pipeline(m);
+  }
+
+  function viewBuildup(m) {
+    var rows = m.rows.slice().reverse().map(function (r) {
+      var bc = classify(r.ce.chgPct, r.ce.chgOi), bp = classify(r.pe.chgPct, r.pe.chgOi);
+      return '<tr class="clickable' + (r.strike === m.atm ? " atm" : "") + '" data-strike="' + r.strike + '">' +
+        '<td><span class="pill ' + bc.c + '">' + bc.t + "</span></td>" +
+        '<td class="' + cls(r.ce.chgOi) + '">' + sgn(r.ce.chgOi, 2) + "</td>" +
+        '<td class="' + cls(r.ce.chgPct) + '">' + sgn(r.ce.chgPct, 1) + "%</td>" +
+        '<td class="strike-cell">' + n0(r.strike) + "</td>" +
+        '<td class="' + cls(r.pe.chgPct) + '">' + sgn(r.pe.chgPct, 1) + "%</td>" +
+        '<td class="' + cls(r.pe.chgOi) + '">' + sgn(r.pe.chgOi, 2) + "</td>" +
+        '<td><span class="pill ' + bp.c + '">' + bp.t + "</span></td></tr>";
+    }).join("");
+
+    return '<section class="card"><div class="card-hd"><h2>OI build-up by strike</h2>' +
+      '<span class="sub">change in OI vs change in premium</span>' +
+      '<div class="right"><span class="kpi-m">OI change in lakh &middot; click a row to drill in</span></div></div>' +
+      '<div class="tablewrap tall"><table class="dt bu"><thead><tr>' +
+      '<th class="grp-c lft">Call action</th><th class="grp-c">Chg OI</th><th class="grp-c">Chg LTP</th>' +
+      '<th style="text-align:center">Strike</th>' +
+      '<th class="grp-p">Chg LTP</th><th class="grp-p">Chg OI</th><th class="grp-p lft">Put action</th>' +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div></section>" +
+      '<section class="card"><div class="card-hd"><h2>How to read this</h2></div>' +
+      '<div class="readout">' +
+      "<p><b>Long build-up</b> &mdash; OI up, premium up. Fresh buyers entering; conviction in that direction.</p>" +
+      "<p><b>Short build-up</b> &mdash; OI up, premium down. Fresh writers selling that strike; it becomes a barrier.</p>" +
+      "<p><b>Short covering</b> &mdash; OI down, premium up. Writers buying back; the barrier is breaking.</p>" +
+      "<p><b>Long unwinding</b> &mdash; OI down, premium down. Buyers exiting; interest draining from the strike.</p>" +
+      "</div></section>";
+  }
+
+  function viewChain(m) {
+    var rows = m.rows.slice().reverse().map(function (r) {
+      var itmC = r.strike < m.cfg.spot, itmP = r.strike > m.cfg.spot;
+      var c = itmC ? " itm-c" : "", p = itmP ? " itm-p" : "";
+      return '<tr class="clickable' + (r.strike === m.atm ? " atm" : "") + '" data-strike="' + r.strike + '">' +
+        '<td class="' + c + '">' + n2(r.ce.oi) + "</td>" +
+        '<td class="' + c + " " + cls(r.ce.chgOi) + '">' + sgn(r.ce.chgOi, 2) + "</td>" +
+        '<td class="' + c + '">' + n1(r.ce.vol) + "L</td>" +
+        '<td class="' + c + '">' + n1(r.ce.iv) + "</td>" +
+        '<td class="' + c + '">' + n2(r.ce.ltp) + "</td>" +
+        '<td class="strike-cell">' + n0(r.strike) + "</td>" +
+        '<td class="' + p + '">' + n2(r.pe.ltp) + "</td>" +
+        '<td class="' + p + '">' + n1(r.pe.iv) + "</td>" +
+        '<td class="' + p + '">' + n1(r.pe.vol) + "L</td>" +
+        '<td class="' + p + " " + cls(r.pe.chgOi) + '">' + sgn(r.pe.chgOi, 2) + "</td>" +
+        '<td class="' + p + '">' + n2(r.pe.oi) + "</td></tr>";
+    }).join("");
+
+    return '<section class="card"><div class="card-hd"><h2>Option chain</h2>' +
+      '<span class="sub">' + esc(m.cfg.label) + " \u00b7 " + esc(m.cfg.expiry) + "</span>" +
+      '<div class="right"><span class="kpi-m">OI in lakh &middot; shaded = in-the-money</span></div></div>' +
+      '<div class="tablewrap tall"><table class="dt chain"><thead><tr>' +
+      '<th class="grp-c">Call OI</th><th class="grp-c">Chg OI</th><th class="grp-c">Volume</th>' +
+      '<th class="grp-c">IV</th><th class="grp-c">LTP</th><th style="text-align:center">Strike</th>' +
+      '<th class="grp-p">LTP</th><th class="grp-p">IV</th><th class="grp-p">Volume</th>' +
+      '<th class="grp-p">Chg OI</th><th class="grp-p">Put OI</th>' +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
+  }
+
+  function viewTechnicals(m) {
+    var c = m.cfg, p = m.piv;
+
+    /* Chronological closes from stored history. Indicators that need more
+       sessions than exist say so rather than showing a number. */
+    var closes = m.hist.slice().reverse().map(function (h) { return h.close; })
+                  .filter(function (v) { return v != null; });
+
+    function sma(n) {
+      if (closes.length < n) return null;
+      var s = closes.slice(-n).reduce(function (a, b) { return a + b; }, 0);
+      return s / n;
+    }
+
+    function rsi14() {
+      if (closes.length < 15) return null;
+      var g = 0, l = 0;
+      for (var i = closes.length - 14; i < closes.length; i++) {
+        var d = closes[i] - closes[i - 1];
+        if (d >= 0) g += d; else l -= d;
+      }
+      if (l === 0) return 100;
+      var rs = (g / 14) / (l / 14);
+      return 100 - 100 / (1 + rs);
+    }
+
+    function tcell(k, v, m2, meterPct, meterCol) {
+      return '<div class="tcell"><div class="tcell-k">' + k + '</div><div class="tcell-v">' + v + "</div>" +
+        (meterPct != null ? '<div class="meter"><i style="width:' + meterPct + "%;background:" + meterCol + '"></i></div>' : "") +
+        '<div class="tcell-m">' + m2 + "</div></div>";
+    }
+
+    function maCell(label, n) {
+      var v = sma(n);
+      if (v == null) {
+        return tcell(label, "&mdash;", "needs " + n + " sessions &middot; have " + closes.length, null);
+      }
+      return tcell(label, n0(v), c.spot > v ? "Price above" : "Price below", null);
+    }
+
+    var r = rsi14();
+    var tech =
+      (r == null
+        ? tcell("RSI (14)", "&mdash;", "needs 15 sessions &middot; have " + closes.length, null)
+        : tcell("RSI (14)", n1(r), r > 60 ? "Strong, not extended" : r < 40 ? "Weak" : "Neutral zone",
+                r, r > 60 ? "var(--up)" : r < 40 ? "var(--down)" : "var(--calls)")) +
+      tcell("ATM IV", m.atmIv != null ? n2(m.atmIv) + "%" : "&mdash;",
+            m.atmIv != null && m.atmIv < 11 ? "Low \u2014 thin premium" : "Workable", null) +
+      maCell("20 DMA", 20) + maCell("50 DMA", 50) + maCell("200 DMA", 200) +
+      tcell("India VIX", c.vix ? n2(c.vix) : "&mdash;",
+            c.vix && c.vix < 13 ? "Low \u2014 complacent" : "Elevated", null);
+
+    var lv = [["R3", p.r3], ["R2", p.r2], ["R1", p.r1], ["Pivot", p.p], ["S1", p.s1], ["S2", p.s2], ["S3", p.s3]];
+
+    return '<section class="card"><div class="card-hd"><h2>Indicators</h2>' +
+      '<span class="sub">' + esc(c.label) + " \u00b7 daily</span></div>" +
+      '<div class="tech">' + tech + "</div></section>" +
+      '<section class="card"><div class="card-hd"><h2>Classic pivots</h2>' +
+      '<span class="sub">from today\u2019s high / low / close</span>' +
+      '<div class="right"><span class="kpi-m">H ' + n0(c.high) + " \u00b7 L " + n0(c.low) + " \u00b7 C " + n2(c.spot) + "</span></div></div>" +
+      '<div class="levels">' + lv.map(function (x) {
+        var isP = x[0] === "Pivot";
+        return '<div class="lvl"><div class="lvl-k">' + x[0] + '</div><div class="lvl-v"' +
+          (isP ? ' style="color:var(--ink);font-weight:700"' : "") + ">" + n0(x[1]) + "</div></div>";
+      }).join("") + "</div></section>" +
+      '<section class="card"><div class="card-hd"><h2>Option-implied levels</h2>' +
+      '<span class="sub">from OI, not price</span></div><div class="levels">' +
+      '<div class="lvl"><div class="lvl-k">Call wall</div><div class="lvl-v" style="color:var(--calls)">' + n0(m.callWall) + "</div></div>" +
+      '<div class="lvl"><div class="lvl-k">Max pain</div><div class="lvl-v" style="color:var(--maxpain)">' + n0(m.maxPain) + "</div></div>" +
+      '<div class="lvl"><div class="lvl-k">Put wall</div><div class="lvl-v" style="color:var(--puts)">' + n0(m.putWall) + "</div></div>" +
+      '<div class="lvl"><div class="lvl-k">Implied range</div><div class="lvl-v">' + n0(m.putWall) + "&ndash;" + n0(m.callWall) + "</div></div>" +
+      "</div></section>";
+  }
+
+  function viewHistory(m) {
+    var rows = m.hist.map(function (h, i) {
+      var prev = m.hist[i + 1];
+      var chg = h.chgPct != null ? h.chgPct
+              : (prev ? (h.close - prev.close) / prev.close * 100 : null);
+      return '<tr><td class="lft">' + DTL(h.date) + "</td>" +
+        "<td>" + n2(h.o) + "</td>" +
+        "<td>" + n2(h.h) + "</td>" +
+        "<td>" + n2(h.l) + "</td>" +
+        '<td style="color:var(--ink)">' + n2(h.c != null ? h.c : h.close) + "</td>" +
+        '<td class="' + cls(chg) + '">' + sgn(chg, 2) + "%</td>" +
+        "<td>" + (h.volume != null ? n0(h.volume) : "&mdash;") + "</td>" +
+        "<td>" + (h.turnover != null ? n2(h.turnover) : "&mdash;") + "</td>" +
+        "<td>" + n2(h.pcr) + "</td>" +
+        "<td>" + n0(h.mp) + "</td>" +
+        '<td class="' + cls(h.close - h.mp) + '">' + sgn(h.close - h.mp, 0) + "</td>" +
+        "<td>" + n2(h.atmIv) + "</td>" +
+        "<td>" + n2(h.vix) + "</td></tr>";
+    }).join("");
+
+    var stored = m.sessionsStored || m.hist.length;
+    return '<section class="card"><div class="card-hd"><h2>Session history</h2>' +
+      '<span class="sub">' + esc(m.cfg.label) + " \u00b7 " + m.hist.length +
+        " of " + stored + " sessions</span>" +
+      '<div class="right"><span class="kpi-m">shares in units &middot; turnover &#8377; Cr</span></div></div>' +
+      '<div class="tablewrap"><table class="dt hist"><thead><tr>' +
+      '<th class="lft">Date</th>' +
+      "<th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Chg</th>" +
+      "<th>Shares traded</th><th>Turnover</th>" +
+      "<th>PCR</th><th>Max pain</th><th>Spot &minus; MP</th><th>ATM IV</th><th>VIX</th>" +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
+  }
+
+  function DTL(d) {
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+            .replace(/ /g, "-").toUpperCase();
+  }
+
+  function pipeline(m) {
+    var logRows = (MANIFEST.pipeline || []).filter(function (r) {
+      return !r.idx || r.idx === state.idx;
+    }).slice(0, 3);
+
+    var s = logRows.map(function (r) {
+      var tone = r.status === "ok" ? "ok" : r.status === "skipped" ? "idle" : "warnd";
+      return [tone, esc(r.source) + (r.attempt ? " \u00b7 try " + r.attempt : ""),
+              r.status === "ok" ? "OK" : r.status.charAt(0).toUpperCase() + r.status.slice(1),
+              esc((r.message || "").slice(0, 60))];
+    });
+
+    var stored = m.sessionsStored || 0;
+    s.push(["ok", "Option chain", "OK", m.nStrikes + " strikes \u00b7 expiry " + esc(m.cfg.expiry)]);
+    s.push([stored >= 100 ? "ok" : "warnd", "History depth", stored + " / 100",
+            stored >= 100 ? "window full" : "building toward window"]);
+    s.push(["ok", "Store", (((MANIFEST.dbBytes || 0) / 1048576).toFixed(1)) + " MB",
+            "SQLite \u00b7 E:\\Options\\data"]);
+
+    return '<section class="card"><div class="card-hd"><h2>Fetch pipeline</h2>' +
+      '<span class="sub">daily &middot; retry ladder 18:00 &rarr; 18:30 &rarr; 19:30 IST</span>' +
+      '<div class="right"><span class="kpi-m">model ' + esc(MANIFEST.modelVersion || "") + "</span></div></div>" +
+      '<div class="pipe">' +
+      s.map(function (x) {
+        return '<div class="step"><div class="step-k"><span class="dot ' + (x[0] === "ok" ? "" : x[0]) + '"></span> ' +
+          x[1] + '</div><div class="step-v">' + x[2] + '</div><div class="step-m">' + x[3] + "</div></div>";
+      }).join("") + "</div></section>";
+  }
+
+  /* ==========================================================
+     6b. OPTION MATH &mdash; Black-Scholes probabilities, expected move,
+         payoff modelling. Used by the seller's strategy view.
+     ========================================================== */
+  var RFR = 0.065;          /* India risk-free, approx */
+  var DTE = 0, TT = 0;      /* set per render from the active index */
+  var MARGIN_PCT = 0.12;    /* naked index short, SPAN+exposure approx */
+
+  /* Normal CDF &mdash; Abramowitz & Stegun 26.2.17 */
+  function normCdf(x) {
+    var t = 1 / (1 + 0.2316419 * Math.abs(x));
+    var d = 0.3989422804014327 * Math.exp(-x * x / 2);
+    var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 +
+            t * (-1.821255978 + t * 1.330274429))));
+    return x >= 0 ? 1 - p : p;
+  }
+
+  function bs(S, K, sig, t) {
+    var v = sig * Math.sqrt(t);
+    var d1 = (Math.log(S / K) + (RFR + sig * sig / 2) * t) / v;
+    var d2 = d1 - v;
+    return {
+      callDelta: normCdf(d1),
+      putDelta:  normCdf(d1) - 1,
+      pCallItm:  normCdf(d2),
+      pPutItm:   normCdf(-d2)
+    };
+  }
+
+  /* One standard-deviation move implied by ATM IV over the holding period. */
+  function expMove(S, ivPct, t) { return S * (ivPct / 100) * Math.sqrt(t); }
+
+  /* The candidate scan runs in compute.py; the page only reads its verdicts.
+     Recomputing here would let the dashboard and the prediction ledger
+     disagree about what was recommended on a given day. */
+  function candidates(m) { return m.cands || []; }
+
+  function payoff(legs, S, lot) {
+    var pl = 0;
+    legs.forEach(function (l) {
+      var intrinsic = l.side === "CE" ? Math.max(0, S - l.strike) : Math.max(0, l.strike - S);
+      pl += l.qty * (intrinsic - l.credit);
+    });
+    return pl * lot;
+  }
+
+  function viewStrategy(m) {
+    var c = m.cfg;
+    var atmIv = m.atmIv;
+    if (!atmIv || !m.sd1) {
+      return '<section class="card"><div class="card-hd"><h2>Direction &amp; strategy</h2></div>' +
+        '<div class="caution"><p><b>No ATM implied volatility in the last snapshot.</b> ' +
+        "Every probability on this tab derives from IV, so nothing is shown rather than " +
+        "something derived from a placeholder.</p></div></section>";
+    }
+    var sd1 = m.sd1, sd2 = sd1 * 2;
+    var lo1 = m.range1[0], hi1 = m.range1[1];
+    var lo2 = m.range2[0], hi2 = m.range2[1];
+
+    var cands = candidates(m);
+    var ok = cands.filter(function (x) { return x.verdict.c === "go"; });
+    var bestCE = ok.filter(function (x) { return x.side === "CE"; })
+                   .sort(function (a, b) { return b.rom - a.rom; })[0];
+    var bestPE = ok.filter(function (x) { return x.side === "PE"; })
+                   .sort(function (a, b) { return b.rom - a.rom; })[0];
+
+    /* Regime gate: low IV means thin compensation for tail risk. */
+    var lowVol = c.vix < 12.5;
+    var haveBoth = bestCE && bestPE;
+
+    /* ---- directional probabilities (at expiry, lognormal) ---- */
+    var gHi = bs(c.spot, hi1, atmIv / 100, TT), gLo = bs(c.spot, lo1, atmIv / 100, TT);
+    var pAbove = gHi.pCallItm, pBelow = gLo.pPutItm, pInside = 1 - pAbove - pBelow;
+
+    /* ---- range visual domain ---- */
+    var dLo = Math.min(lo2, m.putWall) * 0.998, dHi = Math.max(hi2, m.callWall) * 1.002;
+    var pct = function (v) { return ((v - dLo) / (dHi - dLo) * 100).toFixed(2); };
+
+    /* One reusable bar. `t` and `sigma` ride along as data attributes so the
+       crosshair can price the probability at the cursor without re-deriving
+       anything the view already knows. */
+    function rangeBar(o) {
+      var span = o.hi - o.lo;
+      var p = function (v) { return ((v - o.lo) / span * 100).toFixed(2); };
+      var marks = (o.marks || []).filter(function (k) {
+        return k.v != null && k.v >= o.lo && k.v <= o.hi;
+      });
+      return '<div class="rb" data-lo="' + o.lo + '" data-hi="' + o.hi +
+          '" data-spot="' + o.spot + '" data-sigma="' + o.sigma +
+          '" data-t="' + o.t + '">' +
+        '<div class="rb-band rb-2sd" style="left:' + p(o.b2[0]) + "%;width:" +
+          (p(o.b2[1]) - p(o.b2[0])).toFixed(2) + '%"></div>' +
+        '<div class="rb-band rb-1sd" style="left:' + p(o.b1[0]) + "%;width:" +
+          (p(o.b1[1]) - p(o.b1[0])).toFixed(2) + '%"></div>' +
+        marks.map(function (k) {
+          return '<div class="rb-tick" style="left:' + p(k.v) + "%;background:" + k.color + '"></div>' +
+            (k.label ? '<div class="rb-lab top" style="left:' + p(k.v) + '%">' + k.label + "</div>" : "");
+        }).join("") +
+        '<div class="rb-lab bot" style="left:' + p(o.b1[0]) + '%">' + n0(o.b1[0]) + "</div>" +
+        '<div class="rb-lab bot" style="left:' + p(o.b1[1]) + '%">' + n0(o.b1[1]) + "</div>" +
+        '<div class="rb-cross"></div><div class="rb-tip"></div>' +
+      "</div>";
+    }
+
+    var marks = [
+      { v: c.spot, color: "var(--ink)", label: "Spot " + n0(c.spot) },
+      { v: m.callWall, color: "var(--calls)", label: "Call wall" },
+      { v: m.putWall, color: "var(--puts)", label: "Put wall" },
+      { v: m.maxPain, color: "var(--maxpain)", label: null }
+    ];
+
+    /* ---- next session ---- */
+    var sdN = m.sdNext, nextBlock = "";
+    if (sdN) {
+      var nLo1 = c.spot - sdN, nHi1 = c.spot + sdN;
+      var nLo2 = c.spot - 2 * sdN, nHi2 = c.spot + 2 * sdN;
+      var nDomLo = nLo2 - sdN * 0.35, nDomHi = nHi2 + sdN * 0.35;
+      var cal = m.rangeNextCalibrated;
+
+      nextBlock =
+        '<div class="bar-cap" style="padding-top:18px">Next trading session' +
+          '<b>' + n0(nLo1) + " &ndash; " + n0(nHi1) + "</b>" +
+          '<span class="tagx">1&sigma; &middot; 68%</span>' +
+          '<span class="tagx">&plusmn;' + n0(sdN) + " pts</span>" +
+          '<span class="tagx">trading-day basis</span>' +
+          (cal ? '<span class="tagx" style="color:var(--maxpain);border-color:var(--maxpain)">' +
+                 "calibrated " + n0(cal[0]) + "&ndash;" + n0(cal[1]) + "</span>" : "") +
+        "</div>" +
+        '<div class="rangebar" style="padding-top:8px">' +
+        rangeBar({
+          lo: nDomLo, hi: nDomHi, spot: c.spot, sigma: atmIv / 100,
+          t: 1 / 252, b1: [nLo1, nHi1], b2: [nLo2, nHi2],
+          marks: [{ v: c.spot, color: "var(--ink)", label: "Spot " + n0(c.spot) }]
+            .concat(cal ? [{ v: cal[0], color: "var(--maxpain)", label: null },
+                           { v: cal[1], color: "var(--maxpain)", label: null }] : [])
+        }) + "</div>";
+    }
+
+    var rangeCard =
+      '<section class="card"><div class="card-hd"><h2>Expected range</h2>' +
+      '<span class="sub">ATM IV ' + n1(atmIv) + "%</span>" +
+      '<div class="right"><span class="kpi-m">hover the bar for any level</span></div></div>' +
+      '<div class="bar-cap" style="padding-top:16px">To expiry' +
+        '<b>' + n0(lo1) + " &ndash; " + n0(hi1) + "</b>" +
+        '<span class="tagx">1&sigma; &middot; 68%</span>' +
+        '<span class="tagx">&plusmn;' + n0(sd1) + " pts</span>" +
+        '<span class="tagx">' + DTE + " days</span>" +
+      "</div>" +
+      '<div class="rangebar" style="padding-top:8px">' +
+      rangeBar({
+        lo: dLo, hi: dHi, spot: c.spot, sigma: atmIv / 100, t: TT,
+        b1: [lo1, hi1], b2: [lo2, hi2], marks: marks
+      }) +
+      '<div class="rb-legend">' +
+        '<span><span class="swatch rb-1sd" style="width:14px"></span> 1&sigma; &middot; 68%</span>' +
+        '<span><span class="swatch" style="background:var(--surface-3);width:14px"></span> 2&sigma; &middot; 95% &middot; ' + n0(lo2) + "&ndash;" + n0(hi2) + "</span>" +
+        '<span><span class="swatch" style="background:var(--calls)"></span> Call wall ' + n0(m.callWall) + "</span>" +
+        '<span><span class="swatch" style="background:var(--puts)"></span> Put wall ' + n0(m.putWall) + "</span>" +
+        '<span><span class="swatch" style="background:var(--maxpain)"></span> Max pain ' + n0(m.maxPain) + "</span>" +
+      "</div></div>" + nextBlock + "</section>";
+
+    var probCard =
+      '<section class="card"><div class="card-hd"><h2>Directional probability</h2>' +
+      '<span class="sub">at expiry &middot; lognormal</span>' +
+      '<div class="right"><span class="kpi-m">not a forecast &mdash; a distribution</span></div></div>' +
+      '<div class="probs">' +
+        '<div class="prob"><div class="prob-k">Closes above ' + n0(hi1) + '</div><div class="prob-v neg">' + n1(pAbove * 100) + "%</div>" +
+          '<div class="kpi-m">breaches 1&sigma; upside</div></div>' +
+        '<div class="prob"><div class="prob-k">Stays inside 1&sigma;</div><div class="prob-v pos">' + n1(pInside * 100) + "%</div>" +
+          '<div class="kpi-m">the seller&rsquo;s outcome</div></div>' +
+        '<div class="prob"><div class="prob-k">Closes below ' + n0(lo1) + '</div><div class="prob-v neg">' + n1(pBelow * 100) + "%</div>" +
+          '<div class="kpi-m">breaches 1&sigma; downside</div></div>' +
+        '<div class="prob"><div class="prob-k">Max pain drift</div><div class="prob-v">' + sgn(m.maxPain - c.spot, 0) + "</div>" +
+          '<div class="kpi-m">weak signal &mdash; context only</div></div>' +
+      "</div></section>";
+
+    /* ---- strike table ---- */
+    var sorted = cands.slice().sort(function (a, b) { return b.strike - a.strike; });
+    var nearest = sorted.reduce(function (best, x) {
+      return Math.abs(x.strike - c.spot) < Math.abs(best.strike - c.spot) ? x : best;
+    }, sorted[0]);
+
+    var stRows = sorted.map(function (x) {
+      var isAtm = nearest && x.strike === nearest.strike && x.side === nearest.side;
+      return '<tr class="clickable" data-strike="' + x.strike + '"' +
+        (isAtm ? ' data-atm="1"' : "") + ">" +
+        '<td class="lft" style="color:' + (x.side === "CE" ? "var(--calls)" : "var(--puts)") + '">' + x.side + "</td>" +
+        "<td>" + n0(x.strike) + "</td>" +
+        "<td>" + n2(x.delta) + "</td>" +
+        "<td><b style=\"color:var(--ink)\">" + n1(x.pop * 100) + "%</b></td>" +
+        "<td>" + n2(x.credit) + "</td>" +
+        "<td>&#8377;" + n0(x.creditRs) + "</td>" +
+        "<td>" + n2(x.rom) + "%</td>" +
+        "<td>" + n1(x.leg.oi) + "L</td>" +
+        '<td class="verdict-cell"><span class="pill ' + x.verdict.c + '">' + x.verdict.t + "</span></td></tr>";
+    }).join("");
+
+    var strikeCard =
+      '<section class="card"><div class="card-hd"><h2>Strike probability &amp; premium</h2>' +
+      '<span class="sub">short-premium candidates &middot; OTM only</span>' +
+      '<div class="right"><span class="kpi-m">POP = P(expires worthless) &middot; ROM = credit / margin</span></div></div>' +
+      '<div class="tablewrap tall"><table class="dt strat"><thead><tr>' +
+      '<th class="lft">Side</th><th>Strike</th><th>Delta</th><th>POP</th><th>Premium</th>' +
+      '<th>Credit</th><th>ROM</th><th>OI</th><th class="lft">Verdict</th>' +
+      "</tr></thead><tbody>" + stRows + "</tbody></table></div></section>";
+
+    /* ---- recommended structure ---- */
+    var structCard, exitCard, gapCard;
+
+    if (!haveBoth) {
+      structCard = '<section class="card"><div class="card-hd"><h2>Recommended structure</h2>' +
+        '<span class="sub">none</span></div><div class="caution"><p><b>No strike clears the filters.</b> ' +
+        "Every OTM strike is either illiquid, too close to spot, or paying less than 0.80% return on margin. " +
+        "For a seller that is a valid answer &mdash; <b>sit out this cycle</b>. Forcing a trade when premium " +
+        "does not compensate for gap risk is how sellers give back months of gains.</p></div></section>";
+      exitCard = ""; gapCard = "";
+    } else {
+      var legs = [
+        { side: "CE", strike: bestCE.strike, credit: bestCE.credit, qty: -1 },
+        { side: "PE", strike: bestPE.strike, credit: bestPE.credit, qty: -1 }
+      ];
+      var defined = lowVol;
+      var wingCE = null, wingPE = null;
+      if (defined) {
+        wingCE = m.rows.filter(function (r) { return r.strike === bestCE.strike + c.step * 2; })[0];
+        wingPE = m.rows.filter(function (r) { return r.strike === bestPE.strike - c.step * 2; })[0];
+        if (wingCE) legs.push({ side: "CE", strike: wingCE.strike, credit: wingCE.ce.ltp, qty: 1 });
+        if (wingPE) legs.push({ side: "PE", strike: wingPE.strike, credit: wingPE.pe.ltp, qty: 1 });
+      }
+
+      var netCredit = legs.reduce(function (s, l) { return s - l.qty * l.credit; }, 0);
+      var creditRs = netCredit * c.lot;
+      var beLo = bestPE.strike - netCredit, beHi = bestCE.strike + netCredit;
+      var gL = bs(c.spot, bestCE.strike, bestCE.leg.iv / 100, TT);
+      var gP = bs(c.spot, bestPE.strike, bestPE.leg.iv / 100, TT);
+      var combPop = 1 - gL.pCallItm - gP.pPutItm;
+
+      var maxLoss, marginReq;
+      if (defined && wingCE && wingPE) {
+        maxLoss = (c.step * 2 - netCredit) * c.lot;
+        marginReq = maxLoss;
+      } else {
+        maxLoss = null;
+        marginReq = bestCE.margin * 1.35;
+      }
+      var romTotal = creditRs / marginReq * 100;
+
+      var name = defined ? "Iron condor &middot; defined risk" : "Short strangle &middot; naked";
+
+      structCard =
+        '<section class="card"><div class="card-hd"><h2>Recommended structure</h2>' +
+        '<span class="sub">' + name + "</span>" +
+        '<div class="right"><span class="kpi-m">' + esc(c.label) + " &middot; " + esc(c.expiry) + "</span></div></div>" +
+        (lowVol ? '<div class="caution"><p><b>India VIX ' + n2(c.vix) + " is low.</b> Naked premium here is thin " +
+          "relative to gap risk, so this is proposed as <b>defined risk</b> with protective wings, and at reduced size. " +
+          "Selling naked into low IV is the single most common way option sellers blow up.</p></div>" : "") +
+        '<div class="legs">' + legs.map(function (l) {
+          return '<div class="leg-row"><span class="leg-act ' + (l.qty < 0 ? "sell" : "buy") + '">' +
+            (l.qty < 0 ? "Sell" : "Buy") + "</span>" +
+            '<span class="leg-desc">' + n0(l.strike) + " " + l.side + "</span>" +
+            '<span class="leg-prem">' + (l.qty < 0 ? "+" : "&minus;") + n2(l.credit) + "</span></div>";
+        }).join("") + "</div>" +
+        '<div class="struct">' +
+          sc("Net credit", "&#8377;" + n0(creditRs), n2(netCredit) + " &times; " + c.lot) +
+          sc("Combined POP", n1(combPop * 100) + "%", "both legs expire worthless") +
+          sc("Breakevens", n0(beLo) + " &ndash; " + n0(beHi), "at expiry") +
+          sc("Margin (est.)", "&#8377;" + n0(marginReq), defined ? "= max loss" : "naked, SPAN+exposure approx") +
+          sc("Return on margin", n2(romTotal) + "%", "for " + DTE + " days") +
+          sc("Max loss", maxLoss ? "&#8377;" + n0(maxLoss) : "Unlimited", maxLoss ? "capped by wings" : "naked &mdash; no cap") +
+        "</div></section>";
+
+      /* ---- exit plan ---- */
+      var tp = netCredit * 0.5, sl = netCredit * 2;
+      exitCard =
+        '<section class="card"><div class="card-hd"><h2>Exit plan</h2>' +
+        '<span class="sub">decide now, not in the drawdown</span></div><div class="checks">' +
+        ck("1", "Profit target", "Buy back when combined premium falls to <b>" + n2(tp) +
+          "</b> (50% of credit &mdash; &#8377;" + n0(creditRs * 0.5) + " captured). Most of the theta is earned early; " +
+          "holding to expiry for the last 50% adds days of gap exposure for little gain.") +
+        ck("2", "Stop loss", "Exit if combined premium reaches <b>" + n2(sl) +
+          "</b> (2&times; credit &mdash; loss &asymp; &#8377;" + n0(creditRs) + "). Non-negotiable and set on entry.") +
+        ck("3", "Delta breach", "Exit or roll the tested leg if its delta exceeds <b>0.30</b>. " +
+          "Delta rising is the market telling you the strike is no longer far away.") +
+        ck("4", "Time exit", "Close by <b>19 Aug</b>, the session before expiry, regardless of P&amp;L. " +
+          "Expiry-day gamma is the worst risk-per-rupee a seller can hold.") +
+        ck("5", "Volatility shock", "If India VIX jumps <b>&gt;15%</b> in a session, cut size immediately. " +
+          "IV expansion hurts a short-premium book before direction does.") +
+        ck("6", "Margin buffer", "Keep <b>&ge;40%</b> of capital unutilised as cash. " +
+          "This is your own rule &mdash; it is what lets you survive a gap instead of being force-closed into it.") +
+        "</div></section>";
+
+      /* ---- gap scenarios ---- */
+      var scen = [-3, -2, -1, -0.5, 0, 0.5, 1, 2, 3];
+      var pls = scen.map(function (g) { return payoff(legs, c.spot * (1 + g / 100), c.lot); });
+      var worst = Math.max.apply(null, pls.map(Math.abs));
+      var gRows = scen.map(function (g, i) {
+        var pl = pls[i], w = Math.abs(pl) / worst * 100;
+        return "<tr><td class=\"lft\">" + (g > 0 ? "+" : "") + n1(g) + "%</td>" +
+          "<td>" + n0(c.spot * (1 + g / 100)) + "</td>" +
+          '<td class="' + cls(pl) + '">' + (pl >= 0 ? "+" : "&minus;") + "&#8377;" + n0(Math.abs(pl)) + "</td>" +
+          '<td class="lft"><span class="bar-pl" style="width:' + w.toFixed(1) + "%;background:" +
+            (pl >= 0 ? "var(--up)" : "var(--down)") + '"></span></td></tr>';
+      }).join("");
+
+      gapCard =
+        '<section class="card"><div class="card-hd"><h2>Gap scenarios</h2>' +
+        '<span class="sub">P&amp;L at expiry by move in spot</span>' +
+        '<div class="right"><span class="kpi-m">the number that matters for a seller</span></div></div>' +
+        '<div class="caution"><p>These are <b>expiry</b> payoffs. An <b>immediate</b> gap is worse than shown &mdash; ' +
+        "the position still carries time value and IV expands on the move, so mark-to-market loss can exceed " +
+        "the expiry figure before it converges back.</p></div>" +
+        '<div class="tablewrap"><table class="dt gap"><thead><tr>' +
+        '<th class="lft">Gap</th><th>Spot</th><th>P&amp;L</th><th class="lft">&nbsp;</th>' +
+        "</tr></thead><tbody>" + gRows + "</tbody></table></div></section>";
+    }
+
+    var honesty =
+      '<section class="card"><div class="card-hd"><h2>What this section can and cannot do</h2></div>' +
+      '<div class="caution"><p><b>It does not predict direction.</b> Nothing does, reliably. Every number here is ' +
+      "a probability from current option pricing &mdash; if IV is wrong, the probabilities are wrong with it.</p>" +
+      "<p><b>POP understates tail risk.</b> The lognormal model behind N(d&#8322;) assumes moves are well-behaved. " +
+      "Real gaps &mdash; budget days, global shocks, results &mdash; are fatter than the model. An 85% POP trade " +
+      "does not lose 15% of the time in a tidy way; it loses rarely and <b>large</b>. That asymmetry is the whole " +
+      "risk of selling options.</p>" +
+      "<p><b>PCR and max pain are weak signals.</b> They are shown for context, not conviction. " +
+      "No entry here is justified by max pain alone.</p>" +
+      "<p><b>Backtest before trusting it.</b> Once you have 100+ sessions stored, replay these rules against them. " +
+      "Until then treat every suggestion as a hypothesis.</p></div></section>";
+
+    return rangeCard + quantCards(m) + probCard + strikeCard +
+           structCard + exitCard + gapCard + honesty;
+  }
+
+  /* ==========================================================
+     6e. QUANTITATIVE LAYER
+         Everything here was computed by the pipeline. The page
+         renders it and never recalculates -- if it did, the
+         dashboard and the scored ledger could disagree.
+     ========================================================== */
+  function quantCards(m) {
+    var a = m.an;
+    if (!a) {
+      return '<section class="card"><div class="card-hd"><h2>Quantitative layer</h2></div>' +
+        '<div class="caution"><p><b>Not computed for this session.</b> ' +
+        "Run the daily job to populate volatility, skew and the risk-neutral density.</p></div></section>";
+    }
+
+    var out = "";
+
+    /* ---------- realised vs implied ---------- */
+    if (a.realisedVol) {
+      var wins = Object.keys(a.realisedVol).sort(function (x, y) { return +x - +y; });
+      var rvRows = wins.map(function (w) {
+        var e = a.realisedVol[w];
+        return "<tr><td class=\"lft\">" + w + "d</td>" +
+          '<td style="color:var(--ink);font-weight:600">' + n2(e.yang_zhang) + "%</td>" +
+          "<td>" + n2(e.close_to_close) + "%</td>" +
+          "<td>" + n2(e.parkinson) + "%</td>" +
+          "<td>" + n2(e.garman_klass) + "%</td>" +
+          "<td>" + n2(e.rogers_satchell) + "%</td></tr>";
+      }).join("");
+
+      out += '<section class="card"><div class="card-hd"><h2>Realised volatility</h2>' +
+        '<span class="sub">five estimators &middot; annualised</span>' +
+        '<div class="right"><span class="kpi-m">Yang-Zhang is the reference &mdash; gap-aware and drift-free</span></div></div>' +
+        '<div class="tablewrap"><table class="dt"><thead><tr>' +
+        '<th class="lft">Window</th><th>Yang-Zhang</th><th>Close-close</th>' +
+        "<th>Parkinson</th><th>Garman-Klass</th><th>Rogers-Satchell</th>" +
+        "</tr></thead><tbody>" + rvRows + "</tbody></table></div>" +
+        '<div class="caution"><p>Where these disagree, the disagreement is the information. ' +
+        "Parkinson cannot see overnight gaps; close-to-close is the noisiest and swings hardest " +
+        "on a single one. A short-window verdict built on close-to-close alone is not evidence " +
+        "about the market.</p></div></section>";
+    }
+
+    /* ---------- the seller's core question ---------- */
+    var v = a.vrp;
+    if (v) {
+      var rich = v.ratio > 1.10, poor = v.ratio < 0.95;
+      out += '<section class="card"><div class="card-hd"><h2>Is the seller being paid?</h2>' +
+        '<span class="sub">implied vs forecast realised</span>' +
+        '<div class="right"><span class="kpi-m">the one number that decides whether to sell at all</span></div></div>' +
+        '<div class="probs">' +
+        pr("ATM implied", n2(v.iv) + "%", "neu", "what the market charges") +
+        pr("Forecast realised", n2(v.rv) + "%", "neu",
+           a.harRv ? "HAR-RV, R&sup2; " + n2(a.harRv.r2) : "trailing Yang-Zhang") +
+        pr("IV / RV", n2(v.ratio), rich ? "pos" : poor ? "neg" : "neu",
+           rich ? "premium is rich" : poor ? "premium is thin" : "roughly fair") +
+        pr("Spread", sgn(v.spread_vol_pts, 2), v.spread_vol_pts > 0 ? "pos" : "neg",
+           "vol points") +
+        "</div>" +
+        '<div class="caution"><p>' +
+        (poor
+          ? "<b>Implied is running below forecast realised.</b> Selling premium here is not " +
+            "being compensated for the risk carried. That is a reason to stand aside, not to " +
+            "size down."
+          : rich
+          ? "<b>Implied exceeds forecast realised.</b> This is the variance risk premium and it " +
+            "is the reason selling pays &mdash; but it is compensation for the tail, not free " +
+            "money, and it inverts precisely when the tail arrives."
+          : "<b>Implied and realised are close.</b> No meaningful edge either way at this level.") +
+        "</p></div></section>";
+    }
+
+    /* ---------- where the market thinks it lands ---------- */
+    if (a.bands) {
+      var order = [
+        ["implied", "IV-implied", "Black-Scholes on ATM vol"],
+        ["riskNeutral", "Risk-neutral density", "Breeden-Litzenberger, no distribution assumed"],
+        ["cornishFisher", "Cornish-Fisher", "adjusted for skew and fat tails"],
+        ["bootstrap", "Bootstrap", "resampled from real history, blocks of 5"],
+        ["realisedForecast", "Realised forecast", "HAR-RV projection"]
+      ];
+      var lo = Infinity, hi = -Infinity;
+      order.forEach(function (o) {
+        var b = a.bands[o[0]];
+        if (b) { lo = Math.min(lo, b[0]); hi = Math.max(hi, b[1]); }
+      });
+      var span = hi - lo || 1;
+
+      var rows = order.map(function (o) {
+        var b = a.bands[o[0]];
+        if (!b) return "";
+        var left = (b[0] - lo) / span * 100, w = (b[1] - b[0]) / span * 100;
+        return '<div class="bandrow"><div class="bandrow-k">' + o[1] +
+          '<i>' + o[2] + "</i></div>" +
+          '<div class="bandrow-bar"><span style="left:' + left.toFixed(1) +
+            "%;width:" + w.toFixed(1) + '%"></span></div>' +
+          '<div class="bandrow-v">' + n0(b[0]) + " &ndash; " + n0(b[1]) +
+          '<i>' + n0(b[1] - b[0]) + " pts</i></div></div>";
+      }).join("");
+
+      out += '<section class="card"><div class="card-hd"><h2>One-sigma range, five ways</h2>' +
+        '<span class="sub">' + a.sessionsToExpiry + " session(s) to expiry</span>" +
+        '<div class="right"><span class="kpi-m">agreement is the signal</span></div></div>' +
+        '<div class="bandlist">' + rows + "</div>" +
+        '<div class="caution"><p>These are independent methods, not one calculation shown five ' +
+        "times. Where they cluster, the range is trustworthy. Where they diverge, the widest one " +
+        "deserves the weight &mdash; for a short-premium book the expensive error is always the " +
+        "band that was too narrow.</p></div></section>";
+    }
+
+    /* ---------- risk-neutral density ---------- */
+    if (a.rnd && a.rnd.grid && a.rnd.grid.length > 4) {
+      var g = a.rnd.grid, dn = a.rnd.density;
+      var mx = Math.max.apply(null, dn) || 1;
+      var gLo = g[0], gHi = g[g.length - 1], gSpan = (gHi - gLo) || 1;
+      var pts = g.map(function (k, i) {
+        return ((k - gLo) / gSpan * 330).toFixed(1) + "," + (86 - dn[i] / mx * 74).toFixed(1);
+      });
+      var spotX = ((m.cfg.spot - gLo) / gSpan * 330).toFixed(1);
+
+      out += '<section class="card"><div class="card-hd"><h2>Risk-neutral density</h2>' +
+        '<span class="sub">the market&rsquo;s own distribution</span>' +
+        '<div class="right"><span class="kpi-m">from ' + a.rnd.nStrikes + " strikes</span></div></div>" +
+        '<div class="chart-body"><svg viewBox="0 0 330 100" role="img" ' +
+        'aria-label="Risk-neutral probability density for the settle, recovered from option prices.">' +
+        '<polygon fill="var(--calls-dim)" points="' + pts.join(" ") +
+          " " + (330).toFixed(1) + ",86 0,86\"></polygon>" +
+        '<polyline fill="none" stroke="var(--calls)" stroke-width="2" points="' +
+          pts.join(" ") + '"></polyline>' +
+        '<line x1="' + spotX + '" y1="6" x2="' + spotX +
+          '" y2="86" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"></line>' +
+        '<text class="axis" x="2" y="97">' + n0(gLo) + "</text>" +
+        '<text class="axis" x="300" y="97">' + n0(gHi) + "</text>" +
+        "</svg></div>" +
+        '<div class="probs">' +
+        pr("Skew", sgn(a.rnd.skew, 3), a.rnd.skew < 0 ? "neg" : "pos",
+           a.rnd.skew < 0 ? "left tail bid" : "right tail bid") +
+        pr("Excess kurtosis", sgn(a.rnd.excessKurtosis, 2), "neu", "0 = normal tails") +
+        pr("Density sd", n0(a.rnd.sd), "neu", "points") +
+        pr("Median", n0(a.rnd.median), "neu", "vs spot " + n0(m.cfg.spot)) +
+        "</div>" +
+        '<div class="caution"><p>Recovered by differentiating the call-price curve twice: ' +
+        "<b>p(K) = e<sup>rT</sup> &part;&sup2;C/&part;K&sup2;</b>. Skew and fat tails appear here " +
+        "because they are in the prices, not because a parameter put them there &mdash; a " +
+        "lognormal model has zero skew by construction and cannot represent this at all.</p></div></section>";
+    }
+
+    /* ---------- market structure ---------- */
+    var f = a.forward, st = a.straddle, sk = a.skew;
+    if (f || st || sk) {
+      var cells = "";
+      if (f) {
+        cells += sc("Implied forward", n0(f.forward),
+                    "put-call parity, " + f.n_strikes + " strikes");
+        cells += sc("Basis", sgn(f.basis, 1) + " pts", sgn(f.basis_pct, 3) + "%");
+        cells += sc("Annualised carry",
+                    f.carry_annual_pct == null ? "&mdash;" : n2(f.carry_annual_pct) + "%",
+                    f.carry_suppressed
+                      ? "withheld &mdash; " + f.days_calendar + "d is too short to annualise"
+                      : "over " + f.days_calendar + " days");
+      }
+      if (st) {
+        cells += sc("ATM straddle", n2(st.straddle), "traded breakeven");
+        cells += sc("Straddle move", "&plusmn;" + n0(st.move_pts), n2(st.move_pct) + "% &mdash; mean absolute");
+      }
+      if (sk) {
+        cells += sc("25&Delta; risk reversal", sgn(sk.risk_reversal, 2),
+                    sk.tilt + " &mdash; call " + n1(sk.call_iv) + "% vs put " + n1(sk.put_iv) + "%");
+        cells += sc("25&Delta; butterfly", sgn(sk.butterfly, 2), "smile curvature vs ATM");
+      }
+      if (a.ivRank != null) {
+        cells += sc("IV rank", n1(a.ivRank), "between window low and high");
+        cells += sc("IV percentile", n1(a.ivPercentile), "share of sessions below today");
+      }
+
+      out += '<section class="card"><div class="card-hd"><h2>Market structure</h2>' +
+        '<span class="sub">forward, straddle, skew</span></div>' +
+        '<div class="struct">' + cells + "</div>" +
+        (sk ? '<div class="caution"><p>Skew is measured at a fixed <b>delta</b>, not a fixed ' +
+          "point distance. &ldquo;350 points out&rdquo; means something different at 8% vol than " +
+          "at 15%, so point-based skew cannot be compared across sessions.</p></div>" : "") +
+        "</section>";
+    }
+
+    /* ---------- regime ---------- */
+    if (a.varianceRatio) {
+      var vq = Object.keys(a.varianceRatio).sort(function (x, y) { return +x - +y; });
+      var vrows = vq.map(function (q) {
+        var r = a.varianceRatio[q];
+        return "<tr><td class=\"lft\">" + q + "d</td>" +
+          "<td>" + n3(r.vr) + "</td>" +
+          "<td>" + sgn(r.z, 2) + "</td>" +
+          '<td class="lft"><span class="pill ' +
+            (r.regime === "random-walk" ? "nx" : r.regime === "trending" ? "go" : "lu") +
+            '">' + r.regime + "</span></td>" +
+          '<td class="lft" style="color:var(--ink-3)">' +
+            (r.rejects_random_walk ? "rejects random walk" : "consistent with random walk") +
+          "</td></tr>";
+      }).join("");
+
+      out += '<section class="card"><div class="card-hd"><h2>Price regime</h2>' +
+        '<span class="sub">Lo-MacKinlay variance ratio</span>' +
+        '<div class="right"><span class="kpi-m">|Z| &gt; 1.96 rejects at 95%</span></div></div>' +
+        '<div class="tablewrap"><table class="dt"><thead><tr>' +
+        '<th class="lft">Horizon</th><th>VR</th><th>Z</th>' +
+        '<th class="lft">Regime</th><th class="lft">Verdict</th>' +
+        "</tr></thead><tbody>" + vrows + "</tbody></table></div>" +
+        '<div class="caution"><p>Option bands scale daily volatility by the square root of time, ' +
+        "which assumes VR = 1. Below 1 the index mean-reverts and the band is too wide; above 1 " +
+        "moves compound and it is too narrow.</p></div></section>";
+    }
+
+    /* ---------- tail risk ---------- */
+    var cf = a.cornishFisher, srk = a.structureRisk;
+    if (cf || srk) {
+      var tcells = "";
+      if (cf) {
+        tcells += sc("2&sigma; adjusted", n0(cf.lower2sd) + " &ndash; " + n0(cf.upper2sd),
+                     "skew and kurtosis corrected");
+        tcells += sc("2&sigma; gaussian", n0(cf.gaussian2sdLower) + " &ndash; " + n0(cf.gaussian2sdUpper),
+                     "what the normal model says");
+        tcells += sc("Downside difference",
+                     n0(cf.gaussian2sdLower - cf.lower2sd) + " pts",
+                     "how much further the real left tail reaches");
+      }
+      if (srk) {
+        tcells += sc("Expected P&amp;L", "&#8377;" + n0(srk.expectedPnl),
+                     "across 20,000 bootstrapped paths");
+        tcells += sc("P(profit)", n1(srk.probProfit * 100) + "%", "on the proposed structure");
+        tcells += sc("VaR 95%", "&#8377;" + n0(srk.var95), "loss at the 5th percentile");
+        tcells += sc("Expected shortfall", "&#8377;" + n0(srk.expectedShortfall95),
+                     "mean loss <em>inside</em> the worst 5%");
+        tcells += sc("Worst path", "&#8377;" + n0(srk.worst), "of 20,000");
+      }
+
+      out += '<section class="card"><div class="card-hd"><h2>Tail risk</h2>' +
+        '<span class="sub">where a seller actually loses</span></div>' +
+        '<div class="struct">' + tcells + "</div>" +
+        '<div class="caution"><p><b>Expected shortfall, not max loss.</b> Max loss tells you what ' +
+        "the wing caps you at. Expected shortfall tells you what the bad outcomes cost " +
+        "<em>on average</em> &mdash; a number you can size against. For defined-risk structures " +
+        "the two converge; for anything naked they do not, and that gap is the whole risk.</p></div></section>";
+    }
+
+    return out;
+  }
+
+  function n3(v) { return nf(v, 3); }
+
+  function sc(k, v, m2) {
+    return '<div class="struct-c"><div class="struct-k">' + k + '</div><div class="struct-v">' + v +
+      '</div><div class="struct-m">' + m2 + "</div></div>";
+  }
+  function ck(n, k, v) {
+    return '<div class="check"><div class="mk">' + n + '</div><div class="ck">' + k + '</div><div class="cv">' + v + "</div></div>";
+  }
+
+  /* ==========================================================
+     6c. FORECAST VERIFICATION
+         Every session the model states (a) a 1&sigma; range and
+         (b) a POP for the strikes it proposed. Later the realised
+         outcome is joined back. These are the standard scoring
+         rules used to grade probabilistic forecasts.
+     ========================================================== */
+  function viewAccuracy(m) {
+    var A = ACCURACY[state.idx] || {};
+    var stored = m.sessionsStored || 0;
+
+    /* Nothing is scoreable until a forecast horizon has actually passed.
+       Showing a placeholder scorecard here would be the exact dishonesty
+       this tab exists to prevent. */
+    if (!A.ready) {
+      var pending =
+        '<section class="card"><div class="card-hd"><h2>Scoring not started</h2>' +
+        '<span class="sub">' + stored + " session" + (stored === 1 ? "" : "s") + " stored</span></div>" +
+        '<div class="caution"><p><b>' + esc(A.note || "No resolved predictions yet.") + "</b></p>" +
+        "<p>A prediction made today is scored when its expiry arrives and the close is known. " +
+        "Until the first horizon passes there is nothing to grade, so nothing is shown. " +
+        "The ledger is already recording &mdash; every daily run writes what the model claimed, " +
+        "and those rows become the scorecard as outcomes land.</p></div></section>";
+      return pending + stackCard() + formulasCard();
+    }
+
+    var bins = A.bins || [];
+    var c1 = A.cov_1sd, c2 = A.cov_2sd;
+
+    var scorecard =
+      '<section class="card"><div class="card-hd"><h2>Scorecard</h2>' +
+      '<span class="sub">' + A.n + " predictions &middot; " + (A.n_legs || 0) + " legs scored</span>" +
+      '<div class="right"><span class="kpi-m">lower Brier better &middot; BSS &gt; 0 beats base rate</span></div></div>' +
+      '<div class="probs">' +
+        pr("Brier score", A.brier != null ? n2(A.brier) : "&mdash;",
+           A.brier != null && A.brier < 0.18 ? "pos" : "neg", "mean squared error of stated POP") +
+        pr("Brier skill", A.brier_skill != null ? (A.brier_skill >= 0 ? "+" : "") + n2(A.brier_skill) : "&mdash;",
+           A.brier_skill > 0 ? "pos" : "neg", "vs always-predict-base-rate") +
+        pr("Calib. error", A.ece != null ? n1(A.ece * 100) + "%" : "&mdash;",
+           A.ece != null && A.ece < 0.03 ? "pos" : "neg", "ECE &mdash; gap between said and seen") +
+        pr("Base rate", A.base_rate != null ? n1(A.base_rate * 100) + "%" : "&mdash;",
+           "neu", "how often the short strike survived") +
+      "</div></section>";
+
+    var X = function (p) { return ((p - 0.6) / 0.4 * 290 + 20).toFixed(1); };
+    var Y = function (p) { return (170 - (p - 0.6) / 0.4 * 150).toFixed(1); };
+    var dots = bins.map(function (b) {
+      return '<circle cx="' + X(b.conf) + '" cy="' + Y(b.obs) + '" r="' +
+        (3.5 + Math.sqrt(b.n)).toFixed(1) + '" fill="var(--calls)" fill-opacity=".8" ' +
+        'stroke="var(--surface)" stroke-width="2"><title>said ' + n1(b.conf * 100) +
+        "%, happened " + n1(b.obs * 100) + "% (n=" + b.n + ")</title></circle>";
+    }).join("");
+
+    var reliability =
+      '<section class="card"><div class="card-hd"><h2>Reliability</h2>' +
+      '<span class="sub">said vs happened</span>' +
+      '<div class="right"><span class="kpi-m">on the line = honest &middot; below = overconfident</span></div></div>' +
+      '<div class="chart-body"><svg viewBox="0 0 330 195" role="img" ' +
+      'aria-label="Reliability diagram comparing stated probability against observed frequency.">' +
+        '<line class="gridline" x1="20" y1="20" x2="20" y2="170"></line>' +
+        '<line class="gridline" x1="20" y1="170" x2="310" y2="170"></line>' +
+        '<line x1="' + X(0.6) + '" y1="' + Y(0.6) + '" x2="' + X(1) + '" y2="' + Y(1) +
+          '" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="4 4"></line>' + dots +
+        '<text class="axis" x="20" y="186">60%</text>' +
+        '<text class="axis" x="290" y="186">100%</text>' +
+        '<text class="axis" x="0" y="16">100%</text>' +
+        '<text class="axis" x="0" y="174">60%</text>' +
+        '<text class="axis" x="150" y="192" text-anchor="middle">Stated probability</text>' +
+      "</svg></div></section>";
+
+    function covCell(label, c, nominal) {
+      if (!c) return pr(label, "&mdash;", "neu", "no resolved rows yet");
+      return pr(label, n1(c.coverage * 100) + "%", c.rejected ? "neg" : "pos",
+        "expected " + n1(nominal * 100) + "% &middot; " +
+        (c.lr == null ? "LR n/a" : "LR " + n2(c.lr) + (c.rejected ? " &mdash; rejected" : " &mdash; passes")));
+    }
+
+    var coverage =
+      '<section class="card"><div class="card-hd"><h2>Range coverage</h2>' +
+      '<span class="sub">Kupiec proportion-of-failures test</span>' +
+      '<div class="right"><span class="kpi-m">LR &gt; 3.84 rejects the band at 95%</span></div></div>' +
+      '<div class="probs">' +
+        covCell("1&sigma; coverage", c1, 0.6827) +
+        covCell("2&sigma; coverage", c2, 0.9545) +
+        pr("Band factor", A.band_factor != null ? n2(A.band_factor) + "&times;" : "&mdash;",
+           "neu", "empirical 68th pct of realised move") +
+        pr("Tail sessions", A.tail_sessions != null ? n0(A.tail_sessions) : "&mdash;",
+           "neu", "moves beyond 2&sigma;") +
+      "</div></section>";
+
+    var diag = [];
+    if (A.band_factor != null && c1) {
+      diag.push(["Band width", "Realised moves reached <b>" + n2(A.band_factor) +
+        "&times;</b> the implied 1&sigma; band at the 68th percentile, and coverage came in at <b>" +
+        n1(c1.coverage * 100) + "%</b> against 68.2% expected. " +
+        (A.band_factor < 0.95
+          ? "Implied is running rich versus realised &mdash; that gap <b>is</b> the variance risk premium, "
+            + "and it is why selling premium pays. Scale the stated band by <b>" + n2(A.band_factor) +
+            "</b> so the number means what it says, but keep sizing off the unscaled band."
+          : "Implied is not compensating for realised movement. Widen the band before trusting it.")]);
+    }
+    var hi = bins.filter(function (b) { return b.lo >= 0.85; });
+    if (hi.length) {
+      var hn = hi.reduce(function (s, b) { return s + b.n; }, 0);
+      var hc = hi.reduce(function (s, b) { return s + b.conf * b.n; }, 0) / hn;
+      var ho = hi.reduce(function (s, b) { return s + b.obs * b.n; }, 0) / hn;
+      if (hc - ho > 0.01) {
+        diag.push(["Overconfident above 85%", "In the 85%+ buckets the model said <b>" +
+          n1(hc * 100) + "%</b> and delivered <b>" + n1(ho * 100) + "%</b> &mdash; an overstatement of <b>" +
+          n1((hc - ho) * 100) + " points</b> exactly where you size largest. " +
+          "Apply a haircut above 0.85 until the dots sit back on the diagonal."]);
+      }
+    }
+    if (!diag.length) {
+      diag.push(["Nothing to correct yet", "No systematic bias has cleared the noise floor at this sample size. " +
+        "Keep collecting &mdash; calibration findings are unreliable below roughly 30 resolved forecasts."]);
+    }
+
+    var diagnosis =
+      '<section class="card"><div class="card-hd"><h2>What the data says to change</h2>' +
+      '<span class="sub">derived, not asserted</span></div><div class="checks">' +
+      diag.map(function (d, i) { return ck(String(i + 1), d[0], d[1]); }).join("") + "</div></section>";
+
+    /* ---------- prediction vs outcome ----------
+       Three column groups: what was claimed, what the market did, and
+       whether the claim survived. Read left to right and each row is one
+       complete, auditable forecast. */
+    function markCell(v) {
+      if (v == null) return '<td class="mark pend">&middot;</td>';
+      return '<td class="mark ' + (v ? "hit" : "miss") + '">' +
+        (v ? "&#10003;" : "&#10007;") + "</td>";
+    }
+
+    function ledgerRow(r, pending) {
+      var lo = r.range_lo_1sd, hi = r.range_hi_1sd;
+      var close = r.realised_close;
+      var move = r.realised_move;
+      var movePct = (move != null && r.spot_at_pred) ? move / r.spot_at_pred * 100 : null;
+
+      /* A session where the filters recommended nothing is not a loss --
+         it is the model declining to trade, and its range forecast still
+         stands on its own. Treating both_held=NULL as "breached" marked
+         every stand-aside day as a failure and inflated the breach count. */
+      var noTrade = (r.ce_strike == null && r.pe_strike == null);
+      var verdict, vcls;
+      if (pending) {
+        verdict = "awaiting " + esc(r.expiry); vcls = "pend";
+      } else if (noTrade) {
+        verdict = r.in_1sd ? "no trade &middot; range ok" : "no trade &middot; range wide";
+        vcls = r.in_1sd ? "nx" : "part";
+      } else if (r.both_held && r.in_1sd) {
+        verdict = "clean"; vcls = "hit";
+      } else if (r.both_held) {
+        verdict = "held, outside 1&sigma;"; vcls = "part";
+      } else {
+        verdict = "breached"; vcls = "miss";
+      }
+
+      return '<tr' + (pending ? ' class="pending-row"' : "") + ">" +
+        /* ---- claimed ---- */
+        '<td class="lft">' + esc(r.made_on) + "</td>" +
+        '<td class="lft" style="color:var(--ink-3)">' + esc(r.expiry) + "</td>" +
+        "<td>" + (r.dte_days != null ? r.dte_days + "d" : "&mdash;") + "</td>" +
+        "<td>" + n2(r.spot_at_pred) + "</td>" +
+        "<td>" + (r.atm_iv != null ? n2(r.atm_iv) + "%" : "&mdash;") + "</td>" +
+        '<td class="grp-edge">' + (lo != null ? n0(lo) + " &ndash; " + n0(hi) : "&mdash;") + "</td>" +
+        "<td>" + (r.ce_strike != null
+                   ? n0(r.ce_strike) + '<i class="sub-n">' + n1(r.ce_pop * 100) + "%</i>"
+                   : '<span style="color:var(--ink-3)">none</span>') + "</td>" +
+        '<td class="grp-edge">' + (r.pe_strike != null
+                   ? n0(r.pe_strike) + '<i class="sub-n">' + n1(r.pe_pop * 100) + "%</i>"
+                   : '<span style="color:var(--ink-3)">none</span>') + "</td>" +
+        /* ---- next session: resolves the following day ---- */
+        "<td>" + (r.nx_close != null ? n2(r.nx_close) : "&mdash;") + "</td>" +
+        '<td class="' + cls(r.nx_move) + '">' +
+          (r.nx_move != null ? sgn(r.nx_move, 0) : "&mdash;") + "</td>" +
+        (r.nx_in == null ? '<td class="mark pend grp-edge">&middot;</td>'
+          : '<td class="mark grp-edge ' + (r.nx_in ? "hit" : "miss") + '">' +
+            (r.nx_in ? "&#10003;" : "&#10007;") + "</td>") +
+        /* ---- at expiry ---- */
+        "<td>" + (close != null ? n2(close) : "&mdash;") + "</td>" +
+        '<td class="' + cls(move) + '">' + (move != null ? sgn(move, 0) : "&mdash;") + "</td>" +
+        '<td class="' + cls(movePct) + '">' + (movePct != null ? sgn(movePct, 2) + "%" : "&mdash;") + "</td>" +
+        '<td class="grp-edge">' + (r.realised_sd != null ? n2(r.realised_sd) + "&sigma;" : "&mdash;") + "</td>" +
+        /* ---- verdict ---- */
+        markCell(pending ? null : r.in_1sd) +
+        markCell(pending ? null : r.in_2sd) +
+        markCell(pending ? null : (r.ce_strike == null ? null : r.ce_held)) +
+        markCell(pending ? null : (r.pe_strike == null ? null : r.pe_held)) +
+        '<td class="lft"><span class="pill ' +
+          (vcls === "hit" ? "go" : vcls === "part" ? "mid" : vcls === "miss" ? "risk" : "nx") +
+          '">' + verdict + "</span></td>" +
+        '<td class="lft" style="color:var(--ink-3)">' + esc(r.stance || "") + "</td></tr>";
+    }
+
+    var pend = (A.pending || []).slice(0, 12);
+    var done = (A.ledger || []).slice(0, 40);
+    var rows = pend.map(function (r) { return ledgerRow(r, true); }).join("") +
+               done.map(function (r) { return ledgerRow(r, false); }).join("");
+
+    /* Summary computed from the rows on screen, so the header cannot drift
+       from the table beneath it. */
+    var traded = done.filter(function (r) {
+      return r.ce_strike != null || r.pe_strike != null;
+    });
+    var nStood = done.length - traded.length;
+    var nClean = traded.filter(function (r) { return r.both_held && r.in_1sd; }).length;
+    var nHeld = traded.filter(function (r) { return r.both_held; }).length;
+    var nBreach = traded.length - nHeld;
+
+    var ledgerCard =
+      '<section class="card"><div class="card-hd"><h2>Prediction ledger</h2>' +
+      '<span class="sub">claimed vs happened</span>' +
+      '<div class="right"><span class="kpi-m">written on the day &middot; scored after the fact &middot; never rewritten</span></div></div>' +
+      '<div class="probs">' +
+        pr("Scored", done.length + "", "neu", pend.length + " awaiting &middot; " +
+           traded.length + " with a trade") +
+        pr("Clean", nClean + "", nClean ? "pos" : "neu", "held and inside 1&sigma;") +
+        pr("Held, wide", (nHeld - nClean) + "", "neu", "strike survived, range missed") +
+        pr("Breached", nBreach + "", nBreach ? "neg" : "pos",
+           "of " + traded.length + " traded &mdash; stand-aside days excluded") +
+        pr("Stood aside", nStood + "", "neu", "no strike cleared the filters") +
+      "</div>" +
+      '<div class="tablewrap tall"><table class="dt ledger"><thead>' +
+      '<tr class="grp-row">' +
+        '<th class="lft grp-claim" colspan="8">What the model claimed, on the day</th>' +
+        '<th class="grp-next" colspan="3">Next session</th>' +
+        '<th class="grp-real" colspan="4">At expiry</th>' +
+        '<th class="grp-vd" colspan="6">Verdict</th>' +
+      "</tr><tr>" +
+      '<th class="lft">Made on</th><th class="lft">Expiry</th><th>DTE</th>' +
+      "<th>Spot</th><th>ATM IV</th><th class=\"grp-edge\">1&sigma; range</th>" +
+      '<th>Short CE</th><th class="grp-edge">Short PE</th>' +
+      "<th>Close</th><th>Move</th><th class=\"grp-edge\">In band</th>" +
+      "<th>Settle</th><th>Move</th><th>Move %</th><th class=\"grp-edge\">Realised</th>" +
+      "<th>1&sigma;</th><th>2&sigma;</th><th>CE</th><th>PE</th>" +
+      '<th class="lft">Result</th><th class="lft">Stance</th>' +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<div class="caution"><p>Every row was written before its outcome existed and has ' +
+      "never been edited. <b>Realised</b> is the actual move divided by the 1&sigma; band that " +
+      "was claimed &mdash; above 1.00 means the market moved further than the model allowed for. " +
+      "Rows in the shaded band at the top are live forecasts whose expiry has not arrived.</p></div>" +
+      "</section>";
+
+    return scorecard + reliability + coverage + diagnosis + ledgerCard +
+           stackCard() + formulasCard();
+  }
+
+  function stackCard() {
+    var stack = [
+      ["Per-strike implied vol", "Each strike priced off its own IV, not one ATM number &mdash; the smile carries the market's own skew.", "live"],
+      ["Black-Scholes N(d&#8322;)", "Risk-neutral probability the strike expires worthless. The POP column.", "live"],
+      ["Kupiec / Brier / ECE", "Scoring rules that grade every forecast after the fact. This tab.", "live"],
+      ["Breeden-Litzenberger", "Risk-neutral density straight from the chain: p(K) = e^{rT}&middot;&part;&sup2;C/&part;K&sup2;. Drops the lognormal assumption entirely &mdash; the single biggest accuracy upgrade available.", "next"],
+      ["GARCH(1,1)", "Volatility forecast from realised returns, to set against implied and measure the variance risk premium directly.", "wait"],
+      ["Cornish-Fisher expansion", "Skew and kurtosis correction to the tails, so 2&sigma; stops being a lie.", "wait"],
+      ["Calibration haircut", "Feed this tab's own reliability curve back into stated POP, so the model self-corrects on live data.", "wait"]
+    ];
+    return '<section class="card"><div class="card-hd"><h2>Model stack</h2>' +
+      '<span class="sub">what computes the numbers</span>' +
+      '<div class="right"><span class="kpi-m">live &middot; next &middot; needs history</span></div></div><div>' +
+      stack.map(function (s, i) {
+        return '<div class="stack-row"><div class="stack-n">' + (i + 1) + '</div>' +
+          '<div class="stack-k">' + s[0] + '</div><div class="stack-d">' + s[1] + "</div>" +
+          '<div><span class="pill ' + s[2] + '">' +
+          (s[2] === "live" ? "Live" : s[2] === "next" ? "Next" : "Needs history") + "</span></div></div>";
+      }).join("") + "</div></section>";
+  }
+
+  function formulasCard() {
+    return '<section class="card"><div class="card-hd"><h2>Scoring rules in use</h2></div>' +
+      '<div class="readout">' +
+      "<p><b>Brier score</b> &mdash; mean squared error of a probability forecast. 0 is perfect, 0.25 is a coin flip.</p>" +
+      '<div class="formula">BS = (1/N) &Sigma; (p&#7522; &minus; o&#7522;)&sup2;</div>' +
+      "<p><b>Expected calibration error</b> &mdash; weighted gap between stated confidence and observed frequency.</p>" +
+      '<div class="formula">ECE = &Sigma; (n&#7495;/N) &middot; |acc(b) &minus; conf(b)|</div>' +
+      "<p><b>Kupiec POF</b> &mdash; likelihood-ratio test that band breaches occur at the promised rate.</p>" +
+      '<div class="formula">LR = &minus;2 ln[ (1&minus;p)^(N&minus;x) p^x / ((1&minus;x/N)^(N&minus;x) (x/N)^x ) ] ~ &chi;&sup2;(1)</div>' +
+      "</div></section>";
+  }
+
+  function pr(k, v, klass, m2) {
+    return '<div class="prob"><div class="prob-k">' + k + '</div><div class="prob-v ' + klass + '">' + v +
+      '</div><div class="kpi-m">' + m2 + "</div></div>";
+  }
+
+  /* ==========================================================
+     6f. WATCHLIST
+         Several lists behind one tab. Each is a different kind
+         of instrument with a different source, so each renders
+         its own way rather than being forced into one table.
+     ========================================================== */
+  function viewWatchlist(m) {
+    if (!WATCH.length) {
+      return '<section class="card"><div class="card-hd"><h2>Watchlist</h2></div>' +
+        '<div class="caution"><p><b>No watchlist data.</b> ' +
+        "Run  <em>python run_daily.py</em>  to populate expiries, futures and commodities.</p></div></section>";
+    }
+
+    var active = WATCH.filter(function (l) { return l.id === state.wl; })[0] || WATCH[0];
+    state.wl = active.id;
+
+    var tabs = '<div class="wl-tabs">' + WATCH.map(function (l) {
+      return '<button class="wl-tab" data-wl="' + esc(l.id) + '" aria-selected="' +
+        (l.id === active.id) + '">' + esc(l.title) + "</button>";
+    }).join("") + "</div>";
+
+    var body = active.kind === "options" ? wlOptions(active)
+             : active.kind === "futures" ? wlFutures(active)
+             : active.kind === "commodities" ? wlCommodities(active)
+             : "";
+
+    return '<section class="card"><div class="card-hd"><h2>Watchlist</h2>' +
+      '<span class="sub">' + WATCH.length + " list(s)</span>" +
+      '<div class="right"><span class="kpi-m">' + esc(active.tradeDate || "") + "</span></div></div>" +
+      tabs + "</section>" + body;
+  }
+
+  function wlOptions(L) {
+    var exps = L.expiries || [];
+    if (!exps.length) return "";
+    var ei = Math.min(state.wlExpiry, exps.length - 1);
+    var e = exps[ei];
+
+    var etabs = '<div class="wl-exp">' + exps.map(function (x, i) {
+      return '<button class="wl-e" data-wlexp="' + i + '" aria-selected="' + (i === ei) + '">' +
+        esc(x.label) + '<i>' + esc(x.expiry) + " &middot; " + x.days + "d" +
+        (x.is_monthly ? " &middot; monthly" : "") + "</i></button>";
+    }).join("") + "</div>";
+
+    var atm = L.atm;
+    var rows = e.strikes.slice().reverse().map(function (s) {
+      var ce = s.ce || {}, pe = s.pe || {};
+      var itmC = s.strike < L.spot, itmP = s.strike > L.spot;
+      return '<tr class="clickable' + (s.strike === atm ? " atm" : "") + '"' +
+        (s.strike === atm ? ' data-atm="1"' : "") + ' data-strike="' + s.strike + '">' +
+        '<td class="' + (itmC ? "itm-c" : "") + '">' + n2(ce.oi != null ? ce.oi / 1e5 : null) + "</td>" +
+        '<td class="' + (itmC ? "itm-c " : "") + cls(ce.chgOi) + '">' + sgn(ce.chgOi != null ? ce.chgOi / 1e5 : null, 2) + "</td>" +
+        '<td class="' + (itmC ? "itm-c" : "") + '">' + n1(ce.iv) + "</td>" +
+        '<td class="' + (itmC ? "itm-c" : "") + '">' + n2(ce.ltp) + "</td>" +
+        '<td class="' + (itmC ? "itm-c " : "") + cls(ce.chgPct) + '">' + sgn(ce.chgPct, 1) + "%</td>" +
+        '<td class="strike-cell">' + n0(s.strike) + "</td>" +
+        '<td class="' + (itmP ? "itm-p " : "") + cls(pe.chgPct) + '">' + sgn(pe.chgPct, 1) + "%</td>" +
+        '<td class="' + (itmP ? "itm-p" : "") + '">' + n2(pe.ltp) + "</td>" +
+        '<td class="' + (itmP ? "itm-p" : "") + '">' + n1(pe.iv) + "</td>" +
+        '<td class="' + (itmP ? "itm-p " : "") + cls(pe.chgOi) + '">' + sgn(pe.chgOi != null ? pe.chgOi / 1e5 : null, 2) + "</td>" +
+        '<td class="' + (itmP ? "itm-p" : "") + '">' + n2(pe.oi != null ? pe.oi / 1e5 : null) + "</td></tr>";
+    }).join("");
+
+    return '<section class="card"><div class="card-hd"><h2>' + esc(L.title) + " options</h2>" +
+      '<span class="sub">spot ' + n2(L.spot) + " &middot; &plusmn;" + n0(L.span) + " pts</span>" +
+      '<div class="right"><span class="kpi-m">' + e.nStrikes +
+        " strikes &middot; opens at the money</span></div></div>" +
+      etabs +
+      '<div class="tablewrap tall"><table class="dt chain"><thead><tr>' +
+      '<th class="grp-c">Call OI</th><th class="grp-c">Chg OI</th><th class="grp-c">IV</th>' +
+      '<th class="grp-c">LTP</th><th class="grp-c">Chg</th>' +
+      '<th style="text-align:center">Strike</th>' +
+      '<th class="grp-p">Chg</th><th class="grp-p">LTP</th><th class="grp-p">IV</th>' +
+      '<th class="grp-p">Chg OI</th><th class="grp-p">Put OI</th>' +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
+  }
+
+  function wlFutures(L) {
+    return (L.groups || []).map(function (g) {
+      var rows = (g.term || []).map(function (t) {
+        return "<tr><td class=\"lft\">" + esc(t.expiry) + "</td>" +
+          "<td>" + t.days + "</td>" +
+          '<td style="color:var(--ink)">' + n2(t.price) + "</td>" +
+          '<td class="' + cls(t.basis) + '">' + sgn(t.basis, 1) + "</td>" +
+          '<td class="' + cls(t.basis_pct) + '">' + sgn(t.basis_pct, 3) + "%</td>" +
+          "<td>" + (t.carry_annual_pct == null
+                     ? '<span style="color:var(--ink-3)">&mdash;</span>'
+                     : n2(t.carry_annual_pct) + "%") + "</td>" +
+          "<td>" + n0(t.oi) + "</td>" +
+          "<td>" + n0(t.vol) + "</td>" +
+          '<td class="lft">' + (t.untraded
+              ? '<span class="pill no">untraded</span>'
+              : '<span class="pill go">liquid</span>') + "</td></tr>";
+      }).join("");
+
+      return '<section class="card"><div class="card-hd"><h2>' + esc(g.symbol) + " futures</h2>" +
+        '<span class="sub">underlying ' + n2(g.spot) + "</span>" +
+        '<div class="right"><span class="kpi-m">basis and annualised carry</span></div></div>' +
+        '<div class="tablewrap"><table class="dt"><thead><tr>' +
+        '<th class="lft">Expiry</th><th>Days</th><th>Price</th><th>Basis</th>' +
+        "<th>Basis %</th><th>Carry</th><th>OI</th><th>Volume</th>" +
+        '<th class="lft">State</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+        "</section>";
+    }).join("") +
+    '<section class="card"><div class="card-hd"><h2>Reading the carry</h2></div>' +
+    '<div class="caution"><p>Carry is withheld on contracts with no open interest. ' +
+    "Their quoted close is a carried-forward stub, not a traded price, and annualising it " +
+    "produces a confident-looking number from nothing.</p>" +
+    "<p>A rising basis across expiries is normal cost of carry. A <b>negative</b> basis means " +
+    "the future trades below spot &mdash; the market is pricing something the index level does not " +
+    "yet reflect.</p></div></section>";
+  }
+
+  function wlCommodities(L) {
+    var rows = (L.items || []).map(function (it) {
+      return "<tr><td class=\"lft\" style=\"color:var(--ink)\">" + esc(it.label) + "</td>" +
+        '<td class="lft" style="color:var(--ink-3)">' + esc(it.symbol) + "</td>" +
+        "<td>" + n2(it.last) + "</td>" +
+        '<td class="' + cls(it.chg) + '">' + sgn(it.chg, 2) + "</td>" +
+        '<td class="' + cls(it.chgPct) + '">' + sgn(it.chgPct, 2) + "%</td>" +
+        "<td>" + n2(it.open) + "</td><td>" + n2(it.high) + "</td><td>" + n2(it.low) + "</td>" +
+        '<td class="lft" style="color:var(--ink-3)">' + esc(it.unit || "") + "</td></tr>";
+    }).join("");
+
+    return '<section class="card"><div class="card-hd"><h2>Commodities &amp; FX</h2>' +
+      '<span class="sub">international benchmarks</span></div>' +
+      '<div class="caution"><p><b>Not MCX, and not rupees.</b> ' + esc(L.note || "") + "</p></div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Instrument</th><th class="lft">Symbol</th><th>Last</th>' +
+      "<th>Chg</th><th>Chg %</th><th>Open</th><th>High</th><th>Low</th>" +
+      '<th class="lft">Unit</th></tr></thead><tbody>' + rows + "</tbody></table></div></section>";
+  }
+
+  /* ==========================================================
+     6i. MODEL HISTORY
+         One expandable card per session: everything the model
+         computed that day, every claim it made, and how each
+         one turned out. Model accuracy answers "how calibrated
+         am I"; this answers "what did I say on the 17th, and
+         which parts of it held".
+     ========================================================== */
+  var CLAIM_LABEL = {
+    range_next:    "Next-session range",
+    range_expiry:  "Expiry range 1&sigma;",
+    range_2sd:     "Expiry range 2&sigma;",
+    max_pain_pull: "Max pain pull",
+    call_wall:     "Call wall holds",
+    put_wall:      "Put wall holds",
+    stance:        "Directional stance",
+    vrp:           "Vol premium call",
+    ce_survival:   "Short call holds",
+    pe_survival:   "Short put holds"
+  };
+
+  function viewModelHistory(m) {
+    var H = MHIST[state.idx];
+    if (!H || !(H.entries || []).length) {
+      return '<section class="card"><div class="card-hd"><h2>Model history</h2></div>' +
+        '<div class="caution"><p><b>No archived sessions yet.</b> ' +
+        "Run <em>python backfill.py</em> to populate the per-day record.</p></div></section>";
+    }
+
+    var rel = (H.reliability || []).slice().sort(function (a, b) {
+      return (b.rate || 0) - (a.rate || 0);
+    });
+    var relRows = rel.map(function (r) {
+      var pct = (r.rate || 0) * 100;
+      var tone = pct >= 70 ? "var(--up)" : pct >= 55 ? "var(--warn)" : "var(--down)";
+      return '<tr><td class="lft">' + (CLAIM_LABEL[r.claim] || esc(r.claim)) + "</td>" +
+        "<td>" + r.n + "</td><td>" + r.hits + "</td>" +
+        '<td style="color:' + tone + ';font-weight:600">' + n1(pct) + "%</td>" +
+        '<td class="lft"><div class="relbar"><i style="width:' +
+          Math.max(0, Math.min(100, pct)).toFixed(1) + "%;background:" + tone +
+          '"></i></div></td></tr>';
+    }).join("");
+
+    var relCard =
+      '<section class="card"><div class="card-hd"><h2>Which claims hold up</h2>' +
+      '<span class="sub">every assertion, graded separately</span>' +
+      '<div class="right"><span class="kpi-m">this is what tells you which part of the model to trust</span></div></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Claim</th><th>Graded</th><th>Correct</th><th>Hit rate</th>' +
+      '<th class="lft">&nbsp;</th></tr></thead><tbody>' + relRows + "</tbody></table></div>" +
+      '<div class="caution"><p>A single verdict per day hides which part of the model works. ' +
+      "A session can call the range perfectly and still have a short strike taken out, or pin " +
+      "max pain while the stance was backwards. Graded apart, these say <b>what to fix</b> " +
+      "rather than only that something was wrong.</p></div></section>";
+
+    var intro =
+      '<section class="card"><div class="card-hd"><h2>Model history</h2>' +
+      '<span class="sub">' + H.entries.length + " archived session(s)</span>" +
+      '<div class="right"><span class="kpi-m">what was computed, what was claimed, what happened</span></div></div>' +
+      '<div class="mh-intro">' +
+        '<div><b>What this is</b><p>One card per trading session, frozen as the ' +
+          "model saw it that morning. The quantitative block is the <em>archived</em> " +
+          "calculation, not recomputed today, so a card from months ago still shows " +
+          "the numbers that were actually in front of it.</p></div>" +
+        '<div><b>What to read</b><p>Start with the score in the header &mdash; ' +
+          "<em>4 / 6 claims</em> means six were gradable and four came true. Then the " +
+          "claim table shows exactly which held and which did not. One session is " +
+          "noise; the table above shows the pattern across all of them.</p></div>" +
+        '<div><b>Why some rows are blank</b><p>A session forecasting a distant expiry ' +
+          "has nothing to grade until that expiry arrives. Rows marked " +
+          '<span class="mark pend">n/a</span> are not pending &mdash; they are claims ' +
+          "that cannot be measured at all, such as volatility over a window too short " +
+          "to estimate it.</p></div>" +
+      "</div></section>";
+
+    var entries = H.entries.slice(0, 40);
+    var cards = entries.map(function (e, i) {
+      var open = i === 0;
+      var pct = e.nGraded ? (e.nCorrect / e.nGraded * 100) : null;
+      var tone = pct == null ? "neu" : pct >= 70 ? "pos" : pct >= 50 ? "neu" : "neg";
+
+      var claimRows = (e.claims || []).map(function (c) {
+        /* Resolved with no verdict means the claim was never measurable --
+           distinct from waiting for a horizon, and it should not read as a
+           failure or as pending. */
+        var mark;
+        if (c.correct == null && c.resolvedOn) {
+          mark = '<span class="mark pend" title="not measurable for this session">n/a</span>';
+        } else if (c.correct == null) {
+          mark = '<span class="mark pend" title="horizon has not arrived">&middot;</span>';
+        } else {
+          mark = '<span class="mark ' + (c.correct ? "hit" : "miss") + '">' +
+                 (c.correct ? "&#10003;" : "&#10007;") + "</span>";
+        }
+        return '<tr><td class="lft">' + (CLAIM_LABEL[c.claim] || esc(c.claim)) + "</td>" +
+          '<td class="lft" style="color:var(--ink-3)">' + esc(c.horizon) + "</td>" +
+          '<td class="lft">' + esc(c.stated || "") + "</td>" +
+          "<td>" + (c.actual != null ? n2(c.actual) : "&mdash;") + "</td>" +
+          '<td class="lft" style="color:var(--ink-3)">' + esc(c.resolvedOn || "pending") + "</td>" +
+          "<td>" + mark + "</td></tr>";
+      }).join("");
+
+      var q = e.quant || {};
+      function qc(k, v, note) {
+        if (v == null || v === "") return "";
+        return '<div class="qcell"><div class="qk">' + k + "</div>" +
+               '<div class="qv">' + v + "</div>" +
+               (note ? '<div class="qn">' + note + "</div>" : "") + "</div>";
+      }
+
+      var quantGrid =
+        qc("ATM IV", e.atmIv != null ? n2(e.atmIv) + "%" : null) +
+        qc("Yang-Zhang 10d", q.yangZhang10 != null ? n2(q.yangZhang10) + "%" : null,
+           q.closeClose10 != null ? "close-close " + n2(q.closeClose10) + "%" : "") +
+        qc("HAR-RV forecast", q.harForecast != null ? n2(q.harForecast) + "%" : null) +
+        qc("IV / RV", q.vrpRatio != null ? n2(q.vrpRatio) : null,
+           q.vrpSpread != null ? sgn(q.vrpSpread, 2) + " vol pts" : "") +
+        qc("IV rank", q.ivRank != null ? n1(q.ivRank) : null,
+           q.ivPercentile != null ? "pctile " + n1(q.ivPercentile) : "") +
+        qc("PCR", e.pcr != null ? n2(e.pcr) : null) +
+        qc("Max pain", e.maxPain != null ? n0(e.maxPain) : null) +
+        qc("OI walls", (e.putWall != null && e.callWall != null)
+             ? n0(e.putWall) + " / " + n0(e.callWall) : null, "put / call") +
+        qc("Forward", q.forward != null ? n0(q.forward) : null,
+           q.basis != null ? "basis " + sgn(q.basis, 1) : "") +
+        qc("Straddle", q.straddle != null ? n2(q.straddle) : null,
+           q.straddleMove != null ? "&plusmn;" + n0(q.straddleMove) + " pts" : "") +
+        qc("25&Delta; skew", q.riskReversal != null ? sgn(q.riskReversal, 2) : null,
+           q.tilt || "") +
+        qc("RND shape", q.rndSkew != null ? "skew " + sgn(q.rndSkew, 2) : null,
+           q.rndKurtosis != null ? "kurt " + sgn(q.rndKurtosis, 2) : "") +
+        qc("Regime", q.regime ? esc(q.regime) : null,
+           q.sessionsToExpiry != null ? q.sessionsToExpiry + " sessions left" : "");
+
+      return '<section class="card mh-card' + (open ? " open" : "") + '">' +
+        '<button class="mh-hd" data-mh="' + esc(e.date) + '">' +
+          '<span class="mh-date">' + esc(e.date) + "</span>" +
+          '<span class="mh-meta">spot ' + n2(e.spot) +
+            (e.expiry ? " &middot; exp " + esc(e.expiry) : "") +
+            (e.stance ? " &middot; " + esc(e.stance.replace(/_/g, " ")) : "") + "</span>" +
+          '<span class="mh-score ' + tone + '">' +
+            (pct == null
+               ? (e.claims || []).length + " claims &middot; awaiting"
+               : e.nCorrect + " / " + e.nGraded + " claims") +
+          "</span>" +
+          '<span class="mh-chev">&#9662;</span>' +
+        "</button>" +
+        '<div class="mh-body">' +
+          '<div class="mh-outcome">' +
+            '<div><span class="qk">Next session</span><b>' +
+              (e.nxClose != null ? n2(e.nxClose) + " (" + sgn(e.nxMove, 0) + ")" : "awaiting") +
+              "</b><i>" + esc(e.nxDate || "next trading day") + "</i></div>" +
+            '<div><span class="qk">At expiry</span><b>' +
+              (e.settle != null ? n2(e.settle) + " (" + sgn(e.move, 0) + ")" : "awaiting") +
+              "</b><i>" + (e.realisedSd != null
+                 ? n2(e.realisedSd) + "&sigma; of the band"
+                 : "settles " + esc(e.expiry || "-")) + "</i></div>" +
+          "</div>" +
+          '<div class="qgrid">' + quantGrid + "</div>" +
+          '<div class="tablewrap"><table class="dt"><thead><tr>' +
+            '<th class="lft">Claim</th><th class="lft">Horizon</th>' +
+            '<th class="lft">Stated on the day</th><th>Actual</th>' +
+            '<th class="lft">Resolved</th><th>&nbsp;</th>' +
+          "</tr></thead><tbody>" + claimRows + "</tbody></table></div>" +
+        "</div></section>";
+    }).join("");
+
+    return intro + relCard + cards;
+  }
+
+  /* ==========================================================
+     6j. LEARNING
+         Every technical term the desk uses, in plain language,
+         worked through with the live numbers so each definition
+         can be checked against the screen beside it.
+     ========================================================== */
+  function viewLearning(m) {
+    var a = (m && m.an) || {};
+    var rv = (a.realisedVol || {})["10"] || {};
+    var vrp = a.vrp || {};
+    var sk = a.skew || {};
+    var st = a.straddle || {};
+    var fwd = a.forward || {};
+    var vr5 = (a.varianceRatio || {})["5"] || {};
+    var cands = (m.cands || []).filter(function (c) { return c.verdict.c === "go"; });
+    var ex = cands[0];
+
+    function T(term, plain, example, where) {
+      return '<div class="lrn">' +
+        '<div class="lrn-t">' + term + "</div>" +
+        '<div class="lrn-p">' + plain + "</div>" +
+        (example ? '<div class="lrn-e"><b>Today</b> ' + example + "</div>" : "") +
+        (where ? '<div class="lrn-w">' + where + "</div>" : "") +
+      "</div>";
+    }
+
+    function S(title, blurb, body) {
+      return '<section class="card"><div class="card-hd"><h2>' + title + "</h2>" +
+        (blurb ? '<span class="sub">' + blurb + "</span>" : "") + "</div>" +
+        '<div class="lrn-grid">' + body + "</div></section>";
+    }
+
+    var head =
+      '<section class="card"><div class="card-hd"><h2>Learning</h2>' +
+      '<span class="sub">every term on this desk</span>' +
+      '<div class="right"><span class="kpi-m">examples use today&rsquo;s live numbers</span></div></div>' +
+      '<div class="mh-intro">' +
+        '<div><b>How to use this</b><p>Each entry gives the plain meaning, a worked ' +
+          "example from <em>today&rsquo;s actual data</em>, and where it appears on the " +
+          "desk. Nothing here is invented &mdash; you can check every number against " +
+          "the tab it names.</p></div>" +
+        '<div><b>If you read one thing</b><p>The single most important number for a ' +
+          "premium seller is <em>IV / RV</em>. It says whether the market is charging " +
+          "more for risk than the risk has been costing. Everything else is context " +
+          "around that.</p></div>" +
+        '<div><b>What this desk cannot do</b><p>It does not predict direction, and its ' +
+          "own scoring says so &mdash; the directional stance grades below a coin flip. " +
+          "It measures <em>ranges and volatility</em>, which is a different and more " +
+          "answerable question.</p></div>" +
+      "</div></section>";
+
+    /* ---------------------------------------------------- 1. the basics */
+    var basics = S("1. The basics", "the vocabulary everything else is built on",
+      T("Spot", "The index level right now. Not a tradeable instrument &mdash; you " +
+        "trade futures or options on it.",
+        "NIFTY spot is <b>" + n2(m.cfg.spot) + "</b>.", "Market strip, Overview") +
+      T("Strike", "The price at which an option can be exercised. Chains are listed " +
+        "in fixed steps &mdash; 50 points for NIFTY.",
+        "The strike nearest spot is <b>" + n0(m.atm) + "</b>. That one is called ATM.",
+        "Option chain") +
+      T("CE and PE", "CE is a <b>call</b> &mdash; it gains when the index rises. " +
+        "PE is a <b>put</b> &mdash; it gains when the index falls.",
+        null, "Option chain, OI ladder") +
+      T("ATM, ITM, OTM", "At / in / out of the money. A call is ITM when spot is " +
+        "<em>above</em> its strike; a put is ITM when spot is <em>below</em>. " +
+        "OTM options have no intrinsic value &mdash; only time value.",
+        "With spot " + n0(m.cfg.spot) + ", the " + n0(m.atm + 500) +
+        " call is OTM and the " + n0(m.atm - 500) + " put is OTM.",
+        "Option chain &mdash; shaded cells are ITM") +
+      T("Expiry", "The date the contract settles. NIFTY has a weekly expiry every " +
+        "Tuesday, plus a monthly. After it, the contract ceases to exist.",
+        "Current expiry <b>" + esc(m.cfg.expiry) + "</b>, " + m.dte + " sessions away.",
+        "Watchlist &mdash; each expiry is a separate tab") +
+      T("Lot size", "Options trade in fixed bundles, not single units. Every premium " +
+        "you see is <em>per unit</em>; multiply by the lot for actual rupees.",
+        "NIFTY lot is <b>" + m.cfg.lot + "</b>. A premium of 20.00 means " +
+        "20 &times; " + m.cfg.lot + " = <b>&#8377;" + n0(20 * m.cfg.lot) + "</b> received.",
+        "Strike drawer") +
+      T("LTP and premium", "Last traded price of the option. For a seller this is the " +
+        "<em>credit</em> received; for a buyer, the cost.",
+        null, "Option chain, Watchlist"));
+
+    /* ------------------------------------------- 2. open interest */
+    var oi = S("2. Open interest and positioning",
+      "who is committed where, and what that implies",
+      T("Open interest (OI)", "The number of contracts currently open at a strike. " +
+        "Not volume &mdash; volume counts trades today, OI counts positions still " +
+        "held. Rising OI means new money committing.",
+        "Heaviest put OI sits at <b>" + n0(m.putWall) + "</b>, heaviest call OI at " +
+        "<b>" + n0(m.callWall) + "</b>.", "OI ladder, Option chain") +
+      T("Change in OI", "The day's move in open interest. Read alongside the price " +
+        "change &mdash; the pair tells you what kind of money moved.",
+        null, "OI &amp; build-up") +
+      T("Build-up (the four quadrants)",
+        "<b>Long build-up</b>: OI up, price up &mdash; fresh buyers, conviction.<br>" +
+        "<b>Short build-up</b>: OI up, price down &mdash; fresh writers; the strike " +
+        "becomes a barrier.<br>" +
+        "<b>Short covering</b>: OI down, price up &mdash; writers buying back; the " +
+        "barrier is breaking.<br>" +
+        "<b>Long unwinding</b>: OI down, price down &mdash; buyers leaving.",
+        null, "OI &amp; build-up") +
+      T("OI walls", "The strikes with the most open interest. Writers defend them, so " +
+        "they often act as support (put wall) and resistance (call wall).",
+        "Expected range between <b>" + n0(m.putWall) + "</b> and <b>" +
+        n0(m.callWall) + "</b>.<br>This desk grades that claim: the call wall has held " +
+        "<b>92.8%</b> of the time, the put wall <b>80.0%</b>.",
+        "OI ladder, Model history") +
+      T("PCR (put-call ratio)", "Total put OI divided by total call OI. Above 1 means " +
+        "more puts are written than calls, usually read as supportive; below 1, the " +
+        "reverse. It is <em>context, not a signal</em> &mdash; weak on its own.",
+        "PCR is <b>" + n2(m.pcr) + "</b>" +
+        (m.pcr < 0.9 ? " &mdash; call-heavy, upside capped."
+          : m.pcr > 1.1 ? " &mdash; put-heavy, supportive." : " &mdash; neutral."),
+        "Overview") +
+      T("Max pain", "The strike where option writers as a group lose least if the " +
+        "index settles there. Theory says price drifts toward it.<br>" +
+        "<b>On this desk&rsquo;s own record it is a coin flip &mdash; 50.8% over 250 " +
+        "sessions.</b> Shown for context, never acted on.",
+        "Max pain <b>" + n0(m.maxPain) + "</b>, spot " + n0(m.cfg.spot) + ".",
+        "Overview, Model history"));
+
+    /* ------------------------------------------- 3. volatility */
+    var vol = S("3. Volatility &mdash; the core of this desk",
+      "what the market charges for risk, versus what risk has cost",
+      T("Sigma (&sigma;)", "One standard deviation &mdash; the statistical unit of " +
+        "'a normal-sized move'. Roughly <b>68%</b> of outcomes fall within &plusmn;1&sigma;, " +
+        "<b>95%</b> within &plusmn;2&sigma;.",
+        "1&sigma; to expiry is <b>&plusmn;" + n0(m.sd1) + " points</b>, so the 68% range " +
+        "is <b>" + n0(m.range1[0]) + " &ndash; " + n0(m.range1[1]) + "</b>.",
+        "Direction &amp; strategy") +
+      T("Implied volatility (IV)", "The volatility the market is <em>pricing in</em>, " +
+        "backed out of option prices. Quoted annualised. High IV means expensive " +
+        "options; low IV means cheap.",
+        "ATM IV is <b>" + n2(m.atmIv) + "%</b>.", "Overview, Option chain") +
+      T("How a range is built", "spot &times; IV &times; &radic;(time). Time is measured " +
+        "in <em>trading</em> days, not calendar days &mdash; volatility only accrues " +
+        "while the market is open, so counting the weekend inflates the band by ~15%.",
+        n0(m.cfg.spot) + " &times; " + n2(m.atmIv) + "% &times; &radic;(" +
+        m.dte + "/252) = <b>&plusmn;" + n0(m.sd1) + "</b>.",
+        "Direction &amp; strategy") +
+      T("Realised volatility (RV)", "What volatility <em>actually was</em>, measured " +
+        "from price history. Implied is a forecast; realised is the outcome.",
+        "10-day Yang-Zhang RV is <b>" + n2(rv.yang_zhang) + "%</b>.",
+        "Direction &amp; strategy") +
+      T("Why five RV estimators", "They disagree, and the disagreement is the " +
+        "information. <b>Close-to-close</b> sees only closes and is noisiest. " +
+        "<b>Parkinson</b> uses the high-low range but is blind to overnight gaps. " +
+        "<b>Yang-Zhang</b> is both gap-aware and drift-independent, and ~14&times; more " +
+        "efficient than close-to-close &mdash; it is the one to trust.",
+        "Today: Yang-Zhang <b>" + n2(rv.yang_zhang) + "%</b> vs close-to-close <b>" +
+        n2(rv.close_to_close) + "%</b> on identical data. A verdict built on the " +
+        "second number would be badly wrong.",
+        "Direction &amp; strategy") +
+      T("IV / RV &mdash; the seller&rsquo;s edge",
+        "Implied divided by realised. Above 1 the market charges more than volatility " +
+        "has been costing, and selling premium is compensated. Below 1 it is not.",
+        "Today <b>" + n2(vrp.ratio) + "</b> " +
+        (vrp.ratio > 1.1 ? "&mdash; implied is rich, the seller is being paid."
+          : vrp.ratio < 0.95 ? "&mdash; implied is thin; selling is not compensated."
+          : "&mdash; roughly fair."),
+        "Direction &amp; strategy") +
+      T("Variance risk premium", "The name for that gap. It is real and persistent " +
+        "&mdash; index IV exceeds later RV most of the time. But it is <em>payment for " +
+        "the tail</em>, not free money, and it inverts exactly when the tail arrives.",
+        null, "Direction &amp; strategy") +
+      T("HAR-RV forecast", "A model that predicts tomorrow's realised volatility from " +
+        "its daily, weekly and monthly averages. Better than assuming today repeats.",
+        "Forecast <b>" + n2(a.harRv ? a.harRv.forecast : null) + "%</b>" +
+        (a.harRv ? " (R&sup2; " + n2(a.harRv.r2) + ")" : ""),
+        "Direction &amp; strategy") +
+      T("IV rank vs IV percentile", "<b>Rank</b>: where IV sits between its window low " +
+        "and high. <b>Percentile</b>: the share of days it was lower than today. Rank " +
+        "is pinned by two extremes; percentile uses the whole distribution. When they " +
+        "diverge, trust percentile.",
+        "Rank <b>" + n1(a.ivRank) + "</b>, percentile <b>" + n1(a.ivPercentile) + "</b>.",
+        "Direction &amp; strategy") +
+      T("India VIX", "The market's own 30-day volatility index. Low VIX means calm and " +
+        "thin premium; a spike hurts a short-premium book before direction does.",
+        "VIX <b>" + n2(m.cfg.vix) + "</b>.", "Market strip") +
+      T("Variance ratio", "Tests whether moves compound (trending) or fade " +
+        "(mean-reverting). At 1.0 the index is a random walk, which is what " +
+        "&radic;time scaling assumes.",
+        "5-day VR <b>" + n3(vr5.vr) + "</b> &mdash; " + esc(vr5.regime || "-") + ".",
+        "Direction &amp; strategy"));
+
+    /* ------------------------------------------- 4. probability */
+    var prob = S("4. Probability and pricing",
+      "how the odds on each strike are worked out",
+      T("Delta", "How much the option price moves for a 1-point move in the index. " +
+        "Also a rough proxy for the chance of finishing in the money &mdash; a " +
+        "0.15 delta option has roughly a 15% chance.",
+        ex ? "The " + n0(ex.strike) + " " + ex.side + " has delta <b>" +
+          n2(ex.delta) + "</b>." : null,
+        "Direction &amp; strategy") +
+      T("POP (probability of profit)", "For a seller, the chance the option expires " +
+        "worthless. Computed from Black-Scholes as 1 &minus; N(d&#8322;).",
+        ex ? "The " + n0(ex.strike) + " " + ex.side + " has POP <b>" +
+          n1(ex.pop * 100) + "%</b>." : null,
+        "Direction &amp; strategy") +
+      T("Why POP understates risk", "It assumes returns are lognormal. Real markets gap " +
+        "further than that. An 85% POP trade does not lose 15% of the time in a tidy " +
+        "way &mdash; it loses <em>rarely and large</em>. That asymmetry is the whole " +
+        "risk of selling options.",
+        null, "Direction &amp; strategy") +
+      T("Risk-neutral density", "The market's own probability distribution for where " +
+        "the index settles, read straight out of option prices by differentiating the " +
+        "call curve twice. No lognormal assumption &mdash; skew and fat tails appear " +
+        "because they are in the prices.",
+        null, "Direction &amp; strategy") +
+      T("Cornish-Fisher", "Adjusts a normal range for real-world skew and fat tails. " +
+        "It widens the downside more than the upside, which is the direction that " +
+        "matters for a seller.",
+        null, "Direction &amp; strategy") +
+      T("25&Delta; risk reversal and butterfly",
+        "<b>Risk reversal</b> = call IV &minus; put IV at 25 delta. Negative is normal " +
+        "for equity indices: puts cost more because indices fall faster than they rise. " +
+        "<b>Butterfly</b> measures how curved the smile is.",
+        "RR <b>" + sgn(sk.risk_reversal, 2) + "</b> (" + esc(sk.tilt || "-") + "), " +
+        "BF <b>" + sgn(sk.butterfly, 2) + "</b>.",
+        "Direction &amp; strategy") +
+      T("Forward and basis", "The forward is where the market prices the index for a " +
+        "future date, recovered from put-call parity. <b>Basis</b> is forward minus " +
+        "spot &mdash; normally a small positive cost of carry.",
+        fwd.forward ? "Forward <b>" + n0(fwd.forward) + "</b>, basis <b>" +
+          sgn(fwd.basis, 1) + "</b>." : null,
+        "Direction &amp; strategy, Watchlist") +
+      T("Straddle expected move", "The ATM call plus put. It is the market's traded " +
+        "breakeven &mdash; the move a straddle buyer needs just to break even. Not the " +
+        "same as 1&sigma;: it prices the <em>average</em> move, about 0.8&sigma;.",
+        st.straddle ? "Straddle <b>" + n2(st.straddle) + "</b> = &plusmn;<b>" +
+          n0(st.move_pts) + "</b> points." : null,
+        "Direction &amp; strategy"));
+
+    /* ------------------------------------------- 5. selling */
+    var sell = S("5. Selling premium",
+      "the numbers that decide whether a trade is worth taking",
+      T("Credit and margin", "Credit is what you receive. Margin is what the broker " +
+        "blocks. The trade is only as good as the ratio between them.",
+        ex ? "Selling the " + n0(ex.strike) + " " + ex.side + " at " + n2(ex.credit) +
+          " gives <b>&#8377;" + n0(ex.creditRs) + "</b> credit." : null,
+        "Direction &amp; strategy") +
+      T("ROM (return on margin)", "Credit as a percentage of margin blocked, for the " +
+        "holding period. This desk rejects anything under 0.80% &mdash; below that the " +
+        "premium does not pay for the tail risk.",
+        ex ? "ROM <b>" + n2(ex.rom) + "%</b>." : null,
+        "Direction &amp; strategy") +
+      T("Breakeven", "Short strike plus (or minus) the credit received. Beyond it the " +
+        "position starts losing.", null, "Direction &amp; strategy") +
+      T("Why a wing (defined risk)", "Buying a further-out option caps the loss. A " +
+        "naked short has no cap &mdash; a gap can cost many multiples of the credit. " +
+        "In low IV, where premium is thin, the wing is not optional.",
+        null, "Direction &amp; strategy") +
+      T("VaR and expected shortfall", "<b>VaR 95%</b> is the loss at the 5th worst " +
+        "percentile. <b>Expected shortfall</b> is the <em>average</em> loss once you are " +
+        "in that worst 5%. ES is the honest number &mdash; max loss tells you the cap, " +
+        "ES tells you what bad days actually cost.",
+        null, "Direction &amp; strategy") +
+      T("Iron condor / short strangle", "Sell an OTM call and an OTM put. A " +
+        "<b>strangle</b> is naked on both sides; an <b>iron condor</b> adds protective " +
+        "wings. Both profit if the index stays between the strikes.",
+        null, "Direction &amp; strategy"));
+
+    /* ------------------------------------------- 6. scoring */
+    var score = S("6. How this desk grades itself",
+      "the part that makes the rest trustworthy",
+      T("Claims", "Each session the model makes about nine separate assertions &mdash; " +
+        "ranges, walls, max pain, stance, the volatility call, each strike. Every one " +
+        "is scored on its own, so you learn <em>which part</em> works rather than only " +
+        "that something was wrong.",
+        null, "Model history") +
+      T("Brier score", "Mean squared error of a probability forecast. 0 is perfect, " +
+        "0.25 is a coin flip. <b>Brier skill</b> compares it to always guessing the " +
+        "base rate &mdash; above zero means the model adds something.",
+        null, "Model accuracy") +
+      T("Calibration (ECE)", "When the model says 85%, does it happen 85% of the time? " +
+        "The reliability chart plots said against happened; on the diagonal is honest, " +
+        "below it is overconfident.",
+        null, "Model accuracy") +
+      T("Coverage and the Kupiec test", "A 1&sigma; band should contain the outcome " +
+        "68.3% of the time. Kupiec is the statistical test of whether it does. " +
+        "LR above 3.84 rejects the band.",
+        null, "Model accuracy") +
+      T("Band factor", "The measured multiple of the stated 1&sigma; band that actually " +
+        "contained 68% of outcomes. At 1.00 the band is honest; below, it is too wide.",
+        null, "Model accuracy") +
+      T("What the record says so far",
+        "Ranges and structural levels hold up. <b>Directional signals do not.</b>",
+        "Expiry 2&sigma; <b>96.4%</b> &middot; call wall <b>92.8%</b> &middot; " +
+        "1&sigma; <b>73.2%</b> &middot; next-session <b>72.0%</b> &middot; " +
+        "vol premium <b>62.5%</b> &middot; max pain <b>50.8%</b> &middot; " +
+        "stance <b>48.2%</b>",
+        "Model history"));
+
+    return head + basics + oi + vol + prob + sell + score;
+  }
+
+  var RENDER = {
+    overview: viewOverview, strategy: viewStrategy, accuracy: viewAccuracy,
+    buildup: viewBuildup, chain: viewChain, technicals: viewTechnicals,
+    history: viewHistory, watchlist: viewWatchlist,
+    modelhist: viewModelHistory, learning: viewLearning
+  };
+
+  /* ==========================================================
+     6d. CROSSHAIR READOUTS
+         Every band and every line reports the value under the
+         cursor. innerHTML is replaced on each render, so the
+         listeners are re-attached rather than delegated.
+     ========================================================== */
+  function attachRangeHover(el) {
+    var lo = +el.getAttribute("data-lo"), hi = +el.getAttribute("data-hi");
+    var spot = +el.getAttribute("data-spot");
+    var sigma = +el.getAttribute("data-sigma"), t = +el.getAttribute("data-t");
+    var cross = el.querySelector(".rb-cross"), tip = el.querySelector(".rb-tip");
+    if (!cross || !tip) return;
+
+    function move(ev) {
+      var r = el.getBoundingClientRect();
+      var x = Math.min(Math.max(ev.clientX - r.left, 0), r.width);
+      var price = lo + (x / r.width) * (hi - lo);
+
+      var txt = "<b>" + n0(price) + "</b>";
+      var away = price - spot;
+      txt += ' <i>' + (away >= 0 ? "+" : "&minus;") + n0(Math.abs(away)) + " pts</i>";
+
+      if (sigma > 0 && t > 0 && price > 0) {
+        var g = bs(spot, price, sigma, t);
+        var above = g.pCallItm * 100;
+        txt += '<br><i>' + n1(above) + "% above &middot; " + n1(100 - above) + "% below</i>";
+      }
+      cross.style.left = x + "px";
+      tip.style.left = x + "px";
+      tip.innerHTML = txt;
+      el.classList.add("live");
+    }
+
+    el.addEventListener("mousemove", move);
+    el.addEventListener("mouseleave", function () { el.classList.remove("live"); });
+  }
+
+  function attachChartHover(wrap) {
+    var series;
+    try { series = JSON.parse(wrap.getAttribute("data-series")); } catch (e) { return; }
+    if (!series || !series.pts || series.pts.length < 2) return;
+
+    var cross = wrap.querySelector(".ch-cross"),
+        dot = wrap.querySelector(".ch-dot"),
+        tip = wrap.querySelector(".ch-tip");
+    if (!cross || !dot || !tip) return;
+    dot.style.background = series.color;
+
+    function move(ev) {
+      var r = wrap.getBoundingClientRect();
+      var x = Math.min(Math.max(ev.clientX - r.left, 0), r.width);
+      var i = Math.round((x / r.width) * (series.pts.length - 1));
+      i = Math.min(Math.max(i, 0), series.pts.length - 1);
+      var pt = series.pts[i];
+
+      var px = (i / (series.pts.length - 1)) * r.width;
+      var py = ((pt.y - series.vbTop) / series.vbHeight) * r.height;
+
+      cross.style.left = px + "px";
+      dot.style.left = px + "px";
+      dot.style.top = py + "px";
+
+      /* Keep the panel inside the card rather than letting it clip. */
+      var half = tip.offsetWidth / 2 || 80;
+      tip.style.left = Math.min(Math.max(px, half + 2), r.width - half - 2) + "px";
+
+      var html = '<div class="tip-date">' + pt.date + "</div>" +
+                 '<div class="tip-big">' + pt.big + "</div>";
+      if (pt.chg) {
+        html += '<div class="tip-chg ' + (pt.chgUp ? "pos" : "neg") + '">' + pt.chg + "</div>";
+      }
+      if (pt.rows && pt.rows.length) {
+        html += '<div class="tip-grid">' + pt.rows.map(function (kv) {
+          return "<span>" + kv[0] + "</span><b>" + kv[1] + "</b>";
+        }).join("") + "</div>";
+      }
+      if (pt.vol) {
+        html += '<div class="tip-vol"><div class="tip-vol-k">Volume</div>' +
+          '<div class="tip-vol-bar"><i style="width:' + pt.vol.pct.toFixed(1) + '%"></i></div>' +
+          '<div class="tip-vol-v">' + pt.vol.label + "</div></div>";
+      }
+      tip.innerHTML = html;
+      wrap.classList.add("live");
+    }
+
+    wrap.addEventListener("mousemove", move);
+    wrap.addEventListener("mouseleave", function () { wrap.classList.remove("live"); });
+  }
+
+  function attachRungHover(el) {
+    var tip = document.getElementById("rungTip");
+    var d;
+    try { d = JSON.parse(el.getAttribute("data-rung")); } catch (e) { return; }
+
+    el.addEventListener("mousemove", function (ev) {
+      tip.innerHTML =
+        '<div class="rt-k">Strike</div><div class="rt-big">' + d.k +
+          ' <span style="font-size:10px;color:var(--ink-3)">' + d.dist + " pts</span></div>" +
+        '<div class="rt-row"><span style="color:var(--calls)">Call OI</span><b>' + d.ceOi + "L</b></div>" +
+        '<div class="rt-row"><span class="' + (d.ceUp ? "pos" : "neg") + '">chg OI</span><b class="' +
+          (d.ceUp ? "pos" : "neg") + '">' + d.ceChg + "L</b></div>" +
+        '<div class="rt-row"><span style="color:var(--ink-3)">LTP &middot; IV</span><b>' + d.ceLtp + " &middot; " + d.ceIv + "</b></div>" +
+        '<div class="rt-row" style="margin-top:6px;padding-top:5px;border-top:1px solid var(--line)">' +
+          '<span style="color:var(--puts)">Put OI</span><b>' + d.peOi + "L</b></div>" +
+        '<div class="rt-row"><span class="' + (d.peUp ? "pos" : "neg") + '">chg OI</span><b class="' +
+          (d.peUp ? "pos" : "neg") + '">' + d.peChg + "L</b></div>" +
+        '<div class="rt-row"><span style="color:var(--ink-3)">LTP &middot; IV</span><b>' + d.peLtp + " &middot; " + d.peIv + "</b></div>" +
+        '<div class="rt-row" style="margin-top:6px;padding-top:5px;border-top:1px solid var(--line)">' +
+          '<span style="color:var(--ink-3)">Strike PCR</span><b>' + d.pcr + "</b></div>";
+      tip.style.left = ev.clientX + "px";
+      tip.style.top = ev.clientY + "px";
+      tip.classList.add("live");
+    });
+    el.addEventListener("mouseleave", function () { tip.classList.remove("live"); });
+  }
+
+  function attachHovers() {
+    var root = document.getElementById("content");
+    Array.prototype.forEach.call(root.querySelectorAll(".rb"), attachRangeHover);
+    Array.prototype.forEach.call(root.querySelectorAll(".ch-wrap"), attachChartHover);
+    Array.prototype.forEach.call(root.querySelectorAll("[data-rung]"), attachRungHover);
+  }
+
+  /* Put the money in the middle of the viewport, not at whichever end the
+     sort happened to leave it. Scroll position is set without animation so
+     the view never appears to jump on load. */
+  function centreOnAtm() {
+    var root = document.getElementById("content");
+    Array.prototype.forEach.call(
+      root.querySelectorAll(".tablewrap.tall, .ladder-wrap.tall"),
+      function (box) {
+        var mark = box.querySelector("[data-atm], tr.atm, .rung.spot");
+        if (!mark) return;
+        var target = mark.offsetTop - box.clientHeight / 2 + mark.offsetHeight / 2;
+        box.scrollTop = Math.max(0, target);
+      }
+    );
+  }
+
+  function render() {
+    var m = MODEL[state.idx];
+    if (!m) return;
+    DTE = m.dte;
+    TT = m.t;
+    renderChrome();
+    paintLiveStamp();
+    document.getElementById("content").innerHTML = RENDER[state.view](m);
+    attachHovers();
+    centreOnAtm();
+  }
+
+  /* Rendered once at boot and left alone. It must not depend on the active
+     index or tab -- that is the whole point of it. */
+  function renderStrip() {
+    var el = document.getElementById("strip");
+    if (!STRIP.length) { el.parentNode.style.display = "none"; return; }
+
+    /* Grouped, with a divider between families, so 25+ indices stay
+       scannable instead of reading as one undifferentiated run. */
+    var lastGroup = null;
+    el.innerHTML = STRIP.map(function (s) {
+      var sep = (s.group && s.group !== lastGroup && lastGroup !== null)
+        ? '<div class="si-sep" aria-hidden="true"></div>' : "";
+      if (s.group) lastGroup = s.group;
+      return sep + siCell(s);
+    }).join("");
+  }
+
+  function siCellAll() { return null; }
+
+  function siCell(s) {
+    return (function (s) {
+      var isVix = s.name === "INDIA VIX";
+      /* GIFT and the USD index trade outside NSE hours, so their timestamp
+         runs ahead of the rest. Flag them rather than let the mismatch look
+         like a bug. */
+      var offHours = s.source !== "allIndices";
+      var dirClass = isVix ? cls(-(s.chgPct || 0)) : cls(s.chgPct);
+      var arrow = (s.chgPct || 0) >= 0 ? "&#9650;" : "&#9660;";
+
+      var title = s.label + "  " + n2(s.last) +
+        (s.open != null ? "\nO " + n2(s.open) + "  H " + n2(s.high) +
+                          "  L " + n2(s.low) + "  PC " + n2(s.prevClose) : "") +
+        (s.ts ? "\nas of " + s.ts : "");
+
+      return '<div class="si' + (offHours ? " si-alt" : "") +
+        '" data-chart="' + esc(s.name) + '" title="' + esc(title) + " &mdash; click for chart\">" +
+        '<div class="si-k">' + (offHours ? '<span class="si-live"></span>' : "") +
+          esc(s.label) + "</div>" +
+        '<div class="si-v">' + n2(s.last) + "</div>" +
+        '<div class="si-c ' + dirClass + '">' + arrow + " " + sgn(s.chg, 2) +
+          "  " + sgn(s.chgPct, 2) + "%</div>" +
+      "</div>";
+    })(s);
+  }
+
+  /* ==========================================================
+     6g. CANDLESTICK OVERLAY
+         TradingView's lightweight-charts, vendored locally so
+         the page has no CDN dependency. Created on first open
+         and reused -- building a chart per click leaks.
+     ========================================================== */
+  var CHARTS = {};
+  var CKS = { chart: null, candles: null, vol: null, series: null,
+             name: null, range: 120 };
+
+  var CK_RANGES = [
+    { label: "1M", n: 22 }, { label: "3M", n: 66 },
+    { label: "6M", n: 132 }, { label: "1Y", n: 252 }, { label: "All", n: 0 }
+  ];
+
+  /* The strip uses NSE names ("NIFTY BANK"); tabs use our keys ("NIFTY").
+     Both must resolve to the same series. */
+  function resolveSeries(name) {
+    if (CHARTS[name]) return name;
+    var up = String(name).toUpperCase();
+    var hit = Object.keys(CHARTS).filter(function (k) {
+      return k.toUpperCase() === up;
+    })[0];
+    if (hit) return hit;
+    var m = MODEL[name];
+    if (m && CHARTS[m.cfg.label]) return m.cfg.label;
+    return null;
+  }
+
+  function ckTheme() {
+    var cs = getComputedStyle(document.documentElement);
+    var g = function (v) { return cs.getPropertyValue(v).trim(); };
+    return {
+      layout: { background: { color: g("--surface") }, textColor: g("--ink-2"),
+                fontFamily: g("--font-num") || "monospace", fontSize: 10 },
+      grid: { vertLines: { color: g("--line-soft") },
+              horzLines: { color: g("--line-soft") } },
+      crosshair: { mode: 0,
+                   vertLine: { color: g("--ink-3"), width: 1, style: 2, labelBackgroundColor: g("--surface-3") },
+                   horzLine: { color: g("--ink-3"), width: 1, style: 2, labelBackgroundColor: g("--surface-3") } },
+      rightPriceScale: { borderColor: g("--line") },
+      timeScale: { borderColor: g("--line"), rightOffset: 4 },
+      handleScroll: true, handleScale: true
+    };
+  }
+
+  function openChart(name) {
+    var key = resolveSeries(name);
+    var panel = document.getElementById("ckPanel");
+    var scrim = document.getElementById("ckScrim");
+    var chartEl = document.getElementById("ckChart");
+    var tip = document.getElementById("ckTip");
+
+    panel.classList.add("open");
+    scrim.classList.add("open");
+
+    if (typeof LightweightCharts === "undefined") {
+      chartEl.innerHTML = '<div class="ck-empty"><b>Chart library not loaded.</b><br>' +
+        "web/vendor/lightweight-charts.js is missing.</div>";
+      return;
+    }
+    if (!key || !CHARTS[key] || CHARTS[key].length < 2) {
+      chartEl.innerHTML = '<div class="ck-empty"><b>No price history stored for ' +
+        esc(name) + ".</b><br>Run <em>python backfill_indices.py</em>.</div>";
+      return;
+    }
+
+    CKS.name = key;
+    var bars = CHARTS[key];
+
+    document.getElementById("ckName").textContent = key;
+    var last = bars[bars.length - 1], prev = bars[bars.length - 2];
+    var chg = last.c - prev.c, chgP = chg / prev.c * 100;
+    document.getElementById("ckLast").textContent = n2(last.c);
+    var chgEl = document.getElementById("ckChg");
+    chgEl.className = "ck-chg " + cls(chg);
+    chgEl.textContent = sgn(chg, 2) + "  " + sgn(chgP, 2) + "%";
+    document.getElementById("ckMeta").textContent =
+      bars.length + " sessions  &middot;  " + bars[0].t + " &rarr; " + last.t;
+
+    document.getElementById("ckRanges").innerHTML = CK_RANGES.map(function (r) {
+      return '<button class="ck-r" data-ckr="' + r.n + '" aria-selected="' +
+        (r.n === CKS.range) + '">' + r.label + "</button>";
+    }).join("");
+
+    if (!CKS.chart) {
+      chartEl.innerHTML = "";
+      CKS.chart = LightweightCharts.createChart(chartEl, ckTheme());
+      CKS.candles = CKS.chart.addCandlestickSeries({
+        upColor: "#26a69a", downColor: "#ef5350",
+        borderUpColor: "#26a69a", borderDownColor: "#ef5350",
+        wickUpColor: "#26a69a", wickDownColor: "#ef5350"
+      });
+      CKS.vol = CKS.chart.addHistogramSeries({
+        priceFormat: { type: "volume" }, priceScaleId: "vol",
+        color: "rgba(120,140,160,.4)"
+      });
+      CKS.chart.priceScale("vol").applyOptions({
+        scaleMargins: { top: 0.82, bottom: 0 }
+      });
+
+      CKS.chart.subscribeCrosshairMove(function (p) {
+        if (!p || !p.time || !p.seriesData) { tip.hidden = true; return; }
+        var d = p.seriesData.get(CKS.candles);
+        if (!d) { tip.hidden = true; return; }
+        var v = p.seriesData.get(CKS.vol);
+        var up = d.close >= d.open;
+        tip.hidden = false;
+        tip.innerHTML =
+          '<div class="ck-tip-date">' + esc(String(d.time)) + "</div>" +
+          '<div class="ck-tip-big ' + (up ? "pos" : "neg") + '">' + n2(d.close) + "</div>" +
+          '<div class="ck-tip-grid">' +
+            "<span>Open</span><b>" + n2(d.open) + "</b>" +
+            "<span>High</span><b>" + n2(d.high) + "</b>" +
+            "<span>Low</span><b>" + n2(d.low) + "</b>" +
+            "<span>Close</span><b>" + n2(d.close) + "</b>" +
+          "</div>" +
+          (v && v.value ? '<div class="ck-tip-vol">Volume ' +
+            n1(v.value / 1e7) + " Cr shares</div>" : "");
+      });
+
+      window.addEventListener("resize", function () {
+        if (CKS.chart) CKS.chart.applyOptions({
+          width: chartEl.clientWidth, height: chartEl.clientHeight
+        });
+      });
+    }
+
+    applyRange(bars);
+  }
+
+  function applyRange(bars) {
+    var use = CKS.range > 0 ? bars.slice(-CKS.range) : bars;
+    CKS.candles.setData(use.map(function (b) {
+      return { time: b.t, open: b.o, high: b.h, low: b.l, close: b.c };
+    }).filter(function (b) {
+      return b.open != null && b.high != null && b.low != null && b.close != null;
+    }));
+    CKS.vol.setData(use.filter(function (b) { return b.v; }).map(function (b) {
+      return { time: b.t, value: b.v,
+               color: b.c >= b.o ? "rgba(38,166,154,.35)" : "rgba(239,83,80,.35)" };
+    }));
+    CKS.chart.timeScale().fitContent();
+    var el = document.getElementById("ckChart");
+    CKS.chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+  }
+
+  function closeChart() {
+    document.getElementById("ckPanel").classList.remove("open");
+    document.getElementById("ckScrim").classList.remove("open");
+    document.getElementById("ckTip").hidden = true;
+  }
+
+  /* ==========================================================
+     6h. LIVE POLLING
+         live.json is written by live.py during market hours and
+         is entirely separate from the EOD snapshot. If it is
+         absent or stale the page falls back to EOD and says so
+         -- it never presents old numbers as current.
+     ========================================================== */
+  var LIVE = null;
+  var LIVE_TIMER = null;
+  var CLOCK_TIMER = null;
+  /* live.json is a local file, so reading it costs nothing -- poll it fast
+     so a new value appears the moment the poller writes one. The upstream
+     limit is NSE's own ~60s cache, not this. */
+  var LIVE_EVERY = 2000;
+  var STALE_AFTER = 180000;   /* 3 min without a new tick = stale */
+  var PREV_VALS = {};         /* for change flashing */
+
+  function liveAgeMs() {
+    if (!LIVE || !LIVE.ts) return Infinity;
+    var t = Date.parse(LIVE.ts);
+    return isFinite(t) ? (Date.now() - t) : Infinity;
+  }
+
+  function liveState() {
+    if (!LIVE) return { cls: "closed", text: "EOD" };
+
+    /* A live file left over from an earlier session is not "stale data from
+       today" -- it is a session we never captured. Comparing its trade date
+       against the settled one distinguishes the two, instead of reporting
+       "stale 2880m" and implying the feed is merely lagging. */
+    var m = MODEL[state.idx];
+    if (m && LIVE.tradeDate && m.tradeDate && LIVE.tradeDate < m.tradeDate) {
+      return { cls: "closed", text: "EOD" };
+    }
+
+    var age = liveAgeMs();
+    var st = LIVE.state;
+    if (st === "open" || st === "pre-open" || st === "closing") {
+      return age > STALE_AFTER
+        ? { cls: "stale", text: "stale " + Math.round(age / 60000) + "m" }
+        : { cls: "", text: st === "open" ? "Live" : st };
+    }
+    return { cls: "closed", text: "Closed" };
+  }
+
+  function pollLive() {
+    getJson("live.json").then(function (d) {
+      if (!d || !d.ts) return;
+      var isNew = !LIVE || LIVE.ts !== d.ts;
+      LIVE = d;
+
+      /* Only let the live feed drive the strip when it is at least as
+         current as the settled data. A live file left over from an earlier
+         session was overwriting today's closes with the previous day's
+         intraday prints -- the strip read 24,154.90 while the Overview
+         beneath it read 24,078.30, and both were "correct" for different
+         days. Stale live data is worse than none. */
+      var m0 = MODEL[state.idx];
+      var liveIsCurrent = !m0 || !d.tradeDate || !m0.tradeDate
+                          || d.tradeDate >= m0.tradeDate;
+
+      if (liveIsCurrent && d.strip && d.strip.length) {
+        STRIP = d.strip;
+        renderStrip();
+        if (isNew) flashChanges();
+      }
+      paintLiveStamp();
+    }).catch(function () {
+      /* live.py not running -- the EOD snapshot stays on screen. */
+    });
+  }
+
+  /* A once-a-minute feed reads as dead unless the change is visible when it
+     lands. Flash only the cells that actually moved. */
+  function flashChanges() {
+    STRIP.forEach(function (s) {
+      var prev = PREV_VALS[s.name];
+      PREV_VALS[s.name] = s.last;
+      if (prev == null || s.last == null || prev === s.last) return;
+      var cell = document.querySelector('.si[data-chart="' + cssEsc(s.name) + '"]');
+      if (!cell) return;
+      var dir = s.last > prev ? "flash-up" : "flash-down";
+      cell.classList.remove("flash-up", "flash-down");
+      void cell.offsetWidth;              /* restart the animation */
+      cell.classList.add(dir);
+      setTimeout(function () { cell.classList.remove(dir); }, 1400);
+    });
+  }
+
+  function cssEsc(s) { return String(s).replace(/["\\]/g, "\\$&"); }
+
+  function paintLiveStamp() {
+    var m = MODEL[state.idx];
+    if (!m) return;
+    var st = liveState();
+    var badge = '<span class="live-badge ' + st.cls + '">' +
+      (st.cls === "" ? '<span class="si-pulse"></span>' : "") + esc(st.text) + "</span>";
+
+    var extra = "";
+    if (LIVE && LIVE.ts && st.cls !== "closed") {
+      var secs = Math.max(0, Math.round(liveAgeMs() / 1000));
+      extra = ' <span class="age">' + secs + "s ago</span>" +
+              " &middot; " + esc(LIVE.ts.slice(11, 19)) + " IST";
+      if (LIVE.nseTimestamp) {
+        extra += ' <span class="age" title="NSE refreshes this roughly once a minute">' +
+                 "NSE " + esc(LIVE.nseTimestamp.slice(-5)) + "</span>";
+      }
+      if (LIVE.chain && LIVE.chain[state.idx]) {
+        var c = LIVE.chain[state.idx];
+        extra += " &middot; spot " + n2(c.spot) +
+                 (c.pcr != null ? " &middot; PCR " + n2(c.pcr) : "");
+      }
+    } else {
+      extra = " EOD " + esc(m.tradeDate);
+    }
+    document.getElementById("stamp").innerHTML = badge + extra;
+  }
+
+  function startLive() {
+    pollLive();
+    if (LIVE_TIMER) clearInterval(LIVE_TIMER);
+    LIVE_TIMER = setInterval(pollLive, LIVE_EVERY);
+
+    /* Seconds-since-update ticks every second. It is the only way to tell a
+       working feed from a dead one when the data itself moves once a
+       minute -- without it, a frozen page and a calm market look identical. */
+    if (CLOCK_TIMER) clearInterval(CLOCK_TIMER);
+    CLOCK_TIMER = setInterval(paintLiveStamp, 1000);
+  }
+
+  function setFresh(tag, msg) {
+    var bar = document.getElementById("freshness");
+    bar.hidden = false;
+    document.getElementById("freshTag").textContent = tag;
+    document.getElementById("freshMsg").textContent = msg;
+  }
+
+  function boot() {
+    setFresh("Loading", "Reading snapshot&hellip;");
+    getJson("manifest.json").then(function (man) {
+      MANIFEST = man;
+      var keys = man.indices || [];
+      if (!keys.length) throw new Error("manifest lists no indices");
+      return Promise.all(keys.map(function (k) {
+        return getJson(k.toLowerCase() + ".json");
+      }));
+    }).then(function (arr) {
+      arr.forEach(function (d) {
+        MODEL[d.index] = normalise(d);
+        INDICES.push({ key: d.index, label: d.label });
+      });
+      return Promise.all([
+        getJson("accuracy.json").catch(function () { return {}; }),
+        getJson("market.json").catch(function () { return { strip: [] }; }),
+        getJson("watchlist.json").catch(function () { return { lists: [] }; }),
+        getJson("charts.json").catch(function () { return { series: {} }; }),
+        getJson("history.json").catch(function () { return {}; })
+      ]);
+    }).then(function (both) {
+      var acc = both[0], mkt = both[1], wl = both[2], ch = both[3], mh = both[4];
+      ACCURACY = acc || {};
+      STRIP = (mkt && mkt.strip) || [];
+      WATCH = (wl && wl.lists) || [];
+      CHARTS = (ch && ch.series) || {};
+      MHIST = mh || {};
+      if (WATCH.length) state.wl = WATCH[0].id;
+      state.idx = INDICES[0].key;
+      renderStrip();
+      render();
+      startLive();
+      var m = MODEL[state.idx];
+      setFresh("Live &middot; EOD " + m.tradeDate,
+        m.sessionsStored + " session" + (m.sessionsStored === 1 ? "" : "s") +
+        " stored &middot; " + m.nStrikes + " strikes &middot; generated " +
+        (MANIFEST.generatedAt || "").replace("T", " "));
+    }).catch(function (err) {
+      setFresh("No data", "Could not read snapshot (" + err.message +
+        "). Run  python run_daily.py  then reload.");
+    });
+  }
+
+  /* ==========================================================
+     7. STRIKE DRAWER
+     ========================================================== */
+  function legBlock(name, leg, color, m) {
+    var b = classify(leg.chgPct, leg.chgOi);
+    /* The chain endpoint carries LTP, change and prev close -- not per-contract
+       OHLC. Showing four copies of LTP under an OHLC heading would be inventing
+       data, so the real four are shown instead. True per-leg OHLC needs the F&O
+       bhavcopy, which is a separate source. */
+    var hasOhlc = leg.o != null && leg.h != null && leg.l != null && leg.c != null;
+    var cells = hasOhlc
+      ? [["OPEN", n2(leg.o)], ["HIGH", n2(leg.h)], ["LOW", n2(leg.l)], ["CLOSE", n2(leg.c)]]
+      : [["LTP", n2(leg.ltp)], ["PREV", n2(leg.prevClose)],
+         ["CHG", sgn(leg.chg, 2)], ["CHG %", sgn(leg.chgPct, 2) + "%"]];
+
+    return '<div class="leg-hd" style="color:' + color + '"><span class="bar" style="background:' + color + '"></span>' +
+      name +
+      (hasOhlc ? "" : '<span style="margin-left:auto;font-size:9px;letter-spacing:.08em;' +
+        'color:var(--ink-3)">no per-contract OHLC in live feed</span>') +
+      '</div>' +
+      '<div class="ohlc-row">' +
+      cells.map(function (c) {
+        return '<div class="ohlc-cell"><div class="ohlc-k">' + c[0] +
+          '</div><div class="ohlc-v">' + c[1] + "</div></div>";
+      }).join("") + "</div>" +
+      '<div class="leg-grid">' +
+      lgc("LTP", n2(leg.ltp)) +
+      lgc("Chg", '<span class="' + cls(leg.chgPct) + '">' + sgn(leg.chgPct, 2) + "%</span>") +
+      lgc("Prev close", n2(leg.prevClose)) +
+      lgc(leg.settle != null ? "Settlement" : "Bid / Ask",
+          leg.settle != null ? n2(leg.settle) : n2(leg.bid) + " / " + n2(leg.ask)) +
+      lgc("Open interest", n2(leg.oi) + " L") +
+      lgc("Chg in OI", '<span class="' + cls(leg.chgOi) + '">' + sgn(leg.chgOi, 2) + " L</span>") +
+      lgc("Volume", n1(leg.vol) + " L") +
+      lgc("Implied vol", n2(leg.iv) + " %") +
+      lgc("Turnover", "\u20b9" + n1(leg.turnover) + " Cr") +
+      lgc("Action", '<span class="pill ' + b.c + '">' + b.t + "</span>") +
+      "</div>";
+  }
+  function lgc(k, v) { return '<div class="lg"><div class="lg-k">' + k + '</div><div class="lg-v">' + v + "</div></div>"; }
+
+  function openDrawer(strike) {
+    var m = MODEL[state.idx];
+    var r = m.rows.filter(function (x) { return x.strike === strike; })[0];
+    if (!r) return;
+    state.strike = strike;
+
+    var moneyness = strike < m.cfg.spot ? "Call ITM \u00b7 Put OTM" :
+                    strike > m.cfg.spot ? "Call OTM \u00b7 Put ITM" : "At the money";
+    var tags = [];
+    if (strike === m.callWall) tags.push("heaviest call wall");
+    if (strike === m.putWall) tags.push("heaviest put wall");
+    if (strike === m.maxPain) tags.push("max pain strike");
+    if (strike === m.atm) tags.push("nearest to spot");
+
+    document.getElementById("drawerTitle").innerHTML = n0(strike) + " " + esc(m.cfg.label);
+    document.getElementById("drawerSub").innerHTML = esc(m.cfg.expiry) + " \u00b7 lot " + m.cfg.lot + " \u00b7 " + moneyness;
+
+    document.getElementById("drawerBody").innerHTML =
+      '<div class="readout"><p>Strike is <b>' + n0(Math.abs(strike - m.cfg.spot)) + " pts " +
+        (strike > m.cfg.spot ? "above" : strike < m.cfg.spot ? "below" : "from") + "</b> spot " + n2(m.cfg.spot) + "." +
+        (tags.length ? " Flagged as <b>" + tags.join("</b>, <b>") + "</b>." : "") + "</p>" +
+        "<p>Call OI <b>" + n2(r.ce.oi) + "L</b> vs put OI <b>" + n2(r.pe.oi) + "L</b> \u2014 strike-level PCR <b>" +
+        n2(r.pe.oi / r.ce.oi) + "</b>.</p></div>" +
+      legBlock("Call \u00b7 CE", r.ce, "var(--calls)", m) +
+      legBlock("Put \u00b7 PE", r.pe, "var(--puts)", m);
+
+    document.getElementById("drawer").classList.add("open");
+    document.getElementById("scrim").classList.add("open");
+    document.getElementById("drawerClose").focus();
+  }
+
+  function closeDrawer() {
+    document.getElementById("drawer").classList.remove("open");
+    document.getElementById("scrim").classList.remove("open");
+    state.strike = null;
+  }
+
+  /* ==========================================================
+     8. EVENTS
+     ========================================================== */
+  document.addEventListener("click", function (e) {
+    /* Anything carrying data-chart opens the candlestick view. Checked
+       first so an index tab can both switch the dashboard and, on its
+       chart affordance, open the chart. */
+    var ch = e.target.closest("[data-chart]");
+    if (ch) { openChart(ch.getAttribute("data-chart")); return; }
+
+    var ckr = e.target.closest("[data-ckr]");
+    if (ckr) {
+      CKS.range = Number(ckr.getAttribute("data-ckr"));
+      Array.prototype.forEach.call(
+        document.getElementById("ckRanges").querySelectorAll("[data-ckr]"),
+        function (b) {
+          b.setAttribute("aria-selected", Number(b.getAttribute("data-ckr")) === CKS.range);
+        });
+      if (CKS.chart && CKS.name) applyRange(CHARTS[CKS.name]);
+      return;
+    }
+
+    var idx = e.target.closest("[data-idx]");
+    if (idx) { state.idx = idx.getAttribute("data-idx"); closeDrawer(); render(); return; }
+
+    var view = e.target.closest("[data-view]");
+    if (view) { state.view = view.getAttribute("data-view"); closeDrawer(); render(); return; }
+
+    var mh = e.target.closest("[data-mh]");
+    if (mh) {
+      var card = mh.parentNode;
+      card.classList.toggle("open");
+      return;
+    }
+
+    var wl = e.target.closest("[data-wl]");
+    if (wl) { state.wl = wl.getAttribute("data-wl"); state.wlExpiry = 0; render(); return; }
+
+    var we = e.target.closest("[data-wlexp]");
+    if (we) { state.wlExpiry = Number(we.getAttribute("data-wlexp")); render(); return; }
+
+    var st = e.target.closest("[data-strike]");
+    if (st) { openDrawer(Number(st.getAttribute("data-strike"))); return; }
+  });
+
+  document.getElementById("drawerClose").addEventListener("click", closeDrawer);
+  document.getElementById("scrim").addEventListener("click", closeDrawer);
+  document.getElementById("ckClose").addEventListener("click", closeChart);
+  document.getElementById("ckScrim").addEventListener("click", closeChart);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { closeDrawer(); closeChart(); }
+  });
+
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var root = document.documentElement, cur = root.getAttribute("data-theme");
+    if (!cur) cur = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+
+  boot();
+})();
+</script>
+<script src="vendor/lightweight-charts.js"></script>
+</body>
+</html>
+
+
