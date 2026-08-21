@@ -3196,7 +3196,10 @@ table.ledger { min-width: 800px; }
   var stockSort = { key: "weightPct", dir: -1 };
 
   function viewStocks(m) {
-    var d = (STOCKS || {})[m.cfg.index];
+    /* normalise() exposes the index as cfg.key, not cfg.index. Reading the
+       wrong one returned undefined and the view rendered its empty state
+       with the data sitting right there in the snapshot. */
+    var d = (STOCKS || {})[m.cfg.key] || (STOCKS || {})[state.idx];
     if (!d || !d.rows || !d.rows.length) {
       return '<section class="card"><div class="card-hd"><h2>NIFTY 50 stocks</h2></div>' +
         '<div class="caution"><p><b>Not exported yet.</b> Run ' +
