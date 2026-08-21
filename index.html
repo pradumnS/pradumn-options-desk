@@ -563,6 +563,21 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+/* ---------- tech-fund ---------- */
+.pbar { position: relative; height: 6px; border-radius: 3px;
+        background: var(--surface-3); min-width: 110px; }
+.pbar i { position: absolute; top: -2px; width: 3px; height: 10px;
+          border-radius: 2px; transform: translateX(-50%); }
+.notecall { padding: 12px 16px; margin: 2px 0 12px; border-radius: 6px;
+            background: var(--calls-dim); border-left: 3px solid var(--calls);
+            font-size: 13.5px; line-height: 1.55; }
+.legs-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+            padding: 10px 0 4px; }
+.leg-chip { font-family: var(--font-num); font-size: 11px; padding: 3px 9px;
+            border-radius: 4px; border: 1px solid; }
+.leg-chip.sell { color: var(--puts); border-color: var(--puts); }
+.leg-chip.buy  { color: var(--calls); border-color: var(--calls); }
+
 /* ---------- sortable table headers ---------- */
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable:hover { color: var(--ink); }
@@ -1114,6 +1129,7 @@ table.ledger { min-width: 800px; }
   var STRIP = [];            /* market.json -- rendered once, never re-rendered */
   var WATCH = [];            /* watchlist.json */
   var MHIST = {};            /* history.json -- per-day audit trail */
+  var TECHFUND = {};         /* techfund.json -- note + valuation */
   var STOCKS = {};           /* stocks.json  -- index constituents */
 
   function getJson(name) {
@@ -1132,7 +1148,7 @@ table.ledger { min-width: 800px; }
     { key:"stocks",    label:"NIFTY 50 stocks" },
     { key:"buildup",   label:"OI &amp; build-up" },
     { key:"chain",     label:"Option chain" },
-    { key:"technicals",label:"Technicals" },
+    { key:"technicals",label:"Tech-Fund" },
     { key:"history",   label:"History" }
   ];
 
@@ -1576,6 +1592,148 @@ table.ledger { min-width: 800px; }
       "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
   }
 
+  /* ---------------------------------------------------------------
+     Tech-Fund: the fundamental half, and today's note.
+
+     The option chain prices the next few sessions; P/E and dividend yield
+     price the next several years. A raw multiple says nothing on its own,
+     so every figure is shown against its own percentile -- and the reading
+     inverts for yield, where HIGH is cheap and low is dear.
+     --------------------------------------------------------------- */
+  function pctBar(pct, cheapLow) {
+    if (pct == null) return "";
+    var cheap = cheapLow ? pct <= 33 : pct >= 67;
+    var dear = cheapLow ? pct >= 67 : pct <= 33;
+    var col = cheap ? "var(--up)" : dear ? "var(--down)" : "var(--maxpain)";
+    return '<div class="pbar"><i style="left:' + pct.toFixed(1) +
+           '%;background:' + col + '"></i></div>';
+  }
+
+  function fundBlock(m) {
+    var d = (TECHFUND || {})[m.cfg.key] || {};
+    var v = d.valuation;
+    if (!v) return "";
+
+    var rows = [
+      ["P/E", v.pe, v.pe_pctile, v.pe_min, v.pe_max, true,
+       "earnings multiple \u2014 low is cheap"],
+      ["P/B", v.pb, v.pb_pctile, v.pb_min, v.pb_max, true,
+       "price to book \u2014 low is cheap"],
+      ["Dividend yield", v.div_yield, v.div_yield_pctile,
+       v.div_yield_min, v.div_yield_max, false,
+       "HIGH is cheap \u2014 this one reads the other way"]
+    ];
+
+    var body = rows.map(function (r) {
+      if (r[1] == null) return "";
+      return '<tr><td class="lft"><b>' + r[0] + "</b></td>" +
+        "<td>" + n2(r[1]) + (r[0] === "Dividend yield" ? "%" : "") + "</td>" +
+        "<td>" + (r[2] == null ? "\u2014" : n0(r[2]) + "th") + "</td>" +
+        "<td>" + n2(r[3]) + " \u2013 " + n2(r[4]) + "</td>" +
+        '<td class="lft">' + pctBar(r[2], r[5]) + "</td>" +
+        '<td class="lft"><span class="kpi-m">' + r[6] + "</span></td></tr>";
+    }).join("");
+
+    var erp = v.equity_risk_premium, erpNote = "";
+    if (erp != null) {
+      erpNote = '<div class="caution"><p><b>Earnings yield ' +
+        n2(v.earnings_yield) + "% against a 6.50% risk-free rate is an equity " +
+        "risk premium of " + sgn(erp, 2) + "pp.</b> " +
+        (erp < 0
+          ? "Negative: the index earns less than doing nothing. That times " +
+            "nothing \u2014 it can stay negative for years \u2014 but it is the " +
+            "condition in which a shock has least valuation support beneath it."
+          : "Positive: equities are paid for the risk taken over the " +
+            "risk-free alternative.") + "</p></div>";
+    }
+
+    return '<section class="card"><div class="card-hd"><h2>Valuation</h2>' +
+      '<span class="sub">' + esc(v.trade_date) + " \u00b7 exchange-published</span>" +
+      '<div class="right"><span class="kpi-m">percentile over ' +
+      (v.pe_n || 0) + " stored sessions</span></div></div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Measure</th><th>Now</th><th>Pctile</th><th>Range</th>' +
+      '<th class="lft">&nbsp;</th><th class="lft">&nbsp;</th>' +
+      "</tr></thead><tbody>" + body + "</tbody></table></div>" + erpNote +
+      "</section>";
+  }
+
+  function noteBlock(m) {
+    var d = (TECHFUND || {})[m.cfg.key] || {};
+    var n = d.note;
+    if (!n) {
+      return '<section class="card"><div class="card-hd"><h2>Today\u2019s note</h2>' +
+        '</div><div class="caution"><p><b>Not composed yet.</b> Run ' +
+        "<code>./run.sh</code> once the evening archives publish.</p></div></section>";
+    }
+
+    var c = n.call || {}, s = n.structure || {}, i = n.internals || {};
+    var q = n.quality || {}, sc = n.scorecard || {};
+    var rng = c.next_range || [];
+
+    var call = s.kind === "stand_aside"
+      ? "Stand aside \u2014 no strike pays enough to be worth selling into it."
+      : "Sellers of premium, not buyers of direction. Stand down below " +
+        n0(rng[0]) + ".";
+
+    var legs = "";
+    if (s.legs && s.legs.length) {
+      legs = s.legs.map(function (l) {
+        return '<span class="leg-chip ' + (l.act === "sell" ? "sell" : "buy") +
+          '">' + (l.act === "sell" ? "Sell" : "Buy") + " " + n0(l.strike) +
+          " " + l.side + "</span>";
+      }).join("");
+    }
+
+    var st = (q.reliability || {}).stance;
+    var vrp = (q.vrp || {}).ratio;
+
+    return '<section class="card"><div class="card-hd"><h2>Today\u2019s note</h2>' +
+      '<span class="sub">on the ' + esc(n.data_date) + " close \u00b7 for " +
+      esc(n.note_date) + "</span>" +
+      '<div class="right"><span class="kpi-m">one session only \u2014 ' +
+      "history is in reports/</span></div></div>" +
+
+      '<div class="notecall"><b>' + call + "</b> Expected range <b>" +
+      n0(rng[0]) + "\u2013" + n0(rng[1]) + "</b>." +
+      (c.p_positive == null ? "" :
+        " Positive close <b>" + n1(c.p_positive) + "%</b>, inside the band <b>" +
+        n1(c.p_inside) + "%</b>.") + "</div>" +
+
+      '<div class="probs">' +
+        '<div class="prob"><div class="prob-k">Breadth</div><div class="prob-v">' +
+          i.advances + " / " + i.declines +
+          '</div><div class="kpi-m">up / down</div></div>' +
+        '<div class="prob"><div class="prob-k">Above 50-DMA</div><div class="prob-v">' +
+          (i.above_dma == null ? "\u2014" : i.above_dma) +
+          '</div><div class="kpi-m">of 50</div></div>' +
+        '<div class="prob"><div class="prob-k">Delivery</div><div class="prob-v">' +
+          (i.delivery == null ? "\u2014" : n1(i.delivery) + "%") +
+          '</div><div class="kpi-m">vs ' +
+          (i.delivery_avg == null ? "\u2014" : n1(i.delivery_avg) + "%") +
+          " average</div></div>" +
+        '<div class="prob"><div class="prob-k">IV / RV</div><div class="prob-v ' +
+          (vrp > 1.1 ? "pos" : "") + '">' + n2(vrp) +
+          '</div><div class="kpi-m">' +
+          (vrp > 1.1 ? "implied rich" : "roughly fair") + "</div></div>" +
+      "</div>" +
+
+      (legs ? '<div class="legs-row">' + legs +
+        '<span class="kpi-m">net credit &#8377;' + n0(s.credit_rs) +
+        " \u00b7 max loss " +
+        (s.max_loss ? "&#8377;" + n0(s.max_loss) : "unlimited") +
+        " \u00b7 close by " + esc(s.close_by || "") + "</span></div>" : "") +
+
+      '<div class="caution"><p>' +
+      (st ? "<b>The directional stance has been correct " + n1(st.pct) +
+            "% of " + st.n + " graded sessions.</b> Read the band and the " +
+            "walls; discount the tilt. " : "") +
+      "Scored " + (sc.correct || 0) + " of " + (sc.graded || 0) +
+      " on the previous note. The full argument, workings and disclosures are " +
+      "in <b>reports/NIFTY/report.docx</b>, and every past session is kept " +
+      "beside it.</p></div></section>";
+  }
+
   function viewTechnicals(m) {
     var c = m.cfg, p = m.piv;
 
@@ -1647,7 +1805,7 @@ table.ledger { min-width: 800px; }
       '<div class="lvl"><div class="lvl-k">Max pain</div><div class="lvl-v" style="color:var(--maxpain)">' + n0(m.maxPain) + "</div></div>" +
       '<div class="lvl"><div class="lvl-k">Put wall</div><div class="lvl-v" style="color:var(--puts)">' + n0(m.putWall) + "</div></div>" +
       '<div class="lvl"><div class="lvl-k">Implied range</div><div class="lvl-v">' + n0(m.putWall) + "&ndash;" + n0(m.callWall) + "</div></div>" +
-      "</div></section>";
+      "</div></section>" + fundBlock(m) + noteBlock(m);
   }
 
   function viewHistory(m) {
@@ -3858,17 +4016,19 @@ table.ledger { min-width: 800px; }
         getJson("watchlist.json").catch(function () { return { lists: [] }; }),
         getJson("charts.json").catch(function () { return { series: {} }; }),
         getJson("history.json").catch(function () { return {}; }),
-        getJson("stocks.json").catch(function () { return {}; })
+        getJson("stocks.json").catch(function () { return {}; }),
+        getJson("techfund.json").catch(function () { return {}; })
       ]);
     }).then(function (both) {
       var acc = both[0], mkt = both[1], wl = both[2], ch = both[3],
-          mh = both[4], stk = both[5];
+          mh = both[4], stk = both[5], tf = both[6];
       ACCURACY = acc || {};
       STRIP = (mkt && mkt.strip) || [];
       WATCH = (wl && wl.lists) || [];
       CHARTS = (ch && ch.series) || {};
       MHIST = mh || {};
       STOCKS = stk || {};
+      TECHFUND = tf || {};
       if (WATCH.length) state.wl = WATCH[0].id;
       state.idx = INDICES[0].key;
       renderStrip();
