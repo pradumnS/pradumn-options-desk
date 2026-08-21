@@ -563,6 +563,10 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+.dt.legend td { vertical-align: top; padding: 8px 12px; line-height: 1.5; }
+.dt.legend td:first-child { width: 130px; white-space: nowrap; color: var(--ink); }
+.dt.legend td:last-child { color: var(--ink-2); font-size: 12.5px; }
+
 .dt .grp-hd th { font-size: 9px; letter-spacing: .18em; padding-bottom: 2px;
                  border-bottom: 1px solid var(--line); }
 .dt .grp-hd .grp-c { color: var(--calls); }
@@ -1572,7 +1576,8 @@ table.ledger { min-width: 800px; }
         '<td class="lft' + p + '"><span class="pill ' + bp.c + '">' + bp.t + "</span></td></tr>";
     }).join("");
 
-    return '<section class="card"><div class="card-hd"><h2>Option chain &amp; OI</h2>' +
+    return chainAnalysis(m) +
+      '<section class="card"><div class="card-hd"><h2>Option chain &amp; OI</h2>' +
       '<span class="sub">' + esc(m.cfg.label) + " \u00b7 " + esc(m.cfg.expiry) + "</span>" +
       '<div class="right"><span class="kpi-m">OI and volume in lakh &middot; ' +
       "shaded = in-the-money &middot; click a row to drill in</span></div></div>" +
@@ -1588,14 +1593,137 @@ table.ledger { min-width: 800px; }
       '<th class="grp-p">Volume</th><th class="grp-p">Chg OI</th>' +
       '<th class="grp-p">OI</th><th class="grp-p lft">Action</th>' +
       "</tr></thead><tbody>" + rows + "</tbody></table></div></section>" +
-      '<section class="card"><div class="card-hd"><h2>How to read the action column</h2>' +
+      chainLegend(m);
+  }
+
+  /* Every column, in the order it appears. A table nobody can read is a
+     table nobody uses, and the four build-up quadrants are the part people
+     most often get backwards. */
+  function chainLegend(m) {
+    function row(term, text) {
+      return '<tr><td class="lft"><b>' + term + '</b></td>' +
+             '<td class="lft">' + text + "</td></tr>";
+    }
+    var cols =
+      row("Action", "The four quadrants below, computed from that strike's " +
+          "change in OI against its change in premium.") +
+      row("OI", "Open interest &mdash; contracts still held at that strike, " +
+          "in lakh. Not volume: volume counts trades made today, OI counts " +
+          "positions that survived the day.") +
+      row("Chg OI", "The day's move in open interest. Positive means new " +
+          "positions were opened at that strike; negative means positions " +
+          "were closed.") +
+      row("Volume", "Contracts traded today, in lakh. High volume with " +
+          "little OI change means intraday churn rather than commitment.") +
+      row("IV", "Implied volatility for that strike, annualised. The market's " +
+          "price for uncertainty. Rising IV makes every option dearer " +
+          "regardless of direction.") +
+      row("LTP", "Last traded price of the contract, in rupees per unit. " +
+          "Multiply by the lot (" + m.cfg.lot + ") for the rupee value.") +
+      row("Chg LTP", "The day's percentage move in that premium. Read it " +
+          "against Chg OI &mdash; the pair is what the Action column means.") +
+      row("Strike", "The price at which the option can be exercised. The " +
+          "highlighted row is the strike nearest spot.") +
+      row("Shading", "Shaded cells are in-the-money: calls below spot, puts " +
+          "above it. Their premium is mostly intrinsic value.");
+
+    var quad =
+      row("Long build-up", "OI <b>up</b>, premium <b>up</b>. Fresh buyers " +
+          "entering. Conviction in that direction.") +
+      row("Short build-up", "OI <b>up</b>, premium <b>down</b>. Fresh writers " +
+          "selling that strike. It becomes a barrier &mdash; and as a seller, " +
+          "this is the company you are keeping.") +
+      row("Short covering", "OI <b>down</b>, premium <b>up</b>. Writers buying " +
+          "back. The barrier is breaking, and that is how a level fails.") +
+      row("Long unwinding", "OI <b>down</b>, premium <b>down</b>. Buyers " +
+          "leaving. Interest draining from the strike.");
+
+    function tbl(inner) {
+      return '<div class="tablewrap"><table class="dt legend"><tbody>' +
+             inner + "</tbody></table></div>";
+    }
+
+    return '<section class="card"><div class="card-hd">' +
+      "<h2>How to read this table</h2>" +
+      '<span class="sub">every column, and the four quadrants</span></div>' +
+      tbl(cols) +
+      '<div class="card-hd" style="margin-top:14px"><h2>The Action column</h2>' +
       '<span class="sub">open interest against premium</span></div>' +
-      '<div class="readout">' +
-      "<p><b>Long build-up</b> &mdash; OI up, premium up. Fresh buyers entering; conviction in that direction.</p>" +
-      "<p><b>Short build-up</b> &mdash; OI up, premium down. Fresh writers selling that strike; it becomes a barrier.</p>" +
-      "<p><b>Short covering</b> &mdash; OI down, premium up. Writers buying back; the barrier is breaking.</p>" +
-      "<p><b>Long unwinding</b> &mdash; OI down, premium down. Buyers exiting; interest draining from the strike.</p>" +
-      "</div></section>";
+      tbl(quad) +
+      '<div class="caution"><p><b>Open interest is a two-sided number.</b> ' +
+      "Every contract has a buyer and a writer, so OI rising says a position " +
+      "was opened, never who was right. What gives it meaning is the premium " +
+      "moving with it &mdash; that is the whole content of the Action column. " +
+      "And none of it is a forecast: this desk grades the OI walls, and the " +
+      "call wall has held on 92.9% of graded sessions while max pain has " +
+      "resolved on 50.2%, which is a coin flip.</p></div></section>";
+  }
+
+  /* The numbers you would otherwise have to read off the table yourself. */
+  function chainAnalysis(m) {
+    var rows = m.rows || [];
+    var ceOi = 0, peOi = 0, ceChg = 0, peChg = 0, ceVol = 0, peVol = 0;
+    var counts = { "Long build-up": 0, "Short build-up": 0,
+                   "Short covering": 0, "Long unwinding": 0 };
+    rows.forEach(function (r) {
+      ceOi += r.ce.oi || 0; peOi += r.pe.oi || 0;
+      ceChg += r.ce.chgOi || 0; peChg += r.pe.chgOi || 0;
+      ceVol += r.ce.vol || 0; peVol += r.pe.vol || 0;
+      [classify(r.ce.chgPct, r.ce.chgOi), classify(r.pe.chgPct, r.pe.chgOi)]
+        .forEach(function (b) { if (counts[b.t] != null) counts[b.t]++; });
+    });
+
+    var pcr = m.pcr;
+    var pcrRead = pcr > 1.15 ? "put writers dominant \u2014 supportive"
+                : pcr < 0.85 ? "call writers dominant \u2014 capped upside"
+                : "near balance \u2014 no directional conviction";
+
+    var netRead = (ceChg > peChg)
+      ? "Writers added more to calls than puts, which caps rallies before it supports dips."
+      : "Writers added more to puts than calls, which builds a floor before it caps upside.";
+
+    var top = Object.keys(counts).sort(function (a, b) {
+      return counts[b] - counts[a];
+    })[0];
+
+    return '<section class="card"><div class="card-hd"><h2>What the chain says</h2>' +
+      '<span class="sub">' + esc(m.cfg.expiry) + " \u00b7 " + rows.length +
+      " strikes</span>" +
+      '<div class="right"><span class="kpi-m">computed from the table below</span></div></div>' +
+      '<div class="probs">' +
+        '<div class="prob"><div class="prob-k">Put / call ratio</div>' +
+          '<div class="prob-v">' + n2(pcr) + '</div>' +
+          '<div class="kpi-m">' + pcrRead + "</div></div>" +
+        '<div class="prob"><div class="prob-k">Call wall</div>' +
+          '<div class="prob-v" style="color:var(--calls)">' + n0(m.callWall) + "</div>" +
+          '<div class="kpi-m">heaviest call OI \u00b7 resistance</div></div>' +
+        '<div class="prob"><div class="prob-k">Put wall</div>' +
+          '<div class="prob-v" style="color:var(--puts)">' + n0(m.putWall) + "</div>" +
+          '<div class="kpi-m">heaviest put OI \u00b7 support</div></div>' +
+        '<div class="prob"><div class="prob-k">Max pain</div>' +
+          '<div class="prob-v" style="color:var(--maxpain)">' + n0(m.maxPain) + "</div>" +
+          '<div class="kpi-m">weak signal \u00b7 50.2% historically</div></div>' +
+      "</div>" +
+      '<div class="probs">' +
+        '<div class="prob"><div class="prob-k">Call OI</div><div class="prob-v">' +
+          n1(ceOi) + 'L</div><div class="kpi-m">' + sgn(ceChg, 1) + "L today</div></div>" +
+        '<div class="prob"><div class="prob-k">Put OI</div><div class="prob-v">' +
+          n1(peOi) + 'L</div><div class="kpi-m">' + sgn(peChg, 1) + "L today</div></div>" +
+        '<div class="prob"><div class="prob-k">Volume</div><div class="prob-v">' +
+          n1(ceVol + peVol) + 'L</div><div class="kpi-m">C ' + n1(ceVol) +
+          "L \u00b7 P " + n1(peVol) + "L</div></div>" +
+        '<div class="prob"><div class="prob-k">ATM IV</div><div class="prob-v">' +
+          n2(m.atmIv) + '%</div><div class="kpi-m">strike ' + n0(m.atm) + "</div></div>" +
+      "</div>" +
+      '<div class="caution"><p><b>Positioning.</b> ' + netRead +
+      " Across " + (rows.length * 2) + " legs the commonest pattern is <b>" +
+      top + "</b> (" + counts[top] + " legs): " +
+      "long build-up " + counts["Long build-up"] +
+      " \u00b7 short build-up " + counts["Short build-up"] +
+      " \u00b7 short covering " + counts["Short covering"] +
+      " \u00b7 long unwinding " + counts["Long unwinding"] + ". " +
+      "The expected range implied by the walls is <b>" + n0(m.putWall) +
+      "\u2013" + n0(m.callWall) + "</b>.</p></div></section>";
   }
 
   /* ---------------------------------------------------------------
