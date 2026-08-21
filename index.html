@@ -563,6 +563,11 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+/* ---------- sortable table headers ---------- */
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--ink); }
+th.sortable.on { color: var(--calls); }
+
 /* ---------- strategy / seller desk ---------- */
 .caution {
   display: flex; gap: 10px; align-items: flex-start;
@@ -1109,6 +1114,7 @@ table.ledger { min-width: 800px; }
   var STRIP = [];            /* market.json -- rendered once, never re-rendered */
   var WATCH = [];            /* watchlist.json */
   var MHIST = {};            /* history.json -- per-day audit trail */
+  var STOCKS = {};           /* stocks.json  -- index constituents */
 
   function getJson(name) {
     return fetch(SNAPSHOT + name, { cache: "no-store" }).then(function (r) {
@@ -1123,6 +1129,7 @@ table.ledger { min-width: 800px; }
     { key:"accuracy",  label:"Model accuracy" },
     { key:"modelhist", label:"Model history" },
     { key:"watchlist", label:"Watchlist" },
+    { key:"stocks",    label:"NIFTY 50 stocks" },
     { key:"buildup",   label:"OI &amp; build-up" },
     { key:"chain",     label:"Option chain" },
     { key:"technicals",label:"Technicals" },
@@ -3184,11 +3191,96 @@ table.ledger { min-width: 800px; }
     return head + basics + oi + vol + prob + sell + score;
   }
 
+  /* Sort state for the constituents table. Kept out of `state` because it
+     is local to one view and should not survive an index switch. */
+  var stockSort = { key: "weightPct", dir: -1 };
+
+  function viewStocks(m) {
+    var d = (STOCKS || {})[m.cfg.index];
+    if (!d || !d.rows || !d.rows.length) {
+      return '<section class="card"><div class="card-hd"><h2>NIFTY 50 stocks</h2></div>' +
+        '<div class="caution"><p><b>Not exported yet.</b> Run ' +
+        "<code>./run.sh</code> to build the constituent table.</p></div></section>";
+    }
+
+    var rows = d.rows.slice().sort(function (a, b) {
+      var k = stockSort.key;
+      var x = a[k], y = b[k];
+      if (x === null || x === undefined) return 1;
+      if (y === null || y === undefined) return -1;
+      if (typeof x === "string") return stockSort.dir * x.localeCompare(y);
+      return stockSort.dir * (x - y);
+    });
+
+    var up = d.advances, dn = d.declines;
+    var totTurn = 0;
+    rows.forEach(function (r) { totTurn += r.turnover || 0; });
+
+    var cols = [
+      ["symbol", "Stock", "lft"],
+      ["close", "Close", ""],
+      ["chgPct", "Chg %", ""],
+      ["contribPts", "Index pts", ""],
+      ["weightPct", "Weight %", ""],
+      ["chg5Pct", "5-day %", ""],
+      ["deliveryPct", "Delivery %", ""],
+      ["vwap", "VWAP", ""],
+      ["turnover", "Turnover", ""],
+      ["dma50", "50-DMA", ""]
+    ];
+
+    var head = cols.map(function (c) {
+      var on = stockSort.key === c[0];
+      return '<th class="' + c[2] + ' sortable' + (on ? " on" : "") +
+        '" data-sort="' + c[0] + '">' + c[1] +
+        (on ? (stockSort.dir < 0 ? " \u25be" : " \u25b4") : "") + "</th>";
+    }).join("");
+
+    var body = rows.map(function (r) {
+      var turn = r.turnover ? (r.turnover / 1e7) : null;   // rupees -> crore
+      return '<tr class="clickable" data-stock="' + esc(r.symbol) + '">' +
+        '<td class="lft"><b>' + esc(r.symbol) + "</b></td>" +
+        "<td>" + n2(r.close) + "</td>" +
+        '<td class="' + cls(r.chgPct) + '">' + sgn(r.chgPct, 2) + "%</td>" +
+        '<td class="' + cls(r.contribPts) + '"><b>' + sgn(r.contribPts, 1) + "</b></td>" +
+        "<td>" + n2(r.weightPct) + "</td>" +
+        '<td class="' + cls(r.chg5Pct) + '">' + (r.chg5Pct == null ? "\u2014" : sgn(r.chg5Pct, 2) + "%") + "</td>" +
+        "<td>" + (r.deliveryPct == null ? "\u2014" : n1(r.deliveryPct) + "%") + "</td>" +
+        "<td>" + n2(r.vwap) + "</td>" +
+        "<td>" + (turn == null ? "\u2014" : n0(turn)) + "</td>" +
+        '<td class="' + (r.aboveDma ? "pos" : "neg") + '">' + n0(r.dma50) + "</td>" +
+      "</tr>";
+    }).join("");
+
+    return '<section class="card"><div class="card-hd"><h2>NIFTY 50 stocks</h2>' +
+      '<span class="sub">' + esc(d.tradeDate) + " &middot; settled close</span>" +
+      '<div class="right"><span class="kpi-m">click a column to sort</span></div></div>' +
+      '<div class="probs">' +
+        '<div class="prob"><div class="prob-k">Advancing</div><div class="prob-v pos">' + up + "</div>" +
+          '<div class="kpi-m">of ' + d.count + "</div></div>" +
+        '<div class="prob"><div class="prob-k">Declining</div><div class="prob-v neg">' + dn + "</div>" +
+          '<div class="kpi-m">of ' + d.count + "</div></div>" +
+        '<div class="prob"><div class="prob-k">Above 50-DMA</div><div class="prob-v">' + d.aboveDma + "</div>" +
+          '<div class="kpi-m">participation</div></div>' +
+        '<div class="prob"><div class="prob-k">Turnover</div><div class="prob-v">&#8377;' + n0(totTurn / 1e7) + "cr</div>" +
+          '<div class="kpi-m">index constituents</div></div>' +
+      "</div>" +
+      '<div class="tablewrap tall"><table class="dt strat"><thead><tr>' + head +
+      "</tr></thead><tbody>" + body + "</tbody></table></div>" +
+      '<div class="caution"><p><b>Index pts</b> is the name\u2019s own contribution to the ' +
+      "session\u2019s move, price change multiplied by its recovered coefficient. It is the " +
+      "column that separates a real move from a loud one: a 2% move in a 0.3% name is noise, " +
+      "the same move in HDFC Bank is a third of the day. Weights are recovered, not published " +
+      "by NSE \u2014 see the report appendix for the method and its residual.</p></div>" +
+      "</section>";
+  }
+
   var RENDER = {
     overview: viewOverview, strategy: viewStrategy, accuracy: viewAccuracy,
     buildup: viewBuildup, chain: viewChain, technicals: viewTechnicals,
     history: viewHistory, watchlist: viewWatchlist,
-    modelhist: viewModelHistory, learning: viewLearning
+    modelhist: viewModelHistory, learning: viewLearning,
+    stocks: viewStocks
   };
 
   /* ==========================================================
@@ -3762,15 +3854,18 @@ table.ledger { min-width: 800px; }
         getJson("market.json").catch(function () { return { strip: [] }; }),
         getJson("watchlist.json").catch(function () { return { lists: [] }; }),
         getJson("charts.json").catch(function () { return { series: {} }; }),
-        getJson("history.json").catch(function () { return {}; })
+        getJson("history.json").catch(function () { return {}; }),
+        getJson("stocks.json").catch(function () { return {}; })
       ]);
     }).then(function (both) {
-      var acc = both[0], mkt = both[1], wl = both[2], ch = both[3], mh = both[4];
+      var acc = both[0], mkt = both[1], wl = both[2], ch = both[3],
+          mh = both[4], stk = both[5];
       ACCURACY = acc || {};
       STRIP = (mkt && mkt.strip) || [];
       WATCH = (wl && wl.lists) || [];
       CHARTS = (ch && ch.series) || {};
       MHIST = mh || {};
+      STOCKS = stk || {};
       if (WATCH.length) state.wl = WATCH[0].id;
       state.idx = INDICES[0].key;
       renderStrip();
@@ -3903,6 +3998,17 @@ table.ledger { min-width: 800px; }
 
     var we = e.target.closest("[data-wlexp]");
     if (we) { state.wlExpiry = Number(we.getAttribute("data-wlexp")); render(); return; }
+
+    var so = e.target.closest("[data-sort]");
+    if (so) {
+      var k = so.getAttribute("data-sort");
+      /* Second click on the same column reverses it. Symbol reads best
+         ascending, every numeric column reads best largest-first. */
+      if (stockSort.key === k) stockSort.dir *= -1;
+      else stockSort = { key: k, dir: k === "symbol" ? 1 : -1 };
+      render();
+      return;
+    }
 
     var st = e.target.closest("[data-strike]");
     if (st) { openDrawer(Number(st.getAttribute("data-strike"))); return; }
