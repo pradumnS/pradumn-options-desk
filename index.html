@@ -1156,8 +1156,7 @@ table.ledger { min-width: 800px; }
   var VIEWS = [
     { key:"overview",  label:"Overview" },
     { key:"strategy",  label:"Direction &amp; strategy" },
-    { key:"accuracy",  label:"Model accuracy" },
-    { key:"modelhist", label:"Model history" },
+    { key:"model",     label:"Model data" },
     { key:"watchlist", label:"Watchlist" },
     { key:"stocks",    label:"NIFTY 50 stocks" },
     { key:"chain",     label:"Option chain &amp; OI" },
@@ -2893,6 +2892,18 @@ table.ledger { min-width: 800px; }
          outcome is joined back. These are the standard scoring
          rules used to grade probabilistic forecasts.
      ========================================================== */
+  /* Accuracy and history were two tabs answering one question: is this
+     model any good, and what exactly did it say. Neither duplicates the
+     other -- the reliability diagram plots stated against observed
+     probability, the claims table grades each assertion separately -- so
+     the merge is a join with nothing dropped.
+
+     Order runs from verdict to evidence: how well it scores, then the
+     claim-by-claim record, then every session it was built on. */
+  function viewModelData(m) {
+    return viewAccuracy(m) + viewModelHistory(m);
+  }
+
   function viewAccuracy(m) {
     var A = ACCURACY[state.idx] || {};
     var stored = m.sessionsStored || 0;
@@ -3744,29 +3755,29 @@ table.ledger { min-width: 800px; }
         "ranges, walls, max pain, stance, the volatility call, each strike. Every one " +
         "is scored on its own, so you learn <em>which part</em> works rather than only " +
         "that something was wrong.",
-        null, "Model history") +
+        null, "Model data") +
       T("Brier score", "Mean squared error of a probability forecast. 0 is perfect, " +
         "0.25 is a coin flip. <b>Brier skill</b> compares it to always guessing the " +
         "base rate &mdash; above zero means the model adds something.",
-        null, "Model accuracy") +
+        null, "Model data") +
       T("Calibration (ECE)", "When the model says 85%, does it happen 85% of the time? " +
         "The reliability chart plots said against happened; on the diagonal is honest, " +
         "below it is overconfident.",
-        null, "Model accuracy") +
+        null, "Model data") +
       T("Coverage and the Kupiec test", "A 1&sigma; band should contain the outcome " +
         "68.3% of the time. Kupiec is the statistical test of whether it does. " +
         "LR above 3.84 rejects the band.",
-        null, "Model accuracy") +
+        null, "Model data") +
       T("Band factor", "The measured multiple of the stated 1&sigma; band that actually " +
         "contained 68% of outcomes. At 1.00 the band is honest; below, it is too wide.",
-        null, "Model accuracy") +
+        null, "Model data") +
       T("What the record says so far",
         "Ranges and structural levels hold up. <b>Directional signals do not.</b>",
         "Expiry 2&sigma; <b>96.4%</b> &middot; call wall <b>92.8%</b> &middot; " +
         "1&sigma; <b>73.2%</b> &middot; next-session <b>72.0%</b> &middot; " +
         "vol premium <b>62.5%</b> &middot; max pain <b>50.8%</b> &middot; " +
         "stance <b>48.2%</b>",
-        "Model history"));
+        "Model data"));
 
     return head + basics + oi + vol + prob + sell + score;
   }
@@ -3859,13 +3870,16 @@ table.ledger { min-width: 800px; }
   }
 
   var RENDER = {
-    overview: viewOverview, strategy: viewStrategy, accuracy: viewAccuracy,
+    overview: viewOverview, strategy: viewStrategy,
+    model: viewModelData,
+    /* Merged away, kept as aliases so a saved view key still resolves. */
+    accuracy: viewModelData, modelhist: viewModelData,
     chain: viewChain, technicals: viewTechnicals,
     /* The build-up tab merged into the chain. Kept as an alias so a saved
        view key does not land on a blank page. */
     buildup: viewChain,
     history: viewHistory, watchlist: viewWatchlist,
-    modelhist: viewModelHistory, learning: viewLearning,
+    learning: viewLearning,
     stocks: viewStocks
   };
 
