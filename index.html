@@ -563,6 +563,11 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+.dt .grp-hd th { font-size: 9px; letter-spacing: .18em; padding-bottom: 2px;
+                 border-bottom: 1px solid var(--line); }
+.dt .grp-hd .grp-c { color: var(--calls); }
+.dt .grp-hd .grp-p { color: var(--puts); }
+
 .killrow { padding: 9px 14px; margin-bottom: 6px; border-radius: 0 6px 6px 0;
            background: var(--puts-dim); border-left: 3px solid var(--down);
            font-size: 13px; line-height: 1.55; color: var(--ink-2); }
@@ -1151,8 +1156,7 @@ table.ledger { min-width: 800px; }
     { key:"modelhist", label:"Model history" },
     { key:"watchlist", label:"Watchlist" },
     { key:"stocks",    label:"NIFTY 50 stocks" },
-    { key:"buildup",   label:"OI &amp; build-up" },
-    { key:"chain",     label:"Option chain" },
+    { key:"chain",     label:"Option chain &amp; OI" },
     { key:"technicals",label:"Tech-Fund" },
     { key:"history",   label:"History" }
   ];
@@ -1538,63 +1542,60 @@ table.ledger { min-width: 800px; }
       '<div class="chart-body">' + pcrSvg(m) + "</div></section></div>" + pipeline(m);
   }
 
-  function viewBuildup(m) {
+  /* The chain and the build-up were two tabs reading the same rows. Only
+     "Chg OI" appeared in both, so merging them costs nothing and stops you
+     paging back and forth to line a strike's OI up against what that OI
+     was doing. Column order runs outside-in on each side: what the strike
+     holds, then what changed, then what it costs. */
+  function viewChain(m) {
     var rows = m.rows.slice().reverse().map(function (r) {
-      var bc = classify(r.ce.chgPct, r.ce.chgOi), bp = classify(r.pe.chgPct, r.pe.chgOi);
-      return '<tr class="clickable' + (r.strike === m.atm ? " atm" : "") + '" data-strike="' + r.strike + '">' +
-        '<td><span class="pill ' + bc.c + '">' + bc.t + "</span></td>" +
-        '<td class="' + cls(r.ce.chgOi) + '">' + sgn(r.ce.chgOi, 2) + "</td>" +
-        '<td class="' + cls(r.ce.chgPct) + '">' + sgn(r.ce.chgPct, 1) + "%</td>" +
+      var c = r.strike < m.cfg.spot ? " itm-c" : "";
+      var p = r.strike > m.cfg.spot ? " itm-p" : "";
+      var bc = classify(r.ce.chgPct, r.ce.chgOi);
+      var bp = classify(r.pe.chgPct, r.pe.chgOi);
+      return '<tr class="clickable' + (r.strike === m.atm ? " atm" : "") +
+        '" data-strike="' + r.strike + '">' +
+        '<td class="lft' + c + '"><span class="pill ' + bc.c + '">' + bc.t + "</span></td>" +
+        '<td class="' + c + '">' + n2(r.ce.oi) + "</td>" +
+        '<td class="' + c + " " + cls(r.ce.chgOi) + '">' + sgn(r.ce.chgOi, 2) + "</td>" +
+        '<td class="' + c + '">' + n1(r.ce.vol) + "L</td>" +
+        '<td class="' + c + '">' + n1(r.ce.iv) + "</td>" +
+        '<td class="' + c + '">' + n2(r.ce.ltp) + "</td>" +
+        '<td class="' + c + " " + cls(r.ce.chgPct) + '">' + sgn(r.ce.chgPct, 1) + "%</td>" +
         '<td class="strike-cell">' + n0(r.strike) + "</td>" +
-        '<td class="' + cls(r.pe.chgPct) + '">' + sgn(r.pe.chgPct, 1) + "%</td>" +
-        '<td class="' + cls(r.pe.chgOi) + '">' + sgn(r.pe.chgOi, 2) + "</td>" +
-        '<td><span class="pill ' + bp.c + '">' + bp.t + "</span></td></tr>";
+        '<td class="' + p + " " + cls(r.pe.chgPct) + '">' + sgn(r.pe.chgPct, 1) + "%</td>" +
+        '<td class="' + p + '">' + n2(r.pe.ltp) + "</td>" +
+        '<td class="' + p + '">' + n1(r.pe.iv) + "</td>" +
+        '<td class="' + p + '">' + n1(r.pe.vol) + "L</td>" +
+        '<td class="' + p + " " + cls(r.pe.chgOi) + '">' + sgn(r.pe.chgOi, 2) + "</td>" +
+        '<td class="' + p + '">' + n2(r.pe.oi) + "</td>" +
+        '<td class="lft' + p + '"><span class="pill ' + bp.c + '">' + bp.t + "</span></td></tr>";
     }).join("");
 
-    return '<section class="card"><div class="card-hd"><h2>OI build-up by strike</h2>' +
-      '<span class="sub">change in OI vs change in premium</span>' +
-      '<div class="right"><span class="kpi-m">OI change in lakh &middot; click a row to drill in</span></div></div>' +
-      '<div class="tablewrap tall"><table class="dt bu"><thead><tr>' +
-      '<th class="grp-c lft">Call action</th><th class="grp-c">Chg OI</th><th class="grp-c">Chg LTP</th>' +
+    return '<section class="card"><div class="card-hd"><h2>Option chain &amp; OI</h2>' +
+      '<span class="sub">' + esc(m.cfg.label) + " \u00b7 " + esc(m.cfg.expiry) + "</span>" +
+      '<div class="right"><span class="kpi-m">OI and volume in lakh &middot; ' +
+      "shaded = in-the-money &middot; click a row to drill in</span></div></div>" +
+      '<div class="tablewrap tall"><table class="dt chain"><thead>' +
+      '<tr class="grp-hd"><th class="grp-c lft" colspan="7">CALLS</th>' +
+      '<th>&nbsp;</th><th class="grp-p lft" colspan="7">PUTS</th></tr>' +
+      "<tr>" +
+      '<th class="grp-c lft">Action</th><th class="grp-c">OI</th>' +
+      '<th class="grp-c">Chg OI</th><th class="grp-c">Volume</th>' +
+      '<th class="grp-c">IV</th><th class="grp-c">LTP</th><th class="grp-c">Chg LTP</th>' +
       '<th style="text-align:center">Strike</th>' +
-      '<th class="grp-p">Chg LTP</th><th class="grp-p">Chg OI</th><th class="grp-p lft">Put action</th>' +
+      '<th class="grp-p">Chg LTP</th><th class="grp-p">LTP</th><th class="grp-p">IV</th>' +
+      '<th class="grp-p">Volume</th><th class="grp-p">Chg OI</th>' +
+      '<th class="grp-p">OI</th><th class="grp-p lft">Action</th>' +
       "</tr></thead><tbody>" + rows + "</tbody></table></div></section>" +
-      '<section class="card"><div class="card-hd"><h2>How to read this</h2></div>' +
+      '<section class="card"><div class="card-hd"><h2>How to read the action column</h2>' +
+      '<span class="sub">open interest against premium</span></div>' +
       '<div class="readout">' +
       "<p><b>Long build-up</b> &mdash; OI up, premium up. Fresh buyers entering; conviction in that direction.</p>" +
       "<p><b>Short build-up</b> &mdash; OI up, premium down. Fresh writers selling that strike; it becomes a barrier.</p>" +
       "<p><b>Short covering</b> &mdash; OI down, premium up. Writers buying back; the barrier is breaking.</p>" +
       "<p><b>Long unwinding</b> &mdash; OI down, premium down. Buyers exiting; interest draining from the strike.</p>" +
       "</div></section>";
-  }
-
-  function viewChain(m) {
-    var rows = m.rows.slice().reverse().map(function (r) {
-      var itmC = r.strike < m.cfg.spot, itmP = r.strike > m.cfg.spot;
-      var c = itmC ? " itm-c" : "", p = itmP ? " itm-p" : "";
-      return '<tr class="clickable' + (r.strike === m.atm ? " atm" : "") + '" data-strike="' + r.strike + '">' +
-        '<td class="' + c + '">' + n2(r.ce.oi) + "</td>" +
-        '<td class="' + c + " " + cls(r.ce.chgOi) + '">' + sgn(r.ce.chgOi, 2) + "</td>" +
-        '<td class="' + c + '">' + n1(r.ce.vol) + "L</td>" +
-        '<td class="' + c + '">' + n1(r.ce.iv) + "</td>" +
-        '<td class="' + c + '">' + n2(r.ce.ltp) + "</td>" +
-        '<td class="strike-cell">' + n0(r.strike) + "</td>" +
-        '<td class="' + p + '">' + n2(r.pe.ltp) + "</td>" +
-        '<td class="' + p + '">' + n1(r.pe.iv) + "</td>" +
-        '<td class="' + p + '">' + n1(r.pe.vol) + "L</td>" +
-        '<td class="' + p + " " + cls(r.pe.chgOi) + '">' + sgn(r.pe.chgOi, 2) + "</td>" +
-        '<td class="' + p + '">' + n2(r.pe.oi) + "</td></tr>";
-    }).join("");
-
-    return '<section class="card"><div class="card-hd"><h2>Option chain</h2>' +
-      '<span class="sub">' + esc(m.cfg.label) + " \u00b7 " + esc(m.cfg.expiry) + "</span>" +
-      '<div class="right"><span class="kpi-m">OI in lakh &middot; shaded = in-the-money</span></div></div>' +
-      '<div class="tablewrap tall"><table class="dt chain"><thead><tr>' +
-      '<th class="grp-c">Call OI</th><th class="grp-c">Chg OI</th><th class="grp-c">Volume</th>' +
-      '<th class="grp-c">IV</th><th class="grp-c">LTP</th><th style="text-align:center">Strike</th>' +
-      '<th class="grp-p">LTP</th><th class="grp-p">IV</th><th class="grp-p">Volume</th>' +
-      '<th class="grp-p">Chg OI</th><th class="grp-p">Put OI</th>' +
-      "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
   }
 
   /* ---------------------------------------------------------------
@@ -3731,7 +3732,10 @@ table.ledger { min-width: 800px; }
 
   var RENDER = {
     overview: viewOverview, strategy: viewStrategy, accuracy: viewAccuracy,
-    buildup: viewBuildup, chain: viewChain, technicals: viewTechnicals,
+    chain: viewChain, technicals: viewTechnicals,
+    /* The build-up tab merged into the chain. Kept as an alias so a saved
+       view key does not land on a blank page. */
+    buildup: viewChain,
     history: viewHistory, watchlist: viewWatchlist,
     modelhist: viewModelHistory, learning: viewLearning,
     stocks: viewStocks
