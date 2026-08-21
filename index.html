@@ -3406,16 +3406,16 @@ table.ledger { min-width: 800px; }
       T("Strike", "The price at which an option can be exercised. Chains are listed " +
         "in fixed steps &mdash; 50 points for NIFTY.",
         "The strike nearest spot is <b>" + n0(m.atm) + "</b>. That one is called ATM.",
-        "Option chain") +
+        "Option chain &amp; OI") +
       T("CE and PE", "CE is a <b>call</b> &mdash; it gains when the index rises. " +
         "PE is a <b>put</b> &mdash; it gains when the index falls.",
-        null, "Option chain, OI ladder") +
+        null, "Option chain &amp; OI") +
       T("ATM, ITM, OTM", "At / in / out of the money. A call is ITM when spot is " +
         "<em>above</em> its strike; a put is ITM when spot is <em>below</em>. " +
         "OTM options have no intrinsic value &mdash; only time value.",
         "With spot " + n0(m.cfg.spot) + ", the " + n0(m.atm + 500) +
         " call is OTM and the " + n0(m.atm - 500) + " put is OTM.",
-        "Option chain &mdash; shaded cells are ITM") +
+        "Option chain &amp; OI &mdash; shaded cells are ITM") +
       T("Expiry", "The date the contract settles. NIFTY has a weekly expiry every " +
         "Tuesday, plus a monthly. After it, the contract ceases to exist.",
         "Current expiry <b>" + esc(m.cfg.expiry) + "</b>, " + m.dte + " sessions away.",
@@ -3427,7 +3427,7 @@ table.ledger { min-width: 800px; }
         "Strike drawer") +
       T("LTP and premium", "Last traded price of the option. For a seller this is the " +
         "<em>credit</em> received; for a buyer, the cost.",
-        null, "Option chain, Watchlist"));
+        null, "Option chain &amp; OI, Watchlist"));
 
     /* ------------------------------------------- 2. open interest */
     var oi = S("2. Open interest and positioning",
@@ -3436,10 +3436,10 @@ table.ledger { min-width: 800px; }
         "Not volume &mdash; volume counts trades today, OI counts positions still " +
         "held. Rising OI means new money committing.",
         "Heaviest put OI sits at <b>" + n0(m.putWall) + "</b>, heaviest call OI at " +
-        "<b>" + n0(m.callWall) + "</b>.", "OI ladder, Option chain") +
+        "<b>" + n0(m.callWall) + "</b>.", "OI ladder, Option chain &amp; OI") +
       T("Change in OI", "The day's move in open interest. Read alongside the price " +
         "change &mdash; the pair tells you what kind of money moved.",
-        null, "OI &amp; build-up") +
+        null, "Option chain &amp; OI") +
       T("Build-up (the four quadrants)",
         "<b>Long build-up</b>: OI up, price up &mdash; fresh buyers, conviction.<br>" +
         "<b>Short build-up</b>: OI up, price down &mdash; fresh writers; the strike " +
@@ -3447,7 +3447,7 @@ table.ledger { min-width: 800px; }
         "<b>Short covering</b>: OI down, price up &mdash; writers buying back; the " +
         "barrier is breaking.<br>" +
         "<b>Long unwinding</b>: OI down, price down &mdash; buyers leaving.",
-        null, "OI &amp; build-up") +
+        null, "Option chain &amp; OI") +
       T("OI walls", "The strikes with the most open interest. Writers defend them, so " +
         "they often act as support (put wall) and resistance (call wall).",
         "Expected range between <b>" + n0(m.putWall) + "</b> and <b>" +
