@@ -563,6 +563,11 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+.killrow { padding: 9px 14px; margin-bottom: 6px; border-radius: 0 6px 6px 0;
+           background: var(--puts-dim); border-left: 3px solid var(--down);
+           font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+.killrow b { color: var(--ink); }
+
 /* ---------- tech-fund ---------- */
 .pbar { position: relative; height: 6px; border-radius: 3px;
         background: var(--surface-3); min-width: 110px; }
@@ -1668,70 +1673,358 @@ table.ledger { min-width: 800px; }
     }
 
     var c = n.call || {}, s = n.structure || {}, i = n.internals || {};
-    var q = n.quality || {}, sc = n.scorecard || {};
-    var rng = c.next_range || [];
+    var q = n.quality || {}, sc = n.scorecard || {}, p = n.positioning || {};
+    var a = n.appendix || {}, rng = c.next_range || [];
+    var out = "";
 
+    function card(title, sub, right, body) {
+      return '<section class="card"><div class="card-hd"><h2>' + title + "</h2>" +
+        (sub ? '<span class="sub">' + sub + "</span>" : "") +
+        (right ? '<div class="right"><span class="kpi-m">' + right + "</span></div>" : "") +
+        "</div>" + body + "</section>";
+    }
+    function para(t) { return '<div class="caution"><p>' + t + "</p></div>"; }
+
+    /* ---------------------------------------------- the call */
     var call = s.kind === "stand_aside"
       ? "Stand aside \u2014 no strike pays enough to be worth selling into it."
       : "Sellers of premium, not buyers of direction. Stand down below " +
         n0(rng[0]) + ".";
 
-    var legs = "";
-    if (s.legs && s.legs.length) {
-      legs = s.legs.map(function (l) {
-        return '<span class="leg-chip ' + (l.act === "sell" ? "sell" : "buy") +
-          '">' + (l.act === "sell" ? "Sell" : "Buy") + " " + n0(l.strike) +
-          " " + l.side + "</span>";
-      }).join("");
-    }
-
-    var st = (q.reliability || {}).stance;
-    var vrp = (q.vrp || {}).ratio;
-
-    return '<section class="card"><div class="card-hd"><h2>Today\u2019s note</h2>' +
-      '<span class="sub">on the ' + esc(n.data_date) + " close \u00b7 for " +
-      esc(n.note_date) + "</span>" +
-      '<div class="right"><span class="kpi-m">one session only \u2014 ' +
-      "history is in reports/</span></div></div>" +
-
+    out += card("Today\u2019s note",
+      "on the " + esc(n.data_date) + " close \u00b7 published for " + esc(n.note_date),
+      "one session only \u2014 every past session is in reports/",
       '<div class="notecall"><b>' + call + "</b> Expected range <b>" +
       n0(rng[0]) + "\u2013" + n0(rng[1]) + "</b>." +
       (c.p_positive == null ? "" :
         " Positive close <b>" + n1(c.p_positive) + "%</b>, inside the band <b>" +
-        n1(c.p_inside) + "%</b>.") + "</div>" +
-
-      '<div class="probs">' +
-        '<div class="prob"><div class="prob-k">Breadth</div><div class="prob-v">' +
-          i.advances + " / " + i.declines +
-          '</div><div class="kpi-m">up / down</div></div>' +
-        '<div class="prob"><div class="prob-k">Above 50-DMA</div><div class="prob-v">' +
-          (i.above_dma == null ? "\u2014" : i.above_dma) +
-          '</div><div class="kpi-m">of 50</div></div>' +
-        '<div class="prob"><div class="prob-k">Delivery</div><div class="prob-v">' +
-          (i.delivery == null ? "\u2014" : n1(i.delivery) + "%") +
-          '</div><div class="kpi-m">vs ' +
-          (i.delivery_avg == null ? "\u2014" : n1(i.delivery_avg) + "%") +
-          " average</div></div>" +
-        '<div class="prob"><div class="prob-k">IV / RV</div><div class="prob-v ' +
-          (vrp > 1.1 ? "pos" : "") + '">' + n2(vrp) +
-          '</div><div class="kpi-m">' +
-          (vrp > 1.1 ? "implied rich" : "roughly fair") + "</div></div>" +
+        n1(c.p_inside) + "%</b>, break above " + n0((n.range1 || [])[1]) +
+        " <b>" + n1(c.p_break_up) + "%</b>. " +
+        '<span class="kpi-m">from the ' + esc(c.p_source || "") + "</span>") +
       "</div>" +
+      '<div class="probs">' +
+        '<div class="prob"><div class="prob-k">Close</div><div class="prob-v ' +
+          cls(i.move) + '">' + n2(n.spot) + '</div><div class="kpi-m">' +
+          sgn(i.move, 2) + " pts</div></div>" +
+        '<div class="prob"><div class="prob-k">VWAP</div><div class="prob-v">' +
+          n2(i.vwap) + '</div><div class="kpi-m">constituent-weighted</div></div>' +
+        '<div class="prob"><div class="prob-k">India VIX</div><div class="prob-v">' +
+          n2(n.vix) + '</div><div class="kpi-m">' + sgn(n.vix_chg, 2) + "%</div></div>" +
+        '<div class="prob"><div class="prob-k">ATM IV</div><div class="prob-v">' +
+          n2(n.atm_iv) + '%</div><div class="kpi-m">' + esc(n.expiry || "") + "</div></div>" +
+        '<div class="prob"><div class="prob-k">IV / RV</div><div class="prob-v ' +
+          ((q.vrp || {}).ratio > 1.1 ? "pos" : "") + '">' + n2((q.vrp || {}).ratio) +
+          '</div><div class="kpi-m">' +
+          ((q.vrp || {}).ratio > 1.1 ? "implied rich" : "roughly fair") + "</div></div>" +
+      "</div>");
 
-      (legs ? '<div class="legs-row">' + legs +
-        '<span class="kpi-m">net credit &#8377;' + n0(s.credit_rs) +
-        " \u00b7 max loss " +
-        (s.max_loss ? "&#8377;" + n0(s.max_loss) : "unlimited") +
-        " \u00b7 close by " + esc(s.close_by || "") + "</span></div>" : "") +
+    /* ------------------------------- 1. the argument against us */
+    var body1 = "<p>The " + esc(n.data_date) + " session moved <b>" +
+      sgn(i.move, 2) + "</b> points on " + i.advances + " advances against " +
+      i.declines + " declines.</p>";
 
-      '<div class="caution"><p>' +
-      (st ? "<b>The directional stance has been correct " + n1(st.pct) +
-            "% of " + st.n + " graded sessions.</b> Read the band and the " +
-            "walls; discount the tilt. " : "") +
-      "Scored " + (sc.correct || 0) + " of " + (sc.graded || 0) +
-      " on the previous note. The full argument, workings and disclosures are " +
-      "in <b>reports/NIFTY/report.docx</b>, and every past session is kept " +
-      "beside it.</p></div></section>";
+    if (i.attribution_ok && i.drivers && i.drivers.length) {
+      var names = i.drivers.map(function (x) {
+        return esc(x[0]) + " " + sgn(x[1], 1);
+      }).join(", ");
+      /* On a near-flat session the constituents cancel and a percentage of
+         the net move is not a share -- 21-Aug produced "280.9% of the
+         advance". The points are still exactly true, so say those. */
+      var lead = i.driver_share
+        ? "<b>Three stocks produced " + n1(i.driver_share) + "% of the " +
+          ((i.move || 0) < 0 ? "decline" : "advance") + ".</b>"
+        : "<b>Three stocks contributed " + sgn(i.driver_points, 1) +
+          " points against a net " + sgn(i.move, 1) + ".</b>";
+      body1 += "<p>" + lead + " " + names + ". Attribution reconciles to " +
+        n1(i.attributed) + " points against an actual " + n1(i.move) +
+        " \u2014 a residual of " + n1(Math.abs(i.residual)) + ".</p>";
+    } else {
+      body1 += "<p><b>Contribution is not reported for this session.</b> The " +
+        "attribution reconciles to " + n1(i.attributed) + " against an actual " +
+        n1(i.move) + ", and a residual that size cannot support a claim about " +
+        "which stocks drove the day.</p>";
+    }
+    if (i.above_dma != null) {
+      body1 += "<p><b>Participation.</b> " + i.above_dma + " of 50 above their " +
+        i.dma_window + "-session average" +
+        (i.above_dma_prev == null ? "" :
+          ", " + (i.above_dma < i.above_dma_prev ? "down" : "up") + " from " +
+          i.above_dma_prev + " a week ago") + ".</p>";
+    }
+    if (i.delivery != null && i.delivery_avg != null) {
+      var rich = i.delivery > i.delivery_avg;
+      body1 += "<p><b>Delivery " + (rich ? "corroborates" : "does not corroborate") +
+        " the move.</b> " + n2(i.delivery) + "% against a 20-session " +
+        n2(i.delivery_avg) + "% \u2014 " +
+        (rich ? "real stock changed hands." : "churn, not accumulation.") + "</p>";
+    }
+    var peers = i.peers || {}, pr = [];
+    ["NIFTY BANK", "NIFTY MIDCAP 100", "NIFTY IT"].forEach(function (k) {
+      if (peers[k] != null) pr.push(k.replace("NIFTY ", "") + " " + sgn(peers[k], 2) + "%");
+    });
+    if (pr.length) {
+      body1 += "<p><b>Across the market.</b> " + pr.join(" \u00b7 ") +
+        " against the index " + sgn(peers["NIFTY 50"], 2) + "%.</p>";
+    }
+    out += card("1 \u00b7 The argument against us", "taken first", "", para(body1));
+
+    /* ----------------------------------------- 2. positioning */
+    var f = p.fii || {}, body2 = "";
+    if (f.ratio != null) {
+      body2 += "<p><b>FII index-futures long/short is " + n2(f.ratio) + ".</b> " +
+        n0(f.long) + " long against " + n0(f.short) + " short, net " + n0(f.net) +
+        ". That is the <b>" + n1(f.pctile) + "th percentile</b> of " + f.n +
+        " stored sessions, against a 20-session " + n2(f.avg20) + ".</p>";
+    }
+    var fl = p.flows || {}, fk = Object.keys(fl);
+    if (fk.length) {
+      body2 += "<p><b>Cash flows.</b> " + fk.sort().map(function (k) {
+        return esc(k) + " " + sgn(fl[k].net_cr, 0) + "cr";
+      }).join(" \u00b7 ") + ".</p>";
+    }
+    var g = p.gamma || {};
+    if (g.regime) {
+      body2 += "<p><b>Dealer gamma is " + g.regime + " across the whole \u00b1" +
+        n0(g.span_pct) + "% band</b> \u2014 " + n0(g.at_spot_cr) +
+        " crore per point at spot" +
+        (g.flip == null ? ", with no flip between " + n0(g.lo) + " and " + n0(g.hi)
+                        : ", flip at " + n0(g.flip)) + ". " +
+        (g.regime === "long"
+          ? "Long gamma means dealer hedging sells rallies and buys weakness \u2014 a range being enforced."
+          : "Short gamma means hedging amplifies whatever the market starts doing.") +
+        ' <span class="kpi-m">Estimated: the participant file gives aggregate ' +
+        "positions, not their distribution across strikes.</span></p>";
+    }
+    var fw = p.forward || {};
+    if (fw.basis != null) {
+      body2 += "<p>Futures carry a <b>" + n1(fw.basis) +
+        "-point basis</b> with the forward at " + n2(fw.forward) + ".</p>";
+    }
+
+    var divTable = "";
+    if (p.divergence && p.divergence.length) {
+      divTable = '<div class="tablewrap"><table class="dt"><thead><tr>' +
+        '<th class="lft">Outcome at expiry</th><th>Chain</th><th>Lognormal</th>' +
+        "<th>Divergence</th></tr></thead><tbody>" +
+        p.divergence.map(function (x) {
+          return '<tr><td class="lft">Close ' + (x.side === "below" ? "&lt;" : "&gt;") +
+            " " + n0(x.level) + "</td><td>" + n1(x.market) + "%</td><td>" +
+            n1(x.lognormal) + '%</td><td class="' + cls(x.diff) + '">' +
+            sgn(x.diff, 1) + "pp</td></tr>";
+        }).join("") + "</tbody></table></div>";
+    } else if (p.rnd_reason) {
+      divTable = para("<b>Chain-implied distribution not reported.</b> " +
+        esc(p.rnd_reason) + " \u2014 a density whose mean is not the forward is " +
+        "not risk-neutral, so it is withheld rather than published.");
+    }
+    out += card("2 \u00b7 Why we override it", "positioning", "", divTable + para(body2));
+
+    /* -------------------------------------- 3. qualification */
+    var rel = q.reliability || {}, keys = Object.keys(rel);
+    var relTable = "";
+    if (keys.length) {
+      keys.sort(function (x, y) { return rel[y].pct - rel[x].pct; });
+      relTable = '<div class="tablewrap"><table class="dt"><thead><tr>' +
+        '<th class="lft">Claim</th><th>Graded</th><th>Correct</th><th>Hit rate</th>' +
+        '<th class="lft">&nbsp;</th></tr></thead><tbody>' +
+        keys.map(function (k) {
+          var v = rel[k];
+          var col = v.pct >= 70 ? "var(--up)" : v.pct >= 55 ? "var(--maxpain)" : "var(--down)";
+          return '<tr><td class="lft">' + esc(k.replace(/_/g, " ")) + "</td><td>" +
+            v.n + "</td><td>" + v.k + '</td><td style="color:' + col +
+            ';font-weight:600">' + n1(v.pct) + '%</td><td class="lft">' +
+            '<div class="pbar" style="background:var(--surface-3)"><i style="left:' +
+            Math.min(100, v.pct).toFixed(1) + "%;background:" + col +
+            '"></i></div></td></tr>';
+        }).join("") + "</tbody></table></div>";
+    }
+    var v3 = q.vrp || {}, har = q.har || {}, body3 = "";
+    if (v3.ratio) {
+      body3 = "<p><b>Premium.</b> ATM implied " + n2(v3.iv) +
+        "% against a forecast realised " + n2(v3.rv) + "%" +
+        (har.r2 ? " (HAR-RV, R\u00b2 " + n2(har.r2) + ")" : "") +
+        " is " + sgn(v3.spread_vol_pts, 2) + " vol points, a ratio of " +
+        n2(v3.ratio) + ". IV rank " + n1(q.iv_rank) + ", percentile " +
+        n1(q.iv_pctile) + ".</p>";
+    }
+    out += card("3 \u00b7 The honest qualification",
+      "every graded claim this desk has made", "", relTable +
+      para("<b>Read the ranges and the walls. Discount the direction.</b> " +
+           "That ordering is not modesty, it is what the table says.") + (body3 ? para(body3) : ""));
+
+    /* ------------------------------------------- 4. levels */
+    var lv = n.levels || [];
+    if (lv.length) {
+      var marks = { 1: "\u25c6", 2: "\u25c7", 3: "\u25b2" };
+      var groups = {};
+      lv.forEach(function (x) {
+        if (x.cluster) (groups[x.cluster] = groups[x.cluster] || []).push(x);
+      });
+      var conf = Object.keys(groups).map(function (gid) {
+        var mem = groups[gid];
+        var lo = Math.min.apply(null, mem.map(function (x) { return x.value; }));
+        var hi = Math.max.apply(null, mem.map(function (x) { return x.value; }));
+        return "<p><b>Confluence " + (marks[gid] || gid) + "</b> \u2014 " +
+          mem.map(function (x) { return esc(x.name); }).join(", ") +
+          " within " + n0(hi - lo) + " points, at " + n0(lo) + "\u2013" + n0(hi) +
+          ". Independent methods agreeing makes that zone more significant " +
+          "than any single line.</p>";
+      }).join("");
+
+      out += card("4 \u00b7 Levels", "with derivation", "",
+        '<div class="tablewrap"><table class="dt"><thead><tr>' +
+        '<th class="lft">Level</th><th>Value</th><th class="lft">Derived from</th>' +
+        "</tr></thead><tbody>" + lv.map(function (x) {
+          var mk = x.cluster ? " " + (marks[x.cluster] || "") : "";
+          return "<tr" + (x.cluster ? ' style="background:var(--puts-dim)"' : "") +
+            '><td class="lft"><b>' + esc(x.name) + mk + "</b></td><td>" +
+            n0(x.value) + '</td><td class="lft"><span class="kpi-m">' +
+            esc(x.source) + "</span></td></tr>";
+        }).join("") + "</tbody></table></div>" + (conf ? para(conf) : ""));
+    }
+
+    /* --------------------------------------- 5. expression */
+    var body5;
+    if (s.kind === "stand_aside") {
+      body5 = para("<b>No position.</b> " + esc(s.reason || "") +
+        ". For a seller that is a valid answer \u2014 forcing a trade when " +
+        "premium does not compensate for gap risk is how sellers give back " +
+        "months of gains.");
+    } else {
+      var chips = (s.legs || []).map(function (l) {
+        return '<span class="leg-chip ' + (l.act === "sell" ? "sell" : "buy") + '">' +
+          (l.act === "sell" ? "Sell" : "Buy") + " " + n0(l.strike) + " " + l.side +
+          " @ " + n2(l.prem) + "</span>";
+      }).join("");
+      body5 = '<div class="legs-row">' + chips + "</div>" +
+        '<div class="probs">' +
+        '<div class="prob"><div class="prob-k">Net credit</div><div class="prob-v">&#8377;' +
+          n0(s.credit_rs) + '</div><div class="kpi-m">lot ' + s.lot + "</div></div>" +
+        '<div class="prob"><div class="prob-k">Combined POP</div><div class="prob-v">' +
+          n1((s.pop || 0) * 100) + '%</div><div class="kpi-m">both legs expire worthless</div></div>' +
+        '<div class="prob"><div class="prob-k">Breakevens</div><div class="prob-v">' +
+          n0((s.breakevens || [])[0]) + "\u2013" + n0((s.breakevens || [])[1]) +
+          '</div><div class="kpi-m">at expiry</div></div>' +
+        '<div class="prob"><div class="prob-k">Max loss</div><div class="prob-v neg">' +
+          (s.max_loss ? "&#8377;" + n0(s.max_loss) : "Unlimited") +
+          '</div><div class="kpi-m">' + (s.defined ? "capped by wings" : "naked") + "</div></div>" +
+        '<div class="prob"><div class="prob-k">Return on margin</div><div class="prob-v">' +
+          n1(s.rom) + '%</div><div class="kpi-m">' + n.dte + " days</div></div>" +
+        "</div>" +
+        para("<b>Exit, set now.</b> Take profit at combined " + n2(s.take_profit) +
+          " (half the credit) \u00b7 stop at " + n2(s.stop) + " (2\u00d7) \u00b7 " +
+          "hard close <b>" + esc(s.close_by || "") + "</b>, the session before expiry." +
+          (s.defined ? " Wings are not optional at VIX " + n2(s.vix) +
+            ", below the " + n1(s.vix_gate) + " gate." : ""));
+    }
+    out += card("5 \u00b7 How we express it",
+      s.kind === "stand_aside" ? "no position" : esc(s.kind.replace(/_/g, " ")),
+      "", body5);
+
+    /* ------------------------------------ 6. what kills this */
+    var kills = "";
+    if (rng[0]) {
+      kills += '<div class="killrow"><b>Hard stand-down</b> \u2014 sustained trade below ' +
+        n0(rng[0]) + ", the \u22121\u03c3 session boundary" +
+        (g.regime === "long" ? " and the lower edge of the long-gamma shelf" : "") +
+        ". Size for it rather than widening the stop.</div>";
+    }
+    kills += '<div class="killrow"><b>Volatility</b> \u2014 close the short premium if ' +
+      "India VIX gains more than 15% in a session. IV expansion hurts a " +
+      "short-premium book before direction does, and at " + n2(n.vix) +
+      " there is more room above than below.</div>";
+    if (f.ratio != null) {
+      kills += '<div class="killrow"><b>Positioning</b> \u2014 abandon the range if the ' +
+        "FII short base covers hard. The ratio moving from " + n2(f.ratio) +
+        " toward " + n2(f.avg20) + " with the index rising is short-covering.</div>";
+    }
+    if (peers["NIFTY BANK"] != null) {
+      kills += '<div class="killrow"><b>Leadership</b> \u2014 reduce if Bank Nifty rolls ' +
+        "over while the index holds. It closed " + sgn(peers["NIFTY BANK"], 2) +
+        "% against the index " + sgn(peers["NIFTY 50"], 2) + "%.</div>";
+    }
+    out += card("6 \u00b7 What kills this view", "decided now, not in the drawdown", "", kills);
+
+    /* --------------------------------------- 7. scorecard */
+    var claims = sc.claims || [], scTable = "";
+    if (claims.length) {
+      scTable = '<div class="tablewrap"><table class="dt"><thead><tr>' +
+        '<th class="lft">Called</th><th class="lft">Outcome</th><th>&nbsp;</th>' +
+        "</tr></thead><tbody>" + claims.map(function (x) {
+          var mark = x.correct == null ? '<span class="kpi-m">\u00b7</span>'
+            : x.correct ? '<span style="color:var(--up)">\u2713</span>'
+                        : '<span style="color:var(--down)">\u2717</span>';
+          var res = x.correct == null ? "not yet resolved"
+            : (x.actual == null ? (x.correct ? "held" : "missed") : n2(x.actual));
+          return '<tr><td class="lft">' + esc(x.claim.replace(/_/g, " ")) +
+            " \u2014 " + esc(x.stated || "") + '</td><td class="lft">' +
+            '<span class="kpi-m">' + res + "</span></td><td>" + mark + "</td></tr>";
+        }).join("") + "</tbody></table></div>";
+    }
+    var roll = sc.rolling || {}, rk = Object.keys(roll);
+    var at = sc.all_time || {};
+    out += card("7 \u00b7 Scorecard",
+      "the note published " + esc(sc.for_date || "previously"), "", scTable +
+      para("<b>" + (sc.correct || 0) + " of " + (sc.graded || 0) + " graded.</b>" +
+        (rk.length ? " Rolling next-session containment " + rk.sort(function (x, y) { return x - y; })
+          .map(function (k) { return n1(roll[k].pct) + "% over " + roll[k].n; })
+          .join(" \u00b7 ") + "." : "") +
+        (at.n ? " All claims all time " + at.k + "/" + at.n + " = " + n1(at.pct) + "%." : "")));
+
+    /* ---------------------------------------- appendix */
+    var fit = a.weights || {}, rv = a.realised || {}, ha = a.har || {};
+    var rvTxt = Object.keys(rv).sort(function (x, y) { return x - y; })
+      .map(function (k) { return k + "d " + n2(rv[k].yang_zhang) + "%"; }).join(" \u00b7 ");
+    var app = "";
+    if (fit.sessions) {
+      app += "<p><b>Index weights</b> \u2014 NSE publishes none. Recovered by " +
+        "non-negative least squares of index changes on the 50 constituent " +
+        "changes over " + fit.sessions + " sessions (" + fit.kept +
+        " kept after trimming corporate actions), rescaled once so the level " +
+        "identity holds. Residual <b>" + n2(fit.rmse_pts) + " index points</b>, " +
+        "R\u00b2 " + n2(fit.r2) + ", no negative weights. Fit dated " +
+        esc(fit.as_of || "") + ".</p>";
+    }
+    app += "<p><b>Contribution</b> \u2014 (close \u2212 exchange-adjusted previous " +
+      "close) \u00d7 coefficient per name, from the UDiFF cash bhavcopy.</p>" +
+      "<p><b>Index VWAP</b> \u2014 per-stock turnover \u00f7 volume, combined " +
+      "through the same coefficients as a ratio to the reconstructed close, " +
+      "which makes it immune to coefficient drift.</p>" +
+      "<p><b>Delivery</b> \u2014 index-weighted from the MTO file, " +
+      (i.delivery_matched || 0) + " of 50 matched.</p>" +
+      "<p><b>Dealer gamma</b> \u2014 \u03a3 \u0393(S,K,\u03c3,T) \u00d7 OI \u00d7 sign, " +
+      "lot " + n.lot + ". The sign is taken from the observed proprietary net " +
+      "position, not assumed. <b>Still an estimate:</b> the file gives aggregate " +
+      "positions, not their strike distribution.</p>";
+    if (rvTxt) {
+      app += "<p><b>Realised volatility</b> \u2014 Yang-Zhang, gap-aware and " +
+        "drift-independent. " + rvTxt + ".</p>";
+    }
+    if (ha.forecast) {
+      app += "<p><b>HAR-RV</b> \u2014 RV(t+1) = c + \u03b2d\u00b7RVd + \u03b2w\u00b7RVw + " +
+        "\u03b2m\u00b7RVm \u2192 <b>" + n2(ha.forecast) + "%</b>, R\u00b2 " +
+        n2(ha.r2) + " over " + ha.n_obs + " observations.</p>";
+    }
+    app += "<p><b>Bands</b> \u2014 trading-time scaling; variance accrues only on " +
+      "sessions the market is open. " + a.sessions_to_expiry +
+      " sessions to expiry, not " + n.dte + " calendar days.</p>";
+
+    var mp = rel.max_pain_pull || {};
+    app += "<p><b>Reported as no signal today</b> \u2014 PCR (OI) " + n2(n.pcr) +
+      ", mid-range. Max pain " + n0(n.max_pain) + ", correct on " +
+      n1(mp.pct) + "% of " + (mp.n || 0) + " graded sessions, which is a coin " +
+      "flip and is stated as one.</p>";
+
+    app += '<p class="kpi-m">Personal research tool. Not investment advice, ' +
+      "not a recommendation, and not produced by a registered research analyst. " +
+      "Generated automatically from public NSE data. Estimated quantities are " +
+      "labelled at the point of use. Past accuracy is measured in section 7 and " +
+      "is not indicative of future results.</p>";
+
+    out += card("Appendix", "workings and disclosures",
+      "the same document is in reports/NIFTY/report.docx", para(app));
+
+    return out;
   }
 
   function viewTechnicals(m) {
