@@ -570,6 +570,15 @@ table.hist { min-width: 620px; }
   text-decoration: none; border-style: dashed; cursor: pointer;
 }
 .pill.has-term:hover { color: inherit; filter: brightness(1.25); }
+h2.has-term { text-decoration: none; cursor: pointer; }
+h2.has-term::after {
+  content: "?"; display: inline-block; margin-left: 6px;
+  font-size: 9px; font-weight: 700; line-height: 13px; padding: 0 3px;
+  vertical-align: super; color: var(--ink-3);
+  border: 1px solid var(--line); border-radius: 3px;
+}
+h2.has-term:hover, h2.has-term:hover::after { color: var(--calls); }
+
 .verdict-call.has-term, .verdict-eyebrow.has-term, .conf-val.has-term {
   text-decoration: none; cursor: pointer;
 }
@@ -593,6 +602,7 @@ table.hist { min-width: 620px; }
 .qm:focus-visible { outline: 2px solid var(--calls); outline-offset: 1px; }
 
 .pt-rk.has-term, .si-k.has-term, .lg-k.has-term, .ohlc-k.has-term,
+td.has-term, h2.has-term, .bandrow-k.has-term,
 th.has-term, .k.has-term, .qk.has-term, .tcell-k.has-term,
 .stack-k.has-term, .grp-c.has-term, .grp-p.has-term, .pill.has-term,
 .tagx.has-term, .sub-k.has-term, .conf-val.has-term,
@@ -4120,6 +4130,248 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    "Option chain fetch": [
+      "The live option chain pulled from NSE for the front expiry: every " +
+      "strike, both sides, with last price, open interest, change in open " +
+      "interest, volume and implied volatility. Roughly 120 strikes.",
+      "It is the source of nearly everything on the desk. PCR, max pain, the " +
+      "walls, every band and every probability are computed from this one " +
+      "response &mdash; which is why it runs first and why a failure here " +
+      "stops the session rather than degrading it quietly.",
+      "The endpoint needs an explicit expiry and returns an empty payload " +
+      "rather than an error if you ask for one that does not exist, so a " +
+      "silent zero-strike response is the failure mode to watch for. The " +
+      "strike count beside the step is the check on exactly that."
+    ],
+    "Retry ladder": [
+      "The same fetch, attempted at 18:00, then 18:30, then 19:30 IST. A " +
+      "step marked skipped means the session it would have fetched is " +
+      "already stored, so there is nothing to do &mdash; not that it failed.",
+      "NSE publishes settled figures after the close and does not publish " +
+      "them all at once. One attempt at a fixed time will eventually catch " +
+      "a session mid-publication and store something half-finished.",
+      "Skipped on every rung is the healthy state: it means the first run " +
+      "of the day already got clean data. A step that ran and failed on all " +
+      "three rungs is the case where the desk shows yesterday&rsquo;s " +
+      "figures with a stale stamp rather than inventing today&rsquo;s."
+    ],
+    "History depth": [
+      "How many sessions are stored against how many the desk considers a " +
+      "usable window. Percentiles, rankings and the calibration haircut all " +
+      "need a history before they mean anything.",
+      "It is the honesty gauge on every ranked figure. An IV rank computed " +
+      "over 30 sessions is a number with no information in it, and the desk " +
+      "withholds those figures rather than showing a confident-looking one.",
+      "Watch it when a percentile appears that was withheld yesterday. The " +
+      "figure did not become more reliable overnight &mdash; it crossed a " +
+      "threshold, and the sessions just past that line are the ones to " +
+      "treat most carefully."
+    ],
+    "Store": [
+      "The SQLite database holding every session the desk has fetched: " +
+      "chains, index history, participant positioning, archives and the " +
+      "claims ledger. The size beside it is the file on disk.",
+      "Everything on the page is recomputed from it rather than remembered, " +
+      "which is what makes a claim from four months ago gradeable today " +
+      "against the numbers as they actually were.",
+      "The size growing steadily is the signal that sessions are being " +
+      "stored. A flat figure across several trading days means the fetch " +
+      "has been skipping for a reason other than the one it reports."
+    ]
+,
+    "Expiry range claim": [
+      "A claim, lodged on the day, that the index will settle inside a " +
+      "stated range at expiry. The one-sigma version covers about 68% of " +
+      "outcomes if the model is honest; the two-sigma version about 95%.",
+      "It is the claim a premium seller actually lives on. Every short " +
+      "strangle is a bet that settlement lands inside a range, so the rate " +
+      "at which this claim holds is the rate at which the strategy works.",
+      "Read the hit rate against the promise, not against 100%. A one-sigma " +
+      "claim holding 73% of the time is running slightly wide -- honest, but " +
+      "leaving premium uncollected. Holding 55% would mean the bands are too " +
+      "narrow and the model is quietly selling more risk than it admits."
+    ],
+    "Next-session range claim": [
+      "The same claim over one session instead of to expiry: the index " +
+      "closes tomorrow inside a stated band, scaled from today's implied " +
+      "volatility by the square root of one trading day.",
+      "It is the fastest-resolving thing the desk claims, which makes it the " +
+      "only one that accumulates enough observations to be tested properly. " +
+      "Everything to expiry resolves weekly; this resolves daily.",
+      "Useful precisely because it is boring. It is the claim that catches a " +
+      "band factor drifting out of calibration long before the expiry claims " +
+      "would have gathered the sample size to notice."
+    ],
+    "Wall holds claim": [
+      "A claim that the index will not close beyond the strike carrying the " +
+      "heaviest open interest -- the call wall above, the put wall below.",
+      "It is the desk's strongest structural claim and the only one that " +
+      "rests on where money is actually committed rather than on a model. " +
+      "Writers defend those strikes because that is where their losses start.",
+      "The asymmetry is the useful part. The call wall holds materially more " +
+      "often than the put wall, which is what you would expect in a market " +
+      "that falls faster than it rises: the wall below gets tested in the " +
+      "sessions where everything moves at once."
+    ],
+    "Short strike holds claim": [
+      "A claim that a specific strike the desk proposed selling would not " +
+      "have been breached. It is only lodged on sessions where a trade " +
+      "passed the filters, so it is graded over fewer sessions than the rest.",
+      "This is the claim closest to money. The range claims describe the " +
+      "market; this one describes the position, including the strike choice " +
+      "and the distance from spot that the sizing rules settled on.",
+      "Compare it against the range claim on the same day. A session where " +
+      "the range held but the short strike did not is a strike-selection " +
+      "problem, not a volatility problem, and the two are fixed differently."
+    ],
+    "Vol premium call": [
+      "A claim that implied volatility was richer than the volatility that " +
+      "followed -- that selling was being paid. It resolves by comparing the " +
+      "implied level on the day against the realised move afterwards.",
+      "It is the gate on whether to sell at all, expressed as something that " +
+      "can be scored. Every other claim is about where the market goes; this " +
+      "one is about whether the price for taking that risk was fair.",
+      "A hit rate near 60% is what a genuine but modest edge looks like. If " +
+      "it fell to a coin flip the honest conclusion would be that the desk " +
+      "cannot tell rich from cheap, and that selling should stop until it can."
+    ],
+    "Directional stance": [
+      "A claim about which way the index closes next session, lodged only " +
+      "when the positioning read is strong enough to state one.",
+      "It is included precisely because it is expected to fail. Publishing a " +
+      "directional call and grading it is the only way to keep an honest " +
+      "count of how little the desk knows about direction.",
+      "This one sitting at a coin flip is the single most useful number on " +
+      "the page. It is the standing evidence that the range claims -- which " +
+      "do work -- should never be quietly converted into a directional bet."
+    ],
+    "Max pain pull claim": [
+      "A claim that the index drifts toward the strike where the most option " +
+      "value would expire worthless, between now and expiry.",
+      "It is folklore that is widely repeated and rarely tested. The desk " +
+      "lodges it as a claim for exactly that reason: an untested belief costs " +
+      "nothing to hold and a great deal to act on.",
+      "Graded at roughly a coin flip across the whole record. That is the " +
+      "answer, and it is why nothing on this desk is sized on max pain. It " +
+      "stays on the page as context and as a standing counterexample."
+    ],
+    "IV-implied band": [
+      "The range implied by Black-Scholes on the at-the-money volatility: " +
+      "spot multiplied by the volatility, scaled by the square root of the " +
+      "time to expiry in trading sessions.",
+      "It is the market's own answer, and the only one of the five that " +
+      "requires no historical data at all. Every other band is either a " +
+      "correction to it or an independent second opinion.",
+      "It assumes moves are lognormal and symmetric, which they are not. " +
+      "When it sits wider than the Cornish-Fisher band, the difference is " +
+      "the market's skew being ignored rather than a genuine disagreement."
+    ],
+    "Bootstrap band": [
+      "A range built by resampling the desk's own history in blocks of five " +
+      "consecutive sessions, twenty thousand times, and reading the " +
+      "percentiles off the result. No formula and no distribution.",
+      "Blocks rather than single days because volatility clusters: drawing " +
+      "one day at a time would break exactly the pattern that makes a " +
+      "violent week violent, and would produce a band that is too narrow.",
+      "It is usually the widest of the five, and that is the point. When the " +
+      "four model-based bands agree closely and the bootstrap sits well " +
+      "outside them, the models are agreeing with each other rather than " +
+      "with what the market has actually done."
+    ],
+    "Which claims hold up": [
+      "The desk's full record, one row per kind of assertion, each graded " +
+      "separately against what happened. A single daily verdict would hide " +
+      "which part of the model works.",
+      "This is the table that decides what to trust. A session can call the " +
+      "range perfectly and still lose the short strike, or pin max pain with " +
+      "the stance backwards -- graded apart, these say what to fix.",
+      "The spread from top to bottom is the finding. Structural claims about " +
+      "where open interest sits hold in the nineties; directional claims sit " +
+      "at chance. Anything sized on this desk comes from the top of the table."
+    ],
+    "Fetch pipeline": [
+      "What ran, in order, to produce the numbers on this page: the option " +
+      "chain, the archive files, the store. Each step reports what it did " +
+      "and whether it was skipped, with a retry ladder for a feed that fails.",
+      "A dashboard that cannot say where its data came from is a dashboard " +
+      "you cannot check. The most expensive error this desk ever made was a " +
+      "close stored from an intraday tick, and it looked completely normal.",
+      "Read it when a figure surprises you. A skipped step or a stale date " +
+      "here explains far more surprises than a genuine market move does."
+    ],
+    "One-sigma range, five ways": [
+      "The same question -- where does this end up, one standard deviation " +
+      "either side -- answered by five methods that share almost no " +
+      "assumptions: the market's own volatility, the option-implied density, " +
+      "a skew-and-kurtosis correction, a resampling of real history, and a " +
+      "forecast of realised volatility.",
+      "Agreement is the signal. Five independent methods landing on the same " +
+      "range is evidence; one method producing a number is an opinion, and " +
+      "an opinion is what a single band on a screen looks like.",
+      "Disagreement is more informative than agreement. When the bands fan " +
+      "out, the honest reading is that the distribution is genuinely " +
+      "uncertain and the position should be smaller -- not that one of the " +
+      "five should be picked because it says what you want."
+    ],
+    "Directional probability": [
+      "The chance of closing above, below or inside the one-sigma band at " +
+      "expiry, read off the option-implied distribution rather than " +
+      "forecast. It is what current pricing implies, not what will happen.",
+      "For a seller the middle number is the one that matters: it is the " +
+      "probability the range holds, which is the probability the position " +
+      "expires worthless in your favour.",
+      "These are the market's probabilities, so they are only as good as the " +
+      "volatility they are built from. If implied volatility is wrong, every " +
+      "figure here is wrong with it, in the same direction, at the same time."
+    ],
+    "Recommended structure": [
+      "The trade the filters actually permit, or the explicit statement that " +
+      "none do. Strikes must clear liquidity, distance from spot, and a " +
+      "minimum return on margin before anything is proposed.",
+      "The word none is a result, not a failure. A seller's returns are made " +
+      "far more by the cycles sat out than by the cycles traded well.",
+      "When it does propose something, the sizing is bounded by the smallest " +
+      "of four constraints -- volatility target, fractional Kelly, loss cap " +
+      "and margin buffer -- so the number is the most conservative of them, " +
+      "never an average."
+    ],
+    "Model stack": [
+      "The named methods this desk runs, in the order the output depends on " +
+      "them: per-strike implied volatility, the Breeden-Litzenberger " +
+      "density, a Cornish-Fisher correction, Black-Scholes for probability, " +
+      "a GARCH cross-check, and the calibration haircut applied last.",
+      "It exists so that every number on the desk can be traced to a named, " +
+      "published method rather than to an unexplained adjustment.",
+      "The haircut at the end is the important one. It is fitted from the " +
+      "desk's own hit rate, which means the model is corrected by its own " +
+      "record rather than by whatever would have made yesterday look better."
+    ],
+    "Lookback window": [
+      "How many past sessions a statistic is computed over -- 10 days, 21 " +
+      "(about a month), 63 (about a quarter). The desk shows several rather " +
+      "than choosing one.",
+      "The window is a choice, and it is the choice that most often decides " +
+      "the answer. A short window is responsive and noisy; a long one is " +
+      "stable and late, and neither is right in general.",
+      "Where the windows disagree, the market is changing regime. Ten-day " +
+      "volatility well above the sixty-three-day figure means something " +
+      "started recently, which is exactly when a seller should be widening " +
+      "strikes rather than reaching for the higher premium it produced."
+    ],
+    "NIFTY 50": [
+      "India's benchmark index: fifty large companies weighted by free-float " +
+      "market capitalisation, calculated by NSE Indices. This desk trades " +
+      "its options and recovers its weights by fitting daily index changes " +
+      "on the fifty constituent changes.",
+      "It is a weighted average, not a market. It can rise while most of its " +
+      "members fall, which is why the breadth and contribution figures exist " +
+      "beside the level.",
+      "The membership changes, usually twice a year, and the free-float " +
+      "shares change more often. The desk refits the weights monthly for " +
+      "that reason -- a fit from last September would silently misattribute " +
+      "today's move to a name that has since been replaced."
+    ]
+,
     "Bid / Ask": [
       "The best price a buyer is currently offering and the best price a " +
       "seller is currently asking for that exact contract. The gap between " +
@@ -4385,6 +4637,60 @@ table.ledger { min-width: 800px; }
      simply renders as it always did, so nothing breaks by omission.
      --------------------------------------------------------------- */
   var TERMS = {
+    "IV-implied": {
+      deep: "IV-implied band",
+      how: function (m) {
+        var b = m.an.bands.implied;
+        return "<b>spot &times; ATM IV &times; &radic;(sessions &divide; 252)" +
+          "</b><br>" + n0(m.cfg.spot) + " &times; " + n2(m.an.atmIv) +
+          "% &times; &radic;(" + m.an.sessionsToExpiry + " &divide; 252) = <b>&plusmn;" +
+          n0((b[1] - b[0]) / 2) + " pts</b><br>giving <b>" + n0(b[0]) +
+          " &ndash; " + n0(b[1]) + "</b>, a width of " + n0(b[1] - b[0]) +
+          " points. No history is used: this is the market&rsquo;s own number.";
+      }
+    },
+    "Bootstrap": {
+      deep: "Bootstrap band",
+      how: function (m) {
+        var b = m.an.bootstrap;
+        return "<b>" + n0(b.draws) + " resamples</b> of real history in blocks " +
+          "of 5 sessions, over a " + b.sessions + "-session horizon.<br>" +
+          "The 16th and 84th percentiles of the result are <b>" + n0(b.q16) +
+          "</b> and <b>" + n0(b.q84) + "</b> &mdash; a width of " +
+          n0(b.q84 - b.q16) + " points, against a median of " + n0(b.q50) +
+          ".<br>Blocks rather than single days, because volatility clusters " +
+          "and shuffling day by day would destroy exactly that.";
+      }
+    },
+    "Realised forecast": {
+      deep: "HAR-RV forecast",
+      how: function (m) {
+        var h = m.an.harRv, c = h.components;
+        return "<b>HAR-RV: a blend of yesterday, last week and last month.</b>" +
+          "<br>daily " + n2(c.daily) + "% &times; " + n2(h.beta.daily) +
+          " + weekly " + n2(c.weekly) + "% &times; " + n2(h.beta.weekly) +
+          " + monthly " + n2(c.monthly) + "% &times; " + n2(h.beta.monthly) +
+          " + " + n2(h.beta.const) + " = <b>" + n2(h.forecast) + "%</b>" +
+          "<br>Fitted on " + h.n_obs + " sessions, R&sup2; = <b>" + n2(h.r2) +
+          "</b>. The weekly term is negative, which is the model taking back " +
+          "part of a one-day spike rather than extrapolating it.";
+      }
+    },
+    "Cornish-Fisher": {
+      deep: "Cornish-Fisher",
+      how: function (m) {
+        var c = m.an.cornishFisher;
+        return "<b>The Gaussian band, corrected for the shape of the actual " +
+          "distribution.</b><br>skew <b>" + n2(c.skew) + "</b>, excess " +
+          "kurtosis <b>" + n2(c.excessKurtosis) + "</b>.<br>At two sigma " +
+          "that moves the band from " + n0(c.gaussian2sdLower) + " &ndash; " +
+          n0(c.gaussian2sdUpper) + " to <b>" + n0(c.lower2sd) + " &ndash; " +
+          n0(c.upper2sd) + "</b> &mdash; the downside stretched by " +
+          n0(c.gaussian2sdLower - c.lower2sd) + " points, the upside barely " +
+          "moved. Negative skew is the market falling faster than it rises.";
+      }
+    }
+,
     "Put / call ratio": {
       deep: "PCR (put-call ratio)",
       how: function (m) {
@@ -4908,6 +5214,81 @@ table.ledger { min-width: 800px; }
 
   /* Some labels carry today's numbers -- "Closes above 24,421" -- so they
      cannot be registry keys. Match on the stable prefix instead. */
+
+  /* One entry per claim, built from the same map the table renders from,
+     so a claim added to the model cannot arrive without an explanation.
+     Each shows its own record; they share what the claim means. */
+  var CLAIM_DEEP = {
+    range_next:    "Next-session range claim",
+    range_expiry:  "Expiry range claim",
+    range_2sd:     "Expiry range claim",
+    max_pain_pull: "Max pain pull claim",
+    call_wall:     "Wall holds claim",
+    put_wall:      "Wall holds claim",
+    stance:        "Directional stance",
+    vrp:           "Vol premium call",
+    ce_survival:   "Short strike holds claim",
+    pe_survival:   "Short strike holds claim"
+  };
+
+  /* What the claim promises, where it promises anything at all. A range
+     claim states its own coverage; a directional call promises nothing
+     beyond being better than a coin. */
+  var CLAIM_TARGET = { range_next: 68.3, range_expiry: 68.3, range_2sd: 95.4 };
+
+  Object.keys(CLAIM_LABEL).forEach(function (ck) {
+    TERMS[CLAIM_LABEL[ck]] = {
+      deep: CLAIM_DEEP[ck] || "Claims",
+      how: function () {
+        var H = MHIST[state.idx] || {};
+        var r = (H.reliability || []).filter(function (x) {
+          return x.claim === ck;
+        })[0];
+        if (!r || !r.n) {
+          return "Lodged every session and graded once it resolves, but " +
+            "<b>no session has resolved yet</b> for this claim. The rate " +
+            "appears here as soon as one has.";
+        }
+        var pct = (r.rate || 0) * 100;
+        var out = "<b>" + r.hits + " correct out of " + r.n +
+          " graded</b> = <b>" + n1(pct) + "%</b><br>";
+        var tgt = CLAIM_TARGET[ck];
+        if (tgt == null) {
+          /* No stated coverage, so the only honest reference is chance.
+             Reporting the distance in standard errors stops a rate near
+             50% from reading as "on target" when it means "no skill". */
+          /* Standard error of a proportion at p = 0.5, in percentage
+             points: 100 * sqrt(0.25 / n), which is 50 / sqrt(n). */
+          var se = 50 / Math.sqrt(r.n), z = (pct - 50) / se;
+          return out + "This claim promises no coverage of its own, so it " +
+            "is measured against <b>chance</b>. At " + r.n + " sessions one " +
+            "standard error is <b>" + n1(se) + " points</b>, and this sits <b>" +
+            n1(Math.abs(z)) + " standard errors " +
+            (pct >= 50 ? "above" : "below") + "</b> it." +
+            (Math.abs(z) < 2
+              ? " That is <b>indistinguishable from guessing</b> &mdash; " +
+                "nothing on this desk is sized on it."
+              : " That is a real effect at this sample size, which is why " +
+                "it is one of the claims the desk will act on.");
+        }
+        var gap = pct - tgt;
+        return out + "It promised <b>" + n1(tgt) + "%</b>, so it is running " +
+          "<b>" + (gap >= 0 ? "+" : "") + n1(gap) + " points</b> " +
+          (Math.abs(gap) < 3
+            ? "off its promise &mdash; calibrated, within noise at this sample size."
+            : gap > 0
+              ? "wide. Honest, but a band wider than it needs to be is " +
+                "premium collected by somebody else."
+              : "narrow. The band is claiming more confidence than the " +
+                "record supports, which is the direction that costs money.") +
+          "<br>Sample: " + r.n + " graded session(s). At this size the " +
+          "standard error on the rate is about " +
+          n1(Math.sqrt(Math.max(pct, 1) * (100 - pct) / r.n)) +
+          " points, so read the gap against that before acting on it.";
+      }
+    };
+  });
+
   var TERM_PREFIX = [
     ["Closes above", "P(profit)"],
     ["Closes below", "P(profit)"],
@@ -4917,6 +5298,53 @@ table.ledger { min-width: 800px; }
   ];
 
   var TERM_ALIAS = {
+    "History depth": "History depth",
+    "Option chain": "Option chain fetch",
+    "Store": "Store",
+    "option-chain": "Retry ladder",
+    "10d": "Lookback window",
+    "21d": "Lookback window",
+    "2d": "Lookback window",
+    "5d": "Lookback window",
+    "63d": "Lookback window",
+    "Bootstrap": "Bootstrap band",
+    "Call wall holds": "Wall holds claim",
+    "Expected range": "How a range is built",
+    "Expiry range": "Expiry range claim",
+    "Expiry range 1&sigma;": "Expiry range claim",
+    "Expiry range 2&sigma;": "Expiry range claim",
+    "How to read this table": "Claims",
+    "IV-implied": "IV-implied band",
+    "Indicators": "Model stack",
+    "Is the seller being paid": "IV / RV &mdash; the seller&rsquo;s edge",
+    "Market structure": "Build-up (the four quadrants)",
+    "Max pain pull": "Max pain pull claim",
+    "Model history": "Claims",
+    "NIFTY 50 options": "NIFTY 50",
+    "NIFTY 50 stocks": "NIFTY 50",
+    "Next-session range": "Next-session range claim",
+    "One-sigma range": "One-sigma range, five ways",
+    "Option chain &amp; OI": "Open interest (OI)",
+    "Option-implied levels": "OI walls",
+    "Prediction ledger": "Claims",
+    "Price regime": "Variance ratio",
+    "Put wall holds": "Wall holds claim",
+    "Realised forecast": "HAR-RV forecast",
+    "Reliability": "Claims",
+    "Scorecard": "Claims",
+    "Scoring rules in use": "Brier score",
+    "Session history": "What the record says so far",
+    "Short call holds": "Short strike holds claim",
+    "Short put holds": "Short strike holds claim",
+    "Tail risk": "VaR and expected shortfall",
+    "The Action column": "Build-up (the four quadrants)",
+    "Today&rsquo;s note": "The positioning read",
+    "Valuation": "Index Price/Earnings",
+    "Watchlist": "NIFTY 50",
+    "What the chain says": "Open interest (OI)",
+    "What the data says to change": "What the record says so far",
+    "What this section can and cannot do": "Why POP understates risk",
+    "vrp": "Variance risk premium",
     "IV / RV": "IV / RV &mdash; the seller&rsquo;s edge",
     "Implied vol": "Implied volatility (IV)",
     "PREV": "Previous close",
@@ -5101,6 +5529,8 @@ table.ledger { min-width: 800px; }
   /* Labels that are a term with today's number glued on, or a shape rather
      than a name. Checked only after an exact match has failed. */
   var TERM_PATTERN = [
+    [/^option-chain/i, "Retry ladder"],
+    [/^\w[\w-]* \u00b7 try \d+$/i, "Retry ladder"],
     [/^[\u00b1+\-]\s*[\d,.]+\s*(pts?|points?)$/i, "How a range is built"],
     [/\u03c3/, "Sigma (&sigma;)"],
     [/^\d+(\.\d+)?\s*(day|days|session|sessions|dte)$/i, "Expiry"],
@@ -5268,7 +5698,8 @@ table.ledger { min-width: 800px; }
   var TERM_SELECTORS = [
     "th", ".lvl-k", ".kpi-k", ".ck", ".k", ".qk", ".tcell-k", ".stack-k",
     ".grp-c", ".grp-p", ".pill", ".tagx", ".sub-k", ".step-k", ".mh-k",
-    ".pt-rk", ".si-k", ".lg-k", ".ohlc-k",
+    ".pt-rk", ".si-k", ".lg-k", ".ohlc-k", ".bandrow-k",
+    "h2", "td:first-child",
     ".dt.legend td:first-child"
   ].join(", ");
 
@@ -5280,6 +5711,19 @@ table.ledger { min-width: 800px; }
     [".verdict-call", "The positioning read"],
     [".verdict-eyebrow", "The positioning read"]
   ];
+
+  /* A band row writes its own description into a child element, and a
+     pipeline step writes a status dot before its name, so textContent
+     returns the label with all of that attached. The element's own text
+     nodes are the label; its children are commentary on it. */
+  function ownText(el) {
+    var out = "", kids = el.childNodes || [];
+    for (var i = 0; i < kids.length; i++) {
+      if (kids[i].nodeType === 3) out += kids[i].nodeValue;
+    }
+    out = out.replace(/\s+/g, " ").trim();
+    return out || (el.textContent || "").replace(/\s+/g, " ").trim();
+  }
 
   function decorateTerms(root) {
     TERM_FIXED.forEach(function (f) {
@@ -5304,7 +5748,7 @@ table.ledger { min-width: 800px; }
             el.hasAttribute("data-wl") || el.hasAttribute("data-stock")) {
           return;
         }
-        var label = (el.textContent || "").trim();
+        var label = ownText(el);
         if (!label || label.length > 40) return;
         var key = termKey(label);
         if (!key) return;
