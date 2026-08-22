@@ -563,6 +563,33 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+/* ---------- clickable chart points ---------- */
+.clickable-chart { cursor: pointer; }
+.clickable-chart:focus-visible { outline: 2px solid var(--calls); outline-offset: 3px; }
+[data-pt] { cursor: pointer; }
+[data-pt]:hover { filter: brightness(1.25); }
+
+.pt-panel {
+  position: fixed; right: 18px; bottom: 18px; z-index: 60;
+  width: min(340px, calc(100vw - 36px));
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 3px solid var(--calls); border-radius: 8px;
+  box-shadow: var(--shadow-lg); padding: 14px 16px;
+}
+.pt-hd { display: flex; align-items: flex-start; gap: 10px; }
+.pt-hd > div { flex: 1; }
+.pt-t { font-family: var(--font-uWi); font-size: 14px; font-weight: 650; }
+.pt-s { font-size: 11px; color: var(--ink-3); }
+.pt-big { font-family: var(--font-num); font-size: 26px; font-weight: 650;
+          letter-spacing: -.02em; margin: 6px 0 8px; }
+.pt-rows { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px;
+           font-size: 12px; }
+.pt-row { display: contents; }
+.pt-row span { color: var(--ink-3); }
+.pt-row b { font-family: var(--font-num); color: var(--ink); font-weight: 600; }
+.pt-note { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);
+           font-size: 11.5px; color: var(--ink-2); line-height: 1.5; }
+
 /* ---------- learning: click to expand ---------- */
 .lrn.has-deep { cursor: pointer; transition: border-color .12s ease; }
 .lrn.has-deep:hover { border-color: var(--calls); }
@@ -1061,6 +1088,9 @@ table.ledger { min-width: 800px; }
 </head>
 <body>
 
+<div class="pt-panel" id="ptPanel" hidden role="dialog"
+     aria-label="Chart point detail"></div>
+
 <div class="mock" id="freshness" hidden>
   <strong id="freshTag">Loading</strong>
   <span id="freshMsg">Reading snapshot&hellip;</span>
@@ -1475,7 +1505,7 @@ table.ledger { min-width: 800px; }
       var px = i / (h.length - 1) * 320, py = 82 - (x.close - lo) / rng * 70;
       coords.push(px.toFixed(1) + "," + py.toFixed(1));
       pts.push({
-        x: px, y: py, date: DTS(x.date), big: n2(x.close),
+        x: px, y: py, date: DTS(x.date), iso: x.date, big: n2(x.close),
         chg: x.chgPct != null ? sgn(x.chgPct, 2) + "%" : null,
         chgUp: x.chgPct != null ? x.chgPct >= 0 : null,
         rows: [["Open", n2(x.o)], ["High", n2(x.h)], ["Low", n2(x.l)], ["Close", n2(x.c)]],
@@ -1516,7 +1546,7 @@ table.ledger { min-width: 800px; }
       var py = 82 - Math.min(1, Math.max(0, (x.pcr - 0.8) / 0.5)) * 70;
       coords.push(px.toFixed(1) + "," + py.toFixed(1));
       pts.push({
-        x: px, y: py, date: DTS(x.date), big: n2(x.pcr),
+        x: px, y: py, date: DTS(x.date), iso: x.date, big: n2(x.pcr),
         chg: x.pcr > 1.1 ? "put-heavy" : x.pcr < 0.9 ? "call-heavy" : "neutral",
         chgUp: x.pcr >= 1,
         rows: [["Close", n2(x.close)], ["Max pain", n0(x.mp)],
@@ -1781,7 +1811,17 @@ table.ledger { min-width: 800px; }
         "<td>" + n2(r[1]) + (r[0] === "Dividend yield" ? "%" : "") + "</td>" +
         "<td>" + (r[2] == null ? "\u2014" : n0(r[2]) + "th") + "</td>" +
         "<td>" + n2(r[3]) + " \u2013 " + n2(r[4]) + "</td>" +
-        '<td class="lft">' + pctBar(r[2], r[5]) + "</td>" +
+        '<td class="lft" data-pt="' + esc(JSON.stringify({
+            t: r[0], s: "valuation against its own history",
+            big: n2(r[1]) + (r[0] === "Dividend yield" ? "%" : ""),
+            rows: [["Now", n2(r[1])], ["Percentile", r[2] == null ? null : n0(r[2]) + "th"],
+                   ["Lowest seen", n2(r[3])], ["Highest seen", n2(r[4])],
+                   ["Sessions", v.pe_n]],
+            note: r[5]
+              ? "Low is cheap for this measure."
+              : "<b>High is cheap</b> for dividend yield &mdash; it reads the " +
+                "opposite way to the other two."
+          })) + '">' + pctBar(r[2], r[5]) + "</td>" +
         '<td class="lft"><span class="kpi-m">' + r[6] + "</span></td></tr>";
     }).join("");
 
@@ -2611,7 +2651,19 @@ table.ledger { min-width: 800px; }
       var worst = Math.max.apply(null, pls.map(Math.abs));
       var gRows = scen.map(function (g, i) {
         var pl = pls[i], w = Math.abs(pl) / worst * 100;
-        return "<tr><td class=\"lft\">" + (g > 0 ? "+" : "") + n1(g) + "%</td>" +
+        return '<tr class="clickable" data-pt="' + esc(JSON.stringify({
+            t: (g > 0 ? "+" : "") + n1(g) + "% move in spot",
+            s: "profit and loss at expiry",
+            big: (pl >= 0 ? "+" : "\u2212") + "\u20b9" + n0(Math.abs(pl)),
+            rows: [["Spot", n0(c.spot * (1 + g / 100))],
+                   ["Move", (g > 0 ? "+" : "") + n1(g) + "%"],
+                   ["P&L at expiry", (pl >= 0 ? "+" : "\u2212") + "\u20b9" + n0(Math.abs(pl))],
+                   ["Credit received", "\u20b9" + n0(creditRs)]],
+            note: "An <b>immediate</b> gap is worse than this. The position " +
+                  "still carries time value and IV expands on the move, so " +
+                  "mark-to-market loss can exceed the expiry figure before it " +
+                  "converges back."
+          })) + '"><td class="lft">' + (g > 0 ? "+" : "") + n1(g) + "%</td>" +
           "<td>" + n0(c.spot * (1 + g / 100)) + "</td>" +
           '<td class="' + cls(pl) + '">' + (pl >= 0 ? "+" : "&minus;") + "&#8377;" + n0(Math.abs(pl)) + "</td>" +
           '<td class="lft"><span class="bar-pl" style="width:' + w.toFixed(1) + "%;background:" +
@@ -2771,7 +2823,25 @@ table.ledger { min-width: 800px; }
         '<div class="right"><span class="kpi-m">from ' + a.rnd.nStrikes + " strikes</span></div></div>" +
         '<div class="chart-body"><svg viewBox="0 0 330 100" role="img" ' +
         'aria-label="Risk-neutral probability density for the settle, recovered from option prices.">' +
-        '<polygon fill="var(--calls-dim)" points="' + pts.join(" ") +
+        /* The filled area is the hit target: clicking anywhere on the
+           curve surrenders the moments and the levels behind it. */
+        '<polygon fill="var(--calls-dim)" data-pt="' + esc(JSON.stringify({
+            t: "Risk-neutral density",
+            s: "the market's own distribution, from " + a.rnd.nStrikes + " strikes",
+            big: n0(a.rnd.median),
+            rows: [["Median", n0(a.rnd.median)], ["Mean", n0(a.rnd.mean)],
+                   ["Std deviation", n0(a.rnd.sd)],
+                   ["Skew", sgn(a.rnd.skew, 3)],
+                   ["Excess kurtosis", sgn(a.rnd.excessKurtosis, 2)],
+                   ["5th percentile", n0(a.rnd.q05)],
+                   ["95th percentile", n0(a.rnd.q95)],
+                   ["Strikes used", a.rnd.nStrikes]],
+            note: "Recovered by Breeden-Litzenberger: the second derivative of " +
+                  "call price with respect to strike. The chain is smoothed with " +
+                  "a spline first, because differentiating noise twice amplifies " +
+                  "every wobble. The desk rejects this density outright when its " +
+                  "mean is not the forward."
+          })) + '" points="' + pts.join(" ") +
           " " + (330).toFixed(1) + ",86 0,86\"></polygon>" +
         '<polyline fill="none" stroke="var(--calls)" stroke-width="2" points="' +
           pts.join(" ") + '"></polyline>' +
@@ -2962,9 +3032,22 @@ table.ledger { min-width: 800px; }
     var X = function (p) { return ((p - 0.6) / 0.4 * 290 + 20).toFixed(1); };
     var Y = function (p) { return (170 - (p - 0.6) / 0.4 * 150).toFixed(1); };
     var dots = bins.map(function (b) {
+      var gap = (b.obs - b.conf) * 100;
       return '<circle cx="' + X(b.conf) + '" cy="' + Y(b.obs) + '" r="' +
         (3.5 + Math.sqrt(b.n)).toFixed(1) + '" fill="var(--calls)" fill-opacity=".8" ' +
-        'stroke="var(--surface)" stroke-width="2"><title>said ' + n1(b.conf * 100) +
+        'stroke="var(--surface)" stroke-width="2" data-pt="' +
+        esc(JSON.stringify({
+          t: "Confidence bucket " + n1(b.conf * 100) + "%",
+          s: "stated against observed",
+          big: n1(b.obs * 100) + "%",
+          rows: [["Stated", n1(b.conf * 100) + "%"],
+                 ["Happened", n1(b.obs * 100) + "%"],
+                 ["Gap", sgn(gap, 1) + "pp"],
+                 ["Forecasts in bucket", b.n]],
+          note: gap < -2 ? "Below the line: the desk was <b>overconfident</b> here."
+              : gap > 2 ? "Above the line: the desk was <b>underconfident</b> here."
+              : "On the line: honest at this confidence level."
+        })) + '"><title>said ' + n1(b.conf * 100) +
         "%, happened " + n1(b.obs * 100) + "% (n=" + b.n + ")</title></circle>";
     }).join("");
 
@@ -4003,6 +4086,65 @@ table.ledger { min-width: 800px; }
     el.addEventListener("mouseleave", function () { el.classList.remove("live"); });
   }
 
+  /* ---------------------------------------------------------------
+     Clicking anything drawn.
+
+     Every chart on the desk already knows the numbers behind each point;
+     until now it only whispered them on hover and forgot them when the
+     mouse left. One shared panel and one delegated handler mean a new
+     chart becomes clickable by emitting data-pt, rather than by growing
+     its own bespoke interaction.
+     --------------------------------------------------------------- */
+  function showPoint(payload) {
+    var el = document.getElementById("ptPanel");
+    if (!el) return;
+    var rows = (payload.rows || []).map(function (kv) {
+      return '<div class="pt-row"><span>' + kv[0] + "</span><b>" +
+             (kv[1] == null ? "\u2014" : kv[1]) + "</b></div>";
+    }).join("");
+    el.innerHTML =
+      '<div class="pt-hd"><div><div class="pt-t">' + (payload.t || "") + "</div>" +
+      '<div class="pt-s">' + (payload.s || "") + "</div></div>" +
+      '<button class="tgl" type="button" data-ptclose="1">Close</button></div>' +
+      (payload.big ? '<div class="pt-big">' + payload.big + "</div>" : "") +
+      (rows ? '<div class="pt-rows">' + rows + "</div>" : "") +
+      (payload.note ? '<div class="pt-note">' + payload.note + "</div>" : "");
+    el.hidden = false;
+  }
+
+  function hidePoint() {
+    var el = document.getElementById("ptPanel");
+    if (el) el.hidden = true;
+  }
+
+  /* A point on a time series is a session. Everything the desk holds about
+     that session is worth more than the two numbers the tooltip showed. */
+  function sessionPoint(iso, fallback) {
+    var m = MODEL[state.idx];
+    var h = (m.hist || []).filter(function (x) { return x.date === iso; })[0];
+    if (!h) return fallback;
+    var rows = [
+      ["Open", n2(h.o)], ["High", n2(h.h)], ["Low", n2(h.l)], ["Close", n2(h.close)],
+      ["Change", h.chgPct == null ? null : sgn(h.chgPct, 2) + "%"],
+      ["PCR", n2(h.pcr)], ["Max pain", n0(h.maxPain)],
+      ["ATM IV", h.atmIv == null ? null : n2(h.atmIv) + "%"],
+      ["India VIX", n2(h.vix)],
+      ["1 sigma", h.sd1 == null ? null : n0(h.sd1) + " pts"]
+    ];
+    var mh = (MHIST && MHIST[m.cfg.key]) || {};
+    var day = (mh.entries || []).filter(function (e) { return e.date === iso; })[0];
+    var note = "";
+    if (day) {
+      var got = (day.claims || []).filter(function (c) { return c.correct === 1; }).length;
+      var graded = (day.claims || []).filter(function (c) { return c.correct != null; }).length;
+      note = "The desk lodged " + (day.claims || []).length + " claim(s) that " +
+             "session" + (graded ? " and scored <b>" + got + " of " + graded + "</b>" : "") +
+             ". Full record on the Model data tab.";
+    }
+    return { t: DTS(iso), s: esc(m.cfg.label) + " session", big: n2(h.close),
+             rows: rows, note: note };
+  }
+
   function attachChartHover(wrap) {
     var series;
     try { series = JSON.parse(wrap.getAttribute("data-series")); } catch (e) { return; }
@@ -4049,10 +4191,24 @@ table.ledger { min-width: 800px; }
       }
       tip.innerHTML = html;
       wrap.classList.add("live");
+      wrap.__pt = pt;
     }
 
     wrap.addEventListener("mousemove", move);
     wrap.addEventListener("mouseleave", function () { wrap.classList.remove("live"); });
+
+    wrap.classList.add("clickable-chart");
+    wrap.setAttribute("tabindex", "0");
+    wrap.addEventListener("click", function () {
+      var pt = wrap.__pt || series.pts[series.pts.length - 1];
+      if (!pt) return;
+      showPoint(pt.iso ? sessionPoint(pt.iso, {
+        t: pt.date, s: "session", big: pt.big, rows: pt.rows || []
+      }) : { t: pt.date, s: "", big: pt.big, rows: pt.rows || [] });
+    });
+    wrap.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); wrap.click(); }
+    });
   }
 
   function attachRungHover(el) {
@@ -4693,6 +4849,17 @@ table.ledger { min-width: 800px; }
 
     var we = e.target.closest("[data-wlexp]");
     if (we) { state.wlExpiry = Number(we.getAttribute("data-wlexp")); render(); return; }
+
+    if (e.target.closest("[data-ptclose]")) { hidePoint(); return; }
+
+    /* Anything drawn can hand the panel a payload. One handler, many
+       emitters -- a new chart becomes clickable by adding the attribute. */
+    var pt = e.target.closest("[data-pt]");
+    if (pt) {
+      try { showPoint(JSON.parse(pt.getAttribute("data-pt"))); }
+      catch (err) { /* a malformed payload must not break the page */ }
+      return;
+    }
 
     var lrn = e.target.closest("[data-lrn]");
     if (lrn) {
