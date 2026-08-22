@@ -563,6 +563,28 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+.qm {
+  display: inline-block; margin-left: 3px; padding: 0 3px;
+  font-size: 9px; line-height: 13px; font-weight: 700;
+  color: var(--ink-3); border: 1px solid var(--line); border-radius: 3px;
+  cursor: pointer; vertical-align: 1px;
+}
+.qm:hover { color: var(--calls); border-color: var(--calls); }
+.qm:focus-visible { outline: 2px solid var(--calls); outline-offset: 1px; }
+
+th.has-term, .lvl-k.has-term, .kpi-k.has-term, .ck.has-term,
+.dt.legend td.has-term {
+  cursor: pointer; text-decoration: underline dotted var(--ink-3) 1px;
+  text-underline-offset: 3px;
+}
+th.has-term:hover, .lvl-k.has-term:hover, .kpi-k.has-term:hover,
+.ck.has-term:hover, .dt.legend td.has-term:hover {
+  color: var(--calls); text-decoration-color: var(--calls);
+}
+th.has-term:focus-visible, .lvl-k.has-term:focus-visible {
+  outline: 2px solid var(--calls); outline-offset: 2px;
+}
+
 .prob.has-term { cursor: pointer; border-radius: 5px; transition: background .12s ease; }
 .prob.has-term:hover { background: var(--surface-2); }
 .prob.has-term:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
@@ -3971,9 +3993,13 @@ table.ledger { min-width: 800px; }
 
     var head = cols.map(function (c) {
       var on = stockSort.key === c[0];
+      var q = termKey(c[1])
+        ? ' <span class="qm" data-term="' + esc(c[1]) +
+          '" tabindex="0" role="button" title="What this means">?</span>'
+        : "";
       return '<th class="' + c[2] + ' sortable' + (on ? " on" : "") +
         '" data-sort="' + c[0] + '">' + c[1] +
-        (on ? (stockSort.dir < 0 ? " \u25be" : " \u25b4") : "") + "</th>";
+        (on ? (stockSort.dir < 0 ? " \u25be" : " \u25b4") : "") + q + "</th>";
     }).join("");
 
     var body = rows.map(function (r) {
@@ -4067,6 +4093,89 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    "Delivery percentage": [
+      "The share of a stock's traded volume that ended in an actual transfer " +
+      "of shares rather than being squared off the same day. NSE publishes it " +
+      "each evening in the MTO file; intraday turnover is netted out of it.",
+      "It separates conviction from churn. Two sessions with identical volume " +
+      "mean different things if one settled 70% of it into delivery and the " +
+      "other 25% -- the first moved ownership, the second moved paper.",
+      "Most useful on a large move in a heavy constituent. A rally on thin " +
+      "delivery tends to be positioning that has to be unwound; the same " +
+      "rally on heavy delivery has buyers who have already paid for it."
+    ],
+    "Index Price/Earnings": [
+      "The index level divided by the trailing twelve-month earnings of its " +
+      "constituents, published by NSE each evening alongside price-to-book " +
+      "and dividend yield. The desk stores it and ranks today against every " +
+      "session it holds, which is why a percentile sits beside the level.",
+      "It is the slowest-moving thing on the desk and the only one that says " +
+      "anything about value. Options price the next few weeks; this prices " +
+      "the next few years, and the two disagree far more often than not.",
+      "It matters at the extremes and almost nowhere else. A reading in its " +
+      "top decile does not tell a premium seller anything about tomorrow, " +
+      "but it does say what a shock would have to unwind if one arrives."
+    ],
+    "Market breadth": [
+      "How many of the fifty constituents rose and how many fell. Advancing " +
+      "minus declining is the advance-decline line; the desk also counts how " +
+      "many sit above their own 50-session average.",
+      "The index is a weighted average, so it can rise while most of its " +
+      "members fall. Breadth is the check on that: it says whether a move " +
+      "was the market or a handful of heavy names carrying it.",
+      "A move with narrow breadth is fragile in a way the index level hides. " +
+      "This is also where the one finding in the study document lives -- in " +
+      "a calm market, unusually broad participation was followed by weaker " +
+      "sessions, not stronger ones."
+    ],
+    "Z-score of the move": [
+      "The realised move divided by the standard deviation the model expected " +
+      "for that session. A Z of 1.0 means the market did exactly what a " +
+      "one-sigma band allowed; 2.5 means it did two and a half times that.",
+      "It is the unit that makes days comparable. Ninety points is enormous " +
+      "in a quiet week and unremarkable in a frightened one, and Z is what " +
+      "removes the volatility level so the surprise itself can be read.",
+      "Watch the distribution rather than any single value. If roughly a " +
+      "third of sessions exceed Z = 1 the bands are honest; if far fewer do, " +
+      "the model is selling ranges wider than it needs to and leaving " +
+      "premium on the table."
+    ]
+,
+    "Classic pivots": [
+      "Support and resistance levels computed from the previous session's " +
+      "high, low and close. The pivot itself is their average; R1 to R3 and " +
+      "S1 to S3 are arithmetic reflections around it. No open interest, no " +
+      "volatility, no positioning -- only yesterday's three prices.",
+      "They are the most widely watched arithmetic levels in the market, " +
+      "which is the whole of their claim to work: enough participants place " +
+      "orders at them that they occasionally become self-fulfilling. This " +
+      "desk shows them beside the option-implied levels precisely so you can " +
+      "see how differently the two disagree.",
+      "Treat them as crowd coordinates rather than evidence. Where a pivot " +
+      "coincides with an open-interest wall the level is worth respecting -- " +
+      "but it is the wall doing the work, because that is where money is " +
+      "committed rather than merely where a formula landed."
+    ],
+    "Weight": [
+      "A constituent's share of the index, recovered by non-negative least " +
+      "squares because NSE publishes the membership list but not the weights.",
+      "It converts a stock's percentage move into index points. Without it " +
+      "you cannot tell whether a session was driven by something that " +
+      "matters or by something loud.",
+      "Always, when reading the constituents table. A two per cent move in a " +
+      "0.3% weight is noise; the same move in the largest holding is a third " +
+      "of the day."
+    ],
+    "Index points": [
+      "How many points a single constituent contributed to the index move: " +
+      "its price change multiplied by its recovered coefficient.",
+      "This is the column that separates a real move from a loud one, and it " +
+      "is the reason the weight recovery was worth building at all.",
+      "The desk withholds it when the attribution does not reconcile with " +
+      "the actual index move -- on a near-flat session the names cancel and " +
+      "a share of the move stops being a meaningful quantity."
+    ]
+,
     "Spot": ["The index level itself, a weighted average of 50 constituent prices. It is a number, not an instrument &mdash; nobody can buy or sell it. Every option on the desk is priced off it, and the exchange settles weekly contracts against an average of the last half-hour rather than the last tick.", "Every strike distance, delta and probability on this desk is measured from spot. A stale spot silently mis-states all of them, which is why the desk refuses to store a session captured while the market is open.", "Always the reference point. Where it stops being enough is expiry day, when settlement is that half-hour average, so a violent last-minute move can settle somewhere the screen never printed."],
     "Strike": ["The price at which an option can be exercised. NIFTY lists them every 50 points, so the chain is a ladder either side of spot. A strike is a level you are taking a view on, not a price you pay.", "Choosing a strike is choosing your probability. Each step further out lowers the chance of being breached and lowers the premium with it &mdash; the whole trade-off a seller makes.", "Decisive on entry. Strikes near a heavy open-interest wall behave differently from strikes in empty space: the wall has writers defending it, empty strikes have nobody."],
     "CE and PE": ["CE is a call, the right to buy at the strike; PE is a put, the right to sell. Selling a call is a bet the index stays below that strike; selling a put, that it stays above.", "As a seller you are on the opposite side of the buyer's hope. You collect a known premium against an unknown loss, which is why position size and wings matter more than being right.", "Both sides always. Reading only the call side of a chain hides half the positioning, and the interesting information is usually the asymmetry between them."],
@@ -4662,8 +4771,125 @@ table.ledger { min-width: 800px; }
     ["Break above", "P(profit)"]
   ];
 
+  var TERM_ALIAS = {
+    "Above 50-DMA": "Market breadth",
+    "Advance-decline": "Market breadth",
+    "Advancing": "Market breadth",
+    "Breadth": "Market breadth",
+    "Declining": "Market breadth",
+    "Dividend yield": "Index Price/Earnings",
+    "Earnings yield": "Index Price/Earnings",
+    "Held": "Coverage and the Kupiec test",
+    "P/B": "Index Price/Earnings",
+    "P/E": "Index Price/Earnings",
+    "What the model claimed, on the day": "Claims",
+    "Z": "Z-score of the move",
+    "1&sigma;": "Sigma (&sigma;)",
+    "1&sigma; range": "How a range is built",
+    "2&sigma;": "Sigma (&sigma;)",
+    "5-day %": "What the record says so far",
+    "50-DMA": "What the record says so far",
+    "Action": "Build-up (the four quadrants)",
+    "Actual": "Claims",
+    "At expiry": "Expiry",
+    "Band width": "Band factor",
+    "CALLS": "CE and PE",
+    "CE": "CE and PE",
+    "Called": "Claims",
+    "Chain": "Risk-neutral density",
+    "Chg": "Spot",
+    "Chg %": "Spot",
+    "Chg LTP": "Build-up (the four quadrants)",
+    "Chg OI": "Change in OI",
+    "Claim": "Claims",
+    "Close": "Spot",
+    "Close-close": "Why five RV estimators",
+    "Correct": "Claims",
+    "Credit": "Credit and margin",
+    "DTE": "Expiry",
+    "Date": "Spot",
+    "Day range": "Spot",
+    "Delivery %": "Delivery percentage",
+    "Delta": "Delta",
+    "Derived from": "OI walls",
+    "Divergence": "Risk-neutral density",
+    "Expiry": "Expiry",
+    "Garman-Klass": "Why five RV estimators",
+    "Graded": "Claims",
+    "High": "Spot",
+    "Hit rate": "Claims",
+    "Horizon": "Claims",
+    "IV": "Implied volatility (IV)",
+    "Implied range": "OI walls",
+    "In band": "Coverage and the Kupiec test",
+    "Index pts": "Index points",
+    "LTP": "LTP and premium",
+    "Level": "OI walls",
+    "Lognormal": "Why POP understates risk",
+    "Low": "Spot",
+    "Made on": "Claims",
+    "Measure": "Index Price/Earnings",
+    "Move": "Spot",
+    "Move %": "Spot",
+    "Next session": "Coverage and the Kupiec test",
+    "Now": "Index Price/Earnings",
+    "OI": "Open interest (OI)",
+    "Open": "Spot",
+    "Outcome": "Claims",
+    "Outcome at expiry": "Risk-neutral density",
+    "PCR": "PCR (put-call ratio)",
+    "PE": "CE and PE",
+    "POP": "POP (probability of profit)",
+    "PUTS": "CE and PE",
+    "Parkinson": "Why five RV estimators",
+    "Pctile": "IV rank vs IV percentile",
+    "Pivot": "Classic pivots",
+    "Premium": "LTP and premium",
+    "R1": "Classic pivots",
+    "R2": "Classic pivots",
+    "R3": "Classic pivots",
+    "ROM": "ROM (return on margin)",
+    "Range": "Spot",
+    "Realised": "Realised volatility (RV)",
+    "Regime": "Variance ratio",
+    "Resolved": "Claims",
+    "Result": "Claims",
+    "Rogers-Satchell": "Why five RV estimators",
+    "S1": "Classic pivots",
+    "S2": "Classic pivots",
+    "S3": "Classic pivots",
+    "Scored": "Claims",
+    "Settle": "Expiry",
+    "Shares traded": "Delivery percentage",
+    "Short CE": "CE and PE",
+    "Short PE": "CE and PE",
+    "Side": "CE and PE",
+    "Spot": "Spot",
+    "Spot &minus; MP": "Max pain",
+    "Spot close": "Spot",
+    "Stance": "What the record says so far",
+    "Stated on the day": "Claims",
+    "Stock": "Weight",
+    "Strike": "Strike",
+    "Total OI": "Open interest (OI)",
+    "Turnover": "Delivery percentage",
+    "VIX": "India VIX",
+    "VR": "Variance ratio",
+    "Value": "OI walls",
+    "Verdict": "Claims",
+    "Volume": "Open interest (OI)",
+    "Weight %": "Weight",
+    "Weight % \u25be": "Weight",
+    "Window": "Why five RV estimators",
+    "Yang-Zhang": "Why five RV estimators",
+  };
+
   function termKey(label) {
     if (Object.prototype.hasOwnProperty.call(TERMS, label)) return label;
+    if (Object.prototype.hasOwnProperty.call(TERM_ALIAS, label)) {
+      return TERM_ALIAS[label];
+    }
+    if (Object.prototype.hasOwnProperty.call(DEEP, label)) return label;
     for (var i = 0; i < TERM_PREFIX.length; i++) {
       if (label.indexOf(TERM_PREFIX[i][0]) === 0) return TERM_PREFIX[i][1];
     }
@@ -4673,9 +4899,12 @@ table.ledger { min-width: 800px; }
   /* Panel for a labelled figure. Reuses the chart-point panel so the desk
      has one detail surface rather than two that drift apart. */
   function showTerm(label, value, m) {
-    var t = TERMS[termKey(label) || label];
-    if (!t) return;
-    var d = DEEP[t.deep] || [];
+    var key = termKey(label) || label;
+    var t = TERMS[key];
+    /* A label may resolve straight to a glossary entry with no arithmetic
+       of its own -- a column heading rather than a computed figure. */
+    var d = DEEP[t ? t.deep : key] || [];
+    if (!t && !d.length) return;
     var how = "";
     try { how = t.how ? t.how(m) : ""; } catch (e) { how = ""; }
 
@@ -4747,6 +4976,37 @@ table.ledger { min-width: 800px; }
     }
     return { t: DTS(iso), s: esc(m.cfg.label) + " session", big: n2(h.close),
              rows: rows, note: note };
+  }
+
+
+  /* One pass after every render marks every label the glossary knows.
+
+     Tables are constructed in a dozen places; decorating them here rather
+     than in each builder means a table added later is covered without
+     anyone remembering to wire it. */
+  var TERM_SELECTORS = "th, .lvl-k, .kpi-k, .ck, .dt.legend td:first-child";
+
+  function decorateTerms(root) {
+    Array.prototype.forEach.call(root.querySelectorAll(TERM_SELECTORS),
+      function (el) {
+        if (el.hasAttribute("data-term")) return;
+        /* A sortable header, a chart handle or a row that opens a drawer
+           already owns its click. Stealing it would trade a primary action
+           for a definition, so those carry a marker instead. */
+        if (el.hasAttribute("data-sort") || el.hasAttribute("data-chart") ||
+            el.hasAttribute("data-wl") || el.hasAttribute("data-stock")) {
+          return;
+        }
+        var label = (el.textContent || "").trim();
+        if (!label || label.length > 40) return;
+        var key = termKey(label);
+        if (!key) return;
+        el.setAttribute("data-term", label);
+        el.classList.add("has-term");
+        el.setAttribute("tabindex", "0");
+        el.setAttribute("role", "button");
+        el.setAttribute("title", "What this means");
+      });
   }
 
   function attachChartHover(wrap) {
@@ -4845,6 +5105,7 @@ table.ledger { min-width: 800px; }
   function attachHovers() {
     var root = document.getElementById("content");
     Array.prototype.forEach.call(root.querySelectorAll(".rb"), attachRangeHover);
+    decorateTerms(root);
     Array.prototype.forEach.call(root.querySelectorAll(".ch-wrap"), attachChartHover);
     Array.prototype.forEach.call(root.querySelectorAll("[data-rung]"), attachRungHover);
   }
@@ -5408,7 +5669,14 @@ table.ledger { min-width: 800px; }
      ========================================================== */
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" && e.key !== " ") return;
-    var lrn = e.target.closest && e.target.closest("[data-lrn]");
+    if (!e.target.closest) return;
+
+    /* Everything the mouse can open, the keyboard opens too. Forwarding to
+       click keeps one implementation rather than two that drift apart. */
+    var act = e.target.closest("[data-term], [data-pt], [data-chart]");
+    if (act) { e.preventDefault(); act.click(); return; }
+
+    var lrn = e.target.closest("[data-lrn]");
     if (!lrn) return;
     e.preventDefault();
     lrn.classList.toggle("open");
@@ -5459,7 +5727,12 @@ table.ledger { min-width: 800px; }
     var term = e.target.closest("[data-term]");
     if (term) {
       var lbl = term.getAttribute("data-term");
-      var vEl = term.querySelector(".prob-v, .struct-v");
+      var vEl = term.querySelector(".prob-v, .struct-v, .lvl-v");
+      /* A tile wraps its own value; a level row keeps it in the next cell. */
+      if (!vEl && term.nextElementSibling &&
+          term.nextElementSibling.classList.contains("lvl-v")) {
+        vEl = term.nextElementSibling;
+      }
       showTerm(lbl, vEl ? vEl.innerHTML : "", MODEL[state.idx]);
       return;
     }
