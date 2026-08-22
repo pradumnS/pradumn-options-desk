@@ -563,6 +563,26 @@ table.hist { min-width: 620px; }
 .readout p { margin: 0; color: var(--ink-2); font-size: 12.5px; }
 .readout p b { color: var(--ink); }
 
+/* A pill already carries a coloured border and the headline is set large;
+   a dotted underline on either reads as damage rather than as an
+   affordance, so each keeps its own shape and only the cursor changes. */
+.pill.has-term {
+  text-decoration: none; border-style: dashed; cursor: pointer;
+}
+.pill.has-term:hover { color: inherit; filter: brightness(1.25); }
+.verdict-call.has-term, .verdict-eyebrow.has-term, .conf-val.has-term {
+  text-decoration: none; cursor: pointer;
+}
+.verdict-call.has-term:hover, .verdict-eyebrow.has-term:hover,
+.conf-val.has-term:hover { color: var(--calls); }
+.verdict-call.has-term::after,
+.conf-val.has-term::after {
+  content: "?"; display: inline-block; margin-left: 6px;
+  font-size: 9px; font-weight: 700; line-height: 13px; padding: 0 3px;
+  vertical-align: super; color: var(--ink-3);
+  border: 1px solid var(--line); border-radius: 3px;
+}
+
 .qm {
   display: inline-block; margin-left: 3px; padding: 0 3px;
   font-size: 9px; line-height: 13px; font-weight: 700;
@@ -572,11 +592,18 @@ table.hist { min-width: 620px; }
 .qm:hover { color: var(--calls); border-color: var(--calls); }
 .qm:focus-visible { outline: 2px solid var(--calls); outline-offset: 1px; }
 
-th.has-term, .lvl-k.has-term, .kpi-k.has-term, .ck.has-term,
+.pt-rk.has-term, .si-k.has-term, .lg-k.has-term, .ohlc-k.has-term,
+th.has-term, .k.has-term, .qk.has-term, .tcell-k.has-term,
+.stack-k.has-term, .grp-c.has-term, .grp-p.has-term, .pill.has-term,
+.tagx.has-term, .sub-k.has-term, .conf-val.has-term,
+.verdict-call.has-term, .verdict-eyebrow.has-term, .lvl-k.has-term, .kpi-k.has-term, .ck.has-term,
 .dt.legend td.has-term {
   cursor: pointer; text-decoration: underline dotted var(--ink-3) 1px;
   text-underline-offset: 3px;
 }
+.k.has-term:hover, .qk.has-term:hover, .tcell-k.has-term:hover,
+.stack-k.has-term:hover, .pill.has-term:hover, .tagx.has-term:hover,
+.conf-val.has-term:hover, .verdict-call.has-term:hover,
 th.has-term:hover, .lvl-k.has-term:hover, .kpi-k.has-term:hover,
 .ck.has-term:hover, .dt.legend td.has-term:hover {
   color: var(--calls); text-decoration-color: var(--calls);
@@ -4093,6 +4120,124 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    "Bid / Ask": [
+      "The best price a buyer is currently offering and the best price a " +
+      "seller is currently asking for that exact contract. The gap between " +
+      "them is the spread, and it is a cost paid on entry and again on exit.",
+      "It is the difference between the price on the screen and the price " +
+      "you get. A strike quoted at 42 with a bid of 39 and an ask of 45 is " +
+      "not a 42 trade; it is a 39 trade if you are selling into it.",
+      "This is the field that decides whether a strategy is real. Far strikes " +
+      "on an index show attractive credit and spreads wide enough to eat all " +
+      "of it, which is what the &lsquo;illiquid&rsquo; pill on the strategy " +
+      "card is refusing. A model that ignores the spread will always prefer " +
+      "exactly the trades that cannot be filled."
+    ],
+    "Previous close": [
+      "The contract's settlement price at the end of the prior session, " +
+      "published by the exchange. Not the last trade of the day -- a thin " +
+      "contract can print a stale last trade, and settlement is computed " +
+      "from a closing window instead.",
+      "It is the reference every change figure on the drawer is measured " +
+      "from, and the price margin was calculated against overnight.",
+      "Worth checking when a change looks implausible. A large move against " +
+      "a stale previous close is usually the previous close being wrong " +
+      "rather than the option having moved, and on an illiquid strike that " +
+      "is the more common of the two."
+    ]
+,
+    "Confidence": [
+      "How much of the evidence points the same way, not how likely the " +
+      "call is to be right. Each input -- positioning, the option-implied " +
+      "range, volatility, breadth -- votes, and the figure is the weighted " +
+      "share agreeing with the stated read.",
+      "It is the difference between a view and a conviction. Four indicators " +
+      "saying the same thing is a different situation from four indicators " +
+      "split two against two, even when both produce the same headline.",
+      "Read it as position size, not as direction. Sixty per cent means the " +
+      "evidence leans but does not insist, which for a seller argues for the " +
+      "smaller of two clip sizes rather than for standing aside. The claims " +
+      "ledger scores whether these numbers have earned their confidence, and " +
+      "the Model data tab is where that verdict lives."
+    ],
+    "The positioning read": [
+      "One sentence combining where open interest is built, where the " +
+      "option-implied range sits, what volatility is doing and how broad " +
+      "the move was. It is the desk's summary, not a forecast.",
+      "It exists so the page has a single line you can act on. Everything " +
+      "below it is the working; this is the conclusion, and it is written " +
+      "the same way every session so it can be scored afterwards.",
+      "Treat it as a starting hypothesis. It is recorded in the claims " +
+      "ledger the day it is made and graded against what actually happened, " +
+      "which is the only reason it deserves any weight at all -- an unscored " +
+      "opinion repeated daily is just a habit."
+    ],
+    "Moving average": [
+      "The mean closing price over a fixed number of past sessions. The desk " +
+      "shows 20, 50 and 200 sessions, each recomputed every evening from the " +
+      "settled closes rather than from live prices.",
+      "It is a slow reference line. Price above its own 200-session mean and " +
+      "price below it are different market states, and most trend-following " +
+      "money treats the crossing as an event whether or not it deserves to be.",
+      "The number itself matters less than how many constituents are on each " +
+      "side of their own -- that is the breadth reading, and it is where the " +
+      "one statistically robust finding in the study document lives. A single " +
+      "index sitting a few points above its average is noise."
+    ],
+    "RSI (14)": [
+      "The relative strength index over fourteen sessions: average gain " +
+      "divided by average loss, mapped onto a 0-100 scale. Above 70 is the " +
+      "conventional overbought reading, below 30 oversold.",
+      "It is a bounded measure of how one-sided recent sessions have been. " +
+      "Unlike a price level it cannot run away, which is what makes it " +
+      "comparable across months and across indices.",
+      "The conventional thresholds are folklore, not evidence -- an index can " +
+      "sit above 70 for weeks in a trend. The desk shows it because it is " +
+      "widely watched and therefore occasionally self-fulfilling, and treats " +
+      "it as context rather than as a signal. Nothing in the claims ledger " +
+      "is placed on it."
+    ],
+    "GARCH(1,1)": [
+      "A volatility model in which today's variance is a weighted blend of a " +
+      "long-run average, yesterday's forecast, and yesterday's squared " +
+      "return. The three weights are fitted to the desk's own history.",
+      "It captures the one thing everyone agrees volatility does: cluster. A " +
+      "violent session raises the forecast for tomorrow, and the effect " +
+      "decays over the following weeks rather than vanishing overnight.",
+      "It is used here as a cross-check on the HAR-RV forecast rather than as " +
+      "the forecast itself. When the two disagree materially, the honest " +
+      "reading is that the volatility path is genuinely uncertain and the " +
+      "band should be widened rather than one model picked."
+    ],
+    "Why the desk stands aside": [
+      "A pill on the strategy card explaining why no trade was proposed. " +
+      "Illiquid means the strikes cannot be traded at the quoted prices; " +
+      "thin premium means the credit does not pay for the risk; too close " +
+      "means the short strike sits inside the expected range; marginal means " +
+      "it passed every rule by too little to be worth the margin; needs " +
+      "history means the figure has too few sessions behind it to be ranked.",
+      "Standing aside is a decision, and one the record has to hold. A desk " +
+      "that only logs the days it traded will flatter itself, because the " +
+      "days it refused are exactly the ones it would have lost on.",
+      "This is the most important thing on the card on a bad day. A seller's " +
+      "returns are made far more by the trades not taken than by the ones " +
+      "taken well -- the loss on one badly-priced strangle undoes weeks of " +
+      "collected premium, and no amount of sizing discipline recovers it."
+    ],
+    "Trading-day basis": [
+      "A note that a figure is scaled by trading sessions rather than by " +
+      "calendar days. A weekend adds two days to the calendar and nothing to " +
+      "the count of sessions in which the market can move.",
+      "It changes the width of every range. Scaling a daily volatility to a " +
+      "four-session expiry by the square root of four rather than of six " +
+      "gives a band about eighteen per cent narrower, and which one is right " +
+      "is not a matter of taste.",
+      "It matters most across a long weekend or an exchange holiday, which " +
+      "is precisely when a seller is deciding whether to carry a position " +
+      "through. Options decay on the calendar and risk accrues on sessions, " +
+      "and the gap between those two clocks is where holiday premium lives."
+    ]
+,
     "Delivery percentage": [
       "The share of a stock's traded volume that ended in an actual transfer " +
       "of shares rather than being squared off the same day. NSE publishes it " +
@@ -4772,6 +4917,39 @@ table.ledger { min-width: 800px; }
   ];
 
   var TERM_ALIAS = {
+    "IV / RV": "IV / RV &mdash; the seller&rsquo;s edge",
+    "Implied vol": "Implied volatility (IV)",
+    "PREV": "Previous close",
+    "Prev close": "Previous close",
+    "Settlement": "Previous close",
+    "20 DMA": "Moving average",
+    "200 DMA": "Moving average",
+    "25&Delta; skew": "25&Delta; risk reversal and butterfly",
+    "50 DMA": "Moving average",
+    "Black-Scholes N(d&#8322;)": "POP (probability of profit)",
+    "Breeden-Litzenberger": "Risk-neutral density",
+    "Calibration haircut": "Calibration (ECE)",
+    "Forward": "Forward and basis",
+    "Illiquid": "Why the desk stands aside",
+    "Kupiec / Brier / ECE": "Coverage and the Kupiec test",
+    "Live": "Expiry",
+    "Long build-up": "Build-up (the four quadrants)",
+    "Long unwinding": "Build-up (the four quadrants)",
+    "Marginal": "Why the desk stands aside",
+    "Needs history": "Why the desk stands aside",
+    "Next": "Expiry",
+    "Per-strike implied vol": "Implied volatility (IV)",
+    "RND shape": "Risk-neutral density",
+    "Short build-up": "Build-up (the four quadrants)",
+    "Short covering": "Build-up (the four quadrants)",
+    "Straddle": "Straddle expected move",
+    "Thin premium": "Why the desk stands aside",
+    "Too close": "Why the desk stands aside",
+    "Volatility": "India VIX",
+    "awaiting": "Expiry",
+    "no trade &middot; range ok": "Why the desk stands aside",
+    "random-walk": "Variance ratio",
+    "trading-day basis": "Trading-day basis",
     "Above 50-DMA": "Market breadth",
     "Advance-decline": "Market breadth",
     "Advancing": "Market breadth",
@@ -4884,14 +5062,108 @@ table.ledger { min-width: 800px; }
     "Yang-Zhang": "Why five RV estimators",
   };
 
-  function termKey(label) {
-    if (Object.prototype.hasOwnProperty.call(TERMS, label)) return label;
-    if (Object.prototype.hasOwnProperty.call(TERM_ALIAS, label)) {
-      return TERM_ALIAS[label];
+  /* The page writes "1&sigma;" but hands this pass "1<sigma>", so every
+     key and every label is folded to one form before they are compared.
+     Only the entities the desk actually emits are listed; an unknown one
+     is left alone rather than silently turned into something else. */
+  var ENT = {
+    amp: "&", lt: "<", gt: ">", quot: '"', nbsp: "\u00a0",
+    minus: "\u2212", plusmn: "\u00b1", times: "\u00d7", middot: "\u00b7",
+    mdash: "\u2014", ndash: "\u2013", rsquo: "\u2019", lsquo: "\u2018",
+    ldquo: "\u201c", rdquo: "\u201d", hellip: "\u2026", deg: "\u00b0",
+    sigma: "\u03c3", Sigma: "\u03a3", Delta: "\u0394", delta: "\u03b4",
+    alpha: "\u03b1", beta: "\u03b2", mu: "\u03bc", rho: "\u03c1",
+    le: "\u2264", ge: "\u2265", ne: "\u2260", asymp: "\u2248",
+    larr: "\u2190", rarr: "\u2192", uarr: "\u2191", darr: "\u2193"
+  };
+
+  function deent(str) {
+    return String(str).replace(/&(#x?[0-9a-fA-F]+|\w+);/g, function (m, k) {
+      if (k.charAt(0) !== "#") {
+        return Object.prototype.hasOwnProperty.call(ENT, k) ? ENT[k] : m;
+      }
+      var n = k.charAt(1) === "x" || k.charAt(1) === "X"
+        ? parseInt(k.slice(2), 16) : parseInt(k.slice(1), 10);
+      return isFinite(n) ? String.fromCharCode(n) : m;
+    });
+  }
+
+  /* Case and spacing carry no meaning in a heading, and the trailing "?"
+     is the affordance this pass adds rather than part of the label. */
+  function termNorm(str) {
+    return deent(str)
+      .replace(/[\u25be\u25b4\u25bc\u25b2?]+\s*$/, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  /* Labels that are a term with today's number glued on, or a shape rather
+     than a name. Checked only after an exact match has failed. */
+  var TERM_PATTERN = [
+    [/^[\u00b1+\-]\s*[\d,.]+\s*(pts?|points?)$/i, "How a range is built"],
+    [/\u03c3/, "Sigma (&sigma;)"],
+    [/^\d+(\.\d+)?\s*(day|days|session|sessions|dte)$/i, "Expiry"],
+    [/^\d{1,3}\s*dma$/i, "Moving average"],
+    [/wall$/i, "OI walls"],
+    [/^rsi\b/i, "RSI (14)"],
+    [/^garch/i, "GARCH(1,1)"]
+  ];
+
+  /* One index over every name a term answers to, built once. Storing the
+     folded form as the key is what lets the same lookup serve a heading
+     read from the DOM and a key written in the source. */
+  var _termIndex = null;
+  function termIndex() {
+    if (_termIndex) return _termIndex;
+    _termIndex = {};
+    var add = function (name, target) {
+      var n = termNorm(name);
+      if (n && !Object.prototype.hasOwnProperty.call(_termIndex, n)) {
+        _termIndex[n] = target;
+      }
+    };
+    Object.keys(TERMS).forEach(function (k) { add(k, k); });
+    Object.keys(DEEP).forEach(function (k) { add(k, k); });
+    Object.keys(TERM_ALIAS).forEach(function (k) { add(k, TERM_ALIAS[k]); });
+    return _termIndex;
+  }
+
+  /* One entry is named with an entity and the pointer to it with the
+     character it stands for; they are the same name.
+     Looking the pointer up raw silently returned nothing, which showed up
+     as a panel with one section in it rather than as an error. */
+  function deepEntry(name) {
+    if (name == null) return [];
+    if (Object.prototype.hasOwnProperty.call(DEEP, name)) return DEEP[name];
+    var n = termNorm(name), keys = Object.keys(DEEP);
+    for (var i = 0; i < keys.length; i++) {
+      if (termNorm(keys[i]) === n) return DEEP[keys[i]];
     }
-    if (Object.prototype.hasOwnProperty.call(DEEP, label)) return label;
+    return [];
+  }
+
+  function termKey(label) {
+    var ix = termIndex(), n = termNorm(label);
+    if (!n) return null;
+    if (Object.prototype.hasOwnProperty.call(ix, n)) return ix[n];
+
     for (var i = 0; i < TERM_PREFIX.length; i++) {
-      if (label.indexOf(TERM_PREFIX[i][0]) === 0) return TERM_PREFIX[i][1];
+      if (n.indexOf(termNorm(TERM_PREFIX[i][0])) === 0) return TERM_PREFIX[i][1];
+    }
+
+    /* "PCR 1.08" and "Yang-Zhang 10d" are a term with the session's own
+       number appended. Dropping trailing words finds the term without
+       anyone having to list every value it will ever take. */
+    var parts = n.split(" ");
+    while (parts.length > 1) {
+      parts.pop();
+      var head = parts.join(" ");
+      if (Object.prototype.hasOwnProperty.call(ix, head)) return ix[head];
+    }
+
+    for (var j = 0; j < TERM_PATTERN.length; j++) {
+      if (TERM_PATTERN[j][0].test(n)) return TERM_PATTERN[j][1];
     }
     return null;
   }
@@ -4902,8 +5174,10 @@ table.ledger { min-width: 800px; }
     var key = termKey(label) || label;
     var t = TERMS[key];
     /* A label may resolve straight to a glossary entry with no arithmetic
-       of its own -- a column heading rather than a computed figure. */
-    var d = DEEP[t ? t.deep : key] || [];
+       of its own -- a column heading rather than a computed figure. The
+       pointer is resolved through the same fold as everything else,
+       because some are written with entities and some with characters. */
+    var d = deepEntry(t ? t.deep : key);
     if (!t && !d.length) return;
     var how = "";
     try { how = t.how ? t.how(m) : ""; } catch (e) { how = ""; }
@@ -4932,7 +5206,9 @@ table.ledger { min-width: 800px; }
     var el = document.getElementById("ptPanel");
     if (!el) return;
     var rows = (payload.rows || []).map(function (kv) {
-      return '<div class="pt-row"><span>' + kv[0] + "</span><b>" +
+      /* Named so the decoration pass can find it: these rows are the same
+         figures as the table the point came from. */
+      return '<div class="pt-row"><span class="pt-rk">' + kv[0] + "</span><b>" +
              (kv[1] == null ? "\u2014" : kv[1]) + "</b></div>";
     }).join("");
     el.innerHTML =
@@ -4942,6 +5218,7 @@ table.ledger { min-width: 800px; }
       (payload.big ? '<div class="pt-big">' + payload.big + "</div>" : "") +
       (rows ? '<div class="pt-rows">' + rows + "</div>" : "") +
       (payload.note ? '<div class="pt-note">' + payload.note + "</div>" : "");
+    decorateTerms(el);
     el.hidden = false;
   }
 
@@ -4984,9 +5261,39 @@ table.ledger { min-width: 800px; }
      Tables are constructed in a dozen places; decorating them here rather
      than in each builder means a table added later is covered without
      anyone remembering to wire it. */
-  var TERM_SELECTORS = "th, .lvl-k, .kpi-k, .ck, .dt.legend td:first-child";
+  /* Every element family that carries a name a reader might not know.
+     The overview keeps its headline read in driver rows, which is why a
+     list limited to headings and tiles left the first thing on the page
+     unexplained. */
+  var TERM_SELECTORS = [
+    "th", ".lvl-k", ".kpi-k", ".ck", ".k", ".qk", ".tcell-k", ".stack-k",
+    ".grp-c", ".grp-p", ".pill", ".tagx", ".sub-k", ".step-k", ".mh-k",
+    ".pt-rk", ".si-k", ".lg-k", ".ohlc-k",
+    ".dt.legend td:first-child"
+  ].join(", ");
+
+  /* Some figures are a value with no label of their own -- the confidence
+     bar reads "61% confidence" and nothing else. Those are named here
+     rather than resolved from their own text, which is a number. */
+  var TERM_FIXED = [
+    [".conf-val", "Confidence"],
+    [".verdict-call", "The positioning read"],
+    [".verdict-eyebrow", "The positioning read"]
+  ];
 
   function decorateTerms(root) {
+    TERM_FIXED.forEach(function (f) {
+      Array.prototype.forEach.call(root.querySelectorAll(f[0]),
+        function (el) {
+          if (el.hasAttribute("data-term")) return;
+          el.setAttribute("data-term", f[1]);
+          el.classList.add("has-term");
+          el.setAttribute("tabindex", "0");
+          el.setAttribute("role", "button");
+          el.setAttribute("title", "What this means");
+        });
+    });
+
     Array.prototype.forEach.call(root.querySelectorAll(TERM_SELECTORS),
       function (el) {
         if (el.hasAttribute("data-term")) return;
@@ -5153,6 +5460,7 @@ table.ledger { min-width: 800px; }
       if (s.group) lastGroup = s.group;
       return sep + siCell(s);
     }).join("");
+    decorateTerms(el);
   }
 
   function siCellAll() { return null; }
@@ -5652,6 +5960,10 @@ table.ledger { min-width: 800px; }
         n2(r.pe.oi / r.ce.oi) + "</b>.</p></div>" +
       legBlock("Call \u00b7 CE", r.ce, "var(--calls)", m) +
       legBlock("Put \u00b7 PE", r.pe, "var(--puts)", m);
+
+    /* The drawer is written into its own container, so the pass that runs
+       after a view render never sees it. */
+    decorateTerms(document.getElementById("drawerBody"));
 
     document.getElementById("drawer").classList.add("open");
     document.getElementById("scrim").classList.add("open");
