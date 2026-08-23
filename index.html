@@ -566,40 +566,27 @@ table.hist { min-width: 620px; }
 /* A pill already carries a coloured border and the headline is set large;
    a dotted underline on either reads as damage rather than as an
    affordance, so each keeps its own shape and only the cursor changes. */
-.pill.has-term {
-  text-decoration: none; border-style: dashed; cursor: pointer;
-}
+/* The pill keeps the border it already had; only the cursor says it is
+   now a control, because a restyled border reads as a state change. */
+.pill.has-term { text-decoration: none; cursor: pointer; }
 .pill.has-term:hover { color: inherit; filter: brightness(1.25); }
 h2.has-term { text-decoration: none; cursor: pointer; }
-h2.has-term::after {
-  content: "?"; display: inline-block; margin-left: 6px;
-  font-size: 9px; font-weight: 700; line-height: 13px; padding: 0 3px;
-  vertical-align: super; color: var(--ink-3);
-  border: 1px solid var(--line); border-radius: 3px;
+
+/* Dim until it is the active sort, so a sortable column reads as sortable
+   without competing with the label beside it. */
+.so {
+  margin-left: 5px; font-size: 9px; cursor: pointer;
+  color: var(--ink-3); opacity: .45;
 }
-h2.has-term:hover, h2.has-term:hover::after { color: var(--calls); }
+.so:hover, .so.on { opacity: 1; color: var(--calls); }
+.so:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
+h2.has-term:hover { color: var(--calls); }
 
 .verdict-call.has-term, .verdict-eyebrow.has-term, .conf-val.has-term {
   text-decoration: none; cursor: pointer;
 }
 .verdict-call.has-term:hover, .verdict-eyebrow.has-term:hover,
 .conf-val.has-term:hover { color: var(--calls); }
-.verdict-call.has-term::after,
-.conf-val.has-term::after {
-  content: "?"; display: inline-block; margin-left: 6px;
-  font-size: 9px; font-weight: 700; line-height: 13px; padding: 0 3px;
-  vertical-align: super; color: var(--ink-3);
-  border: 1px solid var(--line); border-radius: 3px;
-}
-
-.qm {
-  display: inline-block; margin-left: 3px; padding: 0 3px;
-  font-size: 9px; line-height: 13px; font-weight: 700;
-  color: var(--ink-3); border: 1px solid var(--line); border-radius: 3px;
-  cursor: pointer; vertical-align: 1px;
-}
-.qm:hover { color: var(--calls); border-color: var(--calls); }
-.qm:focus-visible { outline: 2px solid var(--calls); outline-offset: 1px; }
 
 .pt-rk.has-term, .si-k.has-term, .lg-k.has-term, .ohlc-k.has-term,
 td.has-term, h2.has-term, .bandrow-k.has-term,
@@ -4030,13 +4017,13 @@ table.ledger { min-width: 800px; }
 
     var head = cols.map(function (c) {
       var on = stockSort.key === c[0];
-      var q = termKey(c[1])
-        ? ' <span class="qm" data-term="' + esc(c[1]) +
-          '" tabindex="0" role="button" title="What this means">?</span>'
-        : "";
-      return '<th class="' + c[2] + ' sortable' + (on ? " on" : "") +
-        '" data-sort="' + c[0] + '">' + c[1] +
-        (on ? (stockSort.dir < 0 ? " \u25be" : " \u25b4") : "") + q + "</th>";
+      /* The arrow sorts; the header explains. Both are always present, so
+         a column never looks like it does one thing and does another. */
+      var arrow = '<span class="so' + (on ? " on" : "") + '" data-sort="' +
+        c[0] + '" tabindex="0" role="button" title="Sort by ' + esc(c[1]) +
+        '">' + (on && stockSort.dir < 0 ? "\u25be" : "\u25b4") + "</span>";
+      return '<th class="' + c[2] + ' sortable' + (on ? " on" : "") + '">' +
+        c[1] + arrow + "</th>";
     }).join("");
 
     var body = rows.map(function (r) {
@@ -5741,11 +5728,12 @@ table.ledger { min-width: 800px; }
     Array.prototype.forEach.call(root.querySelectorAll(TERM_SELECTORS),
       function (el) {
         if (el.hasAttribute("data-term")) return;
-        /* A sortable header, a chart handle or a row that opens a drawer
-           already owns its click. Stealing it would trade a primary action
-           for a definition, so those carry a marker instead. */
-        if (el.hasAttribute("data-sort") || el.hasAttribute("data-chart") ||
-            el.hasAttribute("data-wl") || el.hasAttribute("data-stock")) {
+        /* A chart handle or a row that opens a drawer already owns its
+           click and opens something larger than a definition. A sortable
+           header does not: its sort moved onto its own arrow so that the
+           label could behave like every other label on the desk. */
+        if (el.hasAttribute("data-chart") || el.hasAttribute("data-wl") ||
+            el.hasAttribute("data-stock")) {
           return;
         }
         var label = ownText(el);
@@ -6480,6 +6468,17 @@ table.ledger { min-width: 800px; }
 
     if (e.target.closest("[data-ptclose]")) { hidePoint(); return; }
 
+    /* Checked before the label: the sort arrow sits inside the header it
+       sorts, so a label-first handler would swallow every sort click. */
+    var so = e.target.closest("[data-sort]");
+    if (so) {
+      var sk = so.getAttribute("data-sort");
+      stockSort.dir = stockSort.key === sk ? -stockSort.dir : -1;
+      stockSort.key = sk;
+      render();
+      return;
+    }
+
     var term = e.target.closest("[data-term]");
     if (term) {
       var lbl = term.getAttribute("data-term");
@@ -6520,16 +6519,6 @@ table.ledger { min-width: 800px; }
       return;
     }
 
-    var so = e.target.closest("[data-sort]");
-    if (so) {
-      var k = so.getAttribute("data-sort");
-      /* Second click on the same column reverses it. Symbol reads best
-         ascending, every numeric column reads best largest-first. */
-      if (stockSort.key === k) stockSort.dir *= -1;
-      else stockSort = { key: k, dir: k === "symbol" ? 1 : -1 };
-      render();
-      return;
-    }
 
     var st = e.target.closest("[data-strike]");
     if (st) { openDrawer(Number(st.getAttribute("data-strike"))); return; }
