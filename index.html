@@ -574,17 +574,66 @@ h2.has-term { text-decoration: none; cursor: pointer; }
 
 /* Dim until it is the active sort, so a sortable column reads as sortable
    without competing with the label beside it. */
-.ck-table { overflow: auto; border-top: 1px solid var(--line); }
-.ck-tbl-hd {
-  display: flex; align-items: baseline; gap: 10px; padding: 10px 14px 6px;
-  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+/* Drawn over the chart rather than under it: the numbers are wanted
+   sometimes, and the chart is wanted always. */
+.ck-table {
+  position: absolute; inset: 0; z-index: 4;
+  overflow: auto; background: var(--bg);
+  border-top: 1px solid var(--line);
 }
-.ck-tbl-hd span {
-  font-size: 9.5px; font-weight: 400; letter-spacing: .06em;
-  color: var(--ink-3); text-transform: uppercase;
+.ck-tbl-bar {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 12px; background: var(--bg);
+  border-bottom: 1px solid var(--line);
 }
-.ck-table .dt { font-size: 11px; }
-.ck-table .dt td, .ck-table .dt th { padding: 4px 10px; }
+.ck-tbl-name {
+  font-size: 17px; font-weight: 700; letter-spacing: -.01em;
+  margin-right: 4px;
+}
+.ck-tbl-n {
+  font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-3); margin-left: auto; padding-right: 4px;
+}
+.ck-tool, .ck-tbl-btn {
+  font: inherit; font-size: 11px; font-weight: 600;
+  padding: 4px 11px; border-radius: 4px; cursor: pointer;
+  color: var(--ink-2); background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.ck-tool:hover, .ck-tbl-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.ck-tool[aria-pressed="true"] {
+  background: var(--calls-dim); border-color: var(--calls); color: var(--ink);
+}
+.ck-tool:focus-visible, .ck-tbl-btn:focus-visible {
+  outline: 2px solid var(--calls); outline-offset: 2px;
+}
+.ck-tbl-btn.done { color: var(--up); border-color: var(--up); }
+
+/* The column picker. Left open while several are toggled, because
+   choosing columns one dialog at a time is its own annoyance. */
+.ck-cols { position: relative; }
+.ck-colmenu {
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 5;
+  min-width: 190px; padding: 6px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 5px; box-shadow: 0 10px 28px rgba(0,0,0,.34);
+  display: flex; flex-direction: column; gap: 1px;
+}
+.ck-colmenu[hidden] { display: none; }
+.ck-col {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 3px; cursor: pointer;
+  font-size: 12px; color: var(--ink-2); background: none; border: 0;
+  font: inherit; text-align: left; width: 100%;
+}
+.ck-col:hover { background: var(--line-soft); color: var(--ink); }
+.ck-col .tick { width: 12px; color: var(--calls); font-size: 11px; }
+.ck-col[aria-pressed="true"] { color: var(--ink); }
+
+.ck-table .dt { font-size: 11.5px; }
+.ck-table .dt td, .ck-table .dt th { padding: 4px 12px; }
+.ck-table .dt thead th { position: sticky; top: 52px; z-index: 1; }
 
 .so {
   margin-left: 5px; font-size: 9px; cursor: pointer;
@@ -1231,13 +1280,17 @@ table.ledger { min-width: 800px; }
       <div class="ck-chg" id="ckChg">&mdash;</div>
     </div>
     <div class="ck-ranges" id="ckRanges"></div>
+    <button class="ck-tool" id="ckTblBtn" type="button" data-cktbl="1"
+            aria-pressed="false" title="Daily data table">
+      <span aria-hidden="true">&#9776;</span> Data
+    </button>
     <button class="xbtn" id="ckClose" type="button" aria-label="Close chart">&times;</button>
   </div>
   <div class="ck-body" id="ckBody">
     <div class="ck-chart" id="ckChart"></div>
     <div class="ck-tip" id="ckTip" hidden></div>
+    <div class="ck-table" id="ckTable" hidden></div>
   </div>
-  <div class="ck-table" id="ckTable"></div>
 </aside>
 
 <div class="scrim" id="scrim"></div>
@@ -5946,10 +5999,25 @@ table.ledger { min-width: 800px; }
   var CKS = { chart: null, candles: null, vol: null, series: null,
              name: null, range: 120 };
 
+  /* Bar counts, except year-to-date, which is a date. 1D is left out
+     deliberately: on a daily series it is one row and one candle, which
+     is a worse answer than the five-day step next to it. */
   var CK_RANGES = [
-    { label: "1M", n: 22 }, { label: "3M", n: 66 },
-    { label: "6M", n: 132 }, { label: "1Y", n: 252 }, { label: "All", n: 0 }
+    { label: "5D", n: 5 }, { label: "1M", n: 22 }, { label: "3M", n: 66 },
+    { label: "6M", n: 132 }, { label: "YTD", n: -1 }, { label: "1Y", n: 252 },
+    { label: "All", n: 0 }
   ];
+
+  /* The one place a range turns into bars. Both the candles and the table
+     read it, so they cannot drift apart. */
+  function barsForRange(bars) {
+    if (!bars || !bars.length) return [];
+    if (CKS.range === -1) {
+      var year = String(bars[bars.length - 1].t).slice(0, 4);
+      return bars.filter(function (b) { return String(b.t) >= year + "-01-01"; });
+    }
+    return CKS.range > 0 ? bars.slice(-CKS.range) : bars;
+  }
 
   /* The strip uses NSE names ("NIFTY BANK"); tabs use our keys ("NIFTY").
      Both must resolve to the same series. */
@@ -6005,6 +6073,11 @@ table.ledger { min-width: 800px; }
 
     CKS.name = key;
     var bars = CHARTS[key];
+    CKS.bars = bars;
+    /* A new series opens on its chart. The table is a thing you ask
+       for, and asking is one click. */
+    ckMenuOpen = false;
+    ckToggleTable(false);
 
     document.getElementById("ckName").textContent = key;
     var last = bars[bars.length - 1], prev = bars[bars.length - 2];
@@ -6112,6 +6185,76 @@ table.ledger { min-width: 800px; }
     });
   }
 
+  /* Four columns are wanted by everyone and the fifth differs by person,
+     so the rest are opt-in. A moving average is computed here rather than
+     stored: it is a function of the closes already in hand, and storing it
+     would mean storing one column per window anybody ever asks for. */
+  var CK_COLS = [
+    { k: "t",     label: "Date",      base: true,  lft: true },
+    { k: "o",     label: "Open",      base: true },
+    { k: "h",     label: "High",      base: true },
+    { k: "l",     label: "Low",       base: true },
+    { k: "c",     label: "Close",     base: true,  bold: true },
+    { k: "chg",   label: "Chg",       tone: true },
+    { k: "chgp",  label: "Chg %",     tone: true, pct: true },
+    { k: "range", label: "Day range" },
+    { k: "v",     label: "Volume" },
+    { k: "to",    label: "Turnover" },
+    { k: "ema20", label: "EMA 20" },
+    { k: "ema40", label: "EMA 40" },
+    { k: "sma50", label: "SMA 50" }
+  ];
+
+  var ckCols = { chg: true, chgp: true };   /* which optional ones are on */
+  var ckMenuOpen = false;
+
+  function ckActive() {
+    return CK_COLS.filter(function (c) { return c.base || ckCols[c.k]; });
+  }
+
+  /* Averages need the bars before the window as well as the bars shown, so
+     they are computed over the whole series and read by date. Computing
+     them over the visible slice would make a 20-day average change every
+     time the range button moved, which is the classic version of this bug. */
+  function ckDerive(bars) {
+    var by = {}, ema20 = null, ema40 = null;
+    var k20 = 2 / 21, k40 = 2 / 41;
+    for (var i = 0; i < bars.length; i++) {
+      var b = bars[i], c = b.c;
+      if (c == null) { by[b.t] = {}; continue; }
+      ema20 = ema20 == null ? c : c * k20 + ema20 * (1 - k20);
+      ema40 = ema40 == null ? c : c * k40 + ema40 * (1 - k40);
+      var sma50 = null;
+      if (i >= 49) {
+        var s = 0, ok = true;
+        for (var j = i - 49; j <= i; j++) {
+          if (bars[j].c == null) { ok = false; break; }
+          s += bars[j].c;
+        }
+        if (ok) sma50 = s / 50;
+      }
+      var prev = i > 0 ? bars[i - 1].c : null;
+      by[b.t] = {
+        ema20: ema20, ema40: ema40, sma50: sma50,
+        chg: prev == null ? null : c - prev,
+        chgp: prev ? (c - prev) / prev * 100 : null,
+        range: b.h != null && b.l != null ? b.h - b.l : null
+      };
+    }
+    return by;
+  }
+
+  function ckCell(b, d, col) {
+    if (col.k === "t") return b.t;
+    if (col.k === "v") return b.v ? n0(b.v / 1e5) + "L" : null;
+    if (col.k === "to") return b.to ? n2(b.to / 1e7) : null;
+    var v = col.k in d ? d[col.k] : b[col.k];
+    if (v == null) return null;
+    if (col.pct) return sgn(v, 2) + "%";
+    if (col.tone) return sgn(v, 2);
+    return n2(v);
+  }
+
   /* The chart answers "what shape"; the table answers "what happened on
      the eleventh". Both are wanted, and a chart alone sends you looking
      for the numbers somewhere else. */
@@ -6119,40 +6262,139 @@ table.ledger { min-width: 800px; }
     var el = document.getElementById("ckTable");
     if (!el) return;
     if (!bars || !bars.length) { el.innerHTML = ""; return; }
+    CKS.bars = bars;
 
-    var use = (CKS.range > 0 ? bars.slice(-CKS.range) : bars).slice().reverse();
-    var rows = use.map(function (b, i) {
-      var prev = use[i + 1];
-      var chg = prev && b.c != null && prev.c != null ? b.c - prev.c : null;
-      var chgP = chg != null && prev.c ? chg / prev.c * 100 : null;
-      var rng = b.h != null && b.l != null ? b.h - b.l : null;
-      return "<tr><td class=\"lft\">" + b.t + "</td>" +
-        "<td>" + (b.o == null ? "\u2014" : n2(b.o)) + "</td>" +
-        "<td>" + (b.h == null ? "\u2014" : n2(b.h)) + "</td>" +
-        "<td>" + (b.l == null ? "\u2014" : n2(b.l)) + "</td>" +
-        "<td><b>" + (b.c == null ? "\u2014" : n2(b.c)) + "</b></td>" +
-        '<td class="' + cls(chg) + '">' +
-          (chg == null ? "\u2014" : sgn(chg, 2)) + "</td>" +
-        '<td class="' + cls(chgP) + '">' +
-          (chgP == null ? "\u2014" : sgn(chgP, 2) + "%") + "</td>" +
-        "<td>" + (rng == null ? "\u2014" : n2(rng)) + "</td>" +
-        "<td>" + (b.v ? n0(b.v / 1e5) + "L" : "\u2014") + "</td>" +
-        "<td>" + (b.to ? n2(b.to / 1e7) : "\u2014") + "</td></tr>";
+    var derived = ckDerive(bars);
+    var use = barsForRange(bars).slice().reverse();
+    var cols = ckActive();
+
+    var head = cols.map(function (c) {
+      return "<th" + (c.lft ? ' class="lft"' : "") + ">" + c.label + "</th>";
+    }).join("");
+
+    var body = use.map(function (b) {
+      var d = derived[b.t] || {};
+      return "<tr>" + cols.map(function (c) {
+        var txt = ckCell(b, d, c);
+        var klass = c.lft ? "lft" : c.tone ? cls(d[c.k]) : "";
+        return "<td" + (klass ? ' class="' + klass + '"' : "") + ">" +
+          (txt == null ? "\u2014" : c.bold ? "<b>" + txt + "</b>" : txt) +
+          "</td>";
+      }).join("") + "</tr>";
     }).join("");
 
     el.innerHTML =
-      '<div class="ck-tbl-hd">Daily sessions<span>' + use.length +
-        " shown \u00b7 newest first \u00b7 turnover in \u20b9 crore</span></div>" +
-      '<div class="tablewrap"><table class="dt"><thead><tr>' +
-      '<th class="lft">Date</th><th>Open</th><th>High</th><th>Low</th>' +
-      "<th>Close</th><th>Chg</th><th>Chg %</th><th>Day range</th>" +
-      "<th>Volume</th><th>Turnover</th></tr></thead><tbody>" +
-      rows + "</tbody></table></div>";
+      '<div class="ck-tbl-bar">' +
+        '<span class="ck-tbl-name">' + esc(CKS.name || "") + "</span>" +
+        '<button class="ck-tbl-btn" type="button" data-ckcopy="1">Copy</button>' +
+        '<button class="ck-tbl-btn" type="button" data-ckdl="1">Download</button>' +
+        '<span class="ck-cols">' +
+          '<button class="ck-tbl-btn" type="button" data-ckcols="1" ' +
+            'aria-expanded="' + ckMenuOpen + '">+ Additional columns</button>' +
+          '<span class="ck-colmenu"' + (ckMenuOpen ? "" : " hidden") + ">" +
+            CK_COLS.filter(function (c) { return !c.base; }).map(function (c) {
+              var on = !!ckCols[c.k];
+              return '<button class="ck-col" type="button" data-ckcol="' + c.k +
+                '" aria-pressed="' + on + '"><span class="tick">' +
+                (on ? "\u2713" : "") + "</span>" + c.label + "</button>";
+            }).join("") +
+          "</span>" +
+        "</span>" +
+        '<span class="ck-tbl-n">' + use.length + " sessions \u00b7 newest first" +
+          (ckCols.to ? " \u00b7 turnover in \u20b9 crore" : "") + "</span>" +
+        '<button class="xbtn" type="button" data-cktbl="close" ' +
+          'aria-label="Close data table">&times;</button>' +
+      "</div>" +
+      '<table class="dt"><thead><tr>' + head + "</tr></thead><tbody>" +
+      body + "</tbody></table>";
     decorateTerms(el);
   }
 
+  /* Tab-separated, so it lands in a spreadsheet as columns rather than as
+     one long string in the first cell. */
+  function ckTableText() {
+    var bars = CKS.bars || [];
+    if (!bars.length) return "";
+    var derived = ckDerive(bars), cols = ckActive();
+    var lines = [cols.map(function (c) { return c.label; }).join("\t")];
+    barsForRange(bars).slice().reverse().forEach(function (b) {
+      var d = derived[b.t] || {};
+      lines.push(cols.map(function (c) {
+        var raw = c.k === "t" ? b.t
+          : c.k in d ? d[c.k]
+          : b[c.k];
+        return raw == null ? "" : typeof raw === "number" ? raw.toFixed(2) : raw;
+      }).join("\t"));
+    });
+    return lines.join("\n");
+  }
+
+  function ckFlash(sel, word) {
+    var b = document.querySelector(sel);
+    if (!b) return;
+    var was = b.textContent;
+    b.textContent = word;
+    b.classList.add("done");
+    setTimeout(function () {
+      b.textContent = was;
+      b.classList.remove("done");
+    }, 1400);
+  }
+
+  function ckCopy() {
+    var text = ckTableText();
+    if (!text) return;
+    var done = function () { ckFlash("[data-ckcopy]", "Copied"); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, ckCopyFallback);
+      return;
+    }
+    ckCopyFallback();
+
+    /* file:// and plain http have no clipboard API, and the desk is opened
+       both ways. The old selection trick still works in both. */
+    function ckCopyFallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.cssText = "position:fixed;top:-1000px;opacity:0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) { /* nothing to offer */ }
+      document.body.removeChild(ta);
+    }
+  }
+
+  function ckDownload() {
+    var text = ckTableText();
+    if (!text) return;
+    var csv = text.split("\n").map(function (line) {
+      return line.split("\t").map(function (cell) {
+        return /[",\n]/.test(cell) ? '"' + cell.replace(/"/g, '""') + '"' : cell;
+      }).join(",");
+    }).join("\n");
+    var url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = (CKS.name || "series").replace(/[^\w.-]+/g, "_") + "-daily.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    ckFlash("[data-ckdl]", "Saved");
+  }
+
+  function ckToggleTable(force) {
+    var el = document.getElementById("ckTable");
+    var btn = document.getElementById("ckTblBtn");
+    var show = force == null ? el.hidden : force;
+    el.hidden = !show;
+    if (btn) btn.setAttribute("aria-pressed", String(show));
+    if (show && CKS.bars) renderCkTable(CKS.bars);
+  }
+
   function applyRange(bars) {
-    var use = CKS.range > 0 ? bars.slice(-CKS.range) : bars;
+    var use = barsForRange(bars);
+    CKS.bars = bars;
     CKS.candles.setData(use.map(function (b) {
       return { time: b.t, open: b.o, high: b.h, low: b.l, close: b.c };
     }).filter(function (b) {
@@ -6165,7 +6407,7 @@ table.ledger { min-width: 800px; }
     CKS.chart.timeScale().fitContent();
     var el = document.getElementById("ckChart");
     CKS.chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
-    renderCkTable(bars);
+    if (!document.getElementById("ckTable").hidden) renderCkTable(bars);
   }
 
   function closeChart() {
@@ -6581,6 +6823,30 @@ table.ledger { min-width: 800px; }
 
     /* Before the label handler: the whole row is the control, and the
        cells inside it carry labels of their own. */
+    /* The data table and its buttons. Checked before the label handler:
+       these are controls, not figures. */
+    var tblBtn = e.target.closest("[data-cktbl]");
+    if (tblBtn) {
+      ckToggleTable(tblBtn.getAttribute("data-cktbl") === "close" ? false : null);
+      return;
+    }
+    if (e.target.closest("[data-ckcopy]")) { ckCopy(); return; }
+    if (e.target.closest("[data-ckdl]")) { ckDownload(); return; }
+    if (e.target.closest("[data-ckcols]")) {
+      ckMenuOpen = !ckMenuOpen;
+      if (CKS.bars) renderCkTable(CKS.bars);
+      return;
+    }
+    var col = e.target.closest("[data-ckcol]");
+    if (col) {
+      var k = col.getAttribute("data-ckcol");
+      ckCols[k] = !ckCols[k];
+      /* The menu stays open: choosing columns one dialog at a time is its
+         own annoyance. */
+      if (CKS.bars) renderCkTable(CKS.bars);
+      return;
+    }
+
     var stk = e.target.closest("[data-stock]");
     if (stk) { openStock(stk.getAttribute("data-stock")); return; }
 
