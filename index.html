@@ -197,6 +197,49 @@ body {
   font-family: var(--font-num); font-size: 9.5px; color: var(--ink-3); letter-spacing: .06em;
 }
 
+/* ---------- collapsing rail ---------- */
+.shell[data-rail="collapsed"] { grid-template-columns: 46px minmax(0,1fr); }
+.shell { transition: grid-template-columns .22s ease; }
+@media (prefers-reduced-motion: reduce) { .shell { transition: none; } }
+
+.rail { overflow: hidden; }
+.rail-top { display: flex; align-items: flex-start; gap: 8px; padding: 0 18px; }
+.rail-top .brand { padding: 0; min-width: 0; }
+.rail-tog {
+  margin-left: auto; width: 26px; height: 26px; flex: none;
+  display: grid; place-items: center; cursor: pointer;
+  border-radius: 4px; border: 1px solid var(--line);
+  background: var(--surface-2); color: var(--ink-2);
+  font: inherit; font-size: 12px; line-height: 1;
+}
+.rail-tog:hover { color: var(--calls); border-color: var(--calls); }
+.rail-tog:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
+
+/* The mark is the label when there is no room for the label. */
+.rail-mono {
+  display: none; font-family: var(--font-num); font-size: 9.5px;
+  font-weight: 600; letter-spacing: .04em; color: var(--ink-3);
+}
+.rail-item[aria-current="true"] .rail-mono { color: var(--calls); }
+
+.shell[data-rail="collapsed"] .rail-top { padding: 0; justify-content: center; }
+.shell[data-rail="collapsed"] .rail-top .brand { display: none; }
+.shell[data-rail="collapsed"] .rail-tog { margin: 0; }
+.shell[data-rail="collapsed"] .rail-label,
+.shell[data-rail="collapsed"] .rail-foot,
+.shell[data-rail="collapsed"] .rail-item .tag,
+.shell[data-rail="collapsed"] .rail-item .spark,
+.shell[data-rail="collapsed"] .rail-item .rail-txt { display: none; }
+.shell[data-rail="collapsed"] .rail-mono { display: block; }
+.shell[data-rail="collapsed"] .rail-item {
+  justify-content: center; padding: 7px 0;
+}
+/* A hairline where a group heading used to be, so the three groups stay
+   distinguishable once their names are gone. */
+.shell[data-rail="collapsed"] .rail-group + .rail-group {
+  border-top: 1px solid var(--line-soft); padding-top: 10px;
+}
+
 /* ---------- topbar ---------- */
 .main { min-width: 0; display: flex; flex-direction: column; }
 
@@ -1283,11 +1326,16 @@ table.ledger { min-width: 800px; }
   <span class="age" id="freshAge"></span>
 </div>
 
-<div class="shell">
+<div class="shell" id="shell" data-rail="open">
   <nav class="rail">
-    <div class="brand">
-      <b>Options Desk</b>
-      <span>NSE &middot; EOD</span>
+    <div class="rail-top">
+      <div class="brand">
+        <b>Options Desk</b>
+        <span>NSE &middot; EOD</span>
+      </div>
+      <button class="rail-tog" id="railTog" type="button"
+              aria-controls="shell" aria-expanded="true"
+              aria-label="Collapse the sidebar">&#9776;</button>
     </div>
 
     <div class="rail-group">
@@ -1302,7 +1350,9 @@ table.ledger { min-width: 800px; }
 
     <div class="rail-group">
       <div class="rail-label">Reference</div>
-      <button class="rail-item" data-view="learning" id="railLearn">Learning</button>
+      <button class="rail-item" data-view="learning" id="railLearn"
+              title="Learning"><span class="rail-txt">Learning</span>
+        <span class="rail-mono">LN</span></button>
     </div>
 
     <div class="rail-foot">v0.2.0 &middot; local</div>
@@ -1619,6 +1669,80 @@ table.ledger { min-width: 800px; }
   /* ==========================================================
      5. RENDER &mdash; chrome
      ========================================================== */
+
+  /* ---------- the rail ---------- */
+  /* Two letters, because at 46px a label is not an option and an invented
+     icon set would be worse than initials a trader can learn in a day. */
+  var RAIL_MARK = {
+    overview: "OV", strategy: "DS", model: "MD", watchlist: "WL",
+    stocks: "50", chain: "OC", technicals: "TF", history: "HI",
+    learning: "LN"
+  };
+
+  function railMark(key, label) {
+    var m = RAIL_MARK[key];
+    if (m) return m;
+    /* An index, or a view added later: initials from the label, digits
+       kept, so NIFTY 50 reads N50 rather than NI. */
+    var t = String(label).replace(/&[a-z]+;/g, " ").trim();
+    var num = t.match(/\d+/);
+    var alpha = t.replace(/[^A-Za-z ]/g, "").trim().split(/\s+/);
+    return (alpha[0] || "?").charAt(0).toUpperCase() +
+      (num ? num[0] : (alpha[1] || alpha[0] || "").charAt(1) || "").toString()
+        .toUpperCase();
+  }
+
+  /* The candlestick chart is the one thing on the page that does not
+     reflow: it measures its container when it draws and keeps that number.
+     Everything else is grid and flex and looks after itself. */
+  function resizeChart() {
+    if (!CKS || !CKS.chart) return;
+    var el = document.getElementById("ckChart");
+    if (!el || !el.clientWidth) return;
+    CKS.chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+  }
+
+  var RAIL_KEY = "desk.rail";
+
+  function railCollapsed() {
+    return document.getElementById("shell")
+      .getAttribute("data-rail") === "collapsed";
+  }
+
+  function setRail(collapsed, remember) {
+    var shell = document.getElementById("shell");
+    shell.setAttribute("data-rail", collapsed ? "collapsed" : "open");
+    var b = document.getElementById("railTog");
+    if (b) {
+      b.setAttribute("aria-expanded", String(!collapsed));
+      b.setAttribute("title", (collapsed ? "Expand" : "Collapse") +
+                              " the sidebar  [");
+      b.innerHTML = collapsed ? "&#9654;" : "&#9776;";
+    }
+    if (remember) {
+      /* Storage is unavailable in private windows on some browsers, and a
+         layout preference is not worth an exception. */
+      try { localStorage.setItem(RAIL_KEY, collapsed ? "1" : "0"); }
+      catch (e) { /* the choice simply will not persist */ }
+    }
+    /* The chart measures its container when it draws and keeps the old
+       width otherwise, so it is told again once the column has finished
+       moving. Anything else on the page reflows on its own. */
+    setTimeout(resizeChart, 240);
+  }
+
+  function toggleRail() { setRail(!railCollapsed(), true); }
+
+  function initRail() {
+    var saved = null;
+    try { saved = localStorage.getItem(RAIL_KEY); } catch (e) { saved = null; }
+    /* Below the layout's own breakpoint the width matters more than the
+       labels do, so a first visit there starts folded. */
+    var narrow = window.matchMedia
+      ? window.matchMedia("(max-width: 860px)").matches : false;
+    setRail(saved == null ? narrow : saved === "1", false);
+  }
+
   function renderChrome() {
     document.getElementById("idxTabs").innerHTML = INDICES.map(function (c) {
       return '<button class="idx-tab" role="tab" data-idx="' + c.key + '" aria-selected="' +
@@ -1632,7 +1756,9 @@ table.ledger { min-width: 800px; }
 
     document.getElementById("railAnalysis").innerHTML = VIEWS.map(function (v) {
       return '<button class="rail-item" data-view="' + v.key + '" aria-current="' +
-        (v.key === state.view) + '">' + v.label + "</button>";
+        (v.key === state.view) + '" title="' + esc(v.label.replace(/&amp;/g, "&")) +
+        '"><span class="rail-txt">' + v.label + "</span>" +
+        '<span class="rail-mono">' + railMark(v.key, v.label) + "</span></button>";
     }).join("");
 
     var rl = document.getElementById("railLearn");
@@ -1640,8 +1766,10 @@ table.ledger { min-width: 800px; }
 
     document.getElementById("railIndices").innerHTML = INDICES.map(function (c) {
       var m = MODEL[c.key], chg = (c.spot - c.prevClose) / c.prevClose * 100;
-      return '<button class="rail-item" data-idx="' + c.key + '" aria-current="' + (c.key === state.idx) + '">' +
-        "<span>" + esc(c.label) + "</span>" +
+      return '<button class="rail-item" data-idx="' + c.key + '" aria-current="' +
+        (c.key === state.idx) + '" title="' + esc(c.label) + '">' +
+        '<span class="rail-txt">' + esc(c.label) + "</span>" +
+        '<span class="rail-mono">' + railMark(c.key, c.label) + "</span>" +
         '<span class="spark ' + cls(chg) + '" data-chart="' + esc(c.label) +
           '" title="chart">' + sgn(chg, 2) + "%</span></button>";
     }).join("");
@@ -8455,7 +8583,13 @@ table.ledger { min-width: 800px; }
   document.getElementById("ckScrim").addEventListener("click", closeChart);
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") { closeDrawer(); closeChart(); }
+    if (e.key === "[" && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+      e.preventDefault();
+      toggleRail();
+    }
   });
+
+  document.getElementById("railTog").addEventListener("click", toggleRail);
 
   document.getElementById("themeBtn").addEventListener("click", function () {
     var root = document.documentElement, cur = root.getAttribute("data-theme");
@@ -8463,6 +8597,7 @@ table.ledger { min-width: 800px; }
     root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
   });
 
+  initRail();
   boot();
 })();
 </script>
