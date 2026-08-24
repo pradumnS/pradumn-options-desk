@@ -3787,7 +3787,8 @@ table.ledger { min-width: 800px; }
               : '<span class="pill go">liquid</span>') + "</td></tr>";
       }).join("");
 
-      return '<section class="card"><div class="card-hd"><h2>' + esc(g.symbol) + " futures</h2>" +
+      return '<section class="card"><div class="card-hd"><h2>' +
+        esc(g.label || g.symbol) + " futures</h2>" +
         '<span class="sub">underlying ' + n2(g.spot) + "</span>" +
         '<div class="right"><span class="kpi-m">basis and annualised carry</span></div></div>' +
         '<div class="tablewrap"><table class="dt"><thead><tr>' +
