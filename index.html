@@ -649,6 +649,43 @@ h2.has-term:hover { color: var(--calls); }
 .verdict-call.has-term:hover, .verdict-eyebrow.has-term:hover,
 .conf-val.has-term:hover { color: var(--calls); }
 
+.pt-why { margin: 7px 0 0; padding-left: 17px; }
+.pt-why li { margin-bottom: 6px; }
+.pt-why li:last-child { margin-bottom: 0; }
+.pt-why li::marker { color: var(--ink-3); }
+
+.pt-arrow { color: var(--calls); font-weight: 700; margin-right: 3px; }
+
+.pt-lv {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 4px 0; border-bottom: 1px solid var(--line-soft);
+}
+.pt-lv:last-child { border-bottom: 0; }
+.pt-lv-d { font-size: 8px; line-height: 1; }
+.pt-lv:nth-child(1) .pt-lv-d { color: var(--down); }
+.pt-lv:nth-child(2) .pt-lv-d { color: var(--up); }
+.pt-lv:nth-child(3) .pt-lv-d { color: var(--maxpain); }
+.pt-lv-n { min-width: 74px; color: var(--ink-2); }
+.pt-lv-v { font-family: var(--font-num); font-size: 14px; }
+.pt-lv-m { margin-left: auto; font-size: 10.5px; color: var(--ink-3); }
+
+.pt-if { display: flex; gap: 8px; padding: 3px 0; align-items: baseline; }
+.pt-if-a { color: var(--ink-3); width: 12px; flex: none; }
+
+.pt-more {
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.pt-more > summary {
+  cursor: pointer; list-style: none; font-size: 10px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+}
+.pt-more > summary::-webkit-details-marker { display: none; }
+.pt-more > summary::after { content: " \25be"; }
+.pt-more[open] > summary::after { content: " \25b4"; }
+.pt-more > summary:hover { color: var(--calls); }
+.pt-more p { margin: 9px 0 0; color: var(--ink-2); }
+
 .pt-rk.has-term, .si-k.has-term, .lg-k.has-term, .ohlc-k.has-term,
 td.has-term, h2.has-term, .bandrow-k.has-term,
 th.has-term, .k.has-term, .qk.has-term, .tcell-k.has-term,
@@ -4690,6 +4727,77 @@ table.ledger { min-width: 800px; }
      simply renders as it always did, so nothing breaks by omission.
      --------------------------------------------------------------- */
   var TERMS = {
+    "The positioning read": {
+      deep: "The positioning read",
+      how: function (m) {
+        var spot = m.cfg.spot, out = [];
+        var li = function (txt) { return "<li>" + txt + "</li>"; };
+
+        if (m.callWall) {
+          out.push(li("<b>Call writers are heaviest at " + n0(m.callWall) +
+            "</b>, " + n0(Math.abs(m.callWall - spot)) + " points " +
+            (m.callWall >= spot ? "above" : "below") + " spot. That is " +
+            "where they begin to lose, so it acts as resistance."));
+        }
+        if (m.putWall) {
+          out.push(li("<b>Put support is concentrated at " + n0(m.putWall) +
+            "</b>, " + n0(Math.abs(spot - m.putWall)) + " points " +
+            (m.putWall <= spot ? "below" : "above") + " spot &mdash; the " +
+            "level the downside has to break first."));
+        }
+        if (m.pcr) {
+          out.push(li("<b>PCR is " + n2(m.pcr) + "</b>, " + (
+            m.pcr < 0.8 ? "meaning the call side is the crowded one and the " +
+              "pressure sits above the market"
+            : m.pcr > 1.2 ? "meaning the put side is the crowded one and the " +
+              "support underneath is the heavier commitment"
+            : "close to balance, so the ratio is not arguing either way " +
+              "on its own") + "."));
+        }
+        if (m.maxPain) {
+          var gap = Math.round(spot - m.maxPain);
+          out.push(li("<b>Max pain sits at " + n0(m.maxPain) + "</b>, " +
+            (Math.abs(gap) < 25
+              ? "which spot is already sitting on &mdash; no pull either way"
+              : "so the theoretical pull into expiry is " +
+                (gap > 0 ? "lower" : "higher") + ", by " +
+                n0(Math.abs(gap)) + " points") +
+            ". Graded at a coin flip on this desk, so it is context only."));
+        }
+        if (m.cfg.vix) {
+          out.push(li("<b>India VIX is " + n2(m.cfg.vix) + "</b>" +
+            (m.cfg.vixChg == null ? "" : ", " + sgn(m.cfg.vixChg, 2) + "% on " +
+              "the session") + " &mdash; " + (
+              (m.cfg.vixChg || 0) > 1
+                ? "rising, so larger moves are being priced and every short " +
+                  "strike is carrying more risk than yesterday"
+                : (m.cfg.vixChg || 0) < -1
+                ? "falling, so the market is pricing calmer sessions and " +
+                  "premium is thinning with it"
+                : "steady, so the range assumptions are not being " +
+                  "repriced") + "."));
+        }
+
+        /* vrp carries the pair as numbers. realisedVol is a dictionary
+           keyed by lookback window, so it is truthy and divides to NaN. */
+        var vrp = (m.an || {}).vrp;
+        if (vrp && typeof vrp.ratio === "number" && typeof vrp.rv === "number") {
+          var ratio = vrp.ratio;
+          out.push(li("<b>Implied is " + n2(ratio) + "&times; realised</b> " +
+            "(" + n2(vrp.iv) + "% against " + n2(vrp.rv) + "%), " +
+            (ratio >= 1.10
+              ? "so selling is being paid for the risk it takes"
+              : ratio < 0.95
+              ? "so selling is <b>not</b> being paid &mdash; the reason to " +
+                "stand aside rather than to size down"
+              : "which is close to fair; the edge here is thin") + "."));
+        }
+
+        if (!out.length) return "";
+        return "The reading is what these agree on, not any one of them:" +
+          "<ul class=\"pt-why\">" + out.join("") + "</ul>";
+      }
+    },
     "IV-implied": {
       deep: "IV-implied band",
       how: function (m) {
@@ -5582,6 +5690,7 @@ table.ledger { min-width: 800px; }
   /* Labels that are a term with today's number glued on, or a shape rather
      than a name. Checked only after an exact match has failed. */
   var TERM_PATTERN = [
+    [/^no trade\b/i, "Why the desk stands aside"],
     [/^option-chain/i, "Retry ladder"],
     [/^\w[\w-]* \u00b7 try \d+$/i, "Retry ladder"],
     [/^[\u00b1+\-]\s*[\d,.]+\s*(pts?|points?)$/i, "How a range is built"],
@@ -5653,6 +5762,904 @@ table.ledger { min-width: 800px; }
 
   /* Panel for a labelled figure. Reuses the chart-point panel so the desk
      has one detail surface rather than two that drift apart. */
+
+  /* Plain-language openers. Two sentences: what the thing is, and what it
+     does to a position. Written per term because a sentence generated from
+     a methodology paragraph reads like a methodology paragraph. */
+  var PLAIN = {
+    "Expiry range claim": [
+      "A claim, made on the day, that the index settles inside a " +
+      "stated range at expiry. The one-sigma version should be right " +
+      "about 68% of the time; the two-sigma version about 95%.",
+      "This is the claim a premium seller actually lives on &mdash; " +
+      "every short strangle is a bet that settlement lands inside a " +
+      "range. Read the hit rate against the promise, not against 100%: " +
+      "running above it means the bands are wider than they need to be " +
+      "and premium is being left for somebody else. Running below it " +
+      "means they are too narrow, which is the direction that costs " +
+      "money."
+    ],
+    "Next-session range claim": [
+      "The same claim over one session instead of to expiry: " +
+      "tomorrow's close lands inside a band scaled from today's " +
+      "implied volatility.",
+      "It is useful precisely because it is boring. Everything to " +
+      "expiry resolves weekly, so it takes months to gather enough of " +
+      "them to test; this resolves every day. It is what catches the " +
+      "bands drifting out of calibration long before the expiry claims " +
+      "have the sample size to notice."
+    ],
+    "Wall holds claim": [
+      "A claim that the index will not close beyond the strike " +
+      "carrying the heaviest open interest &mdash; the call wall " +
+      "above, the put wall below.",
+      "The strongest claim this desk makes, and the only one resting " +
+      "on where money is actually committed rather than on a model. " +
+      "The asymmetry is the useful part: the call wall holds " +
+      "materially more often than the put wall, which is what you " +
+      "would expect in a market that falls faster than it rises. The " +
+      "wall below gets tested in exactly the sessions where everything " +
+      "moves at once."
+    ],
+    "Short strike holds claim": [
+      "A claim that a specific strike the desk proposed selling would " +
+      "not have been breached. Lodged only on sessions where a trade " +
+      "actually passed the filters, so it is graded over fewer " +
+      "sessions than the rest.",
+      "This is the claim closest to money. The range claims describe " +
+      "the market; this one describes the position, including the " +
+      "strike choice and the distance from spot the sizing rules " +
+      "settled on. Compare it against the range claim on the same day: " +
+      "a session where the range held but the strike did not is a " +
+      "strike-selection problem, not a volatility problem, and the two " +
+      "are fixed differently."
+    ],
+    "Vol premium call": [
+      "A claim that implied volatility was richer than the volatility " +
+      "that followed &mdash; that selling was being paid.",
+      "It is the gate on whether to sell at all, expressed as " +
+      "something that can be scored. Every other claim is about where " +
+      "the market goes; this one is about whether the price for taking " +
+      "that risk was fair. A hit rate near 60% is what a genuine but " +
+      "modest edge looks like. If it fell to a coin flip the honest " +
+      "conclusion would be that the desk cannot tell rich from cheap, " +
+      "and should stop selling until it can."
+    ],
+    "Directional stance": [
+      "A claim about which way the index closes next session, made " +
+      "only when the positioning read is strong enough to state one.",
+      "It is published because it is expected to fail. Writing down a " +
+      "directional call and grading it is the only way to keep an " +
+      "honest count of how little anyone knows about direction. This " +
+      "sitting at a coin flip is the single most useful number on the " +
+      "page: it is the standing evidence that the range claims, which " +
+      "do work, should never be quietly converted into a directional " +
+      "bet."
+    ],
+    "Max pain pull claim": [
+      "A claim that the index drifts toward the strike where the most " +
+      "option value would expire worthless.",
+      "Widely repeated folklore, lodged here as a claim precisely " +
+      "because an untested belief costs nothing to hold and a great " +
+      "deal to act on. Graded at roughly a coin flip across the whole " +
+      "record. That is the answer, and it is why nothing here is ever " +
+      "sized on max pain &mdash; it stays on the page as context and " +
+      "as a standing counterexample."
+    ],
+    "Which claims hold up": [
+      "The desk's full record, one row per kind of assertion, each " +
+      "graded separately against what actually happened.",
+      "This is the table that decides what to trust, and the spread " +
+      "from top to bottom is the finding. Structural claims about " +
+      "where open interest sits hold in the nineties; directional " +
+      "claims sit at chance. A single daily verdict would hide all of " +
+      "that &mdash; a session can call the range perfectly and still " +
+      "lose the short strike, and graded apart these say what to fix " +
+      "rather than only that something was wrong. Anything sized on " +
+      "this desk comes from the top of this table."
+    ],
+    "Brier score": [
+      "The average squared distance between a stated probability and " +
+      "what happened. Zero is perfect; 0.25 is what you get by saying " +
+      "50% to everything.",
+      "It punishes confident wrongness far more than cautious " +
+      "wrongness, which is the right way round. A model that says 90% " +
+      "and is wrong is penalised more than one that said 60% and was " +
+      "wrong &mdash; so it cannot be gamed by hedging every number " +
+      "toward the middle, and it cannot be gamed by sounding certain."
+    ],
+    "Calibration (ECE)": [
+      "Whether a stated confidence means what it says: of all the " +
+      "times the desk said 70%, did roughly 70% happen?",
+      "A model can be accurate and still badly calibrated, and for a " +
+      "seller calibration is the half that matters. Position size is " +
+      "chosen from the stated probability, so a desk that says 80% " +
+      "when it means 65% will size every trade too large in exactly " +
+      "the same direction, forever, without a single number on the " +
+      "page looking wrong."
+    ],
+    "Coverage and the Kupiec test": [
+      "Whether the bands are breached at the rate they promised, and " +
+      "whether any gap is larger than luck would explain.",
+      "A one-sigma band should be broken on about a third of sessions. " +
+      "Being broken far less often is not a good result &mdash; it " +
+      "means the range is wider than it needs to be and premium is " +
+      "going to somebody else. The test is what separates a real " +
+      "miscalibration from a run of quiet weeks, which at these sample " +
+      "sizes look identical without it."
+    ],
+    "Band factor": [
+      "A multiplier applied to the model's raw range, fitted from the " +
+      "desk's own hit rate rather than chosen.",
+      "It is the model being corrected by its own record instead of by " +
+      "whatever would have made yesterday look better. A factor " +
+      "drifting steadily away from 1 is worth reading as a warning: it " +
+      "means the underlying volatility estimate is systematically " +
+      "wrong and the haircut is quietly carrying the whole " +
+      "calculation."
+    ],
+    "What the record says so far": [
+      "The accumulated verdict across every session stored &mdash; " +
+      "what has been claimed, what resolved, and what that says about " +
+      "which parts of the model to believe.",
+      "It is the antidote to remembering selectively. A desk that only " +
+      "recalls the weeks it was right will size confidently into the " +
+      "ones it is wrong about, and the record is the only thing that " +
+      "argues back. Read it before changing anything, not after."
+    ],
+    "Recommended structure": [
+      "The trade the filters actually permit &mdash; or the explicit " +
+      "statement that none do. Strikes must clear liquidity, distance " +
+      "from spot and a minimum return on margin before anything is " +
+      "proposed.",
+      "'None' is a result, not a failure. A seller's returns are made " +
+      "far more by the cycles sat out than by the cycles traded well: " +
+      "the loss on one badly priced strangle undoes weeks of collected " +
+      "premium. When it does propose something, the size is bounded by " +
+      "the smallest of four constraints, never an average of them."
+    ],
+    "Why the desk stands aside": [
+      "The reason no trade was proposed. Illiquid means the strikes " +
+      "cannot be traded at the quoted prices. Thin premium means the " +
+      "credit does not pay for the risk. Too close means the short " +
+      "strike sits inside the expected range. Marginal means it passed " +
+      "every rule by too little to be worth the margin. Needs history " +
+      "means the figure has too few sessions behind it to be ranked.",
+      "This is the most important thing on the card on a bad day. " +
+      "Standing aside is a decision, and the record has to hold it " +
+      "&mdash; a desk that only logs the days it traded will flatter " +
+      "itself, because the days it refused are exactly the ones it " +
+      "would have lost on."
+    ],
+    "Model stack": [
+      "The named methods this desk runs, in the order the output " +
+      "depends on them: per-strike implied volatility, the density " +
+      "extracted from the chain, a skew correction, Black-Scholes for " +
+      "probability, a volatility cross-check, and the calibration " +
+      "haircut applied last.",
+      "It exists so that every number here can be traced to a " +
+      "published method rather than to an unexplained adjustment. The " +
+      "haircut at the end is the important one: it is fitted from the " +
+      "desk's own hit rate, which means the model is corrected by its " +
+      "record rather than by judgement."
+    ],
+    "Fetch pipeline": [
+      "What ran, in order, to produce the numbers on this page, and " +
+      "whether each step succeeded, was skipped, or is still waiting.",
+      "A dashboard that cannot say where its data came from is one you " +
+      "cannot check. Read it when a figure surprises you: a skipped " +
+      "step or a stale date explains far more surprises than a real " +
+      "market move does. The most expensive error this desk ever made " +
+      "was a close stored from an intraday tick, and it looked " +
+      "completely normal on screen."
+    ],
+    "Option chain fetch": [
+      "The live chain pulled from the exchange for the front expiry: " +
+      "every strike, both sides, with price, open interest, change in " +
+      "open interest, volume and implied volatility.",
+      "Nearly everything on the desk is computed from this one " +
+      "response, which is why it runs first and why a failure stops " +
+      "the session rather than degrading it quietly. The endpoint " +
+      "returns an empty payload rather than an error if you ask for an " +
+      "expiry that does not exist, so the strike count beside it is " +
+      "the real check."
+    ],
+    "Retry ladder": [
+      "The same fetch attempted three times through the evening. A " +
+      "step marked skipped means the session it would have fetched is " +
+      "already stored &mdash; not that it failed.",
+      "The exchange publishes settled figures after the close and does " +
+      "not publish them all at once, so a single attempt at a fixed " +
+      "time will eventually catch a session mid-publication and store " +
+      "something half-finished. Skipped on every rung is the healthy " +
+      "state: the first run of the day already got clean data."
+    ],
+    "History depth": [
+      "How many sessions are stored, against how many the desk " +
+      "considers a usable window.",
+      "It is the honesty gauge on every ranked figure. An implied " +
+      "volatility rank computed over thirty sessions carries no " +
+      "information, and the desk withholds those rather than showing a " +
+      "confident-looking number. Watch it when a percentile appears " +
+      "that was withheld yesterday &mdash; it did not become reliable " +
+      "overnight, it crossed a threshold."
+    ],
+    "Store": [
+      "The database holding every session the desk has fetched: " +
+      "chains, index history, positioning, archives and the claims " +
+      "ledger.",
+      "Everything on the page is recomputed from it rather than " +
+      "remembered, which is what makes a claim from four months ago " +
+      "gradeable today against the numbers as they actually were. Size " +
+      "growing steadily is the signal that sessions are landing; a " +
+      "flat figure across trading days means the fetch is skipping for " +
+      "a reason other than the one it reports."
+    ],
+    "Delivery percentage": [
+      "The share of a stock's traded volume that ended in an actual " +
+      "transfer of shares rather than being squared off the same day.",
+      "It separates conviction from churn. Two sessions with identical " +
+      "volume mean different things if one settled 70% into delivery " +
+      "and the other 25% &mdash; the first moved ownership, the second " +
+      "moved paper. Most useful on a large move in a heavy " +
+      "constituent: a rally on thin delivery is usually positioning " +
+      "that has to be unwound."
+    ],
+    "Index Price/Earnings": [
+      "The index level divided by the trailing earnings of its " +
+      "members, published by the exchange each evening and ranked here " +
+      "against every session stored.",
+      "It is the slowest thing on the desk and the only one that says " +
+      "anything about value. Options price the next few weeks; this " +
+      "prices the next few years, and the two disagree far more often " +
+      "than not. It matters at the extremes and almost nowhere else " +
+      "&mdash; a reading in its top decile says nothing about " +
+      "tomorrow, but it does say what a shock would have to unwind if " +
+      "one arrives."
+    ],
+    "Weight": [
+      "A constituent's share of the index. The exchange publishes the " +
+      "membership list but not the weights, so these are recovered by " +
+      "fitting daily index moves against the fifty constituent moves.",
+      "It is what converts a stock's percentage move into index " +
+      "points. Without it you cannot tell whether a session was driven " +
+      "by something that matters or something loud: two per cent in a " +
+      "0.3% weight is noise, and the same move in the largest holding " +
+      "is a third of the day."
+    ],
+    "Index points": [
+      "How many points a single constituent contributed to the index " +
+      "move &mdash; its price change multiplied by its recovered " +
+      "weight.",
+      "This is the column that separates a real move from a loud one, " +
+      "and the reason the weight recovery was worth building. The desk " +
+      "withholds it when the attribution does not reconcile with the " +
+      "actual index move: on a near-flat session the names cancel and " +
+      "a share of the move stops being a meaningful quantity."
+    ],
+    "Realised volatility (RV)": [
+      "How much the market actually moved, measured from past prices. " +
+      "Implied volatility is what the market charges; this is what it " +
+      "delivered.",
+      "It is the bill against which the premium is judged. Selling " +
+      "only works when implied has been running above realised, and " +
+      "realised is the half of that comparison nobody can argue with " +
+      "because it already happened."
+    ],
+    "Why five RV estimators": [
+      "Close-to-close only sees where the market finished. Parkinson " +
+      "uses the high and low, Garman-Klass and Rogers-Satchell add the " +
+      "open, and Yang-Zhang handles the overnight gap. Five ways of " +
+      "asking how violent a session was.",
+      "They disagree in a useful way. A day that closed flat after a " +
+      "violent range reads as calm on close-to-close and violent on " +
+      "the others, and it is the others that are right about the risk " +
+      "a short strike was carrying. Where the five spread out, the " +
+      "market is moving intraday in a way the closing price is hiding."
+    ],
+    "Variance risk premium": [
+      "The gap between what the market charges for volatility and what " +
+      "volatility turns out to cost. It is usually positive.",
+      "That positive gap is the seller's entire business, and it is " +
+      "not free money &mdash; it is payment for holding the risk that " +
+      "occasionally arrives all at once. The premium exists precisely " +
+      "because most people do not want that risk. When it narrows " +
+      "toward zero the payment has stopped compensating for the tail, " +
+      "which is the signal to stand aside rather than to work harder."
+    ],
+    "HAR-RV forecast": [
+      "A forecast of coming volatility built from three horizons at " +
+      "once &mdash; yesterday, the last week and the last month " +
+      "&mdash; each given its own weight.",
+      "It exists because volatility clusters at more than one speed: a " +
+      "shock decays over days, and the level it decays toward moves " +
+      "over months. Using it instead of implied volatility to judge a " +
+      "trade matters more than it sounds &mdash; valuing an option " +
+      "against the same implied volatility it was priced from makes " +
+      "every trade look exactly fair by construction."
+    ],
+    "IV rank vs IV percentile": [
+      "Rank is where today sits between the lowest and highest implied " +
+      "volatility of the past year. Percentile is the share of days " +
+      "that were lower than today.",
+      "They answer different questions and can disagree sharply. One " +
+      "panic spike sets the top of the range for a year, so rank can " +
+      "read low while percentile reads high &mdash; meaning today is " +
+      "calm relative to one extreme day but rich relative to almost " +
+      "every ordinary one. Percentile is the more honest of the two " +
+      "for sizing."
+    ],
+    "Variance ratio": [
+      "Whether moves over several sessions add up to more or less than " +
+      "the same number of single sessions would. Around 1 the market " +
+      "is behaving like a random walk.",
+      "Above 1 means moves extend, and a range-selling position is " +
+      "fighting the market's own tendency. Below 1 means moves " +
+      "reverse, which is the condition a premium seller wants. It says " +
+      "nothing about direction, only about whether a range is likely " +
+      "to hold."
+    ],
+    "Why POP understates risk": [
+      "The probability of profit comes from a model that assumes moves " +
+      "are well behaved and roughly lognormal. Real Indian sessions " +
+      "gap on budget days, results and global shocks in a way that " +
+      "model does not allow for.",
+      "So the real chance of the rare, large loss is worse than the " +
+      "number says &mdash; and worse in the direction that costs " +
+      "money. An 85% POP trade is not one that loses 15% of the time " +
+      "in an orderly way; it wins small and often and then loses large " +
+      "and rarely, and that asymmetry is the whole risk of selling " +
+      "options. The desk applies a calibration haircut fitted from its " +
+      "own record for exactly this reason."
+    ],
+    "Risk-neutral density": [
+      "The full distribution of where the market thinks the index " +
+      "might finish, extracted from option prices across every strike " +
+      "rather than assumed.",
+      "A single volatility number forces the market's view into a " +
+      "symmetric bell shape. This does not: it shows the skew and the " +
+      "fat tail as the market has actually priced them, which is " +
+      "usually a longer tail downward than upward. The desk checks it " +
+      "against the forward before trusting it, and withholds it when " +
+      "the two disagree."
+    ],
+    "Cornish-Fisher": [
+      "A correction that reshapes a normal-distribution band using the " +
+      "actual skew and fat-tailedness of returns.",
+      "It moves the downside edge further out and leaves the upside " +
+      "roughly where it was, because that is what negative skew means: " +
+      "the market falls faster than it rises. For a seller that is the " +
+      "difference between a put strike that looked safe under a " +
+      "symmetric assumption and one that genuinely is."
+    ],
+    "25&Delta; risk reversal and butterfly": [
+      "The risk reversal is the price difference between a 25-delta " +
+      "call and a 25-delta put &mdash; which wing the market is paying " +
+      "up for. The butterfly is how expensive both wings are relative " +
+      "to the middle.",
+      "Together they describe the shape of fear. A negative risk " +
+      "reversal means downside protection is bid, which is the normal " +
+      "state and tells a put seller they are being paid more for a " +
+      "reason. A rising butterfly means both tails are being bid at " +
+      "once &mdash; the market is pricing a large move without " +
+      "committing to a direction."
+    ],
+    "Forward and basis": [
+      "The forward is where the market prices the index for a future " +
+      "date. The basis is the gap between that and spot.",
+      "Options are priced off the forward, not off spot, so a strike " +
+      "that looks a certain distance away on the screen is a slightly " +
+      "different distance in the model. It also acts as a check: when " +
+      "the density extracted from the chain does not average to the " +
+      "forward, something in the chain is stale and the desk withholds " +
+      "the figures built on it."
+    ],
+    "Straddle expected move": [
+      "The cost of buying the at-the-money call and put together, read " +
+      "as the move the market is charging for by expiry.",
+      "It is the market's own answer in points rather than percent, " +
+      "and it is the fastest sanity check on a strangle. If the " +
+      "straddle says the market expects 170 points and your short " +
+      "strikes sit 120 points out, the trade is being paid for a range " +
+      "narrower than the market itself is pricing."
+    ],
+    "VaR and expected shortfall": [
+      "Value at risk is the loss a bad day exceeds only rarely. " +
+      "Expected shortfall is the average loss on the days that do " +
+      "exceed it.",
+      "The second is the one that matters to a seller, and the one " +
+      "almost nobody quotes. VaR tells you where the bad days begin; " +
+      "expected shortfall tells you how bad they get once you are in " +
+      "them, and for short options those two numbers are very far " +
+      "apart."
+    ],
+    "GARCH(1,1)": [
+      "A volatility model in which today's variance blends a long-run " +
+      "average, yesterday's forecast and yesterday's actual move.",
+      "It captures the one thing everybody agrees volatility does: " +
+      "cluster. It is run here as a cross-check on the main forecast, " +
+      "not as the forecast. When the two disagree materially the " +
+      "honest reading is that the volatility path is genuinely " +
+      "uncertain and the band should be widened &mdash; not that one " +
+      "of them should be picked because it is more convenient."
+    ],
+    "IV-implied band": [
+      "The range implied by the at-the-money volatility alone: spot " +
+      "times volatility, scaled by the square root of the sessions " +
+      "remaining.",
+      "It is the market's own number and the only one of the five that " +
+      "uses no history at all. It assumes moves are symmetric, which " +
+      "they are not, so when it sits wider than the skew-corrected " +
+      "band the difference is the market's asymmetry being ignored " +
+      "rather than a real disagreement."
+    ],
+    "Bootstrap band": [
+      "A range built by resampling the desk's own history in blocks of " +
+      "five consecutive sessions, twenty thousand times, and reading " +
+      "the percentiles off the result. No formula, no assumed " +
+      "distribution.",
+      "It is usually the widest of the five, and that is the point. " +
+      "When the four model-based bands agree closely and this one sits " +
+      "well outside them, the models are agreeing with each other " +
+      "rather than with what the market has actually done &mdash; " +
+      "which is the moment to trust the history over the mathematics."
+    ],
+    "One-sigma range, five ways": [
+      "The same question &mdash; how far might this move &mdash; " +
+      "answered by five methods that share almost no assumptions " +
+      "between them.",
+      "Agreement is the signal. Five independent routes landing on the " +
+      "same range is evidence; one method producing a number is an " +
+      "opinion, and a single band drawn on a screen is exactly that. " +
+      "When they fan out, the honest response is a smaller position " +
+      "rather than picking whichever one says what you want."
+    ],
+    "Directional probability": [
+      "The chance of finishing above, below or inside the expected " +
+      "range at expiry, read off current option pricing rather than " +
+      "forecast.",
+      "For a seller the middle number is the trade: it is the " +
+      "probability the range holds and the position expires worthless " +
+      "in your favour. All three come from the market's own " +
+      "volatility, so if that is wrong they are all wrong together, in " +
+      "the same direction, at the same moment."
+    ],
+    "Z-score of the move": [
+      "The move that happened, divided by the move the model expected. " +
+      "A Z of 1.0 means the market did exactly what one sigma allowed; " +
+      "2.5 means two and a half times that.",
+      "Watch the distribution rather than any single day. If roughly a " +
+      "third of sessions exceed Z = 1 the bands are honest. If far " +
+      "fewer do, the desk is selling ranges wider than it needs to and " +
+      "leaving premium on the table for somebody else."
+    ],
+    "Trading-day basis": [
+      "A note that a figure is scaled by trading sessions rather than " +
+      "calendar days. A weekend adds two days to the calendar and " +
+      "nothing to the number of sessions in which price can move.",
+      "It changes the width of every range, and it matters most across " +
+      "a long weekend or an exchange holiday &mdash; which is exactly " +
+      "when a seller is deciding whether to carry a position through. " +
+      "Options decay on the calendar and risk accrues on sessions, and " +
+      "the gap between those two clocks is where holiday premium " +
+      "lives."
+    ],
+    "Classic pivots": [
+      "Support and resistance levels computed from yesterday's high, " +
+      "low and close. No open interest, no volatility &mdash; three " +
+      "prices and some arithmetic.",
+      "Their entire claim to work is that enough people watch them. " +
+      "Treat them as crowd coordinates rather than evidence: where a " +
+      "pivot happens to coincide with an open-interest wall the level " +
+      "is worth respecting, but it is the wall doing the work, because " +
+      "that is where money is committed rather than merely where a " +
+      "formula landed."
+    ],
+    "Market breadth": [
+      "How many of the fifty constituents rose and how many fell, and " +
+      "how many sit above their own 50-session average.",
+      "The index is a weighted average, so it can rise while most of " +
+      "its members fall. Breadth is the check on that. It is also " +
+      "where the single statistically robust finding in the desk's own " +
+      "study lives: in a calm market, unusually broad participation " +
+      "was followed by weaker sessions rather than stronger ones."
+    ],
+    "Spot": [
+      "The index level itself &mdash; where NIFTY is trading right " +
+      "now. Every strike, every band and every probability on this " +
+      "desk is measured from it.",
+      "It is the reference point, not a signal. What matters is not " +
+      "the number but where it sits relative to the walls and the " +
+      "expected range: the same 24,250 is a comfortable place to be " +
+      "short strangles in one week and an uncomfortable one in the " +
+      "next."
+    ],
+    "Strike": [
+      "The price at which an option can be exercised. Index options " +
+      "are listed in fixed steps &mdash; 50 points on NIFTY &mdash; so " +
+      "the strikes are a ladder around the current level.",
+      "Choosing the strike is most of the trade. Further from spot " +
+      "means a higher chance of expiring worthless and less premium " +
+      "collected; closer means more premium and a real chance of being " +
+      "tested. The desk's filters exist to stop that choice being made " +
+      "by whichever strike happens to look richest on the screen."
+    ],
+    "CE and PE": [
+      "CE is a call &mdash; the right to buy at the strike. PE is a " +
+      "put &mdash; the right to sell at it. Every contract has a buyer " +
+      "who paid and a writer who was paid.",
+      "As a seller you are on the writer's side of both. Short calls " +
+      "lose when the market rises through your strike; short puts lose " +
+      "when it falls through yours. The two are not symmetric in " +
+      "practice: markets fall faster than they rise, so the put side " +
+      "is where the damage usually arrives."
+    ],
+    "ATM, ITM, OTM": [
+      "At the money is the strike nearest spot. In the money is a " +
+      "strike already worth exercising; out of the money is one that " +
+      "is not.",
+      "Sellers work out of the money, because that is where the entire " +
+      "premium is time value and can decay to nothing. The closer a " +
+      "short strike sits to at the money, the more it pays and the " +
+      "faster it turns into a real loss when the market moves &mdash; " +
+      "that trade-off is the whole of strike selection."
+    ],
+    "Expiry": [
+      "The date a contract settles. NIFTY options expire weekly, and " +
+      "the front expiry is the one this desk trades.",
+      "Time is what a seller sells, so how much of it remains changes " +
+      "the position completely. The same strike with six sessions left " +
+      "and with one left are different trades: decay is fastest at the " +
+      "end, and so is the risk per rupee collected. The desk closes " +
+      "before expiry day for exactly that reason."
+    ],
+    "Lot size": [
+      "The number of index units in one contract. NIFTY trades in " +
+      "lots, so a position is always a whole number of them.",
+      "It sets the smallest bet you can make, and therefore the " +
+      "coarseness of every sizing decision. When the sizing rules say " +
+      "1.4 lots, the answer is one, not two."
+    ],
+    "LTP and premium": [
+      "The last traded price of a contract &mdash; what the option " +
+      "itself costs. As a seller it is what lands in your account when " +
+      "you write it.",
+      "Premium is not profit. It is payment for accepting a defined " +
+      "risk for a defined time, and it is only worth taking when the " +
+      "risk has historically cost less than the payment. That " +
+      "comparison is the IV/RV ratio, and the premium number on its " +
+      "own says nothing about whether the trade is good."
+    ],
+    "Open interest (OI)": [
+      "The number of contracts currently open at a strike &mdash; " +
+      "positions that have been taken and not yet closed. Unlike " +
+      "volume, which resets daily, it accumulates.",
+      "It is the only figure on the chain that shows where money is " +
+      "actually committed rather than where it passed through. Heavy " +
+      "open interest at a strike means people have taken a position " +
+      "they must defend, which is why the heaviest strikes behave as " +
+      "walls."
+    ],
+    "Change in OI": [
+      "How much open interest at a strike grew or shrank over the " +
+      "session. Positive means positions were opened; negative means " +
+      "they were closed.",
+      "This is where the chain becomes a story rather than a snapshot. " +
+      "Read with the price move it says whether a level is being built " +
+      "or abandoned &mdash; and a wall that is dissolving looks " +
+      "exactly like a wall that is holding if you only read the total."
+    ],
+    "Sigma (&sigma;)": [
+      "One standard deviation &mdash; the natural unit for how far a " +
+      "market moves. Roughly two sessions in three land inside one " +
+      "sigma, and about nineteen in twenty inside two.",
+      "It makes days comparable. Ninety points is enormous in a quiet " +
+      "week and unremarkable in a frightened one; expressed in sigma " +
+      "both become the same number, which is the only way to tell a " +
+      "genuine surprise from a large-looking one."
+    ],
+    "How a range is built": [
+      "Spot, multiplied by the implied volatility, scaled by the " +
+      "square root of the time remaining &mdash; in trading sessions, " +
+      "not calendar days.",
+      "It is the band every short strangle is really betting on. The " +
+      "trading-day detail is not pedantry: scaling a four-session " +
+      "expiry by calendar days instead gives a band about eighteen per " +
+      "cent wider, which is the difference between a strike that " +
+      "clears the filters and one that does not."
+    ],
+    "Delta": [
+      "How much an option's price moves for a one-point move in the " +
+      "index. It also reads, roughly, as the chance of finishing in " +
+      "the money: a 0.20 delta call is about a one-in-five chance.",
+      "For a seller it is the fastest read on how exposed a strike is. " +
+      "Selling at 0.15 delta and at 0.30 delta are different " +
+      "businesses &mdash; roughly twice the premium and roughly twice " +
+      "the chance of being tested. It also moves against you as the " +
+      "market approaches your strike, so the position gets riskier " +
+      "precisely when it starts going wrong."
+    ],
+    "Breakeven": [
+      "The index level at which a position stops making money. For a " +
+      "short call it is the strike plus the premium collected; for a " +
+      "short put, the strike minus it.",
+      "It is further away than the strike, which is what makes selling " +
+      "work &mdash; the market can move through your strike and you " +
+      "still come out level. It is also why premium collected matters " +
+      "beyond the profit: every rupee of it pushes the breakeven " +
+      "further out and buys real room. On a strangle there are two, " +
+      "and the distance between them is the trade."
+    ],
+    "Credit and margin": [
+      "Credit is the premium received for writing. Margin is the " +
+      "capital the exchange blocks against the risk of that position " +
+      "until it is closed.",
+      "The credit is what you earn and the margin is what you tie up, " +
+      "so neither means anything alone. Two trades paying the same " +
+      "credit against different margin are not the same trade, which " +
+      "is why every strike on this desk is judged on return on margin " +
+      "rather than on the premium it pays."
+    ],
+    "ROM (return on margin)": [
+      "Credit divided by the margin blocked, for the life of the " +
+      "trade.",
+      "It is the only number that makes strikes comparable. A far " +
+      "strike paying a small credit against small margin can beat a " +
+      "near strike paying more against much more, and the screen shows " +
+      "you the premium rather than the ratio. The desk requires a " +
+      "minimum ROM before it proposes anything, and reports 'no trade' " +
+      "rather than lowering it."
+    ],
+    "Iron condor / short strangle": [
+      "A strangle is a short call above the market and a short put " +
+      "below it, collecting both premiums and winning if the index " +
+      "stays between them. A condor is the same trade with a bought " +
+      "wing outside each short strike.",
+      "The strangle pays more and its loss is unbounded. The condor " +
+      "pays less and its worst case is a known number you can decide " +
+      "to accept in advance. That difference is not a preference " +
+      "&mdash; it is whether one bad session can end the account or " +
+      "merely cost a bad month."
+    ],
+    "Why a wing (defined risk)": [
+      "The bought option outside a short strike, which caps what the " +
+      "position can lose.",
+      "It costs part of the credit and it is worth it. A naked short " +
+      "strike has no worst case: a gap through it on a budget day or a " +
+      "global shock keeps costing until you can trade out, and there " +
+      "is no level at which it stops on its own. The wing converts " +
+      "that into a number you have chosen. The premium given up is the " +
+      "price of knowing the number in advance, and it is the cheapest " +
+      "thing a seller ever buys."
+    ],
+    "Moving average": [
+      "The mean closing price over a fixed number of past sessions " +
+      "&mdash; 20, 50 or 200 &mdash; recomputed each evening from " +
+      "settled closes.",
+      "It is a slow reference line, and its value is mostly that " +
+      "everyone watches it. The number itself matters less than how " +
+      "many constituents sit on each side of their own, which is the " +
+      "breadth reading and the only place a statistically robust " +
+      "finding turned up in the desk's own study."
+    ],
+    "RSI (14)": [
+      "Average gain divided by average loss over fourteen sessions, " +
+      "mapped onto a 0-100 scale. Above 70 is the conventional " +
+      "overbought reading; below 30, oversold.",
+      "Those thresholds are folklore rather than evidence &mdash; an " +
+      "index can sit above 70 for weeks in a trend. It is shown " +
+      "because it is widely watched and therefore occasionally " +
+      "self-fulfilling, and it is treated as context. Nothing in the " +
+      "claims ledger rests on it."
+    ],
+    "Previous close": [
+      "The contract's settlement price at the end of the prior " +
+      "session, published by the exchange. Not its last trade &mdash; " +
+      "a thin contract can print a stale last trade, so settlement is " +
+      "computed from a closing window instead.",
+      "Every change figure on the drawer is measured from it, and " +
+      "margin was calculated against it overnight. When a change looks " +
+      "implausible on an illiquid strike, it is usually this that is " +
+      "wrong rather than the option having moved."
+    ],
+    "Bid / Ask": [
+      "The best price someone will currently pay, and the best price " +
+      "someone will currently accept. The gap between them is the " +
+      "spread.",
+      "It is the difference between the price on the screen and the " +
+      "price you get, paid once on entry and again on exit. Far " +
+      "strikes show attractive credit and spreads wide enough to eat " +
+      "all of it, which is what the 'illiquid' verdict is refusing " +
+      "&mdash; a model that ignores the spread will always prefer " +
+      "exactly the trades that cannot be filled."
+    ],
+    "Lookback window": [
+      "How many past sessions a statistic is computed over: 10 days, " +
+      "21 for about a month, 63 for about a quarter.",
+      "The window is a choice, and it is usually the choice that " +
+      "decides the answer. Short is responsive and noisy, long is " +
+      "stable and late. Where the windows disagree the market is " +
+      "changing regime &mdash; ten-day volatility well above the " +
+      "sixty-three-day figure means something started recently, which " +
+      "is when a seller should be widening strikes rather than " +
+      "reaching for the premium it created."
+    ],
+    "NIFTY 50": [
+      "India's benchmark: fifty large companies weighted by free-float " +
+      "market capitalisation. This desk trades its options.",
+      "It is a weighted average, not a market, and it can rise while " +
+      "most of its members fall. That is why breadth and per-name " +
+      "contribution sit beside the level &mdash; a move carried by two " +
+      "heavy names is a different situation from the same move carried " +
+      "by forty."
+    ],
+    "The positioning read": [
+      "The desk's one-line call on where the market is leaning right now, " +
+      "read from where option writers have actually committed money rather " +
+      "than from what anyone is saying. Writers are the ones with capital " +
+      "at risk at a specific price, so where they have built is where the " +
+      "market has agreed, for now, that it does not expect to go.",
+      "It sets the bias for the session and nothing more. It is not a " +
+      "forecast and it carries no target &mdash; it is a reading of who is " +
+      "positioned where, and it changes the moment they move. For a seller " +
+      "the useful part is not the direction but the edges it implies: the " +
+      "strikes that would have to break before the reading is wrong."
+    ],
+    "PCR (put-call ratio)": [
+      "Put open interest divided by call open interest. Above 1 there are " +
+      "more puts on the board than calls; below 1, more calls. Every " +
+      "contract has a writer and a buyer, so this is equally 'put writers " +
+      "against call writers' and 'put buyers against call buyers' &mdash; " +
+      "which is exactly why it cannot tell you who moved first.",
+      "Below about 0.8 the call side is crowded, which usually means " +
+      "resistance overhead. Above about 1.2 the put side is crowded, which " +
+      "usually means support underneath. Treat those as context, not as a " +
+      "trigger: graded across the desk's own record, PCR on its own is a " +
+      "coin flip for direction, and it is never lodged as a claim."
+    ],
+    "OI walls": [
+      "The two strikes carrying the most open interest &mdash; the heaviest " +
+      "call above the market and the heaviest put below it.",
+      "Writers defend those strikes because that is where their losses " +
+      "begin, so they behave as the practical edges of the expected range. " +
+      "This is the strongest structural claim the desk makes: the call " +
+      "wall has held on 92.9% of graded sessions and the put wall on 80.0%. " +
+      "The asymmetry is real and worth remembering &mdash; the wall below " +
+      "gets tested in exactly the sessions where everything moves at once."
+    ],
+    "Max pain": [
+      "The strike where the largest amount of option value would expire " +
+      "worthless &mdash; the point of maximum loss for everyone holding " +
+      "options, and therefore maximum gain for everyone who wrote them.",
+      "The theory is that price drifts toward it as expiry approaches. The " +
+      "desk lodges that as a claim and grades it, and across the full " +
+      "record it comes out at roughly a coin flip. It stays on the page as " +
+      "context and as a standing reminder that a widely repeated idea is " +
+      "not the same as a tested one. Nothing here is ever sized on it."
+    ],
+    "India VIX": [
+      "The market's own estimate of how much the index will move over the " +
+      "next month, quoted as an annualised percentage.",
+      "Rising VIX means bigger moves are being priced: wider ranges, richer " +
+      "premium, and more risk inside every short strike. The trap is that " +
+      "the premium rises first and looks like an opportunity &mdash; a high " +
+      "VIX is the market paying you more because it expects to hurt you " +
+      "more, and whether that trade is worth taking is what the IV/RV " +
+      "ratio answers, not the VIX level on its own."
+    ],
+    "Implied volatility (IV)": [
+      "The volatility an option's price implies, once everything else in " +
+      "the pricing formula is known. It is not a measurement of anything " +
+      "that has happened; it is the number that makes the maths agree with " +
+      "the price people are actually paying.",
+      "It is what a seller is selling. High IV means you are paid more per " +
+      "unit of risk taken &mdash; it does not mean you are paid enough, " +
+      "and the difference between those two is the entire job."
+    ],
+    "IV / RV &mdash; the seller&rsquo;s edge": [
+      "What the market is charging for risk, divided by what that risk has " +
+      "actually been costing. Above 1 the market is charging more than " +
+      "recent history says it should; below 1, less.",
+      "This is the one gate on whether to sell at all. Above about 1.10 " +
+      "selling is being paid for the risk it takes. Below 0.95 it is not, " +
+      "and the correct response is to stand aside rather than to size down " +
+      "&mdash; a smaller position in a badly priced trade is still a badly " +
+      "priced trade. The desk's own record shows the sessions that broke " +
+      "their range were disproportionately the ones entered on a thin ratio."
+    ],
+    "POP (probability of profit)": [
+      "The chance a position expires profitable, computed from current " +
+      "option pricing rather than forecast.",
+      "A high number here is not safety, and reading it as safety is the " +
+      "most expensive mistake available to a premium seller. An 85% POP " +
+      "trade does not lose 15% of the time in a tidy way &mdash; it wins " +
+      "small, repeatedly, and then loses large, rarely. The model behind " +
+      "it also assumes moves are well-behaved, and real gaps on budget " +
+      "days, results and global shocks are fatter than it allows for. So " +
+      "the true tail is worse than the number says, in the direction that " +
+      "costs money."
+    ],
+    "Confidence": [
+      "How much of the evidence points the same way &mdash; not how likely " +
+      "the call is to be right. Each input votes, and this is the weighted " +
+      "share agreeing with the stated read.",
+      "Read it as position size rather than as certainty. Sixty per cent " +
+      "means the evidence leans but does not insist, which argues for the " +
+      "smaller of two clip sizes rather than for standing aside. Whether " +
+      "these numbers have earned their confidence is a separate question, " +
+      "and the claims ledger is where it is answered."
+    ],
+    "Build-up (the four quadrants)": [
+      "Price and open interest moving together or apart, which tells you " +
+      "whether positions are being opened or closed. Price up with OI up is " +
+      "long build-up; price down with OI up is short build-up; price up " +
+      "with OI down is short covering; price down with OI down is long " +
+      "unwinding.",
+      "The distinction that matters to a seller is between a wall forming " +
+      "and a wall dissolving. New shorts building above the market is " +
+      "resistance being created by people who have paid to defend it. " +
+      "Shorts covering at the same strike is that resistance going away, " +
+      "and the price level looks identical on a chart in both cases."
+    ],
+    "Claims": [
+      "Every assertion the desk makes, written down on the day it is made " +
+      "and scored when it resolves. Ranges, walls, short strikes, the " +
+      "volatility call and the directional stance are each graded " +
+      "separately rather than as one daily verdict.",
+      "It is the only reason to trust any other number on this desk. A " +
+      "claim that has never been graded is an opinion, however well it is " +
+      "presented. Graded apart, they also say what to fix: a session can " +
+      "call the range perfectly and still lose the short strike, and those " +
+      "are two different problems with two different answers."
+    ]
+  };
+
+  /* Levels are the session's own, not the term's. Shown only for readings
+     the levels actually decide -- inventing a support line for a term that
+     has none is worse than showing none. */
+  var LEVEL_TERMS = {
+    "The positioning read": 1, "OI walls": 1, "Max pain": 1,
+    "PCR (put-call ratio)": 1, "Confidence": 1, "How a range is built": 1,
+    "Expiry range claim": 1, "Next-session range claim": 1,
+    "Wall holds claim": 1, "Short strike holds claim": 1
+  };
+
+  function ckLevelBlock(m) {
+    if (!m || !m.callWall || !m.putWall) return "";
+    var spot = m.cfg.spot;
+    var row = function (dot, name, v, note) {
+      return '<div class="pt-lv"><span class="pt-lv-d">' + dot + "</span>" +
+        '<span class="pt-lv-n">' + name + "</span>" +
+        '<b class="pt-lv-v">' + n0(v) + "</b>" +
+        '<span class="pt-lv-m">' + note + "</span></div>";
+    };
+    var away = function (v) {
+      var d = Math.round(Math.abs(v - spot));
+      return d + " pts " + (v > spot ? "above" : v < spot ? "below" : "from") +
+        " spot";
+    };
+    return row("\u25cf", "Resistance", m.callWall, away(m.callWall)) +
+      row("\u25cf", "Support", m.putWall, away(m.putWall)) +
+      row("\u25cf", "Max pain", m.maxPain, away(m.maxPain));
+  }
+
+  /* If-then lines, built from this session's own levels. The point is the
+     one thing a reading has to say and usually does not: what would have
+     to happen for it to stop being true. */
+  function ckConclusion(m) {
+    if (!m || !m.callWall || !m.putWall) return "";
+    var line = function (arrow, cond, then) {
+      return '<div class="pt-if"><span class="pt-if-a">' + arrow + "</span>" +
+        "<b>" + cond + "</b> &rarr; " + then + "</div>";
+    };
+    return line("\u2192", "Between " + n0(m.putWall) + " and " + n0(m.callWall),
+                "the range holds and premium selling is the trade.") +
+      line("\u2193", "Below " + n0(m.putWall),
+           "downside momentum can strengthen; short puts are the ones at risk.") +
+      line("\u2191", "Above " + n0(m.callWall),
+           "the range view weakens; short calls are the ones at risk.");
+  }
+
   function showTerm(label, value, m) {
     var key = termKey(label) || label;
     var t = TERMS[key];
@@ -5665,11 +6672,31 @@ table.ledger { min-width: 800px; }
     var how = "";
     try { how = t.how ? t.how(m) : ""; } catch (e) { how = ""; }
 
+    var plain = PLAIN[key] || [];
+    var deepKey = t ? t.deep : key;
+    var wantLevels = LEVEL_TERMS[key] || LEVEL_TERMS[deepKey];
+
+    /* A trader's order: what it is, what it does to a position, why the
+       desk says it, which levels decide it, and when it stops being true.
+       The methodology follows, because it is what makes this checkable --
+       but it is no longer the first thing on screen. */
     var rows = [];
-    if (how) rows.push(["How this figure is built", how]);
-    if (d[0]) rows.push(["What it really is", d[0]]);
-    if (d[1]) rows.push(["What it changes", d[1]]);
-    if (d[2]) rows.push(["When it matters, and when it is noise", d[2]]);
+    rows.push(["What it means", plain[0] || d[0] || ""]);
+    if (plain[1] || d[1]) {
+      rows.push(["Impact", '<span class="pt-arrow">&rarr;</span> ' +
+                 (plain[1] || d[1])]);
+    }
+    if (how) rows.push(["Why?", how]);
+
+    var levels = wantLevels ? ckLevelBlock(m) : "";
+    if (levels) rows.push(["Key levels", levels]);
+    var concl = wantLevels ? ckConclusion(m) : "";
+    if (concl) rows.push(["Simple conclusion", concl]);
+
+    var more = [];
+    if (plain.length && d[0]) more.push(d[0]);
+    if (d[1] && (plain.length || how)) more.push(d[1]);
+    if (d[2]) more.push(d[2]);
 
     var el = document.getElementById("ptPanel");
     if (!el) return;
@@ -5678,10 +6705,15 @@ table.ledger { min-width: 800px; }
       '<div class="pt-s">on this desk, right now</div></div>' +
       '<button class="tgl" type="button" data-ptclose="1">Close</button></div>' +
       (value ? '<div class="pt-big">' + value + "</div>" : "") +
-      rows.map(function (kv) {
+      rows.filter(function (kv) { return kv[1]; }).map(function (kv) {
         return '<div class="pt-sec"><span class="pt-sk">' + kv[0] +
                "</span>" + kv[1] + "</div>";
-      }).join("");
+      }).join("") +
+      (more.length
+        ? '<details class="pt-more"><summary>The detail behind it</summary>' +
+          more.map(function (p) { return "<p>" + p + "</p>"; }).join("") +
+          "</details>"
+        : "");
     el.hidden = false;
   }
 
