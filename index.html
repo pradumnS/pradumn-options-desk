@@ -649,6 +649,29 @@ h2.has-term:hover { color: var(--calls); }
 .verdict-call.has-term:hover, .verdict-eyebrow.has-term:hover,
 .conf-val.has-term:hover { color: var(--calls); }
 
+table.pf { border-collapse: collapse; width: 100%; margin: 6px 0 0;
+  font-family: var(--font-num); font-size: 11.5px; }
+table.pf th, table.pf td {
+  padding: 5px 9px; text-align: right; border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+table.pf th {
+  font-size: 9px; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-3);
+  background: var(--surface-2); border-bottom: 1px solid var(--line);
+}
+table.pf th.lft, table.pf td.lft { text-align: left; }
+table.pf tbody tr:last-child td { border-bottom: 0; }
+table.pf td.pf-v { color: var(--ink); font-weight: 600; }
+
+.pf-rule {
+  margin-top: 9px; padding: 8px 11px; border-radius: 4px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  font-family: var(--font-num); font-size: 11.5px; color: var(--ink);
+  letter-spacing: .02em;
+}
+.pf-note { margin: 9px 0 0; font-size: 12.5px; color: var(--ink-2); }
+
 .pt-why { margin: 7px 0 0; padding-left: 17px; }
 .pt-why li { margin-bottom: 6px; }
 .pt-why li:last-child { margin-bottom: 0; }
@@ -1473,6 +1496,81 @@ table.ledger { min-width: 800px; }
     illiquid:     { c: "no",   t: "Illiquid" }
   };
 
+
+  /* The pill carries the row that produced it. Without this the card can
+     only describe the rule; with it the card can prove this strike. */
+
+  /* The gates scale to this chain's own depth -- 5% of the deepest strike
+     and 2% of the busiest -- with an absolute floor underneath. Using the
+     absolute floor alone showed strikes clearing a bar the pipeline had
+     already failed them on. */
+  var MIN_OI_L = 500 / 1e5, MIN_VOL_L = 1000 / 1e5;
+  var LIQ_OI_FRAC = 0.05, LIQ_VOL_FRAC = 0.02;
+
+  function liqFloors(m) {
+    var maxOi = 0, maxVol = 0;
+    (m.rows || []).forEach(function (r) {
+      ["ce", "pe"].forEach(function (l) {
+        var leg = r[l];
+        if (!leg) return;
+        if (leg.oi > maxOi) maxOi = leg.oi;
+        if (leg.vol > maxVol) maxVol = leg.vol;
+      });
+    });
+    return {
+      oi: Math.max(MIN_OI_L, maxOi * LIQ_OI_FRAC),
+      vol: Math.max(MIN_VOL_L, maxVol * LIQ_VOL_FRAC)
+    };
+  }
+
+
+  function maxPainCtx() {
+    return " data-ctx='" + JSON.stringify({ p: "maxpain" }) + "'";
+  }
+
+
+  function verdictPill(x, m) {
+    var f = liqFloors(m);
+    var ctx = {
+      p: "verdict", t: x.verdict.t, k: x.strike, side: x.side,
+      delta: x.delta, pop: x.pop, rom: x.rom, credit: x.credit,
+      creditRs: x.creditRs, margin: x.margin,
+      oi: (x.leg || {}).oi, vol: (x.leg || {}).vol,
+      oiFloor: f.oi, volFloor: f.vol
+    };
+    return '<span class="pill ' + x.verdict.c + '" data-term="' +
+      esc(x.verdict.t) + '" data-ctx=' + "'" + JSON.stringify(ctx) + "'" +
+      ' tabindex="0" role="button">' + x.verdict.t + "</span>";
+  }
+
+  /* A level tile that names a wall carries the side it belongs to, so the
+     card can rank that side rather than guessing from the strike. */
+  function wallCtx(side) {
+    return " data-ctx='" + JSON.stringify({ p: "wall", side: side }) + "'";
+  }
+
+  function dmaCtx(r) {
+    return " data-ctx='" + JSON.stringify({
+      p: "dma", sym: r.symbol, close: r.close, dma50: r.dma50,
+      weightPct: r.weightPct, contribPts: r.contribPts
+    }) + "'";
+  }
+
+  function buildupPill(b, r, side, strike) {
+    var leg = r[side] || {};
+    var ctx = {
+      p: "buildup", k: strike, side: side.toUpperCase(),
+      oi: leg.oi, chgOi: leg.chgOi, ltp: leg.ltp, prevClose: leg.prevClose,
+      chg: leg.chg, chgPct: leg.chgPct, vol: leg.vol, iv: leg.iv
+    };
+    return '<span class="pill ' + b.c + '" data-term="' + esc(b.t) +
+      /* Single-quoted with raw JSON inside, the same shape data-pt uses.
+         Stringifying twice escapes the inner quotes into the attribute,
+         which is not valid markup and parses back to nothing. */
+      '" data-ctx=' + "'" + JSON.stringify(ctx) + "'" +
+      ' tabindex="0" role="button">' + b.t + "</span>";
+  }
+
   function classify(chgPct, chgOi) {
     if (chgOi >= 0 && chgPct >= 0) return { c:"lb", t:"Long build-up" };
     if (chgOi >= 0 && chgPct <  0) return { c:"sb", t:"Short build-up" };
@@ -1774,7 +1872,7 @@ table.ledger { min-width: 800px; }
       var bp = classify(r.pe.chgPct, r.pe.chgOi);
       return '<tr class="clickable' + (r.strike === m.atm ? " atm" : "") +
         '" data-strike="' + r.strike + '">' +
-        '<td class="lft' + c + '"><span class="pill ' + bc.c + '">' + bc.t + "</span></td>" +
+        '<td class="lft' + c + '">' + buildupPill(bc, r, "ce", r.strike) + "</td>" +
         '<td class="' + c + '">' + n2(r.ce.oi) + "</td>" +
         '<td class="' + c + " " + cls(r.ce.chgOi) + '">' + sgn(r.ce.chgOi, 2) + "</td>" +
         '<td class="' + c + '">' + n1(r.ce.vol) + "L</td>" +
@@ -1788,7 +1886,7 @@ table.ledger { min-width: 800px; }
         '<td class="' + p + '">' + n1(r.pe.vol) + "L</td>" +
         '<td class="' + p + " " + cls(r.pe.chgOi) + '">' + sgn(r.pe.chgOi, 2) + "</td>" +
         '<td class="' + p + '">' + n2(r.pe.oi) + "</td>" +
-        '<td class="lft' + p + '"><span class="pill ' + bp.c + '">' + bp.t + "</span></td></tr>";
+        '<td class="lft' + p + '">' + buildupPill(bp, r, "pe", r.strike) + "</td></tr>";
     }).join("");
 
     return chainAnalysis(m) +
@@ -2440,9 +2538,12 @@ table.ledger { min-width: 800px; }
       }).join("") + "</div></section>" +
       '<section class="card"><div class="card-hd"><h2>Option-implied levels</h2>' +
       '<span class="sub">from OI, not price</span></div><div class="levels">' +
-      '<div class="lvl"><div class="lvl-k">Call wall</div><div class="lvl-v" style="color:var(--calls)">' + n0(m.callWall) + "</div></div>" +
-      '<div class="lvl"><div class="lvl-k">Max pain</div><div class="lvl-v" style="color:var(--maxpain)">' + n0(m.maxPain) + "</div></div>" +
-      '<div class="lvl"><div class="lvl-k">Put wall</div><div class="lvl-v" style="color:var(--puts)">' + n0(m.putWall) + "</div></div>" +
+      '<div class="lvl"' + wallCtx("CE") + ' data-term="Call wall">' +
+        '<div class="lvl-k">Call wall</div><div class="lvl-v" style="color:var(--calls)">' + n0(m.callWall) + "</div></div>" +
+      '<div class="lvl"' + maxPainCtx() + ' data-term="Max pain">' +
+        '<div class="lvl-k">Max pain</div><div class="lvl-v" style="color:var(--maxpain)">' + n0(m.maxPain) + "</div></div>" +
+      '<div class="lvl"' + wallCtx("PE") + ' data-term="Put wall">' +
+        '<div class="lvl-k">Put wall</div><div class="lvl-v" style="color:var(--puts)">' + n0(m.putWall) + "</div></div>" +
       '<div class="lvl"><div class="lvl-k">Implied range</div><div class="lvl-v">' + n0(m.putWall) + "&ndash;" + n0(m.callWall) + "</div></div>" +
       "</div></section>" + fundBlock(m) + noteBlock(m);
   }
@@ -2708,7 +2809,7 @@ table.ledger { min-width: 800px; }
         "<td>&#8377;" + n0(x.creditRs) + "</td>" +
         "<td>" + n2(x.rom) + "%</td>" +
         "<td>" + n1(x.leg.oi) + "L</td>" +
-        '<td class="verdict-cell"><span class="pill ' + x.verdict.c + '">' + x.verdict.t + "</span></td></tr>";
+        '<td class="verdict-cell">' + verdictPill(x, m) + "</td></tr>";
     }).join("");
 
     var strikeCard =
@@ -3070,7 +3171,11 @@ table.ledger { min-width: 800px; }
           "<td>" + sgn(r.z, 2) + "</td>" +
           '<td class="lft"><span class="pill ' +
             (r.regime === "random-walk" ? "nx" : r.regime === "trending" ? "go" : "lu") +
-            '">' + r.regime + "</span></td>" +
+            '" data-term="' + esc(r.regime) + '" data-ctx=' + "'" +
+            JSON.stringify({ p: "regime", window: q, vr: r.vr, z: r.z,
+                             regime: r.regime,
+                             rejects: r.rejects_random_walk }) + "'" +
+            ' tabindex="0" role="button">' + r.regime + "</span></td>" +
           '<td class="lft" style="color:var(--ink-3)">' +
             (r.rejects_random_walk ? "rejects random walk" : "consistent with random walk") +
           "</td></tr>";
@@ -4141,7 +4246,8 @@ table.ledger { min-width: 800px; }
         "<td>" + (r.deliveryPct == null ? "\u2014" : n1(r.deliveryPct) + "%") + "</td>" +
         "<td>" + n2(r.vwap) + "</td>" +
         "<td>" + (turn == null ? "\u2014" : n0(turn)) + "</td>" +
-        '<td class="' + (r.aboveDma ? "pos" : "neg") + '">' + n0(r.dma50) + "</td>" +
+        '<td class="' + (r.aboveDma ? "pos" : "neg") + '"' + dmaCtx(r) +
+          ' data-term="50-DMA">' + n0(r.dma50) + "</td>" +
       "</tr>";
     }).join("");
 
@@ -6660,7 +6766,391 @@ table.ledger { min-width: 800px; }
            "the range view weakens; short calls are the ones at risk.");
   }
 
-  function showTerm(label, value, m) {
+
+  /* ==========================================================
+     PROOF -- a card that justifies one instance, not a rule
+     ========================================================== */
+
+  /* Measure, before, after, change, direction. The same shape for every
+     classification, because every classification is a comparison. */
+  function proofTable(rows) {
+    return '<table class="pf"><thead><tr><th class="lft">Measure</th>' +
+      "<th>Before</th><th>Now</th><th>Change</th><th>Reads as</th></tr></thead><tbody>" +
+      rows.map(function (r) {
+        return '<tr><td class="lft">' + r[0] + "</td><td>" + r[1] + "</td><td>" +
+          r[2] + '</td><td class="' + (r[4] || "") + '">' + r[3] +
+          '</td><td class="pf-v">' + r[5] + "</td></tr>";
+      }).join("") + "</tbody></table>";
+  }
+
+  function proofRule(text) { return '<div class="pf-rule">' + text + "</div>"; }
+
+  /* One entry per kind of decision the desk makes. Given the row the
+     decision was made about, each returns the card that justifies it. */
+  var PROVE = {};
+
+  PROVE.buildup = function (c, m) {
+    var spot = m.cfg.spot;
+    var oiBefore = c.oi - c.chgOi;
+    var oiPct = oiBefore ? c.chgOi / oiBefore * 100 : null;
+    var up = c.chgOi >= 0, priceUp = c.chgPct >= 0;
+    var kind = up
+      ? (priceUp ? "Long build-up" : "Short build-up")
+      : (priceUp ? "Short covering" : "Long unwinding");
+    var leg = n0(c.k) + " " + c.side;
+    var moneyness = c.side === "CE"
+      ? (c.k < spot ? "in the money" : c.k > spot ? "out of the money" : "at the money")
+      : (c.k > spot ? "in the money" : c.k < spot ? "out of the money" : "at the money");
+
+    /* What the four cases actually mean, said one at a time. */
+    var MEANS = {
+      "Long build-up": "Fresh buyers took on the <b>" + leg + "</b> today. " +
+        "Both the open position and the price rose together.",
+      "Short build-up": "Fresh writers sold the <b>" + leg + "</b> today. " +
+        "The open position grew while the price fell &mdash; new supply.",
+      "Short covering": "Writers of the <b>" + leg + "</b> bought their " +
+        "positions back today. The open position shrank while the price rose.",
+      "Long unwinding": "Holders of the <b>" + leg + "</b> closed out today " +
+        "and nobody replaced them. Both the open position and the price fell."
+    };
+    var IMPACT = {
+      "Long build-up": "Conviction is being <b>added</b> at this strike. On " +
+        "the call side above spot that is buyers paying for upside, which " +
+        "makes the level a target rather than a barrier.",
+      "Short build-up": "A level is being <b>built and defended</b>. Writers " +
+        "have money at risk here and lose beyond it, which is what turns a " +
+        "strike into resistance or support rather than a line on a chart.",
+      "Short covering": "A level is being <b>dissolved</b>. The writers who " +
+        "were defending this strike have stepped away, so whatever barrier " +
+        "it represented is weaker today than it was yesterday.",
+      "Long unwinding": "This level is being <b>abandoned, not defended</b>. " +
+        "Nobody is taking the other side; the position is simply being closed."
+    };
+
+    var rows = [
+      ["Open interest", n2(oiBefore) + "L", n2(c.oi) + "L",
+       sgn(c.chgOi, 2) + "L" + (oiPct == null ? "" : " (" + sgn(oiPct, 1) + "%)"),
+       cls(c.chgOi), up ? "rising" : "falling"],
+      ["Last price", n2(c.prevClose), n2(c.ltp),
+       sgn(c.chg, 2) + " (" + sgn(c.chgPct, 1) + "%)",
+       cls(c.chgPct), priceUp ? "rising" : "falling"]
+    ];
+
+    /* A classification on a strike nobody traded is noise wearing a label,
+       so the turnover behind it is part of the proof rather than a footnote. */
+    var turn = c.oi ? c.vol / c.oi : null;
+    var quality = c.vol == null ? "" :
+      "Volume was <b>" + n2(c.vol) + "L</b> against an open position of " +
+      n2(c.oi) + "L &mdash; turnover of <b>" +
+      (turn == null ? "&mdash;" : n2(turn) + "&times;") +
+      "</b> the outstanding contracts, so this " +
+      (turn != null && turn >= 1
+        ? "was real activity rather than a stale quote."
+        : turn != null && turn >= 0.2
+        ? "is thin but genuine."
+        : "is a barely-traded strike &mdash; treat the label with caution.");
+
+    /* Where the strike sits changes what the same label means. */
+    var context = "";
+    if (m.callWall && c.k === m.callWall && c.side === "CE") {
+      context = "This leg <b>is the call wall</b> &mdash; the heaviest call " +
+        "on the board, and the top of the expected range.";
+    } else if (m.putWall && c.k === m.putWall && c.side === "PE") {
+      context = "This leg <b>is the put wall</b> &mdash; the heaviest put on " +
+        "the board, and the level the downside has to break first.";
+    } else if (m.callWall && c.k === m.callWall) {
+      /* Same strike, other side. Worth saying, and worth not confusing
+         with the wall itself: a call at the put-wall strike is not the
+         put wall, and the two behave nothing alike. */
+      context = "This is the call leg at the <b>call wall</b> strike, so it " +
+        "is the wall itself only on the other side of the board.";
+    } else if (m.putWall && c.k === m.putWall) {
+      context = "The <b>put wall</b> sits at this strike, but on the put " +
+        "leg. What happens to the calls here does not move that support.";
+    } else if (m.maxPain && c.k === m.maxPain) {
+      context = "This is the <b>max pain</b> strike.";
+    }
+
+    return {
+      title: kind + " \u00b7 " + leg,
+      means: MEANS[kind] + " The strike is " +
+        n0(Math.abs(c.k - spot)) + " points " +
+        (c.k > spot ? "above" : c.k < spot ? "below" : "from") + " spot, so " +
+        "it is <b>" + moneyness + "</b>." + (context ? " " + context : ""),
+      impact: IMPACT[kind],
+      proof: proofTable(rows) +
+        proofRule("OI " + (up ? "up" : "down") + " &amp; price " +
+                  (priceUp ? "up" : "down") + " &rarr; " +
+                  kind.toUpperCase()) +
+        (quality ? '<p class="pf-note">' + quality + "</p>" : ""),
+      caveat: "The rule is a sign test on two numbers, so it cannot tell a " +
+        "large move from a trivial one &mdash; a strike shedding a handful " +
+        "of contracts carries the same label as one shedding thousands. " +
+        "Read the change column, not only the pill."
+    };
+  };
+
+
+  /* Why no trade, said as the specific rule that failed and by how much.
+     "Illiquid" on its own is an assertion; "35,826 contracts against a
+     floor of 50,000" is a reason. */
+  /* Max pain is a claim that one strike hurts holders more than any
+     other, so the proof is the strikes either side of it. */
+  PROVE.maxpain = function (c, m) {
+    var k = m.maxPain, spot = m.cfg.spot, step = m.cfg.step || 50;
+    if (!k) return null;
+
+    /* Intrinsic value that would be paid out at each candidate settlement
+       -- the quantity max pain minimises. Recomputed here from the same
+       chain rather than taken on trust. */
+    var painAt = function (settle) {
+      var total = 0;
+      (m.rows || []).forEach(function (r) {
+        var ce = r.ce || {}, pe = r.pe || {};
+        if (settle > r.strike) total += (settle - r.strike) * (ce.oi || 0);
+        if (settle < r.strike) total += (r.strike - settle) * (pe.oi || 0);
+      });
+      return total;
+    };
+
+    var here = painAt(k), below = painAt(k - step), above = painAt(k + step);
+    var gap = Math.round(spot - k);
+
+    return {
+      title: "Max pain \u00b7 " + n0(k),
+      means: "If the index settled at <b>" + n0(k) + "</b>, option holders " +
+        "would collect less than at any other strike on the board. Spot is " +
+        n0(Math.abs(gap)) + " points " +
+        (gap > 0 ? "above" : gap < 0 ? "below" : "from") + " it.",
+      impact: Math.abs(gap) < step
+        ? "Spot is already sitting on it, so there is no pull to speak of."
+        : "The theory says price drifts toward this strike into expiry, " +
+          "which would mean " + (gap > 0 ? "lower" : "higher") + " from " +
+          "here. The desk grades that claim at roughly a coin flip, so it " +
+          "is context and never a reason to size.",
+      proof: proofTable([
+        ["Payout at " + n0(k - step), "&mdash;", n1(below / 1e2) + " cr-pts",
+         sgn((below - here) / 1e2, 1), cls(below - here), "more is paid out"],
+        ["Payout at " + n0(k), "&mdash;", n1(here / 1e2) + " cr-pts",
+         "lowest", "", "the minimum"],
+        ["Payout at " + n0(k + step), "&mdash;", n1(above / 1e2) + " cr-pts",
+         sgn((above - here) / 1e2, 1), cls(above - here), "more is paid out"]
+      ]) + proofRule("least total payout to holders &rarr; MAX PAIN"),
+      caveat: "Recomputed here from the same chain, so it agrees with the " +
+        "pill by construction &mdash; that is a consistency check, not " +
+        "evidence the level works. The evidence is the graded record, and " +
+        "there it sits at a coin flip. It also moves as open interest " +
+        "moves, so today's max pain is not a fixed target."
+    };
+  };
+
+  PROVE.verdict = function (c, m) {
+    var leg = n0(c.k) + " " + c.side;
+    var romMin = 0.80, deltaMax = 0.30;
+    var rows = [], rule = "", means = "", impact = "";
+
+    if (c.t === "Illiquid") {
+      rows.push(["Open interest", "floor " + n2(c.oiFloor) + "L", n2(c.oi) + "L",
+                 sgn(c.oi - c.oiFloor, 2) + "L",
+                 cls(c.oi - c.oiFloor),
+                 c.oi < c.oiFloor ? "below floor" : "clears"]);
+      rows.push(["Volume today", "floor " + n2(c.volFloor) + "L", n2(c.vol) + "L",
+                 sgn(c.vol - c.volFloor, 2) + "L",
+                 cls(c.vol - c.volFloor),
+                 c.vol < c.volFloor ? "below floor" : "clears"]);
+      rule = "open interest or volume under the floor &rarr; ILLIQUID";
+      means = "The <b>" + leg + "</b> is not traded enough to be sold at the " +
+        "price on the screen.";
+      impact = "The quoted credit is not the credit you would receive. On a " +
+        "strike this thin the spread can take most of the premium on entry " +
+        "and the rest on exit, and a position you cannot close is a " +
+        "position you cannot manage.";
+    } else if (c.t === "Too close") {
+      rows.push(["Delta", "limit " + n2(deltaMax), n2(c.delta),
+                 sgn(c.delta - deltaMax, 2), cls(deltaMax - c.delta),
+                 c.delta > deltaMax ? "over limit" : "within"]);
+      rows.push(["Distance from spot", "&mdash;",
+                 n0(Math.abs(c.k - m.cfg.spot)) + " pts", "&mdash;", "",
+                 (c.k > m.cfg.spot ? "above" : "below") + " spot"]);
+      rule = "delta above " + n2(deltaMax) + " &rarr; TOO CLOSE";
+      means = "The <b>" + leg + "</b> sits close enough to spot that an " +
+        "ordinary session can reach it.";
+      impact = "Delta reads roughly as the chance of finishing in the money, " +
+        "so this strike is being tested about " + n0(c.delta * 100) +
+        " times in a hundred. It pays well for exactly that reason.";
+    } else if (c.t === "Thin premium") {
+      rows.push(["Return on margin", "minimum " + n2(romMin) + "%",
+                 n2(c.rom) + "%", sgn(c.rom - romMin, 2) + " pts",
+                 cls(c.rom - romMin),
+                 c.rom < romMin ? "below minimum" : "clears"]);
+      rows.push(["Credit", "&mdash;", "&#8377;" + n0(c.creditRs),
+                 "&mdash;", "", "against &#8377;" + n0(c.margin) + " margin"]);
+      rule = "return on margin under " + n2(romMin) + "% &rarr; THIN PREMIUM";
+      means = "The <b>" + leg + "</b> does not pay enough for the capital it " +
+        "blocks and the tail it carries.";
+      impact = "Selling this collects &#8377;" + n0(c.creditRs) + " while " +
+        "tying up &#8377;" + n0(c.margin) + " and accepting the same gap " +
+        "risk as a strike paying several times more. The premium is real; " +
+        "the compensation is not.";
+    } else if (c.t === "Marginal") {
+      rows.push(["Probability of profit", "target", n1(c.pop * 100) + "%",
+                 "&mdash;", "", "under target"]);
+      rows.push(["Return on margin", "minimum " + n2(romMin) + "%",
+                 n2(c.rom) + "%", sgn(c.rom - romMin, 2) + " pts",
+                 cls(c.rom - romMin), "clears, barely"]);
+      rule = "clears every rule, none of them by much &rarr; MARGINAL";
+      means = "The <b>" + leg + "</b> passed every filter and none of them " +
+        "with room to spare.";
+      impact = "A trade that only just qualifies is one where a small error " +
+        "in the volatility estimate flips the answer. The desk shows it and " +
+        "does not propose it.";
+    } else {
+      return null;
+    }
+
+    return {
+      title: c.t + " \u00b7 " + leg,
+      means: means, impact: impact,
+      proof: proofTable(rows) + proofRule(rule),
+      caveat: "Every threshold here is a choice, not a law. They are set to " +
+        "refuse trades that historically cost more than they paid, and a " +
+        "strike failing one by a hair is not meaningfully different from " +
+        "one passing by a hair."
+    };
+  };
+
+  /* A wall is a claim that this strike matters more than its neighbours,
+     so the proof is the neighbour it beat. */
+  PROVE.wall = function (c, m) {
+    var side = c.side, key = side === "CE" ? "ce" : "pe";
+    var ranked = (m.rows || []).map(function (r) {
+      return { k: r.strike, oi: (r[key] || {}).oi || 0 };
+    }).sort(function (a, b) { return b.oi - a.oi; });
+    if (!ranked.length) return null;
+
+    var top = ranked[0], second = ranked[1] || { k: null, oi: 0 };
+    var lead = second.oi ? (top.oi / second.oi - 1) * 100 : null;
+    var total = ranked.reduce(function (s, r) { return s + r.oi; }, 0);
+
+    return {
+      title: (side === "CE" ? "Call wall" : "Put wall") + " \u00b7 " + n0(top.k),
+      means: "Of every " + (side === "CE" ? "call" : "put") + " strike on " +
+        "the board, <b>" + n0(top.k) + "</b> carries the most open interest " +
+        "&mdash; " + n2(top.oi) + "L contracts, " +
+        n0(Math.abs(top.k - m.cfg.spot)) + " points " +
+        (top.k > m.cfg.spot ? "above" : "below") + " spot.",
+      impact: "Writers there lose beyond it, so they have money committed to " +
+        "defending it. That is what makes it act as " +
+        (side === "CE" ? "resistance" : "support") + " rather than an " +
+        "arbitrary round number. Across the desk's graded record this claim " +
+        "holds on " + (side === "CE" ? "92.9%" : "80.0%") + " of sessions.",
+      proof: proofTable([
+        ["Heaviest strike", "&mdash;", n0(top.k) + " \u00b7 " + n2(top.oi) + "L",
+         "&mdash;", "", "the wall"],
+        ["Next heaviest", "&mdash;",
+         second.k == null ? "&mdash;" : n0(second.k) + " \u00b7 " + n2(second.oi) + "L",
+         lead == null ? "&mdash;" : "+" + n1(lead) + "%", "pos",
+         lead == null ? "&mdash;" : "the wall leads by this"],
+        ["Share of all " + (side === "CE" ? "call" : "put") + " OI", "&mdash;",
+         total ? n1(top.oi / total * 100) + "%" : "&mdash;", "&mdash;", "",
+         "concentrated here"]
+      ]) + proofRule("most open interest on the " +
+        (side === "CE" ? "call" : "put") + " side &rarr; " +
+        (side === "CE" ? "CALL WALL" : "PUT WALL")),
+      caveat: "A wall is only as meaningful as its lead over the next " +
+        "strike. When the top two are within a few per cent of each other " +
+        "the level is a zone rather than a line, and a wall that shrinks " +
+        "through the week is being abandoned even while it stays the " +
+        "heaviest."
+    };
+  };
+
+  /* Above or below its own average, and by how far -- because "above" on
+     its own is true of a stock one rupee over and one a fifth over. */
+  PROVE.dma = function (c, m) {
+    var gap = c.close - c.dma50, pct = c.dma50 ? gap / c.dma50 * 100 : null;
+    return {
+      title: (gap >= 0 ? "Above 50-DMA" : "Below 50-DMA") + " \u00b7 " + esc(c.sym),
+      means: "<b>" + esc(c.sym) + "</b> closed at " + n2(c.close) +
+        " against its own 50-session average of " + n2(c.dma50) + " &mdash; " +
+        (gap >= 0 ? "above" : "below") + " it by " + n2(Math.abs(gap)) +
+        (pct == null ? "" : " (" + n1(Math.abs(pct)) + "%)") + ".",
+      impact: "On its own this is one name and it decides nothing. It " +
+        "matters as a count: how many of the fifty sit above their own " +
+        "average is the breadth reading, and in a calm market unusually " +
+        "broad participation was followed by weaker sessions, not stronger.",
+      proof: proofTable([
+        ["Close", "50-DMA " + n2(c.dma50), n2(c.close),
+         sgn(gap, 2) + (pct == null ? "" : " (" + sgn(pct, 1) + "%)"),
+         cls(gap), gap >= 0 ? "above" : "below"],
+        ["Index weight", "&mdash;", n2(c.weightPct) + "%", "&mdash;", "",
+         c.weightPct >= 5 ? "heavy" : c.weightPct >= 2 ? "mid" : "light"],
+        ["Contribution today", "&mdash;", sgn(c.contribPts, 2) + " pts",
+         "&mdash;", cls(c.contribPts), "of the index move"]
+      ]) + proofRule("close " + (gap >= 0 ? "above" : "below") +
+        " the 50-session mean &rarr; " + (gap >= 0 ? "ABOVE" : "BELOW") +
+        " 50-DMA"),
+      caveat: "The average is a lagging line by construction: it is fifty " +
+        "sessions of history, so it says where a stock has been rather than " +
+        "where it is going. Crossing it is an event only because enough " +
+        "money treats it as one."
+    };
+  };
+
+  /* A regime label is a statistical test, so the proof is the statistic
+     and the band it fell inside or outside. */
+  PROVE.regime = function (c, m) {
+    var vr = c.vr, z = c.z, rejects = c.rejects;
+    return {
+      title: (c.regime || "regime") + " \u00b7 " + c.window + "-session",
+      means: "Over <b>" + c.window + " sessions</b>, moves add up to " +
+        n2(vr) + " times what the same number of single sessions would. " +
+        "At 1.00 exactly the market is behaving like a random walk.",
+      /* The direction only means something once the test rejects. Reading
+         a ratio of 0.94 as "reversing" while the z-statistic says it is
+         inside noise is the card contradicting its own evidence. */
+      impact: !rejects
+        ? "The ratio leans " + (vr > 1 ? "toward extending" : "toward " +
+          "reversing") + ", but the test <b>cannot reject a random walk</b> " +
+          "at this sample size &mdash; so there is nothing here to act on. " +
+          "The range assumption stands as the volatility number gives it."
+        : vr > 1.05
+        ? "Moves are <b>extending</b>. A range-selling position is fighting " +
+          "the market's own tendency, so strikes want to be further out than " +
+          "the volatility number alone suggests."
+        : vr < 0.95
+        ? "Moves are <b>reversing</b>. This is the condition a premium " +
+          "seller wants: a range is more likely to hold than the raw " +
+          "volatility implies."
+        : "Neither extending nor reversing to a degree worth acting on. The " +
+          "range assumption stands as the volatility number gives it.",
+      proof: proofTable([
+        ["Variance ratio", "random walk = 1.00", n2(vr),
+         sgn(vr - 1, 2), cls(1 - vr),
+         vr > 1 ? "extending" : vr < 1 ? "reversing" : "neither"],
+        ["z-statistic", "significant beyond &plusmn;1.96", n2(z),
+         "&mdash;", "", Math.abs(z) >= 1.96 ? "significant" : "within noise"],
+        ["Verdict", "&mdash;", rejects ? "rejects random walk" : "cannot reject",
+         "&mdash;", "", rejects ? "a real effect" : "no evidence"]
+      ]) + proofRule("|z| " + (Math.abs(z) >= 1.96 ? "at or above" : "below") +
+        " 1.96 &rarr; " + (rejects ? "REGIME" : "RANDOM WALK")),
+      caveat: "The test is run over several windows and they can disagree. " +
+        "Reading whichever window supports the position you already wanted " +
+        "is the failure this figure exists to prevent, so treat a single " +
+        "window's verdict as one reading rather than as the answer."
+    };
+  };
+
+  function showTerm(label, value, m, ctx) {
+    /* A decision the desk made about one row is justified from that row.
+       A concept -- what a lot size is -- has no instance to justify, so it
+       keeps the general card. */
+    var pv = null;
+    if (ctx && ctx.p && PROVE[ctx.p]) {
+      try { pv = PROVE[ctx.p](ctx, m); } catch (e) { pv = null; }
+    }
+    if (pv) return showProof(label, pv, m);
+
     var key = termKey(label) || label;
     var t = TERMS[key];
     /* A label may resolve straight to a glossary entry with no arithmetic
@@ -6714,6 +7204,32 @@ table.ledger { min-width: 800px; }
           more.map(function (p) { return "<p>" + p + "</p>"; }).join("") +
           "</details>"
         : "");
+    el.hidden = false;
+  }
+
+
+  /* The proof card. Same five beats as every other card, but each one is
+     about this row rather than about the rule in general. */
+  function showProof(label, pv, m) {
+    var el = document.getElementById("ptPanel");
+    if (!el) return;
+    var sec = function (k, v) {
+      return v ? '<div class="pt-sec"><span class="pt-sk">' + k + "</span>" +
+        v + "</div>" : "";
+    };
+    el.innerHTML =
+      '<div class="pt-hd"><div><div class="pt-t">' + pv.title + "</div>" +
+      '<div class="pt-s">' + (m.cfg.label || "") + " &middot; " +
+      esc(m.cfg.expiry || "") + " &middot; spot " + n2(m.cfg.spot) + "</div></div>" +
+      '<button class="tgl" type="button" data-ptclose="1">Close</button></div>' +
+      sec("What it means &mdash; here", pv.means) +
+      sec("Impact", '<span class="pt-arrow">&rarr;</span> ' + pv.impact) +
+      sec("Why this one &mdash; the proof", pv.proof) +
+      (pv.caveat
+        ? '<details class="pt-more"><summary>What this rule cannot tell you' +
+          "</summary><p>" + pv.caveat + "</p></details>"
+        : "");
+    decorateTerms(el);
     el.hidden = false;
   }
 
@@ -7885,13 +8401,19 @@ table.ledger { min-width: 800px; }
     var term = e.target.closest("[data-term]");
     if (term) {
       var lbl = term.getAttribute("data-term");
+      /* The row that produced this label, if it brought one. */
+      var cx = null, holder = e.target.closest("[data-ctx]");
+      if (holder) {
+        try { cx = JSON.parse(holder.getAttribute("data-ctx")); }
+        catch (err) { cx = null; }
+      }
       var vEl = term.querySelector(".prob-v, .struct-v, .lvl-v");
       /* A tile wraps its own value; a level row keeps it in the next cell. */
       if (!vEl && term.nextElementSibling &&
           term.nextElementSibling.classList.contains("lvl-v")) {
         vEl = term.nextElementSibling;
       }
-      showTerm(lbl, vEl ? vEl.innerHTML : "", MODEL[state.idx]);
+      showTerm(lbl, vEl ? vEl.innerHTML : "", MODEL[state.idx], cx);
       return;
     }
 
