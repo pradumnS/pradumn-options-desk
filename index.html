@@ -574,6 +574,18 @@ h2.has-term { text-decoration: none; cursor: pointer; }
 
 /* Dim until it is the active sort, so a sortable column reads as sortable
    without competing with the label beside it. */
+.ck-table { overflow: auto; border-top: 1px solid var(--line); }
+.ck-tbl-hd {
+  display: flex; align-items: baseline; gap: 10px; padding: 10px 14px 6px;
+  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+}
+.ck-tbl-hd span {
+  font-size: 9.5px; font-weight: 400; letter-spacing: .06em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+.ck-table .dt { font-size: 11px; }
+.ck-table .dt td, .ck-table .dt th { padding: 4px 10px; }
+
 .so {
   margin-left: 5px; font-size: 9px; cursor: pointer;
   color: var(--ink-3); opacity: .45;
@@ -1225,6 +1237,7 @@ table.ledger { min-width: 800px; }
     <div class="ck-chart" id="ckChart"></div>
     <div class="ck-tip" id="ckTip" hidden></div>
   </div>
+  <div class="ck-table" id="ckTable"></div>
 </aside>
 
 <div class="scrim" id="scrim"></div>
@@ -6054,6 +6067,90 @@ table.ledger { min-width: 800px; }
     applyRange(bars);
   }
 
+
+  /* Fifty names at ~250 sessions is the largest payload the desk has, so
+     it is fetched on first use rather than at boot. Everything else on the
+     page is already usable while this is still in flight. */
+  var SCHARTS = null;
+
+  function loadStockCharts() {
+    if (SCHARTS) return SCHARTS;
+    SCHARTS = getJson("stockcharts.json").then(function (d) {
+      var series = (d && d.series) || {};
+      Object.keys(series).forEach(function (k) {
+        /* Never shadow an index. If a constituent ever shares a name with
+           a traded index, the index is the one the tabs resolve to. */
+        if (!CHARTS[k]) CHARTS[k] = series[k];
+      });
+      return series;
+    }).catch(function () { return {}; });
+    return SCHARTS;
+  }
+
+  /* A constituent opens into the same panel an index does: same candles,
+     same ranges, same tooltip. The only difference is that its history has
+     to arrive first. */
+  function openStock(sym) {
+    var chartEl = document.getElementById("ckChart");
+    document.getElementById("ckPanel").classList.add("open");
+    document.getElementById("ckScrim").classList.add("open");
+    document.getElementById("ckName").textContent = sym;
+    document.getElementById("ckMeta").textContent = "loading daily history\u2026";
+    if (chartEl && !CHARTS[sym]) chartEl.innerHTML = "";
+
+    loadStockCharts().then(function () {
+      if (!CHARTS[sym]) {
+        document.getElementById("ckMeta").textContent =
+          "no daily history stored";
+        chartEl.innerHTML = '<div class="ck-empty"><b>No daily history for ' +
+          esc(sym) + ".</b><br>Run <em>python stock_history.py</em> to " +
+          "fetch it from the exchange archive.</div>";
+        renderCkTable(null);
+        return;
+      }
+      openChart(sym);
+    });
+  }
+
+  /* The chart answers "what shape"; the table answers "what happened on
+     the eleventh". Both are wanted, and a chart alone sends you looking
+     for the numbers somewhere else. */
+  function renderCkTable(bars) {
+    var el = document.getElementById("ckTable");
+    if (!el) return;
+    if (!bars || !bars.length) { el.innerHTML = ""; return; }
+
+    var use = (CKS.range > 0 ? bars.slice(-CKS.range) : bars).slice().reverse();
+    var rows = use.map(function (b, i) {
+      var prev = use[i + 1];
+      var chg = prev && b.c != null && prev.c != null ? b.c - prev.c : null;
+      var chgP = chg != null && prev.c ? chg / prev.c * 100 : null;
+      var rng = b.h != null && b.l != null ? b.h - b.l : null;
+      return "<tr><td class=\"lft\">" + b.t + "</td>" +
+        "<td>" + (b.o == null ? "\u2014" : n2(b.o)) + "</td>" +
+        "<td>" + (b.h == null ? "\u2014" : n2(b.h)) + "</td>" +
+        "<td>" + (b.l == null ? "\u2014" : n2(b.l)) + "</td>" +
+        "<td><b>" + (b.c == null ? "\u2014" : n2(b.c)) + "</b></td>" +
+        '<td class="' + cls(chg) + '">' +
+          (chg == null ? "\u2014" : sgn(chg, 2)) + "</td>" +
+        '<td class="' + cls(chgP) + '">' +
+          (chgP == null ? "\u2014" : sgn(chgP, 2) + "%") + "</td>" +
+        "<td>" + (rng == null ? "\u2014" : n2(rng)) + "</td>" +
+        "<td>" + (b.v ? n0(b.v / 1e5) + "L" : "\u2014") + "</td>" +
+        "<td>" + (b.to ? n2(b.to / 1e7) : "\u2014") + "</td></tr>";
+    }).join("");
+
+    el.innerHTML =
+      '<div class="ck-tbl-hd">Daily sessions<span>' + use.length +
+        " shown \u00b7 newest first \u00b7 turnover in \u20b9 crore</span></div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Date</th><th>Open</th><th>High</th><th>Low</th>' +
+      "<th>Close</th><th>Chg</th><th>Chg %</th><th>Day range</th>" +
+      "<th>Volume</th><th>Turnover</th></tr></thead><tbody>" +
+      rows + "</tbody></table></div>";
+    decorateTerms(el);
+  }
+
   function applyRange(bars) {
     var use = CKS.range > 0 ? bars.slice(-CKS.range) : bars;
     CKS.candles.setData(use.map(function (b) {
@@ -6068,9 +6165,12 @@ table.ledger { min-width: 800px; }
     CKS.chart.timeScale().fitContent();
     var el = document.getElementById("ckChart");
     CKS.chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+    renderCkTable(bars);
   }
 
   function closeChart() {
+    var t = document.getElementById("ckTable");
+    if (t) t.innerHTML = "";
     document.getElementById("ckPanel").classList.remove("open");
     document.getElementById("ckScrim").classList.remove("open");
     document.getElementById("ckTip").hidden = true;
@@ -6478,6 +6578,11 @@ table.ledger { min-width: 800px; }
       render();
       return;
     }
+
+    /* Before the label handler: the whole row is the control, and the
+       cells inside it carry labels of their own. */
+    var stk = e.target.closest("[data-stock]");
+    if (stk) { openStock(stk.getAttribute("data-stock")); return; }
 
     var term = e.target.closest("[data-term]");
     if (term) {
