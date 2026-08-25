@@ -4455,6 +4455,23 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    "Annualised carry": [
+      "The futures premium over spot, restated as a yearly rate. Futures " +
+      "settle later than spot, so buying them defers payment &mdash; and " +
+      "the market charges for that deferral. Positive means futures trade " +
+      "above the index, which is the normal state.",
+      "Judge it against the cost of money, not against zero. Financing is " +
+      "roughly the short-term rupee rate; anything materially above that is " +
+      "not carry at all, it is what people are paying for leveraged long " +
+      "exposure. Anything below it &mdash; and certainly anything negative " +
+      "&mdash; means the demand is on the short side, or a dividend is " +
+      "about to be paid out of the index.",
+      "It is least reliable over a short horizon, because annualising a " +
+      "few days of basis multiplies whatever noise is in it by fifty. The " +
+      "desk withholds the figure entirely when the horizon is too short " +
+      "rather than print an authoritative-looking number built on two days."
+    ]
+,
     "Exit plan": [
       "The three ways out of a short options position, decided before it is " +
       "opened: take the profit, cut the loss, or close on time regardless " +
@@ -6957,6 +6974,45 @@ table.ledger { min-width: 800px; }
     TERMS[k] = OVERRIDE_FACTS[k];
   });
 
+
+  var CARRY_FACTS = {
+    "Annualised carry": _fact("Annualised carry", function (m) {
+      var f = (m.an || {}).forward;
+      if (!f) return "";
+      if (f.carry_suppressed || f.carry_annual_pct == null) {
+        return "Withheld today. The basis is " + sgn(f.basis, 1) +
+          " points (" + sgn(f.basis_pct, 3) + "%) over <b>" +
+          f.days_calendar + " calendar day(s)</b>, which is too short a base " +
+          "to annualise: multiplying a few days of noise by fifty produces a " +
+          "number that looks authoritative and is not.";
+      }
+      var rf = ((MANIFEST || {}).riskFree || 0) * 100;
+      var gap = rf ? f.carry_annual_pct - rf : null;
+      return "Futures sit <b>" + sgn(f.basis, 1) + " points</b> above spot " +
+        "&mdash; " + n0(f.forward) + " against " + n2(m.cfg.spot) + ". That " +
+        "is <b>" + n2(f.basis_pct) + "%</b> over <b>" + f.days_calendar +
+        " days</b>." +
+        "<br>Compounded to a year: <b>" + n2(f.carry_annual_pct) + "%</b>." +
+        (gap == null ? "" :
+          "<br>The desk prices off a risk-free rate of <b>" + n1(rf) +
+          "%</b>, so this is <b>" + sgn(gap, 1) + " points " +
+          (gap >= 0 ? "above" : "below") + "</b> plain financing cost. " +
+          (gap > 4
+            ? "That much above is not carry &mdash; it is what buyers are " +
+              "paying for leveraged long exposure, which says the long side " +
+              "is the crowded one."
+            : gap < -2
+            ? "Below financing means the pressure is on the short side, or a " +
+              "dividend is about to come out of the index."
+            : "Close to financing cost, so this is ordinary carry and says " +
+              "nothing about positioning.")) +
+        "<br>Derived from put-call parity across " + f.n_strikes +
+        " strikes, not from the futures screen.";
+    })
+  };
+
+  Object.keys(CARRY_FACTS).forEach(function (k) { TERMS[k] = CARRY_FACTS[k]; });
+
   var TERM_PREFIX = [
     ["Closes above", "P(profit)"],
     ["Closes below", "P(profit)"],
@@ -6966,6 +7022,7 @@ table.ledger { min-width: 800px; }
   ];
 
   var TERM_ALIAS = {
+    "Open interest by strike": "Open interest (OI)",
     "Gap": "Gap scenarios",
     "P&amp;L": "P&L",
     "History depth": "History depth",
@@ -7256,6 +7313,11 @@ table.ledger { min-width: 800px; }
     /* "PCR 1.08" and "Yang-Zhang 10d" are a term with the session's own
        number appended. Dropping trailing words finds the term without
        anyone having to list every value it will ever take. */
+    /* "PCR 1.08" and "Yang-Zhang 10d" are a term with the session's own
+       number glued on. Dropping trailing words finds the term without
+       anyone having to list every value it will ever take. A label that
+       needs to survive this intact gets its own entry instead -- see
+       "Open interest by strike", which trimmed its way to "open". */
     var parts = n.split(" ");
     while (parts.length > 1) {
       parts.pop();
@@ -7276,6 +7338,18 @@ table.ledger { min-width: 800px; }
      does to a position. Written per term because a sentence generated from
      a methodology paragraph reads like a methodology paragraph. */
   var PLAIN = {
+    "Annualised carry": [
+      "How much the futures premium works out to as a yearly rate. Futures " +
+      "settle later than spot, so buying them means paying later &mdash; " +
+      "and the market charges for that. A positive number is the normal " +
+      "state and simply means futures trade above the index.",
+      "The size is what matters, and only against the cost of money. Well " +
+      "above the short-term rate means traders are paying up for leveraged " +
+      "long exposure, which is a crowded-long signal. Near it means plain " +
+      "financing and nothing more. Below it, or negative, means the pressure " +
+      "is on the short side."
+    ]
+,
     "Exit plan": [
       "The three ways out, fixed before the trade is opened: take the " +
       "profit, cut the loss, or close on time. Whichever comes first fires.",
