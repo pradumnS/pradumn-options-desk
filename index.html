@@ -4455,6 +4455,85 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    "Exit plan": [
+      "The three ways out of a short options position, decided before it is " +
+      "opened: take the profit, cut the loss, or close on time regardless " +
+      "of either. Whichever comes first is the one that fires.",
+      "It exists because the exit is where a seller's result is actually " +
+      "decided, and because a position that is losing supplies an endless " +
+      "stream of reasons to hold it a little longer. Every one of those " +
+      "reasons arrives after the trade is on and none of them arrive before.",
+      "Written before entry, followed without amendment. The one adjustment " +
+      "worth making is closing earlier than planned; extending the exit to " +
+      "give a losing position more room is the single most expensive habit " +
+      "available to a premium seller."
+    ],
+    "Profit target": [
+      "The share of the collected premium at which the desk closes and " +
+      "takes the money, rather than holding for the last of it.",
+      "The last part of an option's decay is the slowest and the most " +
+      "dangerous: you are holding the same gap risk to collect a fraction " +
+      "of what you already have. Closing at a target converts an unrealised " +
+      "edge into a realised one.",
+      "It also frees the margin. A position held to the last rupee is " +
+      "capital tied up earning almost nothing while still exposed to " +
+      "everything, which is a poor trade in both directions at once."
+    ],
+    "Stop loss": [
+      "The loss at which the position is closed, stated as a multiple of " +
+      "the premium collected rather than as a price.",
+      "Short options lose faster than they gain, so the stop has to be " +
+      "defined in advance and in the currency of the trade. A multiple of " +
+      "credit is the honest unit: it says how many winning trades one loss " +
+      "is allowed to undo.",
+      "The number that matters is not whether it is hit but what it costs " +
+      "when it is. A stop at twice the credit means a single loss undoes two " +
+      "wins, which is survivable at this hit rate. At five times it is not."
+    ],
+    "Time exit": [
+      "A hard date to be out, regardless of profit or loss &mdash; on this " +
+      "desk, before expiry day.",
+      "Expiry-day gamma is the worst risk-per-rupee a seller can hold: the " +
+      "remaining premium is small, the exposure needed to collect it is not, " +
+      "and a position can travel from safe to broken inside an hour.",
+      "It is the exit most often ignored, because on the day it fires the " +
+      "position is usually profitable and closing feels like leaving money " +
+      "behind. The money left behind is the point."
+    ],
+    "Gap scenarios": [
+      "What the position would be worth if the index opened well away from " +
+      "where it closed &mdash; the case a stop loss cannot protect against, " +
+      "because there is no trading between the two prices.",
+      "A stop is an instruction to trade at a level, and a gap is the market " +
+      "refusing to offer that level. Budget days, results, global shocks and " +
+      "policy surprises all open somewhere other than yesterday's close.",
+      "This is the number that decides position size, not the probability of " +
+      "profit. Size so the worst gap on the table is survivable, and the " +
+      "ordinary days look after themselves."
+    ],
+    "Margin buffer": [
+      "How much of the available capital is left unused after the position " +
+      "is on.",
+      "Margin is recalculated as the market moves, and it rises fastest " +
+      "exactly when a position is going against you. A buffer is what stops " +
+      "an adverse move turning into a forced exit at the worst price " +
+      "available.",
+      "It is one of the four constraints on sizing, and the desk takes the " +
+      "smallest of them rather than an average. A trade that only fits with " +
+      "no buffer does not fit."
+    ],
+    "P&L": [
+      "What the position makes or loses at a given index level on a given " +
+      "date &mdash; the credit collected, less what it would cost to buy the " +
+      "short strikes back.",
+      "For a seller the shape is the whole story: a wide flat top where " +
+      "everything works, and two edges where losses grow without limit " +
+      "unless a wing caps them.",
+      "Read the edges rather than the peak. The maximum profit is known " +
+      "before entry and rarely changes; the loss is the number that varies, " +
+      "and it is the only one worth studying."
+    ]
+,
     "Option chain fetch": [
       "The live option chain pulled from NSE for the front expiry: every " +
       "strike, both sides, with last price, open interest, change in open " +
@@ -5685,6 +5764,1199 @@ table.ledger { min-width: 800px; }
     };
   });
 
+
+  /* ---------- hard facts: the chain ---------- */
+
+  /* Concentration is the whole point of an OI figure: a total says almost
+     nothing, and a total with a fifth of it on one strike says a lot. */
+  function _topStrike(m, side) {
+    var best = null;
+    (m.rows || []).forEach(function (r) {
+      var leg = r[side];
+      if (!leg) return;
+      if (!best || leg.oi > best.oi) best = { k: r.strike, oi: leg.oi };
+    });
+    return best;
+  }
+
+  function _fact(deep, fn) { return { deep: deep, how: fn }; }
+
+  var CHAIN_FACTS = {
+    "Spot": _fact("Spot", function (m) {
+      var c = m.cfg, chg = c.spot - c.prevClose;
+      return "<b>" + n2(c.spot) + "</b>, " + sgn(chg, 2) + " (" +
+        sgn(chg / c.prevClose * 100, 2) + "%) from " + n2(c.prevClose) +
+        ".<br>Today it traded " + n2(c.low) + " to " + n2(c.high) +
+        " &mdash; a range of <b>" + n0(c.high - c.low) + " points</b>, " +
+        "opening at " + n2(c.open) + ". Every strike, band and probability " +
+        "on this desk is measured from the " + n2(c.spot) + ".";
+    }),
+
+    "Strike": _fact("Strike", function (m) {
+      var n = (m.rows || []).length;
+      if (!n) return "";
+      var lo = m.rows[0].strike, hi = m.rows[n - 1].strike;
+      return "This chain carries <b>" + n + " strikes</b> in steps of " +
+        n0(m.cfg.step) + ", from " + n0(lo) + " to " + n0(hi) +
+        ".<br>The at-the-money strike is <b>" + n0(m.atm) + "</b>, " +
+        n0(Math.abs(m.atm - m.cfg.spot)) + " points from spot. NSE lists " +
+        m.nStrikes + " in total; the desk keeps the ones near the money.";
+    }),
+
+    "CE and PE": _fact("CE and PE", function (m) {
+      return "Across this chain there are <b>" + n2(m.totC) + "L call " +
+        "contracts</b> open and <b>" + n2(m.totP) + "L put</b> &mdash; " +
+        n2(m.totC + m.totP) + "L in all.<br>Every one of those has a writer " +
+        "and a buyer, so the split says how the board is arranged, not who " +
+        "is winning. One lot is " + m.cfg.lot + " units of the index.";
+    }),
+
+    "ATM, ITM, OTM": _fact("ATM, ITM, OTM", function (m) {
+      var atm = (m.rows || []).filter(function (r) {
+        return r.strike === m.atm; })[0];
+      if (!atm) return "";
+      return "At the money is <b>" + n0(m.atm) + "</b>, with spot at " +
+        n2(m.cfg.spot) + ".<br>The " + n0(m.atm) + " call is " +
+        n2(atm.ce.ltp) + " and the put " + n2(atm.pe.ltp) + " &mdash; " +
+        "together <b>" + n2(atm.ce.ltp + atm.pe.ltp) + "</b>, which is " +
+        "what the market charges for the move to " + esc(m.cfg.expiry) +
+        ". Above " + n0(m.atm) + " the calls are in the money and the puts " +
+        "out; below it, the other way round.";
+    }),
+
+    "Expiry": _fact("Expiry", function (m) {
+      var a = m.an || {};
+      return "The front contract expires <b>" + esc(m.cfg.expiry) + "</b> " +
+        "&mdash; <b>" + m.dte + " calendar day(s)</b>, " +
+        (a.sessionsToExpiry || "?") + " trading session(s) from now." +
+        "<br>Time is what a seller sells, and there is " +
+        (m.dte <= 1 ? "almost none of it left: decay is at its fastest and " +
+          "so is the risk per rupee collected."
+         : m.dte <= 3 ? "little left, so decay is fast and gamma risk is " +
+          "rising with it."
+         : "enough left that decay is gradual and a move has room to reverse.");
+    }),
+
+    "Lot size": _fact("Lot size", function (m) {
+      var atm = (m.rows || []).filter(function (r) {
+        return r.strike === m.atm; })[0];
+      var prem = atm ? atm.ce.ltp * m.cfg.lot : null;
+      return "One NIFTY lot is <b>" + m.cfg.lot + " units</b>, so a single " +
+        "contract controls " + n0(m.cfg.lot * m.cfg.spot) + " rupees of " +
+        "index." + (prem == null ? "" :
+        "<br>Writing one at-the-money call collects <b>&#8377;" + n0(prem) +
+        "</b>. Every sizing decision on this desk is a whole number of these.");
+    }),
+
+    "LTP and premium": _fact("LTP and premium", function (m) {
+      var atm = (m.rows || []).filter(function (r) {
+        return r.strike === m.atm; })[0];
+      if (!atm) return "";
+      return "The " + n0(m.atm) + " call last traded at <b>" +
+        n2(atm.ce.ltp) + "</b> against " + n2(atm.ce.prevClose) +
+        " yesterday (" + sgn(atm.ce.chgPct, 1) + "%), the put at <b>" +
+        n2(atm.pe.ltp) + "</b> (" + sgn(atm.pe.chgPct, 1) + "%)." +
+        "<br>At " + m.cfg.lot + " units a lot that is <b>&#8377;" +
+        n0(atm.ce.ltp * m.cfg.lot) + "</b> and <b>&#8377;" +
+        n0(atm.pe.ltp * m.cfg.lot) + "</b> received for writing them.";
+    }),
+
+    "Open interest (OI)": _fact("Open interest (OI)", function (m) {
+      var tc = _topStrike(m, "ce"), tp = _topStrike(m, "pe");
+      var tot = m.totC + m.totP;
+      if (!tc || !tp || !tot) return "";
+      return "<b>" + n2(tot) + "L contracts</b> are open across this chain " +
+        "&mdash; " + n2(m.totC) + "L calls and " + n2(m.totP) + "L puts." +
+        "<br>It is not spread evenly, and that is the point. The heaviest " +
+        "call strike is <b>" + n0(tc.k) + "</b> with " + n2(tc.oi) + "L (" +
+        n1(tc.oi / m.totC * 100) + "% of all call OI), and the heaviest put " +
+        "<b>" + n0(tp.k) + "</b> with " + n2(tp.oi) + "L (" +
+        n1(tp.oi / m.totP * 100) + "%).<br>A rising total says little; that " +
+        "concentration is what makes the two strikes behave as walls.";
+    }),
+
+    "Change in OI": _fact("Change in OI", function (m) {
+      var addC = 0, cutC = 0, addP = 0, cutP = 0;
+      (m.rows || []).forEach(function (r) {
+        (r.ce.chgOi >= 0 ? (addC += r.ce.chgOi) : (cutC += r.ce.chgOi));
+        (r.pe.chgOi >= 0 ? (addP += r.pe.chgOi) : (cutP += r.pe.chgOi));
+      });
+      var netC = addC + cutC, netP = addP + cutP;
+      return "Today the call side added <b>" + n2(addC) + "L</b> and closed " +
+        n2(Math.abs(cutC)) + "L, a net " + sgn(netC, 2) + "L. The put side " +
+        "added <b>" + n2(addP) + "L</b> and closed " + n2(Math.abs(cutP)) +
+        "L, a net " + sgn(netP, 2) + "L." +
+        "<br>Writers " + (netC > netP
+          ? "added more to calls than puts, which caps rallies before it " +
+            "supports dips."
+          : netP > netC
+          ? "added more to puts than calls, which supports dips before it " +
+            "caps rallies."
+          : "added to both sides about equally, so the board did not tilt.");
+    }),
+
+    "PCR (put-call ratio)": _fact("PCR (put-call ratio)", function (m) {
+      return "<b>" + n2(m.totP) + "L put OI &divide; " + n2(m.totC) +
+        "L call OI = " + n2(m.pcr) + "</b>." +
+        "<br>" + (m.pcr < 0.8
+          ? "Below 0.8, so the call side is the crowded one and the pressure " +
+            "sits above the market."
+          : m.pcr > 1.2
+          ? "Above 1.2, so the put side is the crowded one and the heavier " +
+            "commitment is underneath."
+          : "Between 0.8 and 1.2, which is balance &mdash; the ratio is not " +
+            "arguing either way today.") +
+        "<br>Graded across the desk's record this claim sits at a coin flip, " +
+        "which is why it is context and never a claim.";
+    }),
+
+    "OI walls": _fact("OI walls", function (m) {
+      var tc = _topStrike(m, "ce"), tp = _topStrike(m, "pe");
+      if (!tc || !tp) return "";
+      var width = tc.k - tp.k;
+      return "Call wall <b>" + n0(tc.k) + "</b> (" + n2(tc.oi) + "L), put " +
+        "wall <b>" + n0(tp.k) + "</b> (" + n2(tp.oi) + "L). Spot sits at " +
+        n2(m.cfg.spot) + ", " + n0(Math.abs(m.cfg.spot - tp.k)) +
+        " points above the floor and " + n0(Math.abs(tc.k - m.cfg.spot)) +
+        " below the ceiling.<br>That is an implied range of <b>" +
+        n0(width) + " points</b>, or " + n1(width / m.cfg.spot * 100) +
+        "% of the index. Graded: the call wall has held on 92.9% of " +
+        "sessions, the put wall on 80.0%.";
+    }),
+
+    "Build-up (the four quadrants)": _fact("Build-up (the four quadrants)",
+      function (m) {
+        var c = { lb: 0, sb: 0, sc: 0, lu: 0 }, n = 0;
+        (m.rows || []).forEach(function (r) {
+          ["ce", "pe"].forEach(function (s) {
+            var leg = r[s];
+            if (!leg || (!leg.chgOi && !leg.chgPct)) return;
+            n++;
+            c[classify(leg.chgPct, leg.chgOi).c]++;
+          });
+        });
+        if (!n) return "";
+        var top = [["Long build-up", c.lb], ["Short build-up", c.sb],
+                   ["Short covering", c.sc], ["Long unwinding", c.lu]]
+          .sort(function (a, b) { return b[1] - a[1]; })[0];
+        return "Across <b>" + n + " legs</b> on this chain today: long " +
+          "build-up " + c.lb + ", short build-up " + c.sb + ", short " +
+          "covering " + c.sc + ", long unwinding " + c.lu + "." +
+          "<br>The commonest pattern is <b>" + top[0] + "</b> at " + top[1] +
+          " legs. Click any pill in the chain to see the two numbers that " +
+          "put that particular strike in its quadrant.";
+      }),
+
+    "Delta": _fact("Delta", function (m) {
+      var cands = (m.cands || []).filter(function (c) { return c.delta; });
+      if (!cands.length) return "";
+      var near = cands.slice().sort(function (a, b) {
+        return Math.abs(a.delta - 0.20) - Math.abs(b.delta - 0.20); })[0];
+      return "The strike nearest 0.20 delta on this board is the <b>" +
+        n0(near.strike) + " " + near.side + "</b> at <b>" + n2(near.delta) +
+        "</b> &mdash; roughly a " + n0(near.delta * 100) + "-in-100 chance " +
+        "of finishing in the money, and it pays " + n2(near.credit) +
+        " for that." +
+        "<br>Its probability of profit is " + n1(near.pop * 100) + "%, which " +
+        "is the same statement read from the other end.";
+    }),
+
+    "Breakeven": _fact("Breakeven", function (m) {
+      var go = (m.cands || []).filter(function (c) {
+        return c.verdict && c.verdict.c === "go"; });
+      var c = go[0] || (m.cands || [])[0];
+      if (!c) return "";
+      var be = c.side === "CE" ? c.strike + c.credit : c.strike - c.credit;
+      return "Take the <b>" + n0(c.strike) + " " + c.side + "</b> at " +
+        n2(c.credit) + ". Breakeven is " +
+        (c.side === "CE" ? n0(c.strike) + " + " : n0(c.strike) + " &minus; ") +
+        n2(c.credit) + " = <b>" + n2(be) + "</b>." +
+        "<br>That is " + n0(Math.abs(be - m.cfg.spot)) + " points from spot " +
+        "&mdash; the market can travel that far and the position still " +
+        "comes out level. The premium is not just profit; it is room.";
+    }),
+
+    "Credit and margin": _fact("Credit and margin", function (m) {
+      var c = (m.cands || []).filter(function (x) { return x.margin; })[0];
+      if (!c) return "";
+      return "The <b>" + n0(c.strike) + " " + c.side + "</b> pays <b>&#8377;" +
+        n0(c.creditRs) + "</b> and blocks <b>&#8377;" + n0(c.margin) +
+        "</b> of margin until it is closed." +
+        "<br>Neither number means anything alone: that is a return on margin " +
+        "of <b>" + n2(c.rom) + "%</b>, and it is the ratio the desk judges " +
+        "every strike on.";
+    }),
+
+    "ROM (return on margin)": _fact("ROM (return on margin)", function (m) {
+      var cs = (m.cands || []).filter(function (x) { return x.rom; });
+      if (!cs.length) return "";
+      var best = cs.slice().sort(function (a, b) { return b.rom - a.rom; })[0];
+      var pass = cs.filter(function (x) { return x.rom >= 0.80; }).length;
+      return "Of <b>" + cs.length + " strikes</b> priced on this board, <b>" +
+        pass + "</b> clear the 0.80% minimum." +
+        "<br>The best is the <b>" + n0(best.strike) + " " + best.side +
+        "</b> at <b>" + n2(best.rom) + "%</b> &mdash; &#8377;" +
+        n0(best.creditRs) + " against &#8377;" + n0(best.margin) +
+        " of margin, held to " + esc(m.cfg.expiry) + "." +
+        (pass ? "" : " Nothing clears it today, which is why the desk is " +
+          "proposing no trade.");
+    }),
+
+    "Iron condor / short strangle": _fact("Iron condor / short strangle",
+      function (m) {
+        var ce = (m.cands || []).filter(function (c) {
+          return c.side === "CE" && c.verdict && c.verdict.c === "go"; })[0];
+        var pe = (m.cands || []).filter(function (c) {
+          return c.side === "PE" && c.verdict && c.verdict.c === "go"; })[0];
+        if (!ce || !pe) {
+          return "No strike on this board clears the filters today, so there " +
+            "is no strangle to price. The walls at <b>" + n0(m.putWall) +
+            "&ndash;" + n0(m.callWall) + "</b> are where one would sit if " +
+            "there were.";
+        }
+        var credit = ce.credit + pe.credit;
+        return "Short <b>" + n0(pe.strike) + " PE</b> and <b>" +
+          n0(ce.strike) + " CE</b> collects <b>" + n2(credit) + "</b> (" +
+          "&#8377;" + n0(ce.creditRs + pe.creditRs) + " a lot)." +
+          "<br>The range it needs to hold is " + n0(ce.strike - pe.strike) +
+          " points wide, against a one-sigma move of " + n0(m.sd1) +
+          " points to expiry &mdash; " + n2((ce.strike - pe.strike) / 2 / m.sd1) +
+          " sigma either side.";
+      }),
+
+    "Why a wing (defined risk)": _fact("Why a wing (defined risk)",
+      function (m) {
+        var lo = m.range2 && m.range2[0], hi = m.range2 && m.range2[1];
+        if (lo == null || hi == null) return "";
+        return "A two-sigma move to " + esc(m.cfg.expiry) + " takes the index " +
+          "to <b>" + n0(lo) + "</b> or <b>" + n0(hi) + "</b>. A naked short " +
+          "strike beyond that has no floor under it at all." +
+          "<br>At " + m.cfg.lot + " units a lot, every 100 points past a " +
+          "short strike costs <b>&#8377;" + n0(100 * m.cfg.lot) +
+          "</b>. A wing turns that open-ended number into one you chose in " +
+          "advance, and the premium given up is the price of knowing it.";
+      }),
+
+    "Bid / Ask": _fact("Bid / Ask", function (m) {
+      var rows = (m.rows || []).filter(function (r) {
+        return r.ce.bid && r.ce.ask; });
+      if (!rows.length) return "";
+      var atm = rows.filter(function (r) { return r.strike === m.atm; })[0]
+        || rows[0];
+      var sp = atm.ce.ask - atm.ce.bid;
+      var far = rows[rows.length - 1];
+      var fsp = far.ce.ask - far.ce.bid;
+      return "At the money the " + n0(atm.strike) + " call is <b>" +
+        n2(atm.ce.bid) + " / " + n2(atm.ce.ask) + "</b> &mdash; a spread of " +
+        n2(sp) + ", or " + n1(sp / atm.ce.ltp * 100) + "% of its price." +
+        "<br>Out at " + n0(far.strike) + " the same spread is " + n2(fsp) +
+        " on a price of " + n2(far.ce.ltp) +
+        (far.ce.ltp ? ", which is " + n1(fsp / far.ce.ltp * 100) + "%" : "") +
+        ". That widening is why a far strike's quoted credit is not the " +
+        "credit you would receive.";
+    }),
+
+    "Previous close": _fact("Previous close", function (m) {
+      var atm = (m.rows || []).filter(function (r) {
+        return r.strike === m.atm; })[0];
+      if (!atm) return "";
+      return "The index closed at <b>" + n2(m.cfg.prevClose) +
+        "</b> yesterday and is " + n2(m.cfg.spot) + " now." +
+        "<br>On the " + n0(m.atm) + " strike the call settled at " +
+        n2(atm.ce.prevClose) + " and is " + n2(atm.ce.ltp) + " (" +
+        sgn(atm.ce.chgPct, 1) + "%); the put settled at " +
+        n2(atm.pe.prevClose) + " and is " + n2(atm.pe.ltp) + " (" +
+        sgn(atm.pe.chgPct, 1) + "%). Margin overnight was computed against " +
+        "those settlements, not against today's prices.";
+    })
+  };
+
+  Object.keys(CHAIN_FACTS).forEach(function (k) {
+    if (!TERMS[k]) TERMS[k] = CHAIN_FACTS[k];
+  });
+
+
+  /* ---------- hard facts: volatility and probability ---------- */
+  var VOL_FACTS = {
+    "Sigma (&sigma;)": _fact("Sigma (&sigma;)", function (m) {
+      if (!m.sd1 || !m.range1) return "";
+      return "One sigma to " + esc(m.cfg.expiry) + " is <b>" + n0(m.sd1) +
+        " points</b>, which puts the band at <b>" + n0(m.range1[0]) +
+        " &ndash; " + n0(m.range1[1]) + "</b>. Two sigma is " +
+        n0(m.range2[0]) + " &ndash; " + n0(m.range2[1]) + "." +
+        "<br>For tomorrow alone it is <b>" + n0(m.sdNext) + " points</b>. " +
+        "Roughly two sessions in three should land inside the one-sigma " +
+        "band and nineteen in twenty inside the two-sigma one.";
+    }),
+
+    "Implied volatility (IV)": _fact("Implied volatility (IV)", function (m) {
+      var a = m.an || {};
+      return "At-the-money implied volatility is <b>" + n2(a.atmIv) +
+        "%</b> annualised, against India VIX at " + n2(m.cfg.vix) + " (" +
+        sgn(m.cfg.vixChg, 2) + "% today)." +
+        "<br>That is a rank of <b>" + n1(a.ivRank) + "</b> and a percentile " +
+        "of <b>" + n1(a.ivPercentile) + "</b> against the desk's own " +
+        "history &mdash; " + (a.ivPercentile < 30
+          ? "cheap by its own standards, so there is less to sell than usual."
+          : a.ivPercentile > 70
+          ? "rich by its own standards, which is when selling pays best and " +
+            "hurts worst."
+          : "unremarkable.");
+    }),
+
+    "How a range is built": _fact("How a range is built", function (m) {
+      var a = m.an || {};
+      if (!a.sessionsToExpiry || !m.sd1) return "";
+      return "<b>" + n2(m.cfg.spot) + " &times; " + n2(a.atmIv) +
+        "% &times; &radic;(" + a.sessionsToExpiry + " &divide; 252) = " +
+        n0(m.sd1) + " points</b>." +
+        "<br>Giving <b>" + n0(m.range1[0]) + " &ndash; " + n0(m.range1[1]) +
+        "</b> to " + esc(m.cfg.expiry) + ". Note the " + a.sessionsToExpiry +
+        " <em>sessions</em>, not the " + m.dte + " calendar days: scaling " +
+        "by calendar days instead would give " +
+        n0(m.sd1 * Math.sqrt(m.dte / a.sessionsToExpiry)) + " points, about " +
+        n0((Math.sqrt(m.dte / a.sessionsToExpiry) - 1) * 100) + "% wider.";
+    }),
+
+    "Realised volatility (RV)": _fact("Realised volatility (RV)", function (m) {
+      var rv = (m.an || {}).realisedVol || {};
+      var ws = Object.keys(rv).sort(function (a, b) { return +a - +b; });
+      if (!ws.length) return "";
+      var parts = ws.map(function (w) {
+        return w + "d <b>" + n2(rv[w].yang_zhang) + "%</b>"; });
+      return "Realised volatility by window: " + parts.join(", ") + "." +
+        "<br>Implied is " + n2((m.an || {}).atmIv) + "%, so the market is " +
+        "charging " + (parts.length
+          ? n2((m.an.atmIv) - rv[ws[0]].yang_zhang) + " volatility points " +
+            (m.an.atmIv > rv[ws[0]].yang_zhang ? "more" : "less") +
+            " than the last " + ws[0] + " sessions have cost."
+          : "");
+    }),
+
+    "Why five RV estimators": _fact("Why five RV estimators", function (m) {
+      var rv = (m.an || {}).realisedVol || {};
+      var w = rv["10"] || rv[Object.keys(rv)[0]];
+      if (!w) return "";
+      var vals = [["Yang-Zhang", w.yang_zhang], ["Close-close", w.close_to_close],
+                  ["Parkinson", w.parkinson], ["Garman-Klass", w.garman_klass],
+                  ["Rogers-Satchell", w.rogers_satchell]]
+        .filter(function (x) { return x[1] != null; });
+      if (!vals.length) return "";
+      var lo = vals.slice().sort(function (a, b) { return a[1] - b[1]; })[0];
+      var hi = vals.slice().sort(function (a, b) { return b[1] - a[1]; })[0];
+      return "Over " + w.window + " sessions the five disagree by <b>" +
+        n2(hi[1] - lo[1]) + " volatility points</b>: " +
+        vals.map(function (x) { return x[0] + " " + n2(x[1]) + "%"; }).join(", ") +
+        ".<br>Highest is " + hi[0] + ", lowest " + lo[0] + ". " +
+        (hi[0] === "Close-close"
+          ? "Close-to-close reading highest means the damage was done between " +
+            "sessions rather than within them."
+          : "Close-to-close reading below the range-based estimators means " +
+            "sessions are travelling further intraday than their closes admit " +
+            "&mdash; risk a short strike carried and the closing price hid.");
+    }),
+
+    "IV / RV &mdash; the seller&rsquo;s edge": _fact(
+      "IV / RV &mdash; the seller&rsquo;s edge", function (m) {
+        var v = (m.an || {}).vrp;
+        if (!v || typeof v.ratio !== "number") return "";
+        return "<b>" + n2(v.iv) + "% implied &divide; " + n2(v.rv) +
+          "% forecast realised = " + n2(v.ratio) + "&times;</b>, a spread of " +
+          n2(v.spread_vol_pts) + " volatility points." +
+          "<br>" + (v.ratio >= 1.10
+            ? "Above 1.10, so selling is being paid for the risk it takes."
+            : v.ratio < 0.95
+            ? "Below 0.95 &mdash; selling is <b>not</b> being paid, and the " +
+              "answer is to stand aside rather than size down."
+            : "Between 0.95 and 1.10: close to fair, and the edge here is thin.");
+      }),
+
+    "Variance risk premium": _fact("Variance risk premium", function (m) {
+      var v = (m.an || {}).vrp, t = (m.an || {}).vrpTrailing;
+      if (!v || typeof v.ratio !== "number") return "";
+      return "Today the premium is <b>" + n2(v.spread_vol_pts) +
+        " volatility points</b> (" + n2(v.iv) + "% charged against " +
+        n2(v.rv) + "% forecast)." +
+        (t && typeof t.ratio === "number"
+          ? "<br>Against trailing realised it is " + n2(t.spread_vol_pts) +
+            " points, a ratio of " + n2(t.ratio) + "&times; &mdash; " +
+            (t.rich ? "the market has been charging more than volatility " +
+              "cost." : "the market has been charging less than it cost.")
+          : "") +
+        "<br>That gap is the seller's entire business, and it is payment for " +
+        "the risk that arrives all at once rather than free money.";
+    }),
+
+    "HAR-RV forecast": _fact("HAR-RV forecast", function (m) {
+      var h = (m.an || {}).harRv;
+      if (!h || !h.components) return "";
+      var c = h.components, b = h.beta;
+      return "<b>daily " + n2(c.daily) + "% &times; " + n2(b.daily) +
+        " + weekly " + n2(c.weekly) + "% &times; " + n2(b.weekly) +
+        " + monthly " + n2(c.monthly) + "% &times; " + n2(b.monthly) + " + " +
+        n2(b.const) + " = " + n2(h.forecast) + "%</b>." +
+        "<br>Fitted on " + h.n_obs + " sessions, R&sup2; = " + n2(h.r2) + ". " +
+        (b.weekly < 0
+          ? "The weekly weight is negative, which is the model taking back " +
+            "part of a one-day spike rather than extrapolating it."
+          : "All three weights are positive, so recent volatility is being " +
+            "carried forward rather than discounted.");
+    }),
+
+    "IV rank vs IV percentile": _fact("IV rank vs IV percentile", function (m) {
+      var a = m.an || {};
+      if (a.ivRank == null || a.ivPercentile == null) return "";
+      return "Rank <b>" + n1(a.ivRank) + "</b>, percentile <b>" +
+        n1(a.ivPercentile) + "</b>, at an implied volatility of " +
+        n2(a.atmIv) + "%." +
+        "<br>" + (Math.abs(a.ivRank - a.ivPercentile) > 10
+          ? "They disagree by " + n1(Math.abs(a.ivRank - a.ivPercentile)) +
+            " points, which happens when one panic spike sets the top of the " +
+            "range: today is " + (a.ivRank < a.ivPercentile ? "low" : "high") +
+            " against that extreme and " +
+            (a.ivPercentile > a.ivRank ? "higher" : "lower") +
+            " against the ordinary days. The percentile is the more honest " +
+            "of the two for sizing."
+          : "They agree closely, so the past year has no single spike " +
+            "distorting the range.");
+    }),
+
+    "Variance ratio": _fact("Variance ratio", function (m) {
+      var vr = (m.an || {}).varianceRatio || {};
+      var ws = Object.keys(vr).sort(function (a, b) { return +a - +b; });
+      if (!ws.length) return "";
+      var rej = ws.filter(function (w) { return vr[w].rejects_random_walk; });
+      return ws.map(function (w) {
+        return w + "-session <b>" + n2(vr[w].vr) + "</b> (z " +
+          sgn(vr[w].z, 2) + ")"; }).join(", ") + "." +
+        "<br>" + (rej.length
+          ? "The " + rej.join(" and ") + "-session window(s) reject a random " +
+            "walk; the rest are inside noise."
+          : "None of them rejects a random walk at this sample size, so " +
+            "there is no regime here to trade &mdash; the range assumption " +
+            "stands as the volatility number gives it.");
+    }),
+
+    "POP (probability of profit)": _fact("POP (probability of profit)",
+      function (m) {
+        var cs = (m.cands || []).filter(function (c) { return c.pop; });
+        if (!cs.length) return "";
+        var best = cs.slice().sort(function (a, b) { return b.pop - a.pop; })[0];
+        return "The highest probability of profit on this board is the <b>" +
+          n0(best.strike) + " " + best.side + "</b> at <b>" +
+          n1(best.pop * 100) + "%</b>, paying " + n2(best.credit) +
+          " for a return on margin of " + n2(best.rom) + "%." +
+          "<br>Read the pair together: " + n1(best.pop * 100) + "% of the " +
+          "time it collects &#8377;" + n0(best.creditRs) + ", and the rest of " +
+          "the time it loses an amount with no ceiling on it unless a wing " +
+          "is bought.";
+      }),
+
+    "Why POP understates risk": _fact("Why POP understates risk", function (m) {
+      var sr = (m.an || {}).structureRisk;
+      if (!sr) return "";
+      return "For the structure the desk priced today: probability of profit " +
+        "<b>" + n1(sr.probProfit * 100) + "%</b>, expected outcome <b>&#8377;" +
+        n0(sr.expectedPnl) + "</b>." +
+        "<br>But the 95% value at risk is <b>&#8377;" + n0(sr.var95) +
+        "</b> and the average loss beyond it &mdash; expected shortfall " +
+        "&mdash; is <b>&#8377;" + n0(sr.expectedShortfall95) + "</b>. The " +
+        "worst path in the simulation loses <b>&#8377;" + n0(sr.worst) + "</b>." +
+        "<br>That is the shape the probability hides: it wins " +
+        n1(sr.probProfit * 100) + "% of the time and the losing tail is " +
+        n1(Math.abs(sr.expectedShortfall95 / (sr.p90 || 1))) +
+        " times the size of the winning one.";
+    }),
+
+    "Risk-neutral density": _fact("Risk-neutral density", function (m) {
+      var p = (m.an || {}).rndProbs, f = (m.an || {}).forward;
+      if (!p) return "";
+      return "Read off the chain rather than assumed: <b>" +
+        n1(p.aboveSpot * 100) + "%</b> chance of finishing above spot, <b>" +
+        n1(p.above1sd * 100) + "%</b> above the one-sigma band and <b>" +
+        n1(p.below1sd * 100) + "%</b> below it." +
+        (f ? "<br>Built from " + f.n_strikes + " strikes, checked against a " +
+          "forward of " + n0(f.forward) + " &mdash; when the density's mean " +
+          "and the forward disagree the desk withholds it rather than " +
+          "showing a distribution it cannot vouch for." : "");
+    }),
+
+    "25&Delta; risk reversal and butterfly": _fact(
+      "25&Delta; risk reversal and butterfly", function (m) {
+        var s = (m.an || {}).skew;
+        if (!s) return "";
+        return "At 25 delta the call is <b>" + n2(s.call_iv) + "%</b> (" +
+          n0(s.call_strike) + ") and the put <b>" + n2(s.put_iv) + "%</b> (" +
+          n0(s.put_strike) + "), against " + n2(s.atm_iv) + "% at the money." +
+          "<br>Risk reversal <b>" + sgn(s.risk_reversal, 2) +
+          "</b>, butterfly <b>" + n2(s.butterfly) + "</b> &mdash; the desk " +
+          "reads this as <b>" + esc(s.tilt) + "</b>. " +
+          (s.risk_reversal < -0.5
+            ? "Downside protection is bid, which is the normal state and " +
+              "means a put seller is paid more for a reason."
+            : s.risk_reversal > 0.5
+            ? "Upside is bid, which is unusual and worth understanding before " +
+              "selling calls into it."
+            : "Neither wing is being paid up for, so there is no directional " +
+              "fear priced into this board today.");
+      }),
+
+    "Forward and basis": _fact("Forward and basis", function (m) {
+      var f = (m.an || {}).forward;
+      if (!f) return "";
+      return "Forward <b>" + n0(f.forward) + "</b> against spot " +
+        n2(m.cfg.spot) + " &mdash; a basis of <b>" + sgn(f.basis, 1) +
+        " points</b> (" + sgn(f.basis_pct, 3) + "%)." +
+        "<br>Derived from put-call parity across " + f.n_strikes +
+        " strikes, not assumed." +
+        (f.carry_suppressed || f.carry_annual_pct == null
+          ? " Annualised carry is withheld: " + f.days_calendar +
+            " days is too short a base to annualise honestly."
+          : " That annualises to " + n2(f.carry_annual_pct) + "% over " +
+            f.days_calendar + " days.");
+    }),
+
+    "Straddle expected move": _fact("Straddle expected move", function (m) {
+      var s = (m.an || {}).straddle;
+      if (!s) return "";
+      return "The " + n0(s.atm_strike) + " straddle costs <b>" +
+        n2(s.straddle) + "</b>, so the market is charging for a move of <b>" +
+        n0(s.move_pts) + " points</b> (" + n2(s.move_pct) + "%) by " +
+        esc(m.cfg.expiry) + "." +
+        "<br>That is " + n0(m.cfg.spot - s.move_pts) + " to " +
+        n0(m.cfg.spot + s.move_pts) + ". A short strangle sitting inside " +
+        "those edges is being paid for a range the market itself does not " +
+        "expect to hold.";
+    }),
+
+    "VaR and expected shortfall": _fact("VaR and expected shortfall",
+      function (m) {
+        var sr = (m.an || {}).structureRisk;
+        if (!sr) return "";
+        return "On the structure priced today: <b>&#8377;" + n0(sr.var95) +
+          "</b> is the 95% value at risk &mdash; the loss only one session in " +
+          "twenty should exceed." +
+          "<br>Expected shortfall, the average loss on the sessions that do " +
+          "exceed it, is <b>&#8377;" + n0(sr.expectedShortfall95) + "</b> " +
+          "&mdash; <b>" + n2(sr.expectedShortfall95 / sr.var95) +
+          "&times;</b> worse. The tenth percentile is &#8377;" + n0(sr.p10) +
+          " and the ninetieth &#8377;" + n0(sr.p90) + "." +
+          "<br>The second number is the one to size on. VaR says where the " +
+          "bad days start; shortfall says how bad they get once you are in one.";
+      }),
+
+    "Z-score of the move": _fact("Z-score of the move", function (m) {
+      if (!m.sdNext) return "";
+      var chg = m.cfg.spot - m.cfg.prevClose;
+      var day = m.cfg.high - m.cfg.low;
+      return "Today the index moved <b>" + sgn(chg, 2) + " points</b> against " +
+        "an expected one-session sigma of <b>" + n0(m.sdNext) +
+        "</b> &mdash; a Z of <b>" + n2(Math.abs(chg) / m.sdNext) + "</b>." +
+        "<br>The high-to-low range was " + n0(day) + " points, or " +
+        n2(day / m.sdNext) + " sigma, so the session travelled " +
+        (day / Math.abs(chg || 1) > 2
+          ? "considerably further than its close admits."
+          : "roughly in line with where it finished.");
+    }),
+
+    "Trading-day basis": _fact("Trading-day basis", function (m) {
+      var a = m.an || {};
+      if (!a.sessionsToExpiry) return "";
+      var cal = m.sd1 * Math.sqrt(m.dte / a.sessionsToExpiry);
+      return "To " + esc(m.cfg.expiry) + " there are <b>" + m.dte +
+        " calendar days</b> but only <b>" + a.sessionsToExpiry +
+        " trading sessions</b>." +
+        "<br>Scaled by sessions the one-sigma band is <b>" + n0(m.sd1) +
+        " points</b>; scaled by calendar days it would be " + n0(cal) +
+        " &mdash; <b>" + n0(cal - m.sd1) + " points wider</b>, or " +
+        n0((cal / m.sd1 - 1) * 100) + "%. That difference is the gap between " +
+        "a strike that clears the filters and one that does not.";
+    }),
+
+    "Classic pivots": _fact("Classic pivots", function (m) {
+      var p = m.piv;
+      if (!p) return "";
+      return "From yesterday's high, low and close: pivot <b>" + n0(p.p) +
+        "</b>, resistance " + n0(p.r1) + " / " + n0(p.r2) + " / " + n0(p.r3) +
+        ", support " + n0(p.s1) + " / " + n0(p.s2) + " / " + n0(p.s3) + "." +
+        "<br>The option-implied walls sit at <b>" + n0(m.putWall) +
+        " &ndash; " + n0(m.callWall) + "</b>. R1 is " +
+        n0(Math.abs(p.r1 - m.callWall)) + " points from the call wall and S1 " +
+        n0(Math.abs(p.s1 - m.putWall)) + " from the put wall &mdash; " +
+        (Math.abs(p.r1 - m.callWall) < 60 || Math.abs(p.s1 - m.putWall) < 60
+          ? "close enough that the two agree, which is when a pivot is worth " +
+            "respecting."
+          : "far enough apart that they are describing different things. " +
+            "Where they disagree, the wall is where the money is.");
+    }),
+
+    "Lookback window": _fact("Lookback window", function (m) {
+      var rv = (m.an || {}).realisedVol || {};
+      var ws = Object.keys(rv).sort(function (a, b) { return +a - +b; });
+      if (ws.length < 2) return "";
+      var short_ = rv[ws[0]].yang_zhang, long_ = rv[ws[ws.length - 1]].yang_zhang;
+      return "The same measurement over different windows: " +
+        ws.map(function (w) {
+          return "<b>" + w + "d " + n2(rv[w].yang_zhang) + "%</b>"; }).join(", ") +
+        ".<br>Short against long is " + n2(short_) + "% versus " + n2(long_) +
+        "% &mdash; " + (short_ > long_ * 1.15
+          ? "the recent window is well above the long one, which means " +
+            "something started recently. That is when to widen strikes, not " +
+            "when to reach for the premium it created."
+          : short_ < long_ * 0.85
+          ? "the recent window is well below the long one: the market has " +
+            "calmed, and premium is thinning with it."
+          : "they agree closely, so there is no regime change to read here.");
+    }),
+
+    "Moving average": _fact("Moving average", function (m) {
+      var h = (m.hist || []).filter(function (x) { return x.close; });
+      if (h.length < 50) return "";
+      var mean = function (n) {
+        var s = h.slice(-n);
+        return s.reduce(function (a, x) { return a + x.close; }, 0) / s.length;
+      };
+      var d20 = mean(20), d50 = mean(50);
+      var d200 = h.length >= 200 ? mean(200) : null;
+      var spot = m.cfg.spot;
+      return "Spot <b>" + n2(spot) + "</b> against its own averages: 20-day " +
+        "<b>" + n0(d20) + "</b> (" + sgn(spot - d20, 0) + "), 50-day <b>" +
+        n0(d50) + "</b> (" + sgn(spot - d50, 0) + ")" +
+        (d200 == null ? "" : ", 200-day <b>" + n0(d200) + "</b> (" +
+          sgn(spot - d200, 0) + ")") + "." +
+        "<br>Computed from " + h.length + " stored sessions. The count that " +
+        "matters more is how many of the fifty constituents sit above their " +
+        "own &mdash; that is the breadth reading on the stocks tab.";
+    }),
+
+    "RSI (14)": _fact("RSI (14)", function (m) {
+      var h = (m.hist || []).filter(function (x) { return x.close; });
+      if (h.length < 15) return "";
+      var g = 0, l = 0;
+      for (var i = h.length - 14; i < h.length; i++) {
+        var d = h[i].close - h[i - 1].close;
+        if (d >= 0) g += d; else l -= d;
+      }
+      var rs = l ? (g / 14) / (l / 14) : null;
+      var rsi = rs == null ? 100 : 100 - 100 / (1 + rs);
+      return "Over the last 14 sessions the index gained <b>" + n0(g) +
+        " points</b> on up days and lost <b>" + n0(l) + "</b> on down days, " +
+        "giving RSI <b>" + n1(rsi) + "</b>." +
+        "<br>" + (rsi > 70 ? "Above the conventional 70. That is folklore " +
+          "rather than evidence &mdash; an index can hold above it for weeks."
+          : rsi < 30 ? "Below the conventional 30, which is folklore rather " +
+            "than evidence and no reason to size on."
+          : "Between 30 and 70, which is most of the time and says nothing.") +
+        " Nothing in the claims ledger rests on it.";
+    })
+  };
+
+  Object.keys(VOL_FACTS).forEach(function (k) {
+    if (!TERMS[k]) TERMS[k] = VOL_FACTS[k];
+  });
+
+  /* A card opened by its glossary name should show the same working as
+     the same card opened by a label. Several figures are keyed by the
+     label the page prints -- "IV-implied", "Expiry range 2sigma" -- and
+     had nothing when reached by the entry they point at. */
+  Object.keys(TERMS).forEach(function (k) {
+    var t = TERMS[k];
+    if (!t.how || !t.deep || t.deep === k) return;
+    if (!TERMS[t.deep]) TERMS[t.deep] = { deep: t.deep, how: t.how };
+  });
+
+
+  /* ---------- hard facts: the trade, the record, the plumbing ---------- */
+  function _note(m) {
+    var tf = TECHFUND[state.idx] || {};
+    return tf.note || null;
+  }
+
+  var DESK_FACTS = {
+    "Recommended structure": _fact("Recommended structure", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (!st || !st.legs) return "";
+      var legs = st.legs.map(function (l) {
+        return (l.act === "sell" ? "short" : "long") + " " + n0(l.strike) +
+          " " + l.side + " at " + n2(l.prem); }).join(", ");
+      return "<b>" + esc(String(st.kind).replace(/_/g, " ")) + "</b>: " +
+        legs + ".<br>Net credit <b>" + n2(st.net) + "</b> = <b>&#8377;" +
+        n0(st.credit_rs) + "</b> a lot, against margin of &#8377;" +
+        n0(st.margin) + " &mdash; a return of " + n2(st.rom) + "%." +
+        "<br>Breakevens <b>" + n0(st.breakevens[0]) + "</b> and <b>" +
+        n0(st.breakevens[1]) + "</b>, " +
+        n0(st.breakevens[1] - st.breakevens[0]) + " points apart. Worst case " +
+        "is capped at &#8377;" + n0(st.max_loss) + " a lot because the wings " +
+        "are bought.";
+    }),
+
+    "P&L": _fact("P&L", function (m) {
+      var nt = _note(m), st = nt && nt.structure, sr = (m.an || {}).structureRisk;
+      if (!st) return "";
+      return "Maximum profit is the credit: <b>&#8377;" + n0(st.credit_rs) +
+        "</b> a lot, kept in full if the index finishes between " +
+        n0(st.breakevens[0]) + " and " + n0(st.breakevens[1]) + " at expiry." +
+        "<br>Maximum loss is <b>&#8377;" + n0(st.max_loss) + "</b> a lot " +
+        "&mdash; " + n2(st.max_loss / st.credit_rs) + " times the credit " +
+        "&mdash; reached beyond the bought wings." +
+        (sr ? "<br>Across the simulated paths the average outcome is <b>" +
+          "&#8377;" + n0(sr.expectedPnl) + "</b>, with the tenth percentile " +
+          "at &#8377;" + n0(sr.p10) + " and the ninetieth at &#8377;" +
+          n0(sr.p90) + "." : "");
+    }),
+
+    "Profit target": _fact("Profit target", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (!st) return "";
+      var t = st.credit_rs * 0.5;
+      return "Credit collected is <b>&#8377;" + n0(st.credit_rs) +
+        "</b> a lot. Closing at half of it takes <b>&#8377;" + n0(t) +
+        "</b> off the table and hands back the remaining risk." +
+        "<br>The margin freed is &#8377;" + n0(st.margin) + " a lot. Holding " +
+        "for the last &#8377;" + n0(st.credit_rs - t) + " means carrying the " +
+        "same &#8377;" + n0(st.max_loss) + " worst case to collect " +
+        n0((st.credit_rs - t) / st.max_loss * 100) + "% of it.";
+    }),
+
+    "Stop loss": _fact("Stop loss", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (!st) return "";
+      var two = st.credit_rs * 2;
+      return "At twice the credit the stop is <b>&#8377;" + n0(two) +
+        "</b> a lot, against a capped worst case of &#8377;" +
+        n0(st.max_loss) + "." +
+        "<br>The desk's short strikes have held on 92.98% of graded " +
+        "sessions on the call side. At that rate one stop at twice credit " +
+        "costs two wins, and roughly " + n1(1 / 0.07) + " wins arrive " +
+        "between losses &mdash; which is why the multiple matters more than " +
+        "whether the stop is ever hit.";
+    }),
+
+    "Time exit": _fact("Time exit", function (m) {
+      var a = m.an || {};
+      return "This contract expires <b>" + esc(m.cfg.expiry) + "</b>, " +
+        a.sessionsToExpiry + " session(s) away. The desk is out before " +
+        "expiry day." +
+        "<br>Band containment on the desk's own record collapses on the " +
+        "final session &mdash; implied volatility stays high while only one " +
+        "session remains, so the option is cheap in time and expensive in " +
+        "risk. That is the arithmetic this exit exists for.";
+    }),
+
+    "Gap scenarios": _fact("Gap scenarios", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (!st || !m.range2) return "";
+      var lo = m.range2[0], hi = m.range2[1];
+      return "A two-sigma gap to " + esc(m.cfg.expiry) + " opens the index at " +
+        "<b>" + n0(lo) + "</b> or <b>" + n0(hi) + "</b> &mdash; " +
+        n0(m.cfg.spot - lo) + " points below or " + n0(hi - m.cfg.spot) +
+        " above where it is now." +
+        "<br>Both sit outside the breakevens at " + n0(st.breakevens[0]) +
+        " and " + n0(st.breakevens[1] ) + ", so either would be a full loss " +
+        "of <b>&#8377;" + n0(st.max_loss) + "</b> a lot. A stop cannot help: " +
+        "there is no trading between yesterday's close and that open.";
+    }),
+
+    "Margin buffer": _fact("Margin buffer", function (m) {
+      var nt = _note(m), sz = nt && nt.sizing;
+      if (!sz || !sz.constraints) return "";
+      var pick = sz.constraints.slice().sort(function (a, b) {
+        return a.lots - b.lots; })[0];
+      var used = pick ? Math.floor(pick.lots) * sz.margin_per_lot : null;
+      return "Capital is <b>&#8377;" + n0(sz.capital) + "</b> and one lot " +
+        "blocks &#8377;" + n0(sz.margin_per_lot) + "." +
+        "<br>The binding constraint is <b>" + esc(pick.name) + "</b> at " +
+        n2(pick.lots) + " lots (" + esc(pick.detail) + "), so the desk takes " +
+        "<b>" + Math.floor(pick.lots) + "</b>." +
+        (used == null ? "" : " That uses &#8377;" + n0(used) + " and leaves " +
+          "<b>&#8377;" + n0(sz.capital - used) + "</b> &mdash; " +
+          n1((1 - used / sz.capital) * 100) + "% of capital free for margin " +
+          "to rise into.");
+    }),
+
+    "Exit plan": _fact("Exit plan", function (m) {
+      var nt = _note(m), st = nt && nt.structure, a = m.an || {};
+      if (!st) return "";
+      return "For today's structure, whichever comes first:" +
+        "<ul class=\"pt-why\"><li><b>Take &#8377;" +
+        n0(st.credit_rs * 0.5) + "</b> &mdash; half the &#8377;" +
+        n0(st.credit_rs) + " credit.</li>" +
+        "<li><b>Cut at &#8377;" + n0(st.credit_rs * 2) + "</b> &mdash; twice " +
+        "the credit, against a capped worst case of &#8377;" +
+        n0(st.max_loss) + ".</li>" +
+        "<li><b>Out before " + esc(m.cfg.expiry) + "</b> &mdash; " +
+        a.sessionsToExpiry + " session(s), regardless of either.</li></ul>" +
+        "The range it needs is " + n0(st.breakevens[0]) + " to " +
+        n0(st.breakevens[1]) + ".";
+    }),
+
+    "Why the desk stands aside": _fact("Why the desk stands aside", function (m) {
+      var cs = m.cands || [];
+      if (!cs.length) return "";
+      var tally = {};
+      cs.forEach(function (c) {
+        var t = (c.verdict || {}).t || "?";
+        tally[t] = (tally[t] || 0) + 1;
+      });
+      var parts = Object.keys(tally).sort(function (a, b) {
+        return tally[b] - tally[a]; })
+        .map(function (k) { return "<b>" + tally[k] + "</b> " + k; });
+      var go = tally["Candidate"] || 0;
+      return "Of <b>" + cs.length + " strikes</b> priced on this board: " +
+        parts.join(", ") + "." +
+        "<br>" + (go
+          ? go + " cleared every filter, which is why a trade is proposed."
+          : "None cleared every filter, which is why the desk is proposing " +
+            "no trade. That is a result, not a failure.");
+    }),
+
+    "Confidence": _fact("Confidence", function (m) {
+      var nt = _note(m), c = nt && nt.call;
+      if (!c) return "";
+      return "The stated read is <b>" + esc(String(c.stance).replace(/_/g, " ")) +
+        "</b>, and these are the numbers behind it: probability of a " +
+        "positive session <b>" + n1(c.p_positive) + "%</b>, of staying " +
+        "inside the range <b>" + n1(c.p_inside) + "%</b>, of breaking the " +
+        "upside <b>" + n1(c.p_break_up) + "%</b>." +
+        "<br>Source: " + esc(c.p_source) + ". The volatility ratio agreeing " +
+        "or disagreeing is " + n2(c.vrp_ratio) + "&times;, and dealer gamma " +
+        "is " + esc(c.gamma_regime) + ".";
+    }),
+
+    "Market breadth": _fact("Market breadth", function (m) {
+      var nt = _note(m), i = nt && nt.internals;
+      if (!i) return "";
+      return "<b>" + i.advances + " advanced, " + i.declines + " declined</b>, " +
+        "and <b>" + i.above_dma + " of 50</b> sit above their own " +
+        i.dma_window + "-session average (" + i.above_dma_prev +
+        " yesterday)." +
+        "<br>The index moved " + sgn(i.move, 2) + " points, of which " +
+        n2(i.attributed) + " is attributed to named constituents and " +
+        n2(i.residual) + " is residual" +
+        (i.attribution_ok ? " &mdash; which reconciles." :
+          " &mdash; which does not reconcile, so the attribution is withheld.");
+    }),
+
+    "Weight": _fact("Weight", function (m) {
+      var nt = _note(m), i = nt && nt.internals;
+      if (!i || !i.drivers || !i.drivers.length) return "";
+      var d = i.drivers.slice(0, 3);
+      return "Today's three largest contributors: " +
+        d.map(function (x) {
+          return "<b>" + esc(x[0]) + "</b> " + sgn(x[1], 2) + " pts"; })
+          .join(", ") + "." +
+        "<br>Together <b>" + n2(d.reduce(function (a, x) {
+          return a + x[1]; }, 0)) + " points</b> of the index's " +
+        sgn(i.move, 2) + ". The weights behind those are recovered by " +
+        "non-negative least squares, not published &mdash; NSE gives the " +
+        "membership list and the top ten only.";
+    }),
+
+    "Index points": _fact("Index points", function (m) {
+      var nt = _note(m), i = nt && nt.internals;
+      if (!i || !i.drivers) return "";
+      var top = i.drivers[0];
+      return "<b>" + esc(top[0]) + "</b> contributed <b>" + sgn(top[1], 2) +
+        " index points</b> today, the most of any constituent." +
+        "<br>The whole index moved " + sgn(i.move, 2) + ", so that one name " +
+        "is " + n0(Math.abs(top[1] / i.move * 100)) + "% of it. Attribution " +
+        "accounts for " + n2(i.attributed) + " with " + n2(i.residual) +
+        " left over" + (i.attribution_ok
+          ? ", which is inside tolerance." : ", which is not, so the shares " +
+          "are withheld rather than shown wrong.");
+    }),
+
+    "Which claims hold up": _fact("Which claims hold up", function (m) {
+      var rel = ((MHIST[state.idx] || {}).reliability || []).slice();
+      if (!rel.length) return "";
+      rel.sort(function (a, b) { return (b.rate || 0) - (a.rate || 0); });
+      var top = rel[0], bot = rel[rel.length - 1];
+      return "<b>" + rel.length + " kinds of claim</b> graded over up to " +
+        top.n + " sessions." +
+        "<br>Strongest: <b>" + esc(CLAIM_LABEL[top.claim] || top.claim) +
+        "</b> at " + n1(top.rate * 100) + "% (" + top.hits + "/" + top.n +
+        "). Weakest: <b>" + esc(CLAIM_LABEL[bot.claim] || bot.claim) +
+        "</b> at " + n1(bot.rate * 100) + "% (" + bot.hits + "/" + bot.n +
+        ")." +
+        "<br>That spread is the finding: structural claims hold in the " +
+        "nineties, directional ones sit at chance. Anything sized on this " +
+        "desk comes from the top of the table.";
+    }),
+
+    "Claims": _fact("Claims", function (m) {
+      var acc = ACCURACY[state.idx] || {};
+      if (!acc.n) return "";
+      return "<b>" + acc.n + " sessions</b> graded, " + acc.n_legs +
+        " individual claims." +
+        "<br>Brier score <b>" + n3(acc.brier) + "</b> against a reference of " +
+        n3(acc.brier_ref) + " &mdash; a skill of " + sgn(acc.brier_skill, 3) +
+        ", so the model is " + (acc.brier_skill > 0 ? "beating" : "not " +
+        "beating") + " the base rate of " + n1(acc.base_rate * 100) + "%." +
+        "<br>Calibration error <b>" + n3(acc.ece) + "</b> across " +
+        acc.n_independent + " independent observations.";
+    }),
+
+    "Calibration (ECE)": _fact("Calibration (ECE)", function (m) {
+      var acc = ACCURACY[state.idx] || {};
+      if (!acc.bins || !acc.bins.length) return "";
+      var rows = acc.bins.map(function (b) {
+        return "<li>Said <b>" + n1(b.conf * 100) + "%</b> on " + b.n +
+          " claims; <b>" + n1(b.obs * 100) + "%</b> happened &mdash; off by " +
+          n1(Math.abs(b.obs - b.conf) * 100) + " points.</li>"; }).join("");
+      return "Expected calibration error is <b>" + n3(acc.ece) +
+        "</b>.<ul class=\"pt-why\">" + rows + "</ul>" +
+        "Position size is chosen from the stated probability, so a desk " +
+        "saying 80% when it means 65% would size every trade too large in " +
+        "the same direction forever, with no number on the page looking wrong.";
+    }),
+
+    "Coverage and the Kupiec test": _fact("Coverage and the Kupiec test",
+      function (m) {
+        var acc = ACCURACY[state.idx] || {}, c = acc.cov_1sd;
+        if (!c) return "";
+        return "The one-sigma band was tested on <b>" + c.n +
+          " independent sessions</b> and contained the close <b>" +
+          n1((c.coverage != null ? c.coverage : 0) * 100) + "%</b> of the " +
+          "time, against a promise of 68.3%." +
+          "<br>" + (Math.abs((c.coverage || 0) * 100 - 68.3) < 5
+            ? "That is within noise at this sample size."
+            : (c.coverage || 0) * 100 > 68.3
+            ? "Running wide &mdash; honest, but premium is going to somebody " +
+              "else."
+            : "Running narrow, which is the direction that costs money.");
+      }),
+
+    "What the record says so far": _fact("What the record says so far",
+      function (m) {
+        var acc = ACCURACY[state.idx] || {};
+        var rel = ((MHIST[state.idx] || {}).reliability || []);
+        if (!acc.n) return "";
+        var st = rel.filter(function (r) { return r.claim === "stance"; })[0];
+        return "<b>" + m.sessionsStored + " sessions stored</b>, " + acc.n +
+          " graded, " + acc.n_legs + " claims resolved." +
+          (st ? "<br>The directional stance has been right <b>" +
+            n1(st.rate * 100) + "%</b> of the time over " + st.n +
+            " sessions &mdash; a coin flip, and the standing evidence that " +
+            "the range claims should never be turned into a directional bet."
+            : "") +
+          "<br>Calibration error " + n3(acc.ece) + ", Brier skill " +
+          sgn(acc.brier_skill, 3) + " against the base rate.";
+      }),
+
+    "One-sigma range, five ways": _fact("One-sigma range, five ways",
+      function (m) {
+        var b = (m.an || {}).bands;
+        if (!b) return "";
+        var names = { implied: "IV-implied", riskNeutral: "Risk-neutral",
+                      cornishFisher: "Cornish-Fisher", bootstrap: "Bootstrap",
+                      realisedForecast: "Realised forecast" };
+        var rows = Object.keys(b).filter(function (k) { return b[k]; })
+          .map(function (k) {
+            return "<li><b>" + (names[k] || k) + "</b>: " + n0(b[k][0]) +
+              " &ndash; " + n0(b[k][1]) + " (" + n0(b[k][1] - b[k][0]) +
+              " pts)</li>"; });
+        var widths = Object.keys(b).filter(function (k) { return b[k]; })
+          .map(function (k) { return b[k][1] - b[k][0]; });
+        var lo = Math.min.apply(null, widths), hi = Math.max.apply(null, widths);
+        return "<ul class=\"pt-why\">" + rows.join("") + "</ul>" +
+          "Widest is " + n0(hi) + " points, narrowest " + n0(lo) +
+          " &mdash; a spread of <b>" + n0(hi - lo) + " points</b> between " +
+          "five methods that share almost no assumptions. " +
+          (hi / lo > 1.35
+            ? "They disagree materially, which argues for a smaller position " +
+              "rather than for picking one."
+            : "They agree closely, which is the evidence a single band on a " +
+              "screen can never give you.");
+      }),
+
+    "Directional probability": _fact("Directional probability", function (m) {
+      var p = (m.an || {}).rndProbs;
+      if (!p) return "";
+      return "From the option-implied distribution: <b>" +
+        n1(p.aboveSpot * 100) + "%</b> finish above " + n2(m.cfg.spot) + ", " +
+        "<b>" + n1(p.above1sd * 100) + "%</b> break the upper band at " +
+        n0(m.range1[1]) + ", <b>" + n1(p.below1sd * 100) + "%</b> break the " +
+        "lower at " + n0(m.range1[0]) + "." +
+        "<br>That leaves <b>" + n1((1 - p.above1sd - p.below1sd) * 100) +
+        "%</b> inside the range &mdash; the seller's outcome, and the only " +
+        "one of the three worth sizing on.";
+    }),
+
+    "NIFTY 50": _fact("NIFTY 50", function (m) {
+      var nt = _note(m), i = nt && nt.internals;
+      return "<b>" + n2(m.cfg.spot) + "</b>, " +
+        sgn(m.cfg.spot - m.cfg.prevClose, 2) + " today." +
+        (i ? "<br>Beneath it, " + i.advances + " of the fifty rose and " +
+          i.declines + " fell. The index is a weighted average, so it can " +
+          "move against most of its own members &mdash; today it did not." : "") +
+        "<br>Weights are recovered by fitting daily index changes against " +
+        "the fifty constituent changes, and refitted monthly because " +
+        "free-float and membership both change.";
+    }),
+
+    "Model stack": _fact("Model stack", function (m) {
+      var h = (m.an || {}).harRv, acc = ACCURACY[state.idx] || {};
+      return "Running on this session: implied volatility per strike (" +
+        m.nStrikes + " strikes), a density from " +
+        (((m.an || {}).forward || {}).n_strikes || "?") + " strikes, " +
+        "Cornish-Fisher on skew " + n2(((m.an || {}).cornishFisher || {}).skew) +
+        ", Black-Scholes for probability" +
+        (h ? ", and a volatility forecast fitted on " + h.n_obs +
+          " sessions at R&sup2; " + n2(h.r2) : "") + "." +
+        (acc.ece != null ? "<br>The calibration haircut at the end is fitted " +
+          "from the desk's own record &mdash; currently an expected " +
+          "calibration error of " + n3(acc.ece) + " over " + acc.n +
+          " graded sessions." : "");
+    }),
+
+    "GARCH(1,1)": _fact("GARCH(1,1)", function (m) {
+      var h = (m.an || {}).harRv, v = (m.an || {}).vrp;
+      if (!h) return "";
+      return "The desk's volatility forecast for " + esc(m.cfg.expiry) +
+        " is <b>" + n2(h.forecast) + "%</b>, fitted on " + h.n_obs +
+        " sessions." +
+        (v ? "<br>Implied is " + n2(v.iv) + "%, so the market is charging " +
+          n2(v.iv - h.forecast) + " points " +
+          (v.iv > h.forecast ? "more" : "less") + " than the model expects " +
+          "volatility to be." : "") +
+        "<br>GARCH is run alongside as a cross-check rather than as the " +
+        "forecast. Where the two disagree materially the honest answer is a " +
+        "wider band, not a chosen model.";
+    }),
+
+    "Fetch pipeline": _fact("Fetch pipeline", function (m) {
+      var p = (MANIFEST || {}).pipeline || [];
+      if (!p.length) return "";
+      var last = p[0];
+      var ok = p.filter(function (x) { return x.status === "ok"; }).length;
+      return "Last run <b>" + esc(String(last.run_at).replace("T", " ")) +
+        "</b> &mdash; " + esc(last.source) + " attempt " + last.attempt +
+        ", <b>" + esc(last.status) + "</b>: " + esc(last.message) + "." +
+        "<br>Of the last " + p.length + " logged steps, " + ok +
+        " succeeded. The desk holds <b>" + m.sessionsStored +
+        " sessions</b> and this chain carries " + m.nStrikes + " strikes.";
+    }),
+
+    "Option chain fetch": _fact("Option chain fetch", function (m) {
+      var p = ((MANIFEST || {}).pipeline || []).filter(function (x) {
+        return x.source === "option-chain"; })[0];
+      return "This chain carries <b>" + m.nStrikes + " strikes</b> for " +
+        esc(m.cfg.expiry) + ", of which the desk keeps " +
+        (m.rows || []).length + " near the money." +
+        (p ? "<br>Fetched " + esc(String(p.run_at).replace("T", " ")) +
+          " on attempt " + p.attempt + " in " + n0(p.duration_ms) +
+          "ms: " + esc(p.message) + "." : "") +
+        "<br>The endpoint answers with an empty payload rather than an error " +
+        "for an expiry that does not exist, so the strike count is the real " +
+        "check that it worked.";
+    }),
+
+    "Retry ladder": _fact("Retry ladder", function (m) {
+      var p = (MANIFEST || {}).pipeline || [];
+      var oc = p.filter(function (x) { return x.source === "option-chain"; });
+      if (!oc.length) return "";
+      var skipped = oc.filter(function (x) { return x.status === "skipped"; });
+      return "The last <b>" + oc.length + "</b> option-chain attempts: " +
+        oc.slice(0, 4).map(function (x) {
+          return "attempt " + x.attempt + " <b>" + esc(x.status) + "</b>"; })
+        .join(", ") + "." +
+        "<br>" + (skipped.length
+          ? skipped.length + " were skipped because the session was already " +
+            "stored, which is the healthy state &mdash; the first run of the " +
+            "day got clean data."
+          : "None were skipped, so each rung did real work.");
+    }),
+
+    "History depth": _fact("History depth", function (m) {
+      var a = m.an || {};
+      return "<b>" + m.sessionsStored + " sessions</b> stored, against a " +
+        "usable window of 100." +
+        "<br>That is what lets the desk show an implied volatility rank of " +
+        n1(a.ivRank) + " and a percentile of " + n1(a.ivPercentile) +
+        " &mdash; both meaningless under about 100 sessions, and withheld " +
+        "rather than shown when the history is too short.";
+    }),
+
+    "Store": _fact("Store", function (m) {
+      var db = (MANIFEST || {}).dbBytes;
+      return "<b>" + m.sessionsStored + " sessions</b> of chains, index " +
+        "history, positioning and graded claims" +
+        (db ? ", in a database of <b>" + n1(db / 1048576) + " MB</b>" : "") +
+        "." +
+        "<br>Everything on this page is recomputed from it rather than " +
+        "remembered, which is what makes a claim from months ago gradeable " +
+        "today against the numbers as they actually were.";
+    })
+  };
+
+  Object.keys(DESK_FACTS).forEach(function (k) {
+    if (!TERMS[k] || !TERMS[k].how) TERMS[k] = DESK_FACTS[k];
+  });
+
+
+  /* Assigned over whatever was there: each of these had a `how` that
+     returned prose, which is what the batches above were skipping. */
+  var OVERRIDE_FACTS = {
+    "Claims": _fact("Claims", function (m) {
+      var acc = ACCURACY[state.idx] || {};
+      if (!acc.n) return "";
+      return "<b>" + acc.n + " sessions</b> graded, <b>" + acc.n_legs +
+        " individual claims</b> resolved." +
+        "<br>Brier score <b>" + n3(acc.brier) + "</b> against a reference of " +
+        n3(acc.brier_ref) + " &mdash; a skill of " + sgn(acc.brier_skill, 3) +
+        ", so the model is " +
+        (acc.brier_skill > 0 ? "beating" : "<b>not</b> beating") +
+        " the base rate of " + n1(acc.base_rate * 100) + "%." +
+        "<br>Expected calibration error <b>" + n3(acc.ece) + "</b> across " +
+        acc.n_independent + " independent observations. Click any row in " +
+        "Which claims hold up to see that claim's own record.";
+    }),
+
+    "Index Price/Earnings": _fact("Index Price/Earnings", function (m) {
+      var v = (TECHFUND[state.idx] || {}).valuation;
+      if (!v || v.pe == null) return "";
+      return "Price/earnings <b>" + n2(v.pe) + "</b>, at the <b>" +
+        n1(v.pe_pctile) + "th percentile</b> of " + v.pe_n +
+        " stored sessions (range " + n2(v.pe_min) + " to " + n2(v.pe_max) +
+        ", median " + n2(v.pe_median) + ")." +
+        "<br>Price/book <b>" + n2(v.pb) + "</b> at the " + n1(v.pb_pctile) +
+        "th percentile; dividend yield <b>" + n2(v.div_yield) + "%</b> at the " +
+        n1(v.div_yield_pctile) + "th." +
+        "<br>Earnings yield is <b>" + n2(100 / v.pe) + "%</b>, the " +
+        "reciprocal of that multiple &mdash; what the index earns against " +
+        "what it costs, before any growth.";
+    }),
+
+    "Delivery percentage": _fact("Delivery percentage", function (m) {
+      var nt = (TECHFUND[state.idx] || {}).note;
+      var i = nt && nt.internals;
+      var v = (TECHFUND[state.idx] || {}).valuation;
+      if (!v && !i) return "";
+      var bits = [];
+      if (v && v.turnover_cr != null) {
+        bits.push("Turnover today was <b>&#8377;" + n0(v.turnover_cr) +
+          " crore</b> on <b>" + n1(v.volume / 1e7) + " crore shares</b>");
+      }
+      if (i && i.vwap != null) {
+        bits.push("the index-weighted VWAP was " + n2(i.vwap) +
+          " against a close of " + n2(m.cfg.spot) + ", so the session " +
+          "finished " + (m.cfg.spot >= i.vwap ? "above" : "below") +
+          " its own average traded price by " +
+          n0(Math.abs(m.cfg.spot - i.vwap)) + " points");
+      }
+      if (!bits.length) return "";
+      return bits.join(", and ") + "." +
+        "<br>Delivery separates ownership changing hands from intraday " +
+        "churn: the same turnover means different things at 70% delivery " +
+        "and at 25%. Per-name delivery is on the stocks tab, where it is " +
+        "read against each constituent's own weight.";
+    })
+  };
+
+  Object.keys(OVERRIDE_FACTS).forEach(function (k) {
+    TERMS[k] = OVERRIDE_FACTS[k];
+  });
+
   var TERM_PREFIX = [
     ["Closes above", "P(profit)"],
     ["Closes below", "P(profit)"],
@@ -5694,6 +6966,8 @@ table.ledger { min-width: 800px; }
   ];
 
   var TERM_ALIAS = {
+    "Gap": "Gap scenarios",
+    "P&amp;L": "P&L",
     "History depth": "History depth",
     "Option chain": "Option chain fetch",
     "Store": "Store",
@@ -6002,6 +7276,56 @@ table.ledger { min-width: 800px; }
      does to a position. Written per term because a sentence generated from
      a methodology paragraph reads like a methodology paragraph. */
   var PLAIN = {
+    "Exit plan": [
+      "The three ways out, fixed before the trade is opened: take the " +
+      "profit, cut the loss, or close on time. Whichever comes first fires.",
+      "This is where a seller's result is actually decided. A losing " +
+      "position generates an endless supply of reasons to hold it longer, " +
+      "and every one of them arrives after the trade is on."
+    ],
+    "Profit target": [
+      "The share of collected premium at which the desk closes rather than " +
+      "holding for the last of it.",
+      "The final stretch of decay is the slowest and the most dangerous " +
+      "&mdash; the same gap risk held for a fraction of the money. Closing " +
+      "early also frees the margin to work somewhere else."
+    ],
+    "Stop loss": [
+      "The loss at which the position is closed, quoted as a multiple of the " +
+      "premium collected.",
+      "It says how many winning trades one loss is allowed to undo. At twice " +
+      "the credit a single loss costs two wins, which this hit rate can " +
+      "carry. At five times it cannot."
+    ],
+    "Time exit": [
+      "A hard date to be out, whatever the position is doing &mdash; on this " +
+      "desk, before expiry day.",
+      "Expiry-day gamma is the worst risk per rupee a seller can hold. This " +
+      "is the exit most often ignored, because when it fires the trade is " +
+      "usually winning and closing feels like leaving money behind."
+    ],
+    "Gap scenarios": [
+      "What the position is worth if the index opens well away from " +
+      "yesterday's close &mdash; the case a stop loss cannot help with.",
+      "A stop is an instruction to trade at a level; a gap is the market not " +
+      "offering that level. This is the number that should decide size, not " +
+      "the probability of profit."
+    ],
+    "Margin buffer": [
+      "The capital left unused once the position is on.",
+      "Margin rises fastest exactly when a trade is going against you, so " +
+      "the buffer is what prevents an adverse move becoming a forced exit at " +
+      "the worst available price."
+    ],
+    "P&L": [
+      "What the position makes or loses at a given index level on a given " +
+      "date: credit collected, less the cost of buying the short strikes " +
+      "back.",
+      "Read the edges, not the peak. Maximum profit is known before entry " +
+      "and barely moves; the loss is the number that varies, and it is the " +
+      "one worth studying."
+    ]
+,
     "Expiry range claim": [
       "A claim, made on the day, that the index settles inside a " +
       "stated range at expiry. The one-sigma version should be right " +
