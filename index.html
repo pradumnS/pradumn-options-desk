@@ -7013,6 +7013,147 @@ table.ledger { min-width: 800px; }
 
   Object.keys(CARRY_FACTS).forEach(function (k) { TERMS[k] = CARRY_FACTS[k]; });
 
+
+  /* On a stand-aside session there is no structure to price, and these
+     cards have to say something true about the position that was not
+     taken. The 40 rejected strikes are the evidence. */
+  function _standAside(m) {
+    var cs = m.cands || [];
+    var tally = {}, cleared = [];
+    cs.forEach(function (c) {
+      var t = (c.verdict || {}).t || "?";
+      tally[t] = (tally[t] || 0) + 1;
+      if ((c.verdict || {}).c === "go") cleared.push(c);
+    });
+    var parts = Object.keys(tally).sort(function (a, b) {
+      return tally[b] - tally[a]; })
+      .map(function (k) { return "<b>" + tally[k] + "</b> " + k.toLowerCase(); });
+    var ce = cleared.filter(function (c) { return c.side === "CE"; });
+    var pe = cleared.filter(function (c) { return c.side === "PE"; });
+    /* Which side is missing is the reason, and "nothing cleared" is
+       usually false -- one side qualifying and the other not is the
+       common case, and a different thing to explain. */
+    var missing = !ce.length && !pe.length ? "both"
+      : !pe.length ? "PE" : !ce.length ? "CE" : null;
+    return { n: cs.length, tally: tally, parts: parts,
+             cleared: cleared, ce: ce, pe: pe, missing: missing,
+             best: cleared.slice().sort(function (a, b) {
+               return (b.rom || 0) - (a.rom || 0); })[0] };
+  }
+
+  function _asideReason(a) {
+    if (a.missing === "both") {
+      return "Not one of them cleared the liquidity, distance and premium " +
+        "filters.";
+    }
+    var got = a.missing === "PE" ? a.ce[0] : a.pe[0];
+    var side = a.missing === "PE" ? "call" : "put";
+    var need = a.missing === "PE" ? "put" : "call";
+    return "One did clear &mdash; the <b>" + n0(got.strike) + " " +
+      got.side + "</b> at " + n2(got.rom) + "% return on margin. But " +
+      "nothing on the <b>" + need + " side</b> qualified, and a strangle " +
+      "needs a strike on each side, so there is no structure to write.";
+  }
+
+  var ASIDE_FACTS = {
+    "Recommended structure": _fact("Recommended structure", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (st && st.legs && st.legs.length) return null;   /* trade card wins */
+      var a = _standAside(m);
+      if (!a.n) return "";
+      return "<b>No trade.</b> " + a.n + " strikes were priced: " +
+        a.parts.join(", ") + ".<br>" + _asideReason(a) +
+        "<br>The walls sit at <b>" + n0(m.putWall) + " &ndash; " +
+        n0(m.callWall) + "</b>, so that is where a strangle would go if the " +
+        "premium justified one. It does not, and sitting out is the answer.";
+    }),
+
+    "P&L": _fact("P&L", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (st && st.legs && st.legs.length) return null;
+      var a = _standAside(m);
+      if (!a.best) return "";
+      var lot = m.cfg.lot;
+      return "<b>No position, so no profit and loss.</b> The one strike " +
+        "that did clear was the " + n0(a.best.strike) + " " +
+        a.best.side + ": maximum profit &#8377;" + n0(a.best.creditRs) +
+        " a lot, reached only if it expires worthless." +
+        "<br>Against that, every 100 points past the strike costs <b>&#8377;" +
+        n0(100 * lot) + "</b> a lot, with no ceiling unless a wing is " +
+        "bought. Collecting &#8377;" + n0(a.best.creditRs) + " to carry that " +
+        "is the trade the filters refused.";
+    }),
+
+    "Gap scenarios": _fact("Gap scenarios", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (st && st.legs && st.legs.length) return null;
+      if (!m.range2) return "";
+      var lo = m.range2[0], hi = m.range2[1];
+      return "<b>Nothing is at risk today</b>, because nothing is on. But " +
+        "the gap this session was pricing is worth reading: a two-sigma " +
+        "move to " + esc(m.cfg.expiry) + " opens the index at <b>" +
+        n0(lo) + "</b> or <b>" + n0(hi) + "</b> &mdash; " +
+        n0(m.cfg.spot - lo) + " points below or " + n0(hi - m.cfg.spot) +
+        " above spot." +
+        "<br>Both are outside the walls at " + n0(m.putWall) + " and " +
+        n0(m.callWall) + ", so a strangle written between them would have " +
+        "been fully through on either. At " + m.cfg.lot + " units a lot " +
+        "that is <b>&#8377;" + n0(Math.abs(m.cfg.spot - lo) * m.cfg.lot) +
+        "</b> of adverse move on the downside alone.";
+    }),
+
+    "Margin buffer": _fact("Margin buffer", function (m) {
+      var nt = _note(m), sz = nt && nt.sizing;
+      if (sz && sz.constraints) return null;
+      var a = _standAside(m);
+      if (!a.best) return "";
+      return "<b>No margin is committed today</b> &mdash; the desk is " +
+        "standing aside, so all of the capital is free." +
+        "<br>For scale: the one strike that cleared would have blocked " +
+        "<b>&#8377;" + n0(a.best.margin) + "</b> a lot to collect &#8377;" +
+        n0(a.best.creditRs) + ". Margin is recalculated as the market moves " +
+        "and rises fastest when a position is going against you, which is " +
+        "why the buffer is a sizing constraint in its own right rather " +
+        "than whatever is left over.";
+    }),
+
+    "Exit plan": _fact("Exit plan", function (m) {
+      var nt = _note(m), st = nt && nt.structure;
+      if (st && st.legs && st.legs.length) return null;
+      var a = _standAside(m), sess = (m.an || {}).sessionsToExpiry;
+      return "<b>Nothing to exit.</b> " + a.n + " strikes were priced and " +
+        (a.missing === "both"
+          ? "none cleared the filters"
+          : "only the " + (a.missing === "PE" ? "call" : "put") +
+            " side produced one") +
+        ", so there is no position and no plan needed today." +
+        "<br>Had one been taken, the three exits would have been fixed " +
+        "before entry: half the credit as a target, twice the credit as a " +
+        "stop, and out before " + esc(m.cfg.expiry) + " regardless &mdash; " +
+        sess + " session(s) away." +
+        "<br>Deciding not to trade is itself the first of those decisions, " +
+        "and the record holds it: the sessions refused are the ones that " +
+        "would otherwise have cost the most.";
+    })
+  };
+
+  /* Wrapped rather than replaced: on a session that does propose a trade
+     the original card is the right one, so each returns null and the
+     trade version answers. */
+  Object.keys(ASIDE_FACTS).forEach(function (k) {
+    var trade = TERMS[k] && TERMS[k].how;
+    var aside = ASIDE_FACTS[k].how;
+    TERMS[k] = {
+      deep: ASIDE_FACTS[k].deep,
+      how: function (m) {
+        var out = null;
+        try { out = aside(m); } catch (e) { out = null; }
+        if (out) return out;
+        try { return trade ? trade(m) : ""; } catch (e) { return ""; }
+      }
+    };
+  });
+
   var TERM_PREFIX = [
     ["Closes above", "P(profit)"],
     ["Closes below", "P(profit)"],
