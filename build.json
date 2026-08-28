@@ -1,12 +1,12 @@
 {
- "builtAt": "2026-08-28T09:09:04+00:00",
- "generatedAt": "2026-08-28T13:09:04",
+ "builtAt": "2026-08-28T14:08:10+00:00",
+ "generatedAt": "2026-08-28T18:08:10",
  "sessions": {
-  "NIFTY": 263
+  "NIFTY": 264
  },
  "modelVersion": "0.9.0-claims",
  "indices": [
   "NIFTY"
  ],
- "bytes": 2542422
+ "bytes": 2552362
 }
