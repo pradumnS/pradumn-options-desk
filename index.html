@@ -1088,6 +1088,59 @@ table.gap { min-width: 560px; }
 .si { cursor: pointer; }
 .si:hover .si-v { text-decoration: underline; text-underline-offset: 3px; }
 
+/* ---------- global tape -> India read ----------
+   Section 0 of the Direction tab. Laid out as gauge-beside-table rather
+   than as another row of KPI tiles, because the number on its own is the
+   least useful part of it: the working is the point. */
+.mac { display: grid; grid-template-columns: 262px 1fr; }
+.mac-l { padding: 14px 16px; border-right: 1px solid var(--line-soft); }
+.mac-bias { font-family: var(--font-num); font-size: 38px; font-weight: 650;
+  line-height: 1; font-variant-numeric: tabular-nums; }
+.mac-lbl { font-size: 11.5px; color: var(--ink-2); margin-top: 7px; }
+.mac-gauge { position: relative; height: 8px; border-radius: 4px; margin: 18px 0 6px;
+  background: linear-gradient(90deg, var(--down), var(--surface-2) 46%,
+    var(--surface-2) 54%, var(--up)); }
+.mac-zero { position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px;
+  background: var(--ink-3); }
+.mac-pin { position: absolute; top: -5px; width: 3px; height: 18px; border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--surface); }
+.mac-ends { display: flex; justify-content: space-between; font-size: 10px;
+  color: var(--ink-3); font-family: var(--font-num); }
+.mac-ch { margin-top: 16px; }
+.mac-ch-hd { font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--ink-3); padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+.mac-cr { display: grid; grid-template-columns: 1fr 54px 44px; align-items: center;
+  gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); font-size: 12px; }
+.mac-cr:last-child { border-bottom: 0; }
+.mac-bar { height: 5px; border-radius: 3px; }
+.mac-v { font-family: var(--font-num); font-size: 11.5px; text-align: right;
+  font-variant-numeric: tabular-nums; }
+.mac-verdict { padding: 14px 16px; border-bottom: 1px solid var(--line-soft);
+  font-size: 13px; line-height: 1.55; color: var(--ink); }
+.mac-chip { display: inline-block; font-family: var(--font-num); font-size: 10px;
+  padding: 2px 5px; border-radius: 3px; margin: 2px 3px 0 0; white-space: nowrap;
+  background: var(--surface-2); color: var(--ink-2); }
+.mac-chip.up { color: var(--up); }
+.mac-chip.dn { color: var(--down); }
+.mac-india { font-size: 11.5px; line-height: 1.5; color: var(--ink-2); min-width: 240px; }
+.mac-sev { display: inline-block; width: 3px; height: 12px; border-radius: 2px;
+  vertical-align: -2px; margin-right: 6px; }
+.mac-sev.hi { background: var(--down); }
+.mac-sev.md { background: var(--warn); }
+.mac-sev.lo { background: var(--ink-3); }
+.mac-ev { padding: 9px 16px; border-bottom: 1px solid var(--line-soft); }
+.mac-ev:last-child { border-bottom: 0; }
+.mac-ev-t { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.mac-ev-n { font-size: 12.5px; color: var(--ink); }
+.mac-ev-d { font-family: var(--font-num); font-size: 10.5px; color: var(--ink-3);
+  white-space: nowrap; }
+.mac-ev-w { font-size: 11.5px; color: var(--ink-2); margin-top: 2px; }
+.mac-ev.inx { border-left: 2px solid var(--warn); }
+@media (max-width: 820px) {
+  .mac { grid-template-columns: 1fr; }
+  .mac-l { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+}
+
 /* ---------- watchlist ---------- */
 .wl-tabs {
   display: flex; gap: 3px; padding: 8px 12px; flex-wrap: wrap;
@@ -3084,8 +3137,132 @@ table.ledger { min-width: 800px; }
       "<p><b>Backtest before trusting it.</b> Once you have 100+ sessions stored, replay these rules against them. " +
       "Until then treat every suggestion as a hypothesis.</p></div></section>";
 
-    return rangeCard + quantCards(m) + probCard + strikeCard +
+    return macroCard(m) + rangeCard + quantCards(m) + probCard + strikeCard +
            structCard + exitCard + gapCard + honesty;
+  }
+
+  /* ----------------------------------------------------------
+     Section 0 -- the global tape, as an India effect.
+
+     First on the tab and last in the argument. It is context for
+     how large a gap could be, not a view on which way it goes,
+     and the card says so in as many words so that a reader
+     skimming the number cannot take it for a call.
+
+     Renders nothing at all when there is no read. A blank gauge
+     would look like a calm tape; there is no honest way to draw
+     "the feed did not answer".
+     ---------------------------------------------------------- */
+  function macroCard(m) {
+    var d = (TECHFUND || {})[m.cfg.key] || {};
+    var n = d.note || {};
+    return tapeCard(n.macro) + eventCard(n.events);
+  }
+
+  function tapeCard(M) {
+    if (!M) return "";
+
+    var hd = '<section class="card" style="margin-bottom:14px"><div class="card-hd">' +
+      "<h2>Global tape &rarr; India read</h2>" +
+      '<span class="sub">context, not a call</span>' +
+      '<div class="right"><span class="kpi-m">' +
+      esc((M.asOf || "").replace("T", " ")) + "</span></div></div>";
+
+    if (M.bias === null || M.bias === undefined) {
+      return hd + '<div class="caution"><p><b>Read withheld.</b> ' +
+        esc(M.withheld || "Too little of the tape reported.") +
+        "</p></div></section>";
+    }
+
+    var scored = (M.drivers || []).filter(function (x) {
+      return x.contribution !== null && x.contribution !== undefined;
+    }).sort(function (a, b) {
+      return Math.abs(b.contribution) - Math.abs(a.contribution);
+    });
+
+    var maxAbs = scored.length ? Math.abs(scored[0].contribution) : 1;
+    var pin = ((M.bias + 100) / 200 * 100).toFixed(2);
+    var biasCol = M.bias >= 0 ? "var(--up)" : "var(--down)";
+
+    var contrib = scored.slice(0, 8).map(function (x) {
+      var w = Math.max(3, Math.abs(x.contribution) / maxAbs * 54);
+      var col = x.contribution >= 0 ? "var(--up)" : "var(--down)";
+      return '<div class="mac-cr"><span>' + esc(x.label) + "</span>" +
+        '<span class="mac-bar" style="width:' + w.toFixed(1) + "px;background:" + col + '"></span>' +
+        '<span class="mac-v" style="color:' + col + '">' + sgn(x.contribution, 0) + "</span></div>";
+    }).join("");
+
+    var left = '<div class="mac-l">' +
+      '<div class="mac-bias" style="color:' + biasCol + '">' + sgn(M.bias, 0) + "</div>" +
+      '<div class="mac-lbl">Global bias <b style="color:' + biasCol + '">' +
+        esc(M.label || "") + "</b><br>scale &minus;100 to +100" +
+        (M.coverage != null ? " &middot; " + (M.coverage * 100).toFixed(0) + "% of the tape reported" : "") +
+      "</div>" +
+      '<div class="mac-gauge"><div class="mac-zero"></div>' +
+      '<div class="mac-pin" style="left:' + pin + "%;background:" + biasCol + '"></div></div>' +
+      '<div class="mac-ends"><span>&minus;100 bearish</span><span>bullish +100</span></div>' +
+      '<div class="mac-ch"><div class="mac-ch-hd">Contribution to bias</div>' + contrib + "</div>" +
+      "</div>";
+
+    var rows = (M.drivers || []).map(function (x) {
+      var chips = (x.sectors || []).map(function (s) {
+        var dir = s[1];
+        var k = dir.indexOf("+") === 0 ? "up" : (dir.indexOf("-") === 0 ? "dn" : "");
+        return '<span class="mac-chip ' + k + '">' + esc(s[0]) + " " + esc(dir) + "</span>";
+      }).join("");
+      var cc = x.contribution == null ? "neu" : (x.contribution >= 0 ? "pos" : "neg");
+      return "<tr><td class=\"lft\" style=\"color:var(--ink)\">" + esc(x.label) +
+        '<br><span style="color:var(--ink-3);font-size:10px">' + esc(x.symbol) + "</span></td>" +
+        "<td>" + n2(x.last) + "</td>" +
+        '<td class="' + cls(x.chgPct) + '">' + sgn(x.chgPct, 2) + "%</td>" +
+        '<td class="' + cc + '">' + (x.contribution == null ? "\u2014" : sgn(x.contribution, 0)) + "</td>" +
+        '<td class="lft mac-india">' + esc(x.india || "") + "</td>" +
+        '<td class="lft">' + chips + "</td></tr>";
+    }).join("");
+
+    var right = "<div>" +
+      '<div class="mac-verdict">' + esc(M.verdict || "") + "</div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Driver</th><th>Last</th><th>Chg %</th><th>Contrib</th>' +
+      '<th class="lft">Channel into India</th><th class="lft">Sector effect</th>' +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div></div>";
+
+    return hd + '<div class="mac">' + left + right + "</div>" +
+      '<div class="caution"><p><b>This does not move the stance.</b> ' +
+      "The directional probability on this tab still comes from the risk-neutral density, " +
+      "because that number has been graded and this one has not. The bias is recorded every " +
+      "session so it can be scored on the same basis later; until it has been, read it as the " +
+      "reason a gap could be wider than the band, not as a direction." +
+      "</p></div></section>";
+  }
+
+  function eventCard(E) {
+    if (!E || !(E.events || []).length) return "";
+
+    var rows = E.events.map(function (e) {
+      var sev = e.severity === "high" ? "hi" : (e.severity === "medium" ? "md" : "lo");
+      return '<div class="mac-ev' + (e.insideExpiry ? " inx" : "") + '">' +
+        '<div class="mac-ev-t"><span class="mac-ev-n">' +
+          '<i class="mac-sev ' + sev + '"></i>' + esc(e.label) +
+          (e.insideExpiry ? ' <span style="color:var(--warn);font-size:10px">inside expiry</span>' : "") +
+        "</span>" +
+        '<span class="mac-ev-d">' + esc(e.date) + " &middot; T&minus;" + e.daysUntil + "</span></div>" +
+        '<div class="mac-ev-w">' + esc(e.note || "") +
+        (e.source === "convention"
+          ? ' <span style="color:var(--ink-3)">Date follows the usual release convention and shifts for holidays.</span>'
+          : "") +
+        "</div></div>";
+    }).join("");
+
+    var warn = E.stale
+      ? '<div class="caution"><p><b>The calendar is incomplete.</b> ' + esc(E.stale) + "</p></div>"
+      : "";
+
+    return '<section class="card" style="margin-bottom:14px"><div class="card-hd">' +
+      "<h2>Scheduled events</h2>" +
+      '<span class="sub">' + E.insideExpiry.length + " inside the current expiry</span>" +
+      '<div class="right"><span class="kpi-m">to ' + esc(E.expiry || "") + "</span></div></div>" +
+      warn + rows + "</section>";
   }
 
   /* ==========================================================
@@ -3814,16 +3991,21 @@ table.ledger { min-width: 800px; }
         '<td class="' + cls(it.chg) + '">' + sgn(it.chg, 2) + "</td>" +
         '<td class="' + cls(it.chgPct) + '">' + sgn(it.chgPct, 2) + "%</td>" +
         "<td>" + n2(it.open) + "</td><td>" + n2(it.high) + "</td><td>" + n2(it.low) + "</td>" +
-        '<td class="lft" style="color:var(--ink-3)">' + esc(it.unit || "") + "</td></tr>";
+        '<td class="lft" style="color:var(--ink-3)">' + esc(it.unit || "") + "</td>" +
+        // Blank for anything the transmission map does not model. Platinum
+        // and coffee are carried for context and are honestly not modelled;
+        // inventing a channel for them would be the easiest lie on the page.
+        '<td class="lft mac-india">' + esc(it.channel || "") + "</td></tr>";
     }).join("");
 
-    return '<section class="card"><div class="card-hd"><h2>Commodities &amp; FX</h2>' +
+    return '<section class="card"><div class="card-hd"><h2>' + esc(L.title || "Commodities &amp; FX") + "</h2>" +
       '<span class="sub">international benchmarks</span></div>' +
       '<div class="caution"><p><b>Not MCX, and not rupees.</b> ' + esc(L.note || "") + "</p></div>" +
       '<div class="tablewrap"><table class="dt"><thead><tr>' +
       '<th class="lft">Instrument</th><th class="lft">Symbol</th><th>Last</th>' +
       "<th>Chg</th><th>Chg %</th><th>Open</th><th>High</th><th>Low</th>" +
-      '<th class="lft">Unit</th></tr></thead><tbody>' + rows + "</tbody></table></div></section>";
+      '<th class="lft">Unit</th><th class="lft">Channel into India</th>' +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
   }
 
   /* ==========================================================
