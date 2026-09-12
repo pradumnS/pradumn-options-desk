@@ -1136,6 +1136,19 @@ table.gap { min-width: 560px; }
   white-space: nowrap; }
 .mac-ev-w { font-size: 11.5px; color: var(--ink-2); margin-top: 2px; }
 .mac-ev.inx { border-left: 2px solid var(--warn); }
+/* Which economy the print comes from. Coloured rather than spelled out at
+   length, because the scan a reader actually does on this list is "is this
+   one mine, or is it the thing that moves the dollar". */
+.mac-reg {
+  display: inline-block; font-family: var(--font-num); font-size: 9px;
+  letter-spacing: .06em; text-transform: uppercase; padding: 1px 5px;
+  border-radius: 3px; margin-right: 7px; vertical-align: 1px;
+  background: var(--surface-2); color: var(--ink-3);
+  border: 1px solid var(--line);
+}
+.mac-reg.r-IN { color: var(--calls); border-color: var(--calls); }
+.mac-reg.r-US { color: var(--puts); border-color: var(--puts); }
+.mac-reg.r-CN { color: var(--warn); border-color: var(--warn); }
 @media (max-width: 820px) {
   .mac { grid-template-columns: 1fr; }
   .mac-l { border-right: 0; border-bottom: 1px solid var(--line-soft); }
@@ -3241,9 +3254,12 @@ table.ledger { min-width: 800px; }
 
     var rows = E.events.map(function (e) {
       var sev = e.severity === "high" ? "hi" : (e.severity === "medium" ? "md" : "lo");
+      var reg = e.regionLabel || "Global";
       return '<div class="mac-ev' + (e.insideExpiry ? " inx" : "") + '">' +
         '<div class="mac-ev-t"><span class="mac-ev-n">' +
-          '<i class="mac-sev ' + sev + '"></i>' + esc(e.label) +
+          '<i class="mac-sev ' + sev + '"></i>' +
+          '<span class="mac-reg r-' + esc(e.region || "GL") + '">' + esc(reg) + "</span>" +
+          esc(e.label) +
           (e.insideExpiry ? ' <span style="color:var(--warn);font-size:10px">inside expiry</span>' : "") +
         "</span>" +
         '<span class="mac-ev-d">' + esc(e.date) + " &middot; T&minus;" + e.daysUntil + "</span></div>" +
@@ -4637,6 +4653,104 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    "Global bias": [
+      "One number, from &minus;100 to +100, for what the rest of the world " +
+      "did to India while this market was shut. Crude, the dollar, US " +
+      "rates, the metals and the food inputs are each pushed through the " +
+      "channel by which they actually reach an Indian index, and the " +
+      "results added up. Negative is a headwind, positive a tailwind.",
+      "It exists because the option chain has no idea why it moved. The " +
+      "chain can tell you the market expects a given range; it cannot tell " +
+      "you that crude gapped 3% overnight, which is the difference between " +
+      "a quiet session and a gap the band never covered. This is the only " +
+      "part of the desk that looks outside NSE.",
+      "It is context for the SIZE of a move, never a view on its " +
+      "direction, and it is deliberately kept out of the stance: the " +
+      "directional probability still comes from the risk-neutral density, " +
+      "because that has been graded and this has not. Below 66% of the " +
+      "weight budget reporting, the number is withheld rather than " +
+      "published thin &mdash; a sparse tape would otherwise average out " +
+      "toward zero and read as a calm one."
+    ],
+    "Macro driver": [
+      "One instrument on the world tape that the desk can trace to an " +
+      "Indian index through a written channel. Fourteen of them carry the " +
+      "whole read: crude twice, the dollar, the rupee, US rates, the VIX, " +
+      "three metals and four food inputs.",
+      "Each carries a weight &mdash; its share of the 100-point budget " +
+      "&mdash; and a reference move, the daily percentage that counts as " +
+      "one full unit of that driver. The reference is what stops a 1% day " +
+      "in gold and a 1% day in the dollar index being treated as the same " +
+      "event, because the second is a large move and the first is a " +
+      "Tuesday.",
+      "The weights are judgement, not a fit, and they are the first thing " +
+      "to revisit once the read has been graded. A driver whose own last " +
+      "bar lags the freshest bar on the tape does not score at all: the " +
+      "feed serves a live-looking price for dormant contracts forever, " +
+      "which is how a five-year-old iron ore quote once scored as a 62% " +
+      "session move."
+    ],
+    "Contribution to bias": [
+      "How many of the bias's 100 points this one driver supplied today. " +
+      "Its move, divided by its own reference move, multiplied by its " +
+      "weight, signed for whether a rise in it helps or hurts India.",
+      "It is shown per driver so the total can be argued with rather than " +
+      "taken. A bias of &minus;30 that is entirely one dislocated contract " +
+      "is a different statement from a bias of &minus;30 that six drivers " +
+      "agreed on, and the headline number cannot tell those apart.",
+      "Each driver is capped at 1.5 times its reference move. Without the " +
+      "cap a single bad tick &mdash; a settlement glitch, a rolled front " +
+      "month printing a 30% gap &mdash; swamps every other channel, and " +
+      "the read becomes a report on one broken price."
+    ],
+    "Channel into India": [
+      "The written reason a move in this instrument reaches an Indian " +
+      "index at all. Crude travels through an 88% import bill into CPI and " +
+      "the current account; the dollar travels through foreign flow into " +
+      "cash equity; wheat travels through a food basket that is 46% of CPI.",
+      "It is written out rather than fitted because a stated channel can " +
+      "be argued with. A correlation that inverts tells you nothing about " +
+      "whether the relationship broke or the window was wrong; a channel " +
+      "that stops working can be checked against the thing it claims to " +
+      "run through.",
+      "A channel is a claim about a mechanism, not a promise about " +
+      "tomorrow. Several run at quarterly speed &mdash; edible oil reaches " +
+      "FMCG margin within a quarter and food CPI before that &mdash; so a " +
+      "one-session move down a slow channel is information about the " +
+      "direction of travel, not about the next open."
+    ],
+    "Sector effect": [
+      "What a rise in this driver does to the parts of the market, as " +
+      "distinct from what it does to the index. Read ++ as strongly " +
+      "positive, ~ as no clear effect, and &minus;&minus; as strongly " +
+      "negative.",
+      "The dollar is the reason this column exists. A bid dollar is " +
+      "negative for NIFTY, through foreign money leaving cash equity, and " +
+      "simultaneously positive for the exporters inside NIFTY, because IT " +
+      "and pharma bill in dollars and pay their costs in rupees. One " +
+      "sentiment number erases exactly that, and it is the single most " +
+      "useful thing on the row.",
+      "These are directions, not magnitudes, and several are single-stock " +
+      "rather than sector-wide: copper reaches four large names properly " +
+      "and the broad index only faintly. A sector chip is a place to look, " +
+      "not a position."
+    ],
+    "Scheduled events": [
+      "What is already on the calendar between this session and the expiry " +
+      "the desk is short: the statistical releases, and the policy " +
+      "decisions someone has typed in.",
+      "It is here because an option chain prices an event only once the " +
+      "market has noticed it, and a calendar knows about it in advance. An " +
+      "event that lands inside the current expiry is risk the 1&sigma; " +
+      "band was never built to cover &mdash; CPI printing after the close " +
+      "and before the next open is the clearest case of it.",
+      "The monthly releases are derived from a fixed convention &mdash; " +
+      "CPI on the 12th, WPI on the 14th &mdash; so they shift for holidays " +
+      "and are labelled as convention rather than fact. Central-bank and " +
+      "OPEC dates follow no rule and are never guessed here; when the " +
+      "hand-maintained file runs out, the card says so rather than quietly " +
+      "listing nothing."
+    ],
     "Annualised carry": [
       "The futures premium over spot, restated as a yearly rate. Futures " +
       "settle later than spot, so buying them defers payment &mdash; and " +
@@ -5239,7 +5353,149 @@ table.ledger { min-width: 800px; }
      THIS figure using today's stored values }. A label absent from here
      simply renders as it always did, so nothing breaks by omission.
      --------------------------------------------------------------- */
+  /* The macro block travels inside the note, so the glossary reads it from
+     there rather than keeping a second copy. Each returns an empty object
+     rather than null: every card below has to render a "Why?" section with
+     real figures in it, and a null here would silently drop that section
+     and leave the card as theory. */
+  function macroOf(m) {
+    var d = (TECHFUND || {})[m && m.cfg ? m.cfg.key : ""] || {};
+    return ((d.note || {}).macro) || {};
+  }
+  function eventsOf(m) {
+    var d = (TECHFUND || {})[m && m.cfg ? m.cfg.key : ""] || {};
+    return ((d.note || {}).events) || {};
+  }
+
   var TERMS = {
+    "Global tape &rarr; India read": {
+      deep: "Global bias",
+      how: function (m) {
+        var M = macroOf(m);
+        if (M.bias === null || M.bias === undefined) {
+          return "No bias is published for this session. The read is " +
+            "withheld below <b>66%</b> of the weight budget, because a " +
+            "sparse tape averages toward zero and would read as a calm one.";
+        }
+        var scored = (M.drivers || []).filter(function (x) {
+          return x.contribution !== null && x.contribution !== undefined;
+        });
+        return "Today the tape reads <b>" + sgn(M.bias, 0) + "</b> (" +
+          esc(M.label || "mixed") + "), built from <b>" + scored.length +
+          "</b> of <b>" + (M.drivers || []).length + "</b> drivers, " +
+          "covering <b>" + ((M.coverage || 0) * 100).toFixed(0) + "%</b> " +
+          "of the weight budget. It does not enter the stance: the " +
+          "directional probability on this tab still comes from the " +
+          "risk-neutral density, which has been graded, while this has not.";
+      }
+    },
+    "Macro driver": {
+      deep: "Macro driver",
+      how: function (m) {
+        var M = macroOf(m);
+        var ds = (M.drivers || []).filter(function (x) {
+          return x.contribution !== null && x.contribution !== undefined;
+        });
+        if (!ds.length) {
+          return "No driver reported a move this session, so none of the " +
+            "<b>14</b> channels contributed to a bias.";
+        }
+        var top = ds.slice().sort(function (a, b) {
+          return Math.abs(b.contribution) - Math.abs(a.contribution);
+        })[0];
+        return "<b>" + ds.length + "</b> drivers reported. The largest " +
+          "single mover is <b>" + esc(top.label) + "</b> at <b>" +
+          sgn(top.chgPct, 2) + "%</b>, carrying <b>" + top.weight +
+          "</b> of the 100 weight points and contributing <b>" +
+          sgn(top.contribution, 0) + "</b> to the total.";
+      }
+    },
+    "Contribution to bias": {
+      deep: "Contribution to bias",
+      how: function (m) {
+        var M = macroOf(m);
+        var ds = (M.drivers || []).filter(function (x) {
+          return x.contribution !== null && x.contribution !== undefined;
+        });
+        if (!ds.length) {
+          return "Nothing contributed this session. Each driver is capped " +
+            "at <b>1.5&times;</b> its own reference move.";
+        }
+        var pos = 0, neg = 0;
+        ds.forEach(function (x) {
+          if (x.contribution >= 0) { pos += x.contribution; }
+          else { neg += x.contribution; }
+        });
+        var net = (M.bias === null || M.bias === undefined) ? pos + neg : M.bias;
+        return "The positive side sums to <b>" + sgn(pos, 0) + "</b> and " +
+          "the negative side to <b>" + sgn(neg, 0) + "</b>, netting <b>" +
+          sgn(net, 0) + "</b> across <b>" + ds.length + "</b> drivers. No " +
+          "single driver may exceed <b>1.5&times;</b> its reference move.";
+      }
+    },
+    "Channel into India": {
+      deep: "Channel into India",
+      how: function (m) {
+        var M = macroOf(m);
+        var ds = M.drivers || [];
+        var withText = ds.filter(function (x) { return x.india; }).length;
+        return "<b>" + withText + "</b> of the <b>" + (ds.length || 14) +
+          "</b> drivers on this tab carry a written channel, and each is " +
+          "stated on its own row. Instruments the desk carries for context " +
+          "but does not model &mdash; platinum, coffee &mdash; show no " +
+          "channel rather than an invented one.";
+      }
+    },
+    "Sector effect": {
+      deep: "Sector effect",
+      how: function (m) {
+        var M = macroOf(m);
+        var dxy = (M.drivers || []).filter(function (x) {
+          return x.symbol === "DX-Y.NYB";
+        })[0];
+        if (!dxy || dxy.chgPct === null || dxy.chgPct === undefined) {
+          return "Each driver lists the sectors it reaches, signed for a " +
+            "RISE in that driver. Of the <b>14</b>, the dollar is the one " +
+            "that splits the index in two directions at once.";
+        }
+        var itDir = (dxy.sectors || []).filter(function (s) {
+          return s[0] === "IT";
+        }).map(function (s) { return s[1]; })[0] || "+";
+        return "The dollar index moved <b>" + sgn(dxy.chgPct, 2) + "%</b> " +
+          "this session, which is <b>" +
+          (dxy.contribution === null || dxy.contribution === undefined
+            ? "unscored" : sgn(dxy.contribution, 0)) +
+          "</b> for the index &mdash; and the same move is marked <b>" +
+          esc(itDir) + "</b> for IT on that same row. Both are true.";
+      }
+    },
+    "Scheduled events": {
+      deep: "Scheduled events",
+      how: function (m) {
+        var E = eventsOf(m);
+        var evs = E.events || [];
+        if (!evs.length) {
+          return "Nothing is on the calendar for the next <b>30</b> days.";
+        }
+        var inside = (E.insideExpiry || []).length;
+        var hi = evs.filter(function (e) { return e.severity === "high"; })[0];
+        var by = {};
+        evs.forEach(function (e) {
+          var r = e.regionLabel || "Global";
+          by[r] = (by[r] || 0) + 1;
+        });
+        var mix = Object.keys(by).map(function (r) {
+          return "<b>" + by[r] + "</b> " + r;
+        }).join(", ");
+        return "<b>" + evs.length + "</b> events in the next <b>30</b> " +
+          "days &mdash; " + mix + " &mdash; of which <b>" + inside +
+          "</b> fall inside the current expiry" +
+          (hi ? ", the nearest high-severity one being <b>" + esc(hi.label) +
+                "</b> on <b>" + esc(hi.date) + "</b> (T&minus;" +
+                hi.daysUntil + ")" : "") + ". Anything inside the expiry " +
+          "is risk the 1&sigma; band does not contain.";
+      }
+    },
     "The positioning read": {
       deep: "The positioning read",
       how: function (m) {
@@ -7345,6 +7601,24 @@ table.ledger { min-width: 800px; }
   ];
 
   var TERM_ALIAS = {
+    "Last": "Spot",
+    "Driver": "Macro driver",
+    "Contrib": "Contribution to bias",
+    "Global bias": "Global tape &rarr; India read",
+    "Brent": "Macro driver",
+    "Crude WTI": "Macro driver",
+    "Dollar index": "Macro driver",
+    "USD/INR": "Macro driver",
+    "US 10-year": "Macro driver",
+    "VIX": "Macro driver",
+    "Copper": "Macro driver",
+    "Iron ore 62%": "Macro driver",
+    "Gold": "Macro driver",
+    "Nat Gas": "Macro driver",
+    "Soybean oil": "Macro driver",
+    "Wheat": "Macro driver",
+    "Sugar #11": "Macro driver",
+    "Coal API2": "Macro driver",
     "Open interest by strike": "Open interest (OI)",
     "Gap": "Gap scenarios",
     "P&amp;L": "P&L",
@@ -7661,6 +7935,46 @@ table.ledger { min-width: 800px; }
      does to a position. Written per term because a sentence generated from
      a methodology paragraph reads like a methodology paragraph. */
   var PLAIN = {
+    "Global bias": [
+      "How much help or harm the overnight world handed the Indian market, " +
+      "on a scale from &minus;100 to +100. Negative is a headwind.",
+      "Use it for how WIDE to expect the day to be, not for which way it " +
+      "goes. A strongly negative tape is a reason to respect the downside " +
+      "tail, not a reason to be short."
+    ],
+    "Macro driver": [
+      "One world instrument the desk tracks because it can explain how a " +
+      "move in it reaches India &mdash; crude, the dollar, US rates, a " +
+      "metal, a food input.",
+      "Its weight says how much of the read it can command; its reference " +
+      "move says what a big day looks like for that instrument " +
+      "specifically."
+    ],
+    "Contribution to bias": [
+      "How much of the day's number this one driver is responsible for.",
+      "Check whether the bias came from one driver or from several " +
+      "agreeing. The headline cannot tell you, and the two mean very " +
+      "different things."
+    ],
+    "Channel into India": [
+      "The reason this instrument matters to an Indian index &mdash; " +
+      "written out, so you can disagree with it.",
+      "If the channel does not convince you, the contribution should not " +
+      "either. That is what it is there for."
+    ],
+    "Sector effect": [
+      "What a RISE in this driver does to the sectors and names that carry " +
+      "it, which is often not what it does to the index.",
+      "The dollar is the case worth remembering: bad for NIFTY, good for " +
+      "IT and pharma, at the same time and for the same reason."
+    ],
+    "Scheduled events": [
+      "What is already booked between now and expiry &mdash; data " +
+      "releases and policy decisions.",
+      "Anything marked inside expiry is risk the range on this tab does " +
+      "not include, because the band is built from implied volatility and " +
+      "not from a diary."
+    ],
     "Annualised carry": [
       "How much the futures premium works out to as a yearly rate. Futures " +
       "settle later than spot, so buying them means paying later &mdash; " +
