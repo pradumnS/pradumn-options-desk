@@ -1496,6 +1496,7 @@ table.ledger { min-width: 800px; }
   var ACCURACY = {};
   var MANIFEST = {};
   var STRIP = [];            /* market.json -- rendered once, never re-rendered */
+  var STRIP_EOD = [];        /* market.json as loaded, kept for off-hours rows */
   var WATCH = [];            /* watchlist.json */
   var MHIST = {};            /* history.json -- per-day audit trail */
   var TECHFUND = {};         /* techfund.json -- note + valuation */
@@ -10192,7 +10193,7 @@ table.ledger { min-width: 800px; }
                           || d.tradeDate >= m0.tradeDate;
 
       if (liveIsCurrent && d.strip && d.strip.length) {
-        STRIP = d.strip;
+        STRIP = preferNewerOffHours(d.strip);
         renderStrip();
         if (isNew) flashChanges();
       }
@@ -10200,6 +10201,43 @@ table.ledger { min-width: 800px; }
     }).catch(function () {
       /* live.py not running -- the EOD snapshot stays on screen. */
     });
+  }
+
+  /* GIFT Nifty and NIFTY50 USD trade outside NSE hours, so the settled
+     snapshot and the live file each carry their own copy, and either can be
+     the newer one. Taking the live strip wholesale meant a live file left
+     over from the afternoon (GIFT 23,452 at 15:14) hid a snapshot refreshed
+     overnight (GIFT 23,575 at 02:29). Index rows still follow the live feed;
+     these rows follow whichever copy NSE stamped later. */
+  var NSE_MONTHS = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5,
+                     JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11 };
+
+  /* NSE writes "12-Sep-2026 02:29". Some engines parse that and some do
+     not, so it is read by hand rather than trusted to Date.parse. */
+  function parseNseStamp(s) {
+    var m = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/.exec(String(s || ""));
+    if (!m) return -Infinity;
+    var mon = NSE_MONTHS[m[2].toUpperCase()];
+    if (mon === undefined) return -Infinity;
+    return Date.UTC(+m[3], mon, +m[1], +(m[4] || 0), +(m[5] || 0));
+  }
+
+  function preferNewerOffHours(strip) {
+    var eod = {};
+    STRIP_EOD.forEach(function (r) {
+      if (r.source !== "allIndices") eod[r.name] = r;
+    });
+    var seen = {};
+    var out = strip.map(function (r) {
+      if (r.source === "allIndices") return r;
+      seen[r.name] = true;
+      var e = eod[r.name];
+      return (e && parseNseStamp(e.ts) > parseNseStamp(r.ts)) ? e : r;
+    });
+    Object.keys(eod).forEach(function (n) {
+      if (!seen[n]) out.push(eod[n]);
+    });
+    return out;
   }
 
   /* A once-a-minute feed reads as dead unless the change is visible when it
@@ -10361,6 +10399,7 @@ table.ledger { min-width: 800px; }
           mh = both[4], stk = both[5], tf = both[6];
       ACCURACY = acc || {};
       STRIP = (mkt && mkt.strip) || [];
+      STRIP_EOD = STRIP.slice();
       WATCH = (wl && wl.lists) || [];
       CHARTS = (ch && ch.series) || {};
       MHIST = mh || {};
