@@ -353,6 +353,26 @@ body {
   .si { min-width: 118px; padding: 6px 12px; }
 }
 
+/* ---------- metals and oil ---------- */
+.mo-tiles .kpi[data-chart] { cursor: pointer; }
+.mo-tiles .kpi[data-chart]:hover { border-color: var(--calls); }
+.mo-inst .levels { border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+.mo-read { padding: 12px 16px 4px; }
+.mo-read p { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--ink-2); max-width: 78ch; }
+.mo-read b { color: var(--ink); }
+.mo-cone { padding: 8px 16px 4px; }
+.mo-sub {
+  font-family: var(--font-num); font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-3); padding: 12px 16px 4px;
+}
+.mo-hz tr[data-pt], .mo-ev tr[data-pt] { cursor: pointer; }
+.mo-hz tr[data-pt]:hover td, .mo-ev tr[data-pt]:hover td { background: var(--surface-2); }
+.mo-score { padding: 8px 16px 12px; font-size: 12px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mo-score b { color: var(--ink); font-family: var(--font-num); }
+.mo-hist { padding: 0 16px 12px; }
+.mo-hist summary { cursor: pointer; font-size: 12px; color: var(--ink-2); padding: 6px 0; }
+.mo-hist[open] summary { color: var(--ink); }
+
 /* ---------- analysis tabs ---------- */
 .atabs {
   display: flex; gap: 3px; padding: 0 20px; flex-wrap: wrap;
@@ -1516,6 +1536,7 @@ table.ledger { min-width: 800px; }
   var VIEWS = [
     { key:"overview",  label:"Overview" },
     { key:"strategy",  label:"Direction &amp; strategy" },
+    { key:"metoil",    label:"MET+OIL" },
     { key:"model",     label:"Model data" },
     { key:"watchlist", label:"Watchlist" },
     { key:"stocks",    label:"NIFTY 50 stocks" },
@@ -1745,7 +1766,7 @@ table.ledger { min-width: 800px; }
   /* Two letters, because at 46px a label is not an option and an invented
      icon set would be worse than initials a trader can learn in a day. */
   var RAIL_MARK = {
-    overview: "OV", strategy: "DS", model: "MD", watchlist: "WL",
+    overview: "OV", strategy: "DS", metoil: "MO", model: "MD", watchlist: "WL",
     stocks: "50", chain: "OC", technicals: "TF", history: "HI",
     learning: "LN"
   };
@@ -4613,9 +4634,453 @@ table.ledger { min-width: 800px; }
       "</section>";
   }
 
+  /* ==========================================================
+     6k. METALS AND OIL
+         Gold, silver and crude in rupees on their MCX contracts;
+         WTI and Brent in dollars beside them. A range for each
+         horizon from realised volatility, history's own band next
+         to it, and a lean built from the evidence table -- every
+         one recorded on the day it is made so it can be scored.
+     ========================================================== */
+  var METOIL = {};            /* metoil.json */
+  var MO_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var MO_NOT_BUILT = "The metals-and-oil page has not been built for this " +
+    "snapshot. Run <em>python metoil.py</em> after the daily job and reload; " +
+    "it needs the 6 world histories (10 years each) and the 3 MCX contract " +
+    "chains that job stores.";
+
+  function moFirst() {
+    var L = (METOIL && METOIL.instruments) || [];
+    return L[0] || null;
+  }
+  function moEv(inst, key) {
+    var E = (inst && inst.evidence) || [];
+    for (var i = 0; i < E.length; i++) if (E[i].key === key) return E[i];
+    return null;
+  }
+  /* The instrument cards show their working through the same paragraph
+     the page prints, so the panel and the page cannot disagree. */
+  function moHowInst(key) {
+    var i = moInst(key);
+    return i ? moReadText(i) : MO_NOT_BUILT;
+  }
+
+  function moDate(iso) {
+    if (!iso) return "\u2014";
+    var p = String(iso).slice(0, 10).split("-");
+    if (p.length < 3) return esc(iso);
+    return p[2] + "-" + MO_MONTHS[+p[1] - 1] + "-" + p[0];
+  }
+  function moDay(iso) {
+    if (!iso) return "\u2014";
+    var p = String(iso).slice(0, 10).split("-");
+    return p.length < 3 ? esc(iso) : p[2] + "-" + MO_MONTHS[+p[1] - 1];
+  }
+  function moInst(key) {
+    var L = (METOIL && METOIL.instruments) || [];
+    for (var i = 0; i < L.length; i++) if (L[i].key === key) return L[i];
+    return null;
+  }
+  function moMoney(v, cur) {
+    if (v == null || !isFinite(v)) return "\u2014";
+    if (cur === "INR") return "\u20b9" + (Math.abs(v) >= 1000 ? n0(v) : n2(v));
+    return "$" + n2(v);
+  }
+  function moRange(lo, hi, cur) {
+    if (lo == null || hi == null) return "\u2014";
+    return moMoney(lo, cur) + "\u2013" + moMoney(hi, cur);
+  }
+  function moLeanPill(lean) {
+    var k = lean === "up" ? "go" : lean === "down" ? "risk" : "no";
+    var t = lean === "up" ? "Lean up" : lean === "down" ? "Lean down" : "No lean";
+    return '<span class="pill ' + k + '">' + t + "</span>";
+  }
+  function moRead(read) {
+    if (read > 0) return '<b class="pos">supports up</b>';
+    if (read < 0) return '<b class="neg">supports down</b>';
+    return '<span style="color:var(--ink-3)">neutral</span>';
+  }
+  /* 41st, 52nd, 63rd, 77th. */
+  function moOrd(p) {
+    if (p == null || !isFinite(p)) return "\u2014";
+    var n = Math.round(p), r = n % 100;
+    var s = (r >= 11 && r <= 13) ? "th" : n % 10 === 1 ? "st" : n % 10 === 2 ? "nd" : n % 10 === 3 ? "rd" : "th";
+    return n0(n) + s;
+  }
+  function moPct(p) { return moOrd(p); }
+  function moUnitShort(inst) {
+    return inst.currency === "INR" ? esc(inst.unit.replace("\u20b9", "")) : "USD" + esc(inst.unit.replace("USD", ""));
+  }
+
+  /* The cone. Sixty sessions of history and the projected band to the
+     furthest horizon, with a tick at each horizon and at the contract's
+     expiry. Every slot -- past and future -- carries a payload, so the
+     hover and the click work across the whole width. */
+  function moConeSvg(inst) {
+    var hist = (inst.hist || []).slice().reverse().filter(function (b) { return b.c != null; });
+    if (hist.length < 5) return needMore(hist.length, 5, "The projection chart");
+    var hz = (inst.horizons || []).slice().sort(function (a, b) { return a.sessions - b.sessions; });
+    if (!hz.length) return needMore(0, 1, "The projection chart");
+    var cur = inst.currency;
+    var spot = inst.price.last;
+    var sd = (inst.vol.sigmaDailyPct || 0) / 100;
+    var maxS = hz[hz.length - 1].sessions;
+    var nH = hist.length, slots = nH + maxS;
+    var W = 330, TOP = 18, BOT = 116;
+    var x = function (i) { return (i / (slots - 1)) * W; };
+
+    var vals = hist.map(function (b) { return b.c; });
+    hz.forEach(function (h) { vals.push(h.lo2, h.hi2); });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), rng = hi - lo || 1;
+    var y = function (v) { return BOT - (v - lo) / rng * (BOT - TOP); };
+
+    var coords = hist.map(function (b, i) { return x(i).toFixed(1) + "," + y(b.c).toFixed(1); });
+    var x0 = x(nH - 1);
+    var band = function (loK, hiK) {
+      var up = [x0.toFixed(1) + "," + y(spot).toFixed(1)];
+      var dn = [];
+      hz.forEach(function (h) {
+        up.push(x(nH - 1 + h.sessions).toFixed(1) + "," + y(h[hiK]).toFixed(1));
+        dn.unshift(x(nH - 1 + h.sessions).toFixed(1) + "," + y(h[loK]).toFixed(1));
+      });
+      return up.concat(dn).join(" ");
+    };
+    var ticks = hz.map(function (h) {
+      var px = x(nH - 1 + h.sessions);
+      var short = h.key === "w1" ? "1w" : h.key === "w2" ? "2w" : h.key === "m1" ? "1m" :
+                  h.key === "m2" ? "2m" : "exp";
+      return '<line x1="' + px.toFixed(1) + '" y1="' + TOP + '" x2="' + px.toFixed(1) +
+        '" y2="' + BOT + '" stroke="var(--line)" stroke-dasharray="2 3"></line>' +
+        '<text class="axis" x="' + px.toFixed(1) + '" y="12" text-anchor="middle">' + short + "</text>";
+    }).join("");
+
+    var pts = hist.map(function (b, i) {
+      return {
+        x: x(i), y: y(b.c), date: moDay(b.t), iso: null, big: moMoney(b.c, cur),
+        chg: b.chgPct != null ? sgn(b.chgPct, 2) + "%" : null,
+        chgUp: b.chgPct != null ? b.chgPct >= 0 : null,
+        rows: [["Open", moMoney(b.o, cur)], ["High", moMoney(b.h, cur)],
+               ["Low", moMoney(b.l, cur)], ["Close", moMoney(b.c, cur)]]
+          .concat(b.contract ? [["Contract", moDay(b.contract)]] : []),
+        vol: null
+      };
+    });
+    for (var s = 1; s <= maxS; s++) {
+      var k = sd * Math.sqrt(s);
+      var lo1 = spot * Math.exp(-k), hi1 = spot * Math.exp(k);
+      var lo2 = spot * Math.exp(-2 * k), hi2 = spot * Math.exp(2 * k);
+      var hit = hz.filter(function (h) { return h.sessions === s; })[0];
+      pts.push({
+        x: x(nH - 1 + s), y: y(spot), iso: null,
+        date: "+" + s + " session" + (s === 1 ? "" : "s") + (hit ? " \u00b7 " + hit.label : ""),
+        big: moRange(lo1, hi1, cur), chg: "1\u03c3 band", chgUp: true,
+        rows: [["2\u03c3 band", moRange(lo2, hi2, cur)], ["Centre", moMoney(spot, cur)],
+               ["Sigma", n1(k * 100) + "% over " + s + " s"]]
+          .concat(hit && hit.elo != null ? [["History 16\u201384%", moRange(hit.elo, hit.ehi, cur)]] : []),
+        vol: null
+      });
+    }
+    var last = pts[nH - 1];
+
+    var svg = '<svg viewBox="0 0 330 128" role="img" aria-label="' + esc(inst.label) +
+      ": " + nH + " sessions of history and the projected range to " + maxS + ' sessions ahead.">' +
+      '<line class="gridline" x1="0" y1="' + TOP + '" x2="330" y2="' + TOP + '"></line>' +
+      '<line class="gridline" x1="0" y1="' + ((TOP + BOT) / 2).toFixed(1) + '" x2="330" y2="' + ((TOP + BOT) / 2).toFixed(1) + '"></line>' +
+      '<line class="gridline" x1="0" y1="' + BOT + '" x2="330" y2="' + BOT + '"></line>' +
+      '<text class="axis" x="0" y="' + (TOP - 4) + '">' + moMoney(hi, cur) + "</text>" +
+      '<text class="axis" x="0" y="' + (BOT + 10) + '">' + moMoney(lo, cur) + "</text>" +
+      '<polygon fill="var(--calls-dim)" opacity="0.55" points="' + band("lo2", "hi2") + '"></polygon>' +
+      '<polygon fill="var(--calls-dim)" points="' + band("lo1", "hi1") + '"></polygon>' +
+      ticks +
+      '<polyline fill="none" stroke="var(--calls)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' +
+        coords.join(" ") + '"></polyline>' +
+      '<line x1="' + x0.toFixed(1) + '" y1="' + y(spot).toFixed(1) + '" x2="' + W + '" y2="' + y(spot).toFixed(1) +
+        '" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"></line>' +
+      '<circle cx="' + last.x.toFixed(1) + '" cy="' + last.y.toFixed(1) +
+        '" r="3.4" fill="var(--calls)" stroke="var(--surface)" stroke-width="2"></circle>' +
+      "</svg>";
+    return chartWrap(svg, { pts: pts, color: "var(--calls)", vbWidth: 330, vbTop: 0, vbHeight: 128 });
+  }
+
+  function moHorizonTable(inst) {
+    var cur = inst.currency;
+    var rows = (inst.horizons || []).map(function (h) {
+      var b = h.base || {};
+      var payload = {
+        t: h.label + " \u00b7 " + inst.label, s: "to " + moDate(h.date) + " \u00b7 " + h.sessions + " sessions",
+        big: moRange(h.lo1, h.hi1, cur),
+        rows: [["2\u03c3 range", moRange(h.lo2, h.hi2, cur)],
+               ["History 16\u201384%", moRange(h.elo, h.ehi, cur)],
+               ["History 2.5\u201397.5%", moRange(h.e2lo, h.e2hi, cur)],
+               ["History median", moMoney(h.emed, cur)],
+               ["P(up), conditional", b.pUp != null ? n0(b.pUp) + "%" : null],
+               ["P(up), unconditional", b.uncondPUp != null ? n0(b.uncondPUp) + "%" : null],
+               ["Episodes", b.n != null ? b.n + " starts, ~" + b.neff + " independent" : null],
+               ["Sigma used", n1(inst.vol.sigmaUsed) + "% annualised"]],
+        note: "The volatility range assumes the next " + h.sessions + " sessions look like " +
+              "the last 22 in size. The history band is what a " + h.sessions + "-session " +
+              "move has actually spanned over ten years of the world price."
+      };
+      return "<tr data-pt='" + JSON.stringify(payload).replace(/'/g, "&#39;") + "'>" +
+        '<td class="lft" style="color:var(--ink)">' + esc(h.label) + "</td>" +
+        "<td>" + moDate(h.date) + "</td>" +
+        "<td>" + moRange(h.lo1, h.hi1, cur) + "</td>" +
+        "<td>" + moRange(h.lo2, h.hi2, cur) + "</td>" +
+        "<td>" + moRange(h.elo, h.ehi, cur) + "</td>" +
+        '<td class="' + (b.pUp == null ? "" : b.pUp >= 55 ? "pos" : b.pUp <= 45 ? "neg" : "") + '">' +
+          (b.pUp != null ? n0(b.pUp) + "%" : "\u2014") +
+          (b.neff != null ? ' <span style="color:var(--ink-3);font-size:10px">n\u2248' + b.neff + "</span>" : "") + "</td>" +
+        "<td>" + moLeanPill(inst.lean.label) + "</td></tr>";
+    }).join("");
+    return '<div class="tablewrap"><table class="dt mo-hz"><thead><tr>' +
+      '<th class="lft">Horizon</th><th>Date</th><th>1&sigma; range</th><th>2&sigma; range</th>' +
+      "<th>History 16&ndash;84%</th><th>P(up)</th><th>Lean</th>" +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div>";
+  }
+
+  function moEvidenceTable(inst) {
+    var rows = (inst.evidence || []).map(function (e) {
+      var d = e.detail || {};
+      var pct = d.pct != null ? d.pct : (e.key === "vol" ? d.pct : null);
+      var prows = [];
+      Object.keys(d).forEach(function (k) {
+        var v = d[k];
+        if (v == null || typeof v === "object") return;
+        prows.push([k, typeof v === "number" ? (Math.abs(v) >= 100 ? n0(v) : n2(v)) : String(v)]);
+      });
+      var payload = { t: e.label + " \u00b7 " + inst.label, s: "evidence row", big: esc(e.value),
+                      rows: prows.slice(0, 12),
+                      note: "Weight " + n1(e.weight) + " of " + n1(inst.lean.max) +
+                            ". Reads " + (e.read > 0 ? "for" : e.read < 0 ? "against" : "neither way") + "." };
+      return "<tr data-pt='" + JSON.stringify(payload).replace(/'/g, "&#39;") + "'>" +
+        '<td class="lft" style="color:var(--ink)">' + esc(e.label) + "</td>" +
+        '<td class="lft">' + esc(e.value) + "</td>" +
+        "<td>" + moPct(pct) + "</td>" +
+        '<td class="lft">' + moRead(e.read) + "</td>" +
+        "<td>" + (e.weight ? n1(e.weight) : "\u2014") + "</td></tr>";
+    }).join("");
+    var L = inst.lean;
+    return '<div class="tablewrap"><table class="dt mo-ev"><thead><tr>' +
+      '<th class="lft">Factor</th><th class="lft">Value</th><th>Percentile</th>' +
+      '<th class="lft">Reads</th><th>Vote weight</th>' +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<div class="mo-score">' + moLeanPill(L.label) +
+      " <b>" + sgn(L.score, 1) + "</b> of &plusmn;" + n1(L.max) + " &middot; threshold &plusmn;" + n1(L.threshold) +
+      (L["for"].length ? " &middot; for: " + esc(L["for"].join(", ")) : "") +
+      (L.against.length ? " &middot; against: " + esc(L.against.join(", ")) : "") + "</div>";
+  }
+
+  /* The read, in prose, from the same numbers the tables show. */
+  function moReadText(inst) {
+    var p = inst.price, v = inst.vol, cur = inst.currency, w = p.world || {};
+    var h1 = (inst.horizons || [])[0] || {}, hm = (inst.horizons || [])[2] || {};
+    var b = hm.base || {};
+    var s = "<b>" + esc(inst.label) + "</b> settled at <b>" + moMoney(p.last, cur) + "</b> " +
+      esc(moUnitShort(inst)) + (p.chgPct != null ? " (" + sgn(p.chgPct, 2) + "%)" : "") +
+      (p.contract ? " on the " + moDay(p.contract) + " contract" : "") + ". ";
+    if (w.inr != null && w.premiumPct != null) {
+      s += "The world price, " + moMoney(w.last, "USD") + " " + esc(w.unit) + " at " +
+        n2(p.usdinr) + " rupees, works out to " + moMoney(w.inr, "INR") + ": MCX trades <b>" +
+        sgn(w.premiumPct, 1) + "%</b> " + (w.premiumPct >= 0 ? "above" : "below") + " it. ";
+    }
+    s += "Realised volatility is <b>" + n0(v.c2c22 || v.yz22) + "%</b> annualised" +
+      (v.pct1y != null ? ", the " + moOrd(v.pct1y) + " percentile of the year" : "") +
+      "; the cone uses <b>" + n1(v.sigmaUsed) + "%</b> (" + esc(v.sigmaSource) + "). ";
+    if (h1.lo1 != null) {
+      s += "Next week's 1&sigma; range is <b>" + moRange(h1.lo1, h1.hi1, cur) + "</b>" +
+        (h1.elo != null ? "; history's own band for a five-session move is " + moRange(h1.elo, h1.ehi, cur) : "") + ". ";
+    }
+    var L = inst.lean;
+    s += "The lean is <b>" + (L.label === "none" ? "none" : L.label) + "</b> (" + sgn(L.score, 1) +
+      " of &plusmn;" + n1(L.max) + (L["for"].length ? "; for: " + esc(L["for"].join(", ")) : "") +
+      (L.against.length ? "; against: " + esc(L.against.join(", ")) : "") + ")";
+    if (b.pUp != null) {
+      s += ". When the trailing " + b.look + "-session move sat in this quintile, the next " +
+        hm.sessions + " sessions were up <b>" + n0(b.pUp) + "%</b> of the time across ~" + b.neff +
+        " independent episodes, against " + n0(b.uncondPUp) + "% unconditionally";
+    }
+    return s + ".";
+  }
+
+  function moHistTable(inst) {
+    var cur = inst.currency;
+    var rows = (inst.hist || []).slice(0, 30).map(function (b) {
+      return '<tr><td class="lft">' + moDate(b.t) + "</td>" +
+        "<td>" + moMoney(b.o, cur) + "</td><td>" + moMoney(b.h, cur) + "</td>" +
+        "<td>" + moMoney(b.l, cur) + "</td>" +
+        '<td style="color:var(--ink)">' + moMoney(b.c, cur) + "</td>" +
+        '<td class="' + cls(b.chgPct) + '">' + (b.chgPct != null ? sgn(b.chgPct, 2) + "%" : "\u2014") + "</td>" +
+        '<td class="lft" style="color:var(--ink-3)">' + (b.contract ? moDay(b.contract) : esc(inst.price.world.symbol || "")) + "</td></tr>";
+    }).join("");
+    return '<div class="tablewrap tall"><table class="dt"><thead><tr>' +
+      '<th class="lft">Date</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Chg</th>' +
+      '<th class="lft">Contract</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+  }
+
+  function moInstBlock(inst) {
+    var p = inst.price, cur = inst.currency;
+    var charted = !!(CHARTS && CHARTS[inst.strip]);
+    var rolls = (inst.rolls || []).slice(-3).map(moDay).join(", ");
+    return '<section class="card mo-inst"><div class="card-hd"><h2>' + esc(inst.label) + "</h2>" +
+      '<span class="sub">' + (p.contract ? "MCX " + moDay(p.contract) + " contract" : esc(p.world.symbol) + " front month") +
+        " &middot; settled " + moDate(p.asOf) + "</span>" +
+      '<div class="right">' + moLeanPill(inst.lean.label) +
+        (charted ? '<button class="tgl" type="button" data-chart="' + esc(inst.strip) + '">Candles</button>' : "") +
+      "</div></div>" +
+      '<div class="levels">' +
+        '<div class="lvl"><div class="lvl-k">Last</div><div class="lvl-v">' + moMoney(p.last, cur) +
+          ' <span class="kpi-m">' + esc(moUnitShort(inst)) + "</span></div></div>" +
+        '<div class="lvl"><div class="lvl-k">Chg %</div><div class="lvl-v ' + cls(p.chgPct) + '">' + (p.chgPct != null ? sgn(p.chgPct, 2) + "%" : "\u2014") + "</div></div>" +
+        (p.world && p.world.premiumPct != null
+          ? '<div class="lvl"><div class="lvl-k">MCX premium</div><div class="lvl-v">' + sgn(p.world.premiumPct, 1) + "%</div></div>"
+          : '<div class="lvl"><div class="lvl-k">Prev close</div><div class="lvl-v">' + moMoney(p.prevClose, cur) + "</div></div>") +
+        '<div class="lvl"><div class="lvl-k">Sigma used</div><div class="lvl-v">' + n1(inst.vol.sigmaUsed) + "%</div></div>" +
+        (p.oi != null
+          ? '<div class="lvl"><div class="lvl-k">Open interest</div><div class="lvl-v">' + n0(p.oi) +
+            ' <span class="kpi-m ' + cls(p.oi - (p.oiPrev || p.oi)) + '">' + (p.oiPrev ? sgn((p.oi - p.oiPrev) / p.oiPrev * 100, 1) + "%" : "") + "</span></div></div>"
+          : "") +
+        (inst.expiry ? '<div class="lvl"><div class="lvl-k">Expiry</div><div class="lvl-v">' + moDay(inst.expiry) + "</div></div>" : "") +
+      "</div>" +
+      '<div class="mo-read"><p>' + moReadText(inst) + "</p></div>" +
+      '<div class="mo-cone">' + moConeSvg(inst) + "</div>" +
+      '<div class="mo-sub">Where it can go</div>' + moHorizonTable(inst) +
+      '<div class="mo-sub">The evidence</div>' + moEvidenceTable(inst) +
+      '<details class="mo-hist"><summary>Session history &middot; last 30 of ' + (inst.vol.bars || 0) + " stored" +
+        (rolls ? " &middot; rolled " + rolls : "") + "</summary>" + moHistTable(inst) + "</details>" +
+      "</section>";
+  }
+
+  function moTiles(D) {
+    var L = D.instruments || [];
+    return '<section class="kpis mo-tiles">' + L.map(function (i) {
+      var p = i.price, cur = i.currency;
+      var charted = !!(CHARTS && CHARTS[i.strip]);
+      return '<div class="card kpi' + (charted ? '" data-chart="' + esc(i.strip) : "") + '" title="' +
+        (charted ? "Open the candlestick chart" : "") + '"><div class="kpi-k">' + esc(i.label) +
+        (i.mcx ? ' <span class="tagx">MCX</span>' : ' <span class="tagx">USD</span>') + "</div>" +
+        '<div class="kpi-v">' + moMoney(p.last, cur) + "</div>" +
+        '<div class="kpi-m"><span class="' + cls(p.chgPct) + '">' + (p.chgPct != null ? sgn(p.chgPct, 2) + "%" : "\u2014") +
+          "</span> &middot; " + esc(moUnitShort(i)) + (p.contract ? " &middot; " + moDay(p.contract) : "") + "</div></div>";
+    }).join("") + "</section>";
+  }
+
+  function moContext(D) {
+    var c = D.context || {};
+    var cell = function (k, v, m2) {
+      return '<div class="lvl"><div class="lvl-k">' + k + '</div><div class="lvl-v">' + v + '</div><div class="kpi-m">' + m2 + "</div></div>";
+    };
+    var fx = c.usdinr, dx = c.dxy, gs = c.goldSilver, bw = c.brentWti;
+    return '<section class="card"><div class="card-hd"><h2>What sits behind the prices</h2>' +
+      '<span class="sub">the dollar, the rupee, and the two spreads</span></div><div class="levels">' +
+      (fx ? cell("USD/INR", n2(fx.last), '<span class="' + cls(fx.chgPct) + '">' + sgn(fx.chgPct, 2) + "%</span> in 20 sessions &middot; " + moPct(fx.pct) + " pct") : "") +
+      (dx ? cell("Dollar index", n2(dx.last), '<span class="' + cls(dx.chgPct) + '">' + sgn(dx.chgPct, 2) + "%</span> in 20 sessions &middot; " + moPct(dx.pct) + " pct") : "") +
+      (gs ? cell("Gold/silver ratio", n1(gs.now), moPct(gs.pct1y) + " pct of 1y &middot; " + moPct(gs.pct10y) + " of 10y") : "") +
+      (bw ? cell("Brent&ndash;WTI spread", "$" + n2(bw.now), moPct(bw.pct1y) + " pct of 1y") : "") +
+      "</div></section>";
+  }
+
+  function moRecord(D) {
+    var R = D.record || {};
+    var rate = function (v) { return v == null ? "\u2014" : n0(v) + "%"; };
+    var recent = (R.recent || []).slice(0, 25).map(function (c) {
+      var inst = moInst(c.key) || { currency: c.key === "WTI" || c.key === "BRENT" ? "USD" : "INR", label: c.key };
+      var cur = inst.currency;
+      var out = c.resolved_on == null ? '<span style="color:var(--ink-3)">open &middot; ' + moDate(c.horizon_date) + "</span>" :
+        (c.in_1sd ? '<b class="pos">inside 1&sigma;</b>' : c.in_2sd ? '<b style="color:var(--warn)">inside 2&sigma;</b>' : '<b class="neg">outside 2&sigma;</b>') +
+        " &middot; " + moMoney(c.actual, cur) +
+        (c.lean_correct == null ? "" : c.lean_correct ? ' &middot; <b class="pos">lean right</b>' : ' &middot; <b class="neg">lean wrong</b>');
+      return '<tr><td class="lft">' + moDate(c.made_on) + "</td>" +
+        '<td class="lft">' + esc(inst.label || c.key) + "</td>" +
+        '<td class="lft">' + esc(c.horizon === "w1" ? "Next week" : c.horizon === "w2" ? "Two weeks" : c.horizon === "m1" ? "One month" : c.horizon === "m2" ? "Two months" : "Expiry") + "</td>" +
+        "<td>" + moMoney(c.spot, cur) + "</td>" +
+        "<td>" + moRange(c.lo1, c.hi1, cur) + "</td>" +
+        "<td>" + moRange(c.elo, c.ehi, cur) + "</td>" +
+        "<td>" + moLeanPill(c.lean) + "</td>" +
+        '<td class="lft">' + out + "</td></tr>";
+    }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Projection record</h2>' +
+      '<span class="sub">every range and lean, scored when its date arrives</span>' +
+      '<div class="right"><span class="kpi-m">graded after ' + (R.gradedAfter || 20) + " resolved leans</span></div></div>" +
+      '<div class="levels">' +
+        '<div class="lvl"><div class="lvl-k">Calls made</div><div class="lvl-v">' + n0(R.calls || 0) + "</div></div>" +
+        '<div class="lvl"><div class="lvl-k">Resolved</div><div class="lvl-v">' + n0(R.resolved || 0) + "</div></div>" +
+        '<div class="lvl"><div class="lvl-k">Inside 1&sigma;</div><div class="lvl-v">' + rate(R.rate1) + '</div><div class="kpi-m">expect ' + n1(R.expected1 || 68.3) + "%</div></div>" +
+        '<div class="lvl"><div class="lvl-k">Inside 2&sigma;</div><div class="lvl-v">' + rate(R.rate2) + '</div><div class="kpi-m">expect ' + n1(R.expected2 || 95.4) + "%</div></div>" +
+        '<div class="lvl"><div class="lvl-k">Inside history band</div><div class="lvl-v">' + rate(R.rateEmp) + '</div><div class="kpi-m">expect 68%</div></div>' +
+        '<div class="lvl"><div class="lvl-k">Lean hit rate</div><div class="lvl-v">' + (R.graded ? rate(R.leanRate) : "\u2014") +
+          '</div><div class="kpi-m">' + n0(R.leanHits || 0) + " of " + n0(R.leanN || 0) + (R.graded ? "" : " \u00b7 ungraded") + "</div></div>" +
+      "</div>" +
+      (!R.resolved ? '<div class="caution"><p><b>Nothing has resolved yet.</b> The first next-week calls score on ' +
+        ((R.recent || [])[0] ? moDate(R.recent.slice().sort(function (a, b) { return a.horizon_date < b.horizon_date ? -1 : 1; })[0].horizon_date) : "their date") +
+        ". Until " + (R.gradedAfter || 20) + " leans have resolved the lean is published as a lean, not as a forecast with a hit rate.</p></div>" : "") +
+      '<div class="tablewrap tall"><table class="dt"><thead><tr>' +
+      '<th class="lft">Made on</th><th class="lft">Instrument</th><th class="lft">Horizon</th><th>Spot</th>' +
+      "<th>1&sigma; range</th><th>History band</th><th>Lean</th>" +
+      '<th class="lft">Outcome</th></tr></thead><tbody>' + recent + "</tbody></table></div></section>";
+  }
+
+  function moEvents(D) {
+    var rows = (D.events || []).map(function (e) {
+      var tone = e.severity === "high" ? "risk" : e.severity === "medium" ? "mid" : "no";
+      return '<tr><td class="lft">' + moDate(e.date) + "</td>" +
+        '<td class="lft" style="color:var(--ink)">' + esc(e.label) + "</td>" +
+        '<td><span class="pill ' + tone + '">' + esc(e.severity) + "</span></td>" +
+        '<td class="lft">' + esc(e.region || "") + "</td>" +
+        "<td>" + (e.daysUntil != null ? e.daysUntil + "d" : "\u2014") + "</td>" +
+        '<td class="lft mac-india">' + esc(e.note || "") + "</td></tr>";
+    }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Events ahead</h2>' +
+      '<span class="sub">what moves these five, next 45 days</span></div>' +
+      '<div class="tablewrap tall"><table class="dt"><thead><tr>' +
+      '<th class="lft">Date</th><th class="lft">Event</th><th>Severity</th><th class="lft">Region</th>' +
+      '<th>In</th><th class="lft">Note</th></tr></thead><tbody>' +
+      (rows || '<tr><td class="lft" colspan="6">Nothing on the calendar inside the window.</td></tr>') +
+      "</tbody></table></div></section>";
+  }
+
+  function moRules(D) {
+    var r = D.rules || {}, w = r.weights || {};
+    return '<section class="card"><div class="card-hd"><h2>How this page decides</h2>' +
+      '<span class="sub">the rules, so the numbers can be checked</span></div>' +
+      '<div class="notecall"><p><b>The range.</b> One sigma over h sessions is &sigma;<sub>daily</sub>&thinsp;&times;&thinsp;&radic;h, ' +
+      "with &sigma; the average of a HAR-RV forecast and 22-session Yang-Zhang on the roll-adjusted series. " +
+      "The second band is what history actually did: the 16th and 84th percentile of every h-session move in ten years of the world price. " +
+      "When the two disagree, the wider one is the honest one.</p>" +
+      "<p><b>The lean.</b> Each factor votes +1, 0 or &minus;1 and carries a weight: trend " + n1(w.trend || 2) +
+      ", momentum " + n1(w.momentum || 2) + ", dollar " + n1(w.dollar || 1) + ", rupee " + n1(w.rupee || 1) +
+      ", build-up " + n1(w.buildup || 1) + ", term structure " + n1(w.term || 1) + ", seasonality " + n1(w.season || 1) +
+      ". A total at or past &plusmn;" + n1(r.leanThreshold || 3) + " is a lean; anything inside is none. " +
+      "Volatility regime never votes: it sizes the range, it does not pick a side.</p>" +
+      "<p><b>The record.</b> Every range and lean is written on the day it is made and scored when its date has a close. " +
+      "The lean's hit rate is quoted only after " + n0(r.gradedAfter || 20) + " have resolved. " +
+      "Contracts roll " + n0(r.rollDays || 3) + " days before expiry, the same rule the strip uses. " +
+      "Exchange holidays are not modelled: a horizon date can land a session late.</p></div></section>";
+  }
+
+  function viewMetOil(m) {
+    var D = METOIL || {};
+    if (!D.instruments || !D.instruments.length) {
+      return '<section class="card"><div class="card-hd"><h2>Metals and oil</h2></div>' +
+        '<div class="caution"><p><b>Not built yet.</b> ' + MO_NOT_BUILT +
+        (D.error ? " Last error: " + esc(D.error) + "." : "") + "</p></div></section>";
+    }
+    var head = '<section class="card"><div class="card-hd"><h2>Metals and oil</h2>' +
+      '<span class="sub">gold, silver, crude in rupees on MCX &middot; WTI and Brent in dollars &middot; as of ' + moDate(D.asOf) + "</span>" +
+      '<div class="right"><span class="kpi-m">model ' + esc(D.modelVersion || "") + "</span></div></div>" +
+      '<div class="caution"><p><b>Settlement prices, not live.</b> MCX bars come from the exchange feed republished by Moneycontrol; ' +
+      "the world benchmarks from Yahoo. Gold and silver are the front MCX contract, rolled three days before expiry. " +
+      "Every range here is a distribution, not a target; the lean is a weighted count of facts on the table below it, " +
+      "and it is graded on the projection record before it is called a forecast.</p></div></section>";
+    var order = ["GOLD", "SILVER", "CRUDE", "WTI", "BRENT"];
+    var blocks = order.map(function (k) { var i = moInst(k); return i ? moInstBlock(i) : ""; }).join("");
+    return head + moTiles(D) + moContext(D) + blocks + moRecord(D) + moEvents(D) + moRules(D);
+  }
+
   var RENDER = {
     overview: viewOverview, strategy: viewStrategy,
     model: viewModelData,
+    metoil: viewMetOil,
     /* Merged away, kept as aliases so a saved view key still resolves. */
     accuracy: viewModelData, modelhist: viewModelData,
     chain: viewChain, technicals: viewTechnicals,
@@ -4665,6 +5130,127 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    /* ---- metals and oil ------------------------------------------ */
+    "Metals and oil": [
+      "The page for gold, silver and crude on their MCX contracts, in rupees, with WTI and Brent in dollars beside them. Each instrument gets the same treatment: the settled price and how it compares with the world price, a projected range for next week, two weeks, one month, two months and the contract's own expiry, an evidence table of hard facts, and a session history.",
+      "It exists because the strip can only say where a price is. The question a desk actually asks is where it can plausibly be on a date, and what the facts on the tape lean toward. Both answers are derived from stored bars &mdash; ten years of the world benchmarks and every MCX contract of the last year &mdash; and nothing on it is an opinion typed in.",
+      "It is a distribution and a lean, never a target. The range says how far a normal stretch of sessions reaches; history's own band beside it says what actually happened over the same span. The lean is a weighted count of the evidence rows and is graded on the projection record before its hit rate is quoted."
+    ],
+    "Gold (MCX)": [
+      "The MCX gold futures contract, 1 kg lot, quoted per 10 grams in rupees. The front contract is the one shown; MCX lists gold for the even months and the desk rolls to the next three days before expiry, the same rule the strip and the projection use.",
+      "It differs from the world price by more than the exchange rate. Indian gold carries import duty and a local premium, so MCX trades several per cent above COMEX gold converted at the spot dollar &mdash; and the gap moves with duty changes and with demand seasons. Watching the world price alone gets the level wrong by that margin.",
+      "Three things move it: the dollar price of gold, the rupee, and the premium. The evidence table separates the first two on purpose; a rupee move alone can put gold up on a day the world price did nothing."
+    ],
+    "Silver (MCX)": [
+      "The MCX silver futures contract, 30 kg lot, quoted per kilogram in rupees. Listed for five months a year, so the front contract can sit months from expiry &mdash; and a back month's last trade can sit a per cent from its settlement on a quiet day, which is why the headline here is the settlement, not the last print.",
+      "Silver moves with gold and then some: it is the more volatile of the two and it carries an industrial demand leg gold does not. The gold/silver ratio on the context row is the quickest read on whether it is cheap or dear against gold.",
+      "Its ranges are wider than gold's for the same horizon because its sigma is higher. That is the instrument, not a model choice."
+    ],
+    "Crude oil (MCX)": [
+      "The MCX crude oil futures contract, 100 barrels a lot, quoted per barrel in rupees. It settles against NYMEX WTI, so it is a rupee copy of WTI rather than of Brent. Monthly expiries around the 19th; the desk rolls three days before.",
+      "Crude is the one of the five that runs backwardation or contango worth reading: when the next month trades below the front the physical market is tight and a long earns the roll, when it trades above the reverse. The term-structure row on the evidence table is built from the two live contracts.",
+      "It is also the loudest. A 50% annualised sigma means a one-week range of about &plusmn;7%, and the projection record will show whether the cone has been honest about that."
+    ],
+    "WTI": [
+      "West Texas Intermediate, the NYMEX crude benchmark, in dollars per barrel. The world price that MCX crude settles against, so a move here is a move in MCX crude before the rupee is applied.",
+      "Kept in dollars deliberately: it is the input the macro gate reads and the number the rest of the world quotes. Converting it would hide the thing it is here to show.",
+      "The base rates and the seasonality on the crude rows are computed on this series, because ten years of it exist and one year of MCX does not."
+    ],
+    "Brent": [
+      "The North Sea benchmark, in dollars per barrel, and the price India's import bill is priced off. The Brent&ndash;WTI spread on the context row is the difference between the world's oil headline and what an MCX position actually follows.",
+      "Brent leads WTI on supply shocks outside America and lags it on American inventory data. The EIA release on the events table is a WTI event first.",
+      "It carries its own range and lean here so that a reader can see when the two crudes disagree, which is exactly when a headline is most likely to mislead."
+    ],
+    "Projection cone": [
+      "The shaded band on each chart and the ranges in the table under it. One standard deviation over h sessions is the daily sigma times the square root of h; two standard deviations is twice that. The centre is today's settlement, so the cone is symmetric in log terms and says nothing about direction.",
+      "The daily sigma is the average of a HAR-RV forecast and the 22-session Yang-Zhang estimate, both computed on the roll-adjusted series so a contract change is not counted as a move. The forecast reacts to the last week; the estimate lags it. Averaging is the desk's way of not betting on either.",
+      "A cone is a statement about a normal stretch of sessions. It is wrong on the days that matter most &mdash; a war headline, an OPEC decision &mdash; and history's own band beside it is there to show how often the past has been wider than the cone."
+    ],
+    "Horizon": [
+      "The date a range is projected to, counted in trading sessions from the last settled bar: 5 for next week, 10 for two weeks, 22 for one month, 44 for two months, plus the front contract's own expiry where there is one.",
+      "Sessions, not calendar days, because volatility accrues while the market is open. Exchange holidays are not modelled, so a horizon date is the earliest it can be; a holiday inside the window pushes the real one a session later.",
+      "The expiry horizon ends on the last session the contract is still the front one, three days before it expires, because that is the last day the desk's series is still that contract."
+    ],
+    "History band": [
+      "What a move over the same number of sessions has actually spanned. Every h-session log return in ten years of the world price is collected and its 16th and 84th percentiles &mdash; the same coverage as one sigma &mdash; are applied to today's price. The 2.5th and 97.5th give the two-sigma equivalent.",
+      "It answers a different question from the cone. The cone assumes the next h sessions look like the last 22; the band assumes they look like the last ten years. When crude is quiet the cone is narrower than the band, and when crude is loud it is wider.",
+      "Ten years is long enough to hold 2020 and 2022 for crude and the 2020 and 2024 runs in gold. The band therefore has fat tails the cone cannot; the projection record scores both so the reader can see which has been honest."
+    ],
+    "Conditional base rate": [
+      "How often the price was higher h sessions later, historically, from starts that looked like today. The trailing 20-session move is bucketed into quintiles over ten years of the world price; the rate is taken from starts in today's quintile. Next to it, the unconditional rate over the whole history.",
+      "It is the number the lean has to beat. If gold has closed higher one month later 57% of the time from every start, a lean that is right 57% of the time has added nothing.",
+      "Overlapping windows inflate the count: 490 starts for a 44-session horizon are about 11 independent episodes, and the table shows both. A rate resting on eleven episodes is a hint, not a fact."
+    ],
+    "Lean": [
+      "The desk's directional read for one instrument, as a signed score. Each row on the evidence table votes +1, 0 or &minus;1 and carries a weight; the sum is the score. At or past the threshold the page says up or down; inside it, none.",
+      "It is a count of facts, not a model fit. Trend and momentum carry double weight because they have measurable base rates; the dollar, the rupee, open interest, the term structure and seasonality are context that can tip a close call. Volatility never votes.",
+      "It is published beside the base rate it must beat and it is graded on the projection record. Until enough leans have resolved the page says so and quotes no hit rate; after that, the rate is the only argument for taking it seriously."
+    ],
+    "Trend": [
+      "Where the price sits against its 20-, 50- and 200-session averages, computed on the roll-adjusted series. Above all three with the short average over the medium one votes +1; below all three votes &minus;1; anything mixed votes 0.",
+      "The oldest evidence there is, and still the one that scores. A price above every average has been paid up for by every horizon of buyer; the vote is for continuation, not reversal.",
+      "It is late by construction: an average turns after the price does. That is why it is one row of several and not the read."
+    ],
+    "Momentum": [
+      "The 20-session return, placed as a percentile among every 20-session return in ten years of the world price. At or past the 65th percentile it votes +1; at or below the 35th, &minus;1. The 60-session return and the position inside the 52-week range are shown beside it.",
+      "Commodity momentum persists at the one-to-three-month horizon in most published studies, which is what the conditional base rate on the horizon table measures directly for this instrument.",
+      "At the extremes it reverses: the 95th percentile is where the base rate stops rising. The vote is a step, so the page does not pretend to know where that turn is."
+    ],
+    "Volatility regime": [
+      "How loud the instrument is now against its own past year. Close-to-close and Yang-Zhang over 22 sessions, the percentile of the former over 250 sessions, and the HAR-RV forecast that feeds the cone.",
+      "It never votes. Volatility says how wide the range is, not which side of it the price lands on, and a page that let a loud tape read as bearish would be inventing a rule.",
+      "A low percentile is the thing to distrust: quiet stretches end, and the history band beside the cone is usually the wider of the two when they do."
+    ],
+    "Dollar index": [
+      "The DXY, the dollar against six major currencies, read as a 20-session change and its percentile over ten years. A strong dollar is a headwind for every dollar-priced commodity because it makes them dearer to everyone else.",
+      "At or past the 70th percentile the row votes &minus;1 for all five instruments; at or below the 30th, +1. Gold is the most sensitive of the five, crude the least.",
+      "It is a world-price input. The rupee row, separately, is what converts that world price into the MCX one."
+    ],
+    "Rupee": [
+      "USD/INR as a 20-session change and its percentile. A weaker rupee lifts every MCX price with the world price unchanged, because the contract is the world price multiplied by the exchange rate.",
+      "At or past the 70th percentile the row votes +1 for gold, silver and crude on MCX; at or below the 30th, &minus;1. It does not vote for WTI or Brent, which are dollar prices.",
+      "Most of the time it is a small contributor: the rupee moves a fraction of a per cent a week against gold's two. It matters in the weeks the rupee is the story."
+    ],
+    "Futures build-up": [
+      "The price change on the front MCX contract read against the change in its open interest. Price up with open interest up is a long build-up: new money buying. Price down with open interest up is a short build-up. Price up with open interest down is short covering; price down with open interest down is long unwinding.",
+      "Build-ups vote (+1 long, &minus;1 short) because they are new positions being opened; covering and unwinding are exits and vote 0. The same four-quadrant reading the option chain uses, applied to a future.",
+      "On the day the desk rolls, open interest in the new front jumps because positions migrate from the expiring contract. That is mechanical, not a view, and the row votes 0 on roll days."
+    ],
+    "Term structure": [
+      "The next listed MCX contract against the front one. Next month below the front is backwardation; above it, contango. The spread is annualised over the days between the two expiries.",
+      "For crude the shape is a fact about the physical market: backwardation means barrels today are worth more than barrels next month, which is what a tight market looks like, and a long earns the spread as the contract rolls. Beyond &minus;0.5% it votes +1; contango beyond +1% votes &minus;1.",
+      "Gold and silver sit in contango almost always because carrying metal costs interest and storage. Their rows are shown and never vote."
+    ],
+    "Seasonality": [
+      "Starting from today's calendar date in each past year of the world price, was the instrument higher 22 sessions later? The hit rate across those years, and the average and median move.",
+      "It votes only at 65% or better with seven or more years, or 35% or worse, because a coin flip over ten years lands on 60% or 40% routinely. Most of the time this row votes 0, and that is the correct behaviour.",
+      "Crude's seasonality is the most real of the five &mdash; refinery maintenance and driving demand recur &mdash; and even there it is a small edge. Gold's is mostly Indian festival demand showing up in the world price."
+    ],
+    "MCX premium": [
+      "How far the MCX price sits from the world price converted at the spot dollar into the same unit: gold per 10 grams, silver per kilogram, crude per barrel.",
+      "Gold's premium is import duty plus a local premium that moves with demand and with the exchange's own supply; it is the reason a rupee conversion of COMEX gold is not the Indian price. Crude's is close to zero or slightly negative because MCX crude settles to WTI and carries no duty.",
+      "A premium that widens fast is a signal in its own right &mdash; a duty change, a demand season, a supply squeeze &mdash; and it is why the page stores the MCX bars rather than converting the world ones."
+    ],
+    "Projection record": [
+      "Every range and lean the page has published, written on the day it was made and scored when its horizon date has a close. Inside one sigma should happen about 68% of the time and inside two sigma about 95%; the history band should hold about 68%.",
+      "Nothing here can be revised. A row is written once, with ON CONFLICT DO NOTHING, so a rebuild on the same day keeps the original call. That is what makes the hit rates worth reading.",
+      "The lean's hit rate is quoted after twenty resolved leans. Before that the page says ungraded, because a rate on six calls is a coin toss wearing a percentage."
+    ],
+    "MCX contract": [
+      "A futures price belongs to one expiry. The page shows the front contract &mdash; the nearest expiry still more than three days out &mdash; and stitches the history from whichever contract was front on each day, so the chart is real settlements with a small step at each roll.",
+      "Every return, average and volatility is computed on a roll-adjusted copy in which each step is removed by scaling the earlier contract to the later one on the day both traded. Otherwise a 4% spread between two crude months reads as a 4% crash on the roll day, which is what inflated crude's sigma to 73% before this existed.",
+      "Expired contracts are kept. They are the history, and the feed forgets them a couple of months after expiry."
+    ],
+    "Gold/silver ratio": [
+      "Ounces of silver one ounce of gold buys, on the world prices. Shown with its percentile over one year and over ten.",
+      "A high ratio says silver is cheap against gold, a low one the reverse; it has spent most of a decade between 65 and 90. It does not vote &mdash; ratios mean-revert on no schedule &mdash; but it is the first thing to look at before preferring one metal to the other.",
+      "It is computed on the world prices rather than MCX so that the two premiums do not sit inside it."
+    ],
+    "Brent&ndash;WTI spread": [
+      "Brent less WTI, in dollars a barrel, with its percentile over the past year. Brent is what the world quotes and what India imports; WTI is what MCX crude settles to.",
+      "A wide spread means a Brent headline overstates what an MCX position is doing, and the reverse when it narrows. It widens on supply shocks outside America and on American export bottlenecks.",
+      "It does not vote. It is here so that the two crude rows above it can be read together."
+    ],
     "Global bias": [
       "One number, from &minus;100 to +100, for what the rest of the world " +
       "did to India while this market was shut. Crude, the dollar, US " +
@@ -5380,6 +5966,263 @@ table.ledger { min-width: 800px; }
   }
 
   var TERMS = {
+    /* ---- metals and oil ------------------------------------------ */
+    "Metals and oil": {
+      deep: "Metals and oil",
+      how: function () {
+        var L = (METOIL && METOIL.instruments) || [];
+        if (!L.length) return MO_NOT_BUILT;
+        return "As of " + moDate(METOIL.asOf) + " the page carries " + L.length +
+          " instruments: " + L.map(function (i) {
+            return esc(i.label) + " at <b>" + moMoney(i.price.last, i.currency) + "</b>" +
+              (i.price.chgPct != null ? " (" + sgn(i.price.chgPct, 2) + "%)" : "");
+          }).join(", ") + ". Leans: " + L.map(function (i) {
+            return esc(i.label) + " " + i.lean.label + " (" + sgn(i.lean.score, 1) + ")";
+          }).join(", ") + ". The record holds " + n0((METOIL.record || {}).calls || 0) +
+          " calls, " + n0((METOIL.record || {}).resolved || 0) + " resolved.";
+      }
+    },
+    "Gold (MCX)": { deep: "Gold (MCX)", how: function () { return moHowInst("GOLD"); } },
+    "Silver (MCX)": { deep: "Silver (MCX)", how: function () { return moHowInst("SILVER"); } },
+    "Crude oil (MCX)": { deep: "Crude oil (MCX)", how: function () { return moHowInst("CRUDE"); } },
+    "WTI": { deep: "WTI", how: function () { return moHowInst("WTI"); } },
+    "Brent": { deep: "Brent", how: function () { return moHowInst("BRENT"); } },
+    "Projection cone": {
+      deep: "Projection cone",
+      how: function () {
+        var i = moInst("GOLD") || moFirst();
+        if (!i) return MO_NOT_BUILT;
+        var v = i.vol, h = i.horizons || [];
+        return esc(i.label) + " uses &sigma; = <b>" + n1(v.sigmaUsed) + "%</b> annualised (" +
+          esc(v.sigmaSource) + "), which is <b>" + n2(v.sigmaDailyPct) + "%</b> a session. " +
+          h.slice(0, 4).map(function (x) {
+            return x.label + " (" + x.sessions + " sessions): " + moRange(x.lo1, x.hi1, i.currency);
+          }).join("; ") + ". The band widens with the square root of the sessions, so " +
+          "two months is not eight times one week but about <b>" + n1(Math.sqrt(44 / 5)) + "</b> times.";
+      }
+    },
+    "Horizon": {
+      deep: "Horizon",
+      how: function () {
+        var i = moFirst();
+        if (!i) return MO_NOT_BUILT;
+        return "From the last settled session, " + moDate(i.price.asOf) + ", the horizons land on " +
+          (i.horizons || []).map(function (h) {
+            return h.label + " = " + moDate(h.date) + " (" + h.sessions + " sessions)";
+          }).join(", ") + ". Weekdays only: an exchange holiday inside the window pushes the real date " +
+          "one session later than shown.";
+      }
+    },
+    "History band": {
+      deep: "History band",
+      how: function () {
+        var i = moFirst();
+        if (!i) return MO_NOT_BUILT;
+        var h = (i.horizons || [])[0] || {};
+        return "For " + esc(i.label) + " over " + (h.sessions || 5) + " sessions, ten years of the world price hold " +
+          n0(h.empN || 0) + " overlapping moves. Their 16th and 84th percentiles put next week at <b>" +
+          moRange(h.elo, h.ehi, i.currency) + "</b> against the volatility cone's " +
+          moRange(h.lo1, h.hi1, i.currency) + "; the 2.5th and 97.5th widen it to " +
+          moRange(h.e2lo, h.e2hi, i.currency) + ". The median move was " + moMoney(h.emed, i.currency) + ".";
+      }
+    },
+    "Conditional base rate": {
+      deep: "Conditional base rate",
+      how: function () {
+        var i = moFirst();
+        if (!i) return MO_NOT_BUILT;
+        var h = (i.horizons || [])[2] || (i.horizons || [])[0] || {}, b = h.base || {};
+        if (b.pUp == null) return "No base rate for " + esc(i.label) + ": it needs at least 250 sessions of history and had " + n0(i.worldBars || 0) + ".";
+        return esc(i.label) + "'s trailing " + b.look + "-session move is <b>" + sgn(b.lookReturn, 1) + "%</b>, " +
+          "quintile " + b.quintile + " of 5 in ten years of history. From starts in that quintile, the next " +
+          h.sessions + " sessions closed higher <b>" + n0(b.pUp) + "%</b> of the time (median " + sgn(b.median, 1) +
+          "%, 16th&ndash;84th " + sgn(b.p16, 1) + "% to " + sgn(b.p84, 1) + "%), across " + n0(b.n) +
+          " starts that overlap into about <b>" + n0(b.neff) + "</b> independent episodes. Unconditionally the same window was up " +
+          n0(b.uncondPUp) + "% of the time.";
+      }
+    },
+    "Lean": {
+      deep: "Lean",
+      how: function () {
+        var L = (METOIL && METOIL.instruments) || [];
+        if (!L.length) return MO_NOT_BUILT;
+        var R = METOIL.record || {};
+        return L.map(function (i) {
+          return esc(i.label) + ": <b>" + sgn(i.lean.score, 1) + "</b> of &plusmn;" + n1(i.lean.max) + " &rarr; " + i.lean.label;
+        }).join("; ") + ". The threshold is &plusmn;" + n1((METOIL.rules || {}).leanThreshold || 3) +
+          ". The lean has been right " + n0(R.leanHits || 0) + " of " + n0(R.leanN || 0) + " resolved times" +
+          (R.graded ? " (" + n0(R.leanRate) + "%)" : ", which is below the " + n0(R.gradedAfter || 20) + " needed before a rate is quoted") + ".";
+      }
+    },
+    "Trend": {
+      deep: "Trend",
+      how: function () {
+        var i = moFirst();
+        if (!i) return MO_NOT_BUILT;
+        var d = (moEv(i, "trend") || {}).detail || {};
+        return esc(i.label) + " at " + moMoney(i.price.last, i.currency) + " sits " +
+          (d.above || []).length + " of 3 averages up: 20-day <b>" + moMoney(d.dma20, i.currency) + "</b>, 50-day <b>" +
+          moMoney(d.dma50, i.currency) + "</b>, 200-day <b>" + moMoney(d.dma200, i.currency) +
+          "</b>. Above all three with the 20 over the 50 votes +1; below all three votes &minus;1; anything mixed votes 0. " +
+          "Averages are computed on the roll-adjusted series, so a contract change is not a price change.";
+      }
+    },
+    "Momentum": {
+      deep: "Momentum",
+      how: function () {
+        var i = moFirst();
+        if (!i) return MO_NOT_BUILT;
+        var d = (moEv(i, "momentum") || {}).detail || {};
+        return esc(i.label) + " is <b>" + sgn(d.r20, 1) + "%</b> over 20 sessions and " + sgn(d.r60, 1) +
+          "% over 60, the <b>" + moOrd(d.pct) + "</b> percentile of every 20-session move in ten years. " +
+          "At or past the 65th it votes +1, at or below the 35th &minus;1. It sits at " + n0(d.pos52) +
+          "% of its 52-week range (" + moMoney(d.lo52, i.currency) + " to " + moMoney(d.hi52, i.currency) + ").";
+      }
+    },
+    "Volatility regime": {
+      deep: "Volatility regime",
+      how: function () {
+        var i = moFirst();
+        if (!i) return MO_NOT_BUILT;
+        var v = i.vol;
+        return esc(i.label) + " realised <b>" + n1(v.c2c22) + "%</b> close-to-close over 22 sessions, Yang-Zhang <b>" +
+          n1(v.yz22) + "%</b> (10-day " + n1(v.yz10) + "%, 66-day " + n1(v.yz66) + "%), the " + moOrd(v.pct1y) +
+          " percentile of the past year. HAR-RV forecasts " + n1(v.har) + "% (R&sup2; " + n2(v.harR2) + " on " +
+          n0(v.harN) + " observations). This row votes 0: it decides how wide the range is, never which way.";
+      }
+    },
+    "Dollar index": {
+      deep: "Dollar index",
+      how: function () {
+        var c = ((METOIL || {}).context || {}).dxy;
+        if (!c) return MO_NOT_BUILT;
+        return "The dollar index is at <b>" + n2(c.last) + "</b>, <b>" + sgn(c.chgPct, 2) + "%</b> over 20 sessions, the " +
+          moOrd(c.pct) + " percentile of 20-session moves in ten years. At or past the 70th the row votes &minus;1 for every " +
+          "dollar-priced commodity; at or below the 30th, +1. Gold is the most sensitive, crude the least.";
+      }
+    },
+    "Rupee": {
+      deep: "Rupee",
+      how: function () {
+        var c = ((METOIL || {}).context || {}).usdinr, i = moInst("GOLD");
+        if (!c) return MO_NOT_BUILT;
+        var w = i ? i.price.world : null;
+        return "USD/INR is <b>" + n2(c.last) + "</b>, <b>" + sgn(c.chgPct, 2) + "%</b> over 20 sessions (" + moOrd(c.pct) +
+          " percentile). A rupee that weakens lifts every MCX price with the world price unchanged: " +
+          (w && w.inr ? "gold's " + moMoney(w.last, "USD") + " an ounce is " + moMoney(w.inr, "INR") + " per 10 g at this rate, and each 1% on the rupee is about " +
+          moMoney(w.inr / 100, "INR") + " on that. " : "") +
+          "At or past the 70th percentile the row votes +1 for the rupee contracts; at or below the 30th, &minus;1. It does not vote for WTI or Brent.";
+      }
+    },
+    "Futures build-up": {
+      deep: "Futures build-up",
+      how: function () {
+        var i = moInst("CRUDE") || moInst("GOLD");
+        var d = i ? (moEv(i, "buildup") || {}).detail : null;
+        if (!d) return "No open interest stored yet for the front contracts; the row reads 0 until the next fetch. It needs the " +
+          "2 numbers the quote carries, OPEN_INT and OPEN_INT_PREV, on 1 contract.";
+        return esc(i.label) + "'s front contract closed <b>" + sgn(d.priceChgPct, 2) + "%</b> with open interest <b>" +
+          sgn(d.oiChgPct, 1) + "%</b> (" + n0(d.oiPrev) + " to " + n0(d.oi) + " lots" +
+          (d.vol != null ? ", " + n0(d.vol) + " traded" : "") + "): <b>" + esc(d.kind) + "</b>. " +
+          (d.rollDay ? "It is a roll day, so the OI jump is positions migrating from the expiring contract and the row votes 0. " : "") +
+          "Long build-up votes +1, short build-up &minus;1; covering and unwinding are exits and vote 0.";
+      }
+    },
+    "Term structure": {
+      deep: "Term structure",
+      how: function () {
+        var i = moInst("CRUDE");
+        var d = i ? (moEv(i, "term") || {}).detail : null;
+        if (!d) return "The next contract could not be quoted this session, so the row votes 0. The desk compares " +
+          "2 expiries, front and next, and needs both of 2 quotes to say anything.";
+        return "Crude's " + moDay(i.expiry) + " contract at <b>" + moMoney(i.price.last, "INR") + "</b> against the " +
+          moDay(d.nextExpiry) + " at <b>" + moMoney(d.nextLast, "INR") + "</b>: the next month is <b>" + sgn(d.spreadPct, 2) +
+          "%</b> away, <b>" + esc(d.shape) + "</b>, which annualises to " + sgn(d.annPct, 1) + "% over the " + d.gapDays +
+          " days between them. Backwardation beyond &minus;0.5% votes +1 for crude; contango beyond +1% votes &minus;1. " +
+          "Gold and silver's contango is the cost of carry and does not vote.";
+      }
+    },
+    "Seasonality": {
+      deep: "Seasonality",
+      how: function () {
+        var i = moFirst();
+        if (!i) return MO_NOT_BUILT;
+        var d = (moEv(i, "season") || {}).detail;
+        if (!d) return "Not enough years on file for " + esc(i.label) + ": the row needs 5 and the world history holds " + n0(i.worldBars || 0) + " bars.";
+        return "Starting from " + esc(d.from) + " in each of the last <b>" + n0(d.n) + "</b> years, " + esc(i.label) + "'s world price was higher " +
+          d.window + " sessions later <b>" + n0(d.hit) + "%</b> of the time, averaging " + sgn(d.mean, 1) + "% (median " + sgn(d.median, 1) +
+          "%). It votes +1 at 65% or better with 7 or more years, &minus;1 at 35% or worse, and 0 otherwise &mdash; which with " +
+          n0(d.n) + " years is most of the time.";
+      }
+    },
+    "MCX premium": {
+      deep: "MCX premium",
+      how: function () {
+        var i = moInst("GOLD");
+        if (!i || !i.price.world || i.price.world.inr == null) return MO_NOT_BUILT;
+        var w = i.price.world, s = moInst("SILVER"), c = moInst("CRUDE");
+        return "Gold: MCX <b>" + moMoney(i.price.last, "INR") + "</b> per 10 g against the world price " + moMoney(w.last, "USD") +
+          " an ounce at " + n2(i.price.usdinr) + " rupees = " + moMoney(w.inr, "INR") + ", a premium of <b>" + sgn(w.premiumPct, 1) + "%</b>" +
+          (s && s.price.world && s.price.world.premiumPct != null ? "; silver <b>" + sgn(s.price.world.premiumPct, 1) + "%</b>" : "") +
+          (c && c.price.world && c.price.world.premiumPct != null ? "; crude <b>" + sgn(c.price.world.premiumPct, 1) + "%</b>" : "") +
+          ". Gold's is import duty plus the local premium; crude's is small or negative because MCX crude is a rupee copy of WTI and settles to it.";
+      }
+    },
+    "Sigma used": {
+      deep: "Projection cone",
+      how: function () {
+        var L = (METOIL && METOIL.instruments) || [];
+        if (!L.length) return MO_NOT_BUILT;
+        return L.map(function (i) {
+          return esc(i.label) + " <b>" + n1(i.vol.sigmaUsed) + "%</b> (HAR " + n1(i.vol.har) + "%, YZ " + n1(i.vol.yz22) + "%)";
+        }).join("; ") + ". Each is the average of the two, annualised; divided by &radic;252 it becomes the daily sigma the cone is built on.";
+      }
+    },
+    "Projection record": {
+      deep: "Projection record",
+      how: function () {
+        var R = (METOIL || {}).record;
+        if (!R) return MO_NOT_BUILT;
+        return "<b>" + n0(R.calls) + "</b> calls on file, <b>" + n0(R.resolved) + "</b> resolved. Inside 1&sigma; " +
+          (R.rate1 == null ? "&mdash;" : n0(R.rate1) + "%") + " against 68.3% expected, inside 2&sigma; " +
+          (R.rate2 == null ? "&mdash;" : n0(R.rate2) + "%") + " against 95.4%, inside the history band " +
+          (R.rateEmp == null ? "&mdash;" : n0(R.rateEmp) + "%") + " against 68%. Lean right " + n0(R.leanHits) + " of " +
+          n0(R.leanN) + "; a rate is quoted after " + n0(R.gradedAfter) + ".";
+      }
+    },
+    "MCX contract": {
+      deep: "MCX contract",
+      how: function () {
+        var L = ((METOIL || {}).instruments || []).filter(function (i) { return i.mcx; });
+        if (!L.length) return MO_NOT_BUILT;
+        return L.map(function (i) {
+          return esc(i.label) + " is on the <b>" + moDay(i.expiry) + "</b> contract" +
+            ((i.rolls || []).length ? ", last rolled " + moDay(i.rolls[i.rolls.length - 1]) : "");
+        }).join("; ") + ". The desk rolls " + n0((METOIL.rules || {}).rollDays || 3) +
+          " days before expiry; the continuous series stitches " + L.map(function (i) { return n0(i.vol.bars); }).join(", ") +
+          " sessions respectively from every contract stored.";
+      }
+    },
+    "Gold/silver ratio": {
+      deep: "Gold/silver ratio",
+      how: function () {
+        var g = ((METOIL || {}).context || {}).goldSilver;
+        if (!g) return MO_NOT_BUILT;
+        return "One ounce of gold buys <b>" + n1(g.now) + "</b> ounces of silver as of " + moDate(g.asOf) + ", the <b>" + moOrd(g.pct1y) +
+          "</b> percentile of the past year and the " + moOrd(g.pct10y) + " of ten years (" + n0(g.n) + " sessions). " +
+          "A high ratio says silver is cheap against gold; it has spent most of a decade between 65 and 90.";
+      }
+    },
+    "Brent&ndash;WTI spread": {
+      deep: "Brent&ndash;WTI spread",
+      how: function () {
+        var s = ((METOIL || {}).context || {}).brentWti;
+        if (!s) return MO_NOT_BUILT;
+        return "Brent <b>$" + n2(s.brent) + "</b> less WTI <b>$" + n2(s.wti) + "</b> is <b>$" + n2(s.now) + "</b> as of " + moDate(s.asOf) +
+          ", the " + moOrd(s.pct1y) + " percentile of the past year. MCX crude settles to WTI, so the spread is what a Brent " +
+          "headline does not tell an MCX position.";
+      }
+    },
     "Global tape &rarr; India read": {
       deep: "Global bias",
       how: function (m) {
@@ -7613,26 +8456,68 @@ table.ledger { min-width: 800px; }
   ];
 
   var TERM_ALIAS = {
+    /* The metals-and-oil page. Its instrument names replace the macro
+       driver aliases above: the same word now opens the instrument card,
+       which carries the macro channel inside it. */
+    "Gold": "Gold (MCX)",
+    "Silver": "Silver (MCX)",
+    "Crude": "Crude oil (MCX)",
+    "Crude oil": "Crude oil (MCX)",
+    "Crude WTI": "WTI",
+    "MET+OIL": "Metals and oil",
+    "MET&#43;OIL": "Metals and oil",
+    "What sits behind the prices": "Metals and oil",
+    "Where it can go": "Projection cone",
+    "Next week": "Horizon",
+    "Two weeks": "Horizon",
+    "One month": "Horizon",
+    "Two months": "Horizon",
+    "History 16&ndash;84%": "History band",
+    "History 16-84%": "History band",
+    "History 2.5&ndash;97.5%": "History band",
+    "History median": "History band",
+    "P(up)": "Conditional base rate",
+    "P(up), conditional": "Conditional base rate",
+    "P(up), unconditional": "Conditional base rate",
+    "Episodes": "Conditional base rate",
+    "Lean up": "Lean",
+    "Lean down": "Lean",
+    "No lean": "Lean",
+    "Lean hit rate": "Lean",
+    "Vote weight": "Lean",
+    "Reads": "Lean",
+    "Factor": "Lean",
+    "The evidence": "Lean",
+    "How this page decides": "Lean",
+    "Centre": "Projection cone",
+    "Sigma": "Sigma (&sigma;)",
+    "Calls made": "Projection record",
+    "Inside history band": "History band",
+    "Contract": "MCX contract",
+    "Open interest": "Open interest (OI)",
+    "Events ahead": "Scheduled events",
+    "Event": "Scheduled events",
+    "Severity": "Scheduled events",
+    "Region": "Scheduled events",
+    "In": "Scheduled events",
+    "high": "Scheduled events",
+    "medium": "Scheduled events",
+    "low": "Scheduled events",
+    "Percentile": "Momentum",
+    "Instrument": "Metals and oil",
     "Last": "Spot",
     "Driver": "Macro driver",
     "Contrib": "Contribution to bias",
     "Global bias": "Global tape &rarr; India read",
-    "Brent": "Macro driver",
-    "Crude WTI": "Macro driver",
     /* The strip's own labels. GOLD and BRENT already resolve through the
        entries above, which are matched case-insensitively; these two do not. */
-    "Silver": "Macro driver",
-    "WTI": "Macro driver",
     /* The MCX rows: the same instruments, priced in rupees. */
-    "Crude": "Macro driver",
     "MCX India": "Macro driver",
-    "Dollar index": "Macro driver",
     "USD/INR": "Macro driver",
     "US 10-year": "Macro driver",
     "VIX": "Macro driver",
     "Copper": "Macro driver",
     "Iron ore 62%": "Macro driver",
-    "Gold": "Macro driver",
     "Nat Gas": "Macro driver",
     "Soybean oil": "Macro driver",
     "Wheat": "Macro driver",
@@ -7954,6 +8839,103 @@ table.ledger { min-width: 800px; }
      does to a position. Written per term because a sentence generated from
      a methodology paragraph reads like a methodology paragraph. */
   var PLAIN = {
+    /* ---- metals and oil ------------------------------------------ */
+    "Metals and oil": [
+      "Gold, silver and crude in rupees on MCX, WTI and Brent in dollars: where each one is, where it can plausibly be on five dates, and which way the facts lean.",
+      "Read the range before the lean. The range is what a position has to survive; the lean is a count of evidence that is still being graded."
+    ],
+    "Gold (MCX)": [
+      "The rupee gold price India actually trades, per 10 grams, on the front MCX contract.",
+      "It moves with the world price, the rupee and the local premium together; a quiet night in dollars can still be a moving one in rupees."
+    ],
+    "Silver (MCX)": [
+      "The rupee silver price, per kilogram, on the front MCX contract.",
+      "More volatile than gold, so the same horizon gives a wider range; the gold/silver ratio says whether it is cheap or dear against gold."
+    ],
+    "Crude oil (MCX)": [
+      "The rupee crude price, per barrel, on the front MCX contract, which settles to WTI.",
+      "The loudest of the five and the one whose term structure means something: backwardation is a tight market, contango a loose one."
+    ],
+    "WTI": [
+      "The American crude benchmark in dollars, and the price MCX crude settles against.",
+      "A move here reaches an MCX crude position before the rupee is applied; it is kept in dollars so the world price stays visible."
+    ],
+    "Brent": [
+      "The North Sea crude benchmark in dollars, and the price India's import bill follows.",
+      "Its gap to WTI is what a crude headline leaves out for an MCX position; watch the spread when the two disagree."
+    ],
+    "Projection cone": [
+      "How far a normal stretch of sessions can carry the price, at one and two standard deviations, from today's settlement.",
+      "A position inside the one-sigma band is in the expected zone; one outside the two-sigma band is being told the range was wrong."
+    ],
+    "Horizon": [
+      "The date a range is projected to, counted in trading sessions: next week, two weeks, one month, two months, and the contract's expiry.",
+      "Pick the horizon that matches the position's life; a two-month range says nothing useful about a one-week trade."
+    ],
+    "History band": [
+      "What a move over the same number of sessions has actually spanned in ten years, at the same coverage as one sigma.",
+      "When it is wider than the cone, history is warning that the recent calm is not typical; size to the wider of the two."
+    ],
+    "Conditional base rate": [
+      "How often the price was higher on the horizon date, historically, from starts whose recent move looked like today's.",
+      "It is what the lean has to beat; a lean no better than the base rate is not information."
+    ],
+    "Lean": [
+      "The desk's directional read for one instrument: a signed count of the evidence rows, each weighted, against a threshold.",
+      "It is a lean, not a forecast, until the record has graded enough of them; treat it as a tilt on which side of a range to defend."
+    ],
+    "Trend": [
+      "Where the price sits against its 20-, 50- and 200-session averages.",
+      "Above all three votes for continuation, below all three against; mixed votes nothing."
+    ],
+    "Momentum": [
+      "The last 20 sessions' move, ranked against every 20-session move in ten years.",
+      "A strong rank votes for more of the same at the one-to-three-month horizon; an extreme one is where that stops working."
+    ],
+    "Volatility regime": [
+      "How loud the instrument is against its own past year, and the forecast the cone is built on.",
+      "It sets the width of every range and never picks a side."
+    ],
+    "Dollar index": [
+      "The dollar against six major currencies, as a 20-session move and its rank.",
+      "A strong dollar is a headwind for every dollar-priced commodity; gold feels it most."
+    ],
+    "Rupee": [
+      "USD/INR as a 20-session move and its rank.",
+      "A weaker rupee lifts every MCX price with the world price unchanged; it votes for the rupee contracts only."
+    ],
+    "Futures build-up": [
+      "The front contract's price change read against its open-interest change: who is opening positions and which way.",
+      "A long build-up votes up, a short build-up down; covering and unwinding are exits and vote nothing."
+    ],
+    "Term structure": [
+      "The next contract against the front: backwardation when it is cheaper, contango when dearer.",
+      "For crude, backwardation is a tight market and a positive roll for a long; gold's contango is carry and says nothing."
+    ],
+    "Seasonality": [
+      "Whether the instrument was higher 22 sessions after this date in each past year.",
+      "It votes only at a lopsided hit rate over enough years; most of the time it correctly votes nothing."
+    ],
+    "MCX premium": [
+      "How far the MCX price sits above or below the world price converted at the spot dollar.",
+      "Gold's premium is duty plus local demand and is why converting COMEX gets the Indian price wrong; a premium moving fast is news."
+    ],
+    "Projection record": [
+      "Every range and lean this page has published, scored once its date has a close.",
+      "The one-sigma hit rate should sit near 68% and the two-sigma near 95%; the lean's rate is quoted only after twenty resolve."
+    ],
+    "MCX contract": [
+      "The expiry a futures price belongs to. The page shows the front contract and stitches history from whichever was front on each day.",
+      "A roll is a contract change, not a price move; every average and volatility here is computed with the steps removed."
+    ],
+    "Gold/silver ratio": [
+      "Ounces of silver one ounce of gold buys, with its rank over one and ten years.",
+      "High says silver is cheap against gold; it does not vote, but it is the first check before preferring one metal."
+    ],
+    "Brent&ndash;WTI spread": [
+      "Brent less WTI in dollars a barrel, with its rank over the past year.",
+      "A wide spread means a Brent headline overstates what an MCX crude position, which settles to WTI, is doing."
+    ],
     "Global bias": [
       "How much help or harm the overnight world handed the Indian market, " +
       "on a scale from &minus;100 to +100. Negative is a headwind.",
@@ -9715,9 +10697,10 @@ table.ledger { min-width: 800px; }
         return "\u20b9" + (Math.abs(v) >= 1000 ? n0(v) : n2(v));
       };
 
-      /* Only rows with a stored series are clickable. Commodities ride on
-         the strip but their history lives in the commodities table, not in
-         charts.json, so a chart link would open an empty viewer. */
+      /* Only rows with a stored series are clickable. The indices come
+         from charts.json; gold, silver, crude, Brent and WTI arrive with
+         metoil.json and are merged into the same store before the strip
+         renders. Anything else on the strip has no series and says so. */
       var charted = !!(CHARTS && CHARTS[s.name]);
 
       var title = s.label + "  " +
@@ -9729,7 +10712,9 @@ table.ledger { min-width: 800px; }
         (s.ts ? "\nsettled " + s.ts : "") +
         (s.live != null ? "\nlast trade " + n2(s.live) +
                           (s.liveTs ? " at " + s.liveTs : "") : "") +
-        (inRupees ? "\nInternational price at the spot rate, not MCX." : "");
+        (inRupees && s.group !== "MCX"
+          ? "\nInternational price at the spot rate, not MCX."
+          : inRupees ? "\nMCX front contract, exchange settlement." : "");
 
       return '<div class="si' + (offHours ? " si-alt" : "") +
         (charted ? '" data-chart="' + esc(s.name) : '" data-nochart="1') +
@@ -10442,7 +11427,8 @@ table.ledger { min-width: 800px; }
         getJson("charts.json").catch(function () { return { series: {} }; }),
         getJson("history.json").catch(function () { return {}; }),
         getJson("stocks.json").catch(function () { return {}; }),
-        getJson("techfund.json").catch(function () { return {}; })
+        getJson("techfund.json").catch(function () { return {}; }),
+        getJson("metoil.json").catch(function () { return {}; })
       ]);
     }).then(function (both) {
       var acc = both[0], mkt = both[1], wl = both[2], ch = both[3],
@@ -10455,6 +11441,14 @@ table.ledger { min-width: 800px; }
       MHIST = mh || {};
       STOCKS = stk || {};
       TECHFUND = tf || {};
+      METOIL = both[7] || {};
+      /* The MCX and crude series ride into the same chart store as the
+         indices, so the strip cells for GOLD, SILVER, CRUDE, BRENT and
+         WTI open the candlestick viewer like any index. Merged before
+         the strip renders, because the strip is rendered once. */
+      Object.keys((METOIL && METOIL.charts) || {}).forEach(function (k) {
+        if (!CHARTS[k]) CHARTS[k] = METOIL.charts[k];
+      });
       if (WATCH.length) state.wl = WATCH[0].id;
       state.idx = INDICES[0].key;
       renderStrip();
