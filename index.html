@@ -353,6 +353,26 @@ body {
   .si { min-width: 118px; padding: 6px 12px; }
 }
 
+/* ---------- the briefing ---------- */
+.br-body { padding: 4px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+.br-inst { display: flex; flex-direction: column; gap: 4px; }
+.br-hd { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3); padding: 8px 0 2px; display: flex; align-items: center; gap: 8px; }
+.br-line {
+  display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left;
+  background: var(--surface-2); border: 1px solid var(--line-soft); border-left-width: 3px; border-radius: 6px;
+  padding: 8px 12px; cursor: pointer; font: inherit; color: var(--ink-2); font-size: 12.5px; line-height: 1.55;
+}
+.br-line:hover, .br-line:focus-visible { border-color: var(--ink-3); outline: none; background: var(--surface-3); }
+.br-line b { color: var(--ink); }
+.br-line .br-txt { max-width: 92ch; }
+.br-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; background: var(--ink-3); }
+.br-line.up { border-left-color: var(--up); }     .br-line.up .br-dot { background: var(--up); }
+.br-line.down { border-left-color: var(--down); } .br-line.down .br-dot { background: var(--down); }
+.br-line.warn { border-left-color: var(--warn); } .br-line.warn .br-dot { background: var(--warn); }
+.br-line.info { border-left-color: var(--line); }
+.br-key { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.br-key i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.br-key i.up { background: var(--up); } .br-key i.down { background: var(--down); } .br-key i.warn { background: var(--warn); }
 /* ---------- metals and oil ---------- */
 .mo-tiles .kpi[data-chart] { cursor: pointer; }
 .mo-tiles .kpi[data-chart]:hover { border-color: var(--calls); }
@@ -5058,6 +5078,208 @@ table.ledger { min-width: 800px; }
       "Exchange holidays are not modelled: a horizon date can land a session late.</p></div></section>";
   }
 
+  /* The briefing. Written for someone who has not seen the tables: where
+     each instrument stands, what it did over the week and the month, what
+     a normal day and week look like, how far it can go by expiry, and
+     which way the desk leans. Every line is a button carrying the numbers
+     and the feed it was built from, so a reader can check any sentence
+     without leaving the page. Tone is colour: green, red, amber, grey. */
+  function moLine(tone, html, payload) {
+    return '<button type="button" class="br-line ' + tone + "\" data-pt='" +
+      JSON.stringify(payload).replace(/'/g, "&#39;") + "'>" +
+      '<span class="br-dot"></span><span class="br-txt">' + html + "</span></button>";
+  }
+  function moTone(v, dead) {
+    if (v == null) return "info";
+    if (Math.abs(v) < (dead || 0)) return "info";
+    return v > 0 ? "up" : "down";
+  }
+  function moPctTxt(v) { return v == null ? "\u2014" : sgn(v, 1) + "%"; }
+  function moSrcMcx(inst) {
+    return inst.mcx
+      ? "Source: MCX " + moDay(inst.price.contract) + " contract, exchange daily settlement republished by Moneycontrol; contracts chained and roll-adjusted by the desk."
+      : "Source: " + inst.price.world.symbol + " front month daily bars, Yahoo Finance.";
+  }
+  function moEventsBefore(D, iso, n) {
+    return (D.events || []).filter(function (e) { return !iso || e.date <= iso; }).slice(0, n || 4);
+  }
+
+  function moBriefInstrument(D, inst, full) {
+    var p = inst.price, w = p.world || {}, cur = inst.currency, R = inst.recent || {}, rt = R.returns || {};
+    var u = moUnitShort(inst), lines = [];
+    var hz = inst.horizons || [], exp = hz.filter(function (h) { return h.key === "expiry"; })[0];
+    var h1 = hz.filter(function (h) { return h.key === "w1"; })[0] || {};
+    var hm = hz.filter(function (h) { return h.key === "m1"; })[0] || {};
+    var sd = (inst.vol.sigmaDailyPct || 0);
+
+    /* 1. Where it stands. */
+    lines.push(moLine(moTone(p.chgPct, 0.05),
+      "<b>" + esc(inst.label) + "</b> settled at <b>" + moMoney(p.last, cur) + "</b> " + esc(u) +
+      " on " + moDate(p.asOf) + ", <b>" + moPctTxt(p.chgPct) + "</b> on the session" +
+      (p.contract ? " (" + moDay(p.contract) + " contract" + (p.oi != null ? ", open interest " + n0(p.oi) + (p.oiPrev ? ", " + sgn((p.oi - p.oiPrev) / p.oiPrev * 100, 1) + "%" : "") : "") + ")" : "") +
+      (w.inr != null ? ". The world price is " + moMoney(w.last, "USD") + " " + esc(w.unit) + ", which at " + n2(p.usdinr) +
+        " rupees is " + moMoney(w.inr, "INR") + "; MCX trades <b>" + sgn(w.premiumPct, 1) + "%</b> " + (w.premiumPct >= 0 ? "above" : "below") + " that." : "."),
+      { t: "Where " + inst.label + " stands", s: moDate(p.asOf) + " settlement", big: moMoney(p.last, cur),
+        rows: [["Settlement", moMoney(p.last, cur)], ["Previous close", moMoney(p.prevClose, cur)],
+               ["Change", moPctTxt(p.chgPct)], ["Open", moMoney(p.open, cur)], ["High", moMoney(p.high, cur)], ["Low", moMoney(p.low, cur)],
+               ["Contract", p.contract ? moDate(p.contract) : "front month"],
+               ["Open interest", p.oi != null ? n0(p.oi) + " (prev " + n0(p.oiPrev) + ")" : null],
+               ["World price", w.last != null ? moMoney(w.last, "USD") + " " + w.unit + " (" + w.symbol + ", " + moDate(w.asOf) + ")" : null],
+               ["USD/INR", p.usdinr != null ? n2(p.usdinr) : null],
+               ["World price in rupees", w.inr != null ? moMoney(w.inr, "INR") : null],
+               ["MCX premium", w.premiumPct != null ? sgn(w.premiumPct, 1) + "%" : null]],
+        note: moSrcMcx(inst) + (w.symbol ? " World price: " + w.symbol + " daily bar, Yahoo Finance; USD/INR: INR=X." : "") }));
+
+    /* 2. What happened: the week. */
+    var wk = R.week, r5 = rt.w1;
+    if (wk && r5) {
+      lines.push(moLine(moTone(r5.pct, 0.3),
+        "<b>Last week</b> (" + r5.sessions + " sessions since " + moDate(r5.from) + "): <b>" + moPctTxt(r5.pct) + "</b>, ranging " +
+        moMoney(wk.lo, cur) + " (" + moDay(wk.loDate) + ") to " + moMoney(wk.hi, cur) + " (" + moDay(wk.hiDate) + ")" +
+        (R.streak && R.streak.n >= 2 ? "; " + R.streak.n + " " + R.streak.dir + " sessions in a row" : "") +
+        (R.biggest ? ". The biggest session of the month was <b>" + moPctTxt(R.biggest.pct) + "</b> on " + moDay(R.biggest.date) : "") + ".",
+        { t: "Last week: " + inst.label, s: moDate(r5.from) + " to " + moDate(p.asOf), big: moPctTxt(r5.pct),
+          rows: [["Close " + moDay(r5.from), moMoney(p.last / (1 + r5.pct / 100), cur)], ["Close " + moDay(p.asOf), moMoney(p.last, cur)],
+                 ["Week high", moMoney(wk.hi, cur) + " on " + moDate(wk.hiDate)], ["Week low", moMoney(wk.lo, cur) + " on " + moDate(wk.loDate)],
+                 ["Biggest session (22)", R.biggest ? moPctTxt(R.biggest.pct) + " on " + moDate(R.biggest.date) : null],
+                 ["Up sessions (22)", R.upDays != null ? R.upDays + " of " + R.days : null],
+                 ["Streak", R.streak ? R.streak.n + " " + R.streak.dir : null],
+                 ["Levels", wk.rollAdjusted ? "roll-adjusted (a contract change sits inside the window)" : "as printed by the exchange"]],
+          note: moSrcMcx(inst) + " Returns are computed on the roll-adjusted series so a contract change is never counted as a move." }));
+    }
+
+    /* 3. What happened: the month, the year, the trend. */
+    var mo = R.month, r22 = rt.m1, r250 = rt.y1, tr = (moEv(inst, "trend") || {}).detail || {}, mm = (moEv(inst, "momentum") || {}).detail || {};
+    if (mo && r22) {
+      var above = tr.above || [];
+      var have = [20, 50, 200].filter(function (n) { return tr["dma" + n] != null; });
+      var trendTxt = have.length && above.length === have.length ? "above all " + have.length + " of its moving averages" : above.length === 0 ? "below all " + have.length + " of its moving averages" :
+        "above the " + above.join("- and ") + "-day average" + (above.length > 1 ? "s" : "") + ", below the rest";
+      lines.push(moLine(moTone(r22.pct, 0.5),
+        "<b>Last month</b> (" + r22.sessions + " sessions): <b>" + moPctTxt(r22.pct) + "</b>, between " + moMoney(mo.lo, cur) + " and " + moMoney(mo.hi, cur) +
+        (r250 ? "; over a year <b>" + moPctTxt(r250.pct) + "</b>" : "") +
+        (mm.pos52 != null ? ", now at " + n0(mm.pos52) + "% of the 52-week range" : "") +
+        ". Price is " + trendTxt + " (" + have.map(function (n) { return n + "-day " + moMoney(tr["dma" + n], cur); }).join(", ") + ").",
+        { t: "Last month and the trend: " + inst.label, s: moDate(r22.from) + " to " + moDate(p.asOf), big: moPctTxt(r22.pct),
+          rows: [["22-session return", moPctTxt(r22.pct)], ["66-session return", rt.q1 ? moPctTxt(rt.q1.pct) : null], ["250-session return", r250 ? moPctTxt(r250.pct) : null],
+                 ["Month high", moMoney(mo.hi, cur) + " on " + moDate(mo.hiDate)], ["Month low", moMoney(mo.lo, cur) + " on " + moDate(mo.loDate)],
+                 ["52-week high", moMoney(mm.hi52, cur)], ["52-week low", moMoney(mm.lo52, cur)], ["Position in 52-week range", mm.pos52 != null ? n0(mm.pos52) + "%" : null],
+                 ["20-day average", moMoney(tr.dma20, cur)], ["50-day average", moMoney(tr.dma50, cur)], ["200-day average", moMoney(tr.dma200, cur)],
+                 ["Momentum percentile", mm.pct != null ? moOrd(mm.pct) + " of ten years" : null]],
+          note: moSrcMcx(inst) + " Averages and returns on the roll-adjusted series; the momentum percentile ranks the 20-session move against ten years of the world price." }));
+    }
+
+    /* 4. Today and this week. */
+    var d1lo = p.last * Math.exp(-sd / 100), d1hi = p.last * Math.exp(sd / 100);
+    var soon = moEventsBefore(D, h1.date, 2);
+    lines.push(moLine("warn",
+      "<b>Today</b>: a normal session moves about <b>&plusmn;" + n1(sd) + "%</b> (" + moMoney(p.last - d1lo, cur) + "), so " +
+      moMoney(d1lo, cur) + " to " + moMoney(d1hi, cur) + " is one standard deviation and a day beyond &plusmn;" + n1(2 * sd) + "% is a two-sigma day. " +
+      "<b>This week</b> (to " + moDate(h1.date) + "): " + moRange(h1.lo1, h1.hi1, cur) + " at one sigma" +
+      (h1.elo != null ? "; over ten years a five-session move has stayed inside " + moRange(h1.elo, h1.ehi, cur) + " two times in three" : "") + "." +
+      (soon.length ? " On the calendar: " + soon.map(function (e) { return esc(e.label) + " (" + moDay(e.date) + ")"; }).join(", ") + "." : ""),
+      { t: "Today and this week: " + inst.label, s: "from realised volatility", big: "\u00b1" + n1(sd) + "% a session",
+        rows: [["Sigma, annualised", n1(inst.vol.sigmaUsed) + "% (" + inst.vol.sigmaSource + ")"], ["Sigma, one session", n2(sd) + "%"],
+               ["HAR-RV forecast", inst.vol.har != null ? n1(inst.vol.har) + "%" : null], ["Yang-Zhang 22d", inst.vol.yz22 != null ? n1(inst.vol.yz22) + "%" : null],
+               ["Close-to-close 22d", inst.vol.c2c22 != null ? n1(inst.vol.c2c22) + "%" : null], ["Vol percentile, 1y", inst.vol.pct1y != null ? moOrd(inst.vol.pct1y) : null],
+               ["One-session 1\u03c3", moRange(d1lo, d1hi, cur)], ["Next-week 1\u03c3", moRange(h1.lo1, h1.hi1, cur)], ["Next-week 2\u03c3", moRange(h1.lo2, h1.hi2, cur)],
+               ["Next-week history 16\u201384%", moRange(h1.elo, h1.ehi, cur)], ["Bars behind the estimate", n0(inst.vol.bars)]],
+        note: "Sigma is estimated on the roll-adjusted daily bars (" + moSrcMcx(inst) + "). One sigma over h sessions is the daily sigma times the square root of h; the history band is the 16th and 84th percentile of every 5-session move in ten years of " + (w.symbol || "the world price") + "." }));
+
+    /* 5. To expiry (or two months where there is no contract). */
+    var far = exp || hz.filter(function (h) { return h.key === "m2"; })[0];
+    if (far) {
+      var bb = far.base || {};
+      var upPct = (far.hi1 / p.last - 1) * 100, dnPct = (1 - far.lo1 / p.last) * 100;
+      lines.push(moLine(moTone(bb.pUp != null ? bb.pUp - 50 : null, 5),
+        "<b>" + (exp ? "To expiry" : "Two months out") + "</b> (" + esc(far.label) + ", " + far.sessions + " sessions to " + moDate(far.date) + "): one sigma allows <b>" +
+        moMoney(far.hi1 - p.last, cur) + " up (" + sgn(upPct, 1) + "%) or " + moMoney(p.last - far.lo1, cur) + " down (\u2212" + n1(dnPct) + "%)</b>, so " +
+        moRange(far.lo1, far.hi1, cur) + "; two sigma stretches that to " + moRange(far.lo2, far.hi2, cur) + "." +
+        (far.elo != null ? " History's own band for " + far.sessions + " sessions is " + moRange(far.elo, far.ehi, cur) + "." : "") +
+        (bb.pUp != null ? " From starts that looked like this one, the price was higher " + far.sessions + " sessions later <b>" + n0(bb.pUp) + "%</b> of the time (about " + bb.neff + " independent episodes; " + n0(bb.uncondPUp) + "% from any start)." : ""),
+        { t: (exp ? "To expiry: " : "Two months: ") + inst.label, s: far.sessions + " sessions to " + moDate(far.date), big: moRange(far.lo1, far.hi1, cur),
+          rows: [["Up, one sigma", moMoney(far.hi1 - p.last, cur) + " (" + sgn(upPct, 1) + "%)"], ["Down, one sigma", moMoney(p.last - far.lo1, cur) + " (\u2212" + n1(dnPct) + "%)"],
+                 ["1\u03c3 range", moRange(far.lo1, far.hi1, cur)], ["2\u03c3 range", moRange(far.lo2, far.hi2, cur)],
+                 ["History 16\u201384%", moRange(far.elo, far.ehi, cur)], ["History 2.5\u201397.5%", moRange(far.e2lo, far.e2hi, cur)], ["History median", moMoney(far.emed, cur)],
+                 ["P(up), starts like this", bb.pUp != null ? n0(bb.pUp) + "% (quintile " + bb.quintile + ", " + bb.n + " starts, ~" + bb.neff + " independent)" : null],
+                 ["P(up), any start", bb.uncondPUp != null ? n0(bb.uncondPUp) + "%" : null],
+                 ["Horizon date", moDate(far.date) + (exp ? " (last session before the roll; contract expires " + moDate(inst.expiry) + ")" : "")]],
+          note: "Cone from the sigma above; history and base rates from ten years of " + (w.symbol || "the world price") + " daily closes (Yahoo Finance). Weekdays only: an exchange holiday inside the window lands the date a session later." }));
+    }
+
+    /* 6. The lean. */
+    var L = inst.lean, Rr = D.record || {};
+    var forTxt = (inst.evidence || []).filter(function (e) { return e.read !== 0; }).map(function (e) {
+      return esc(e.label) + " " + esc(e.value) + " (" + (e.read > 0 ? "for" : "against") + ")";
+    });
+    lines.push(moLine(L.label === "up" ? "up" : L.label === "down" ? "down" : "info",
+      "<b>The desk leans " + (L.label === "none" ? "neither way" : L.label) + "</b> (" + sgn(L.score, 1) + " of &plusmn;" + n1(L.max) + ", threshold &plusmn;" + n1(L.threshold) + ")" +
+      (forTxt.length ? ": " + forTxt.join("; ") : ": no row votes") + ". " +
+      (Rr.graded ? "Leans have been right " + n0(Rr.leanRate) + "% of the time (" + n0(Rr.leanHits) + " of " + n0(Rr.leanN) + ")."
+                 : "This is ungraded: " + n0(Rr.leanN || 0) + " of the " + n0(Rr.gradedAfter || 20) + " leans needed have resolved, so treat it as a tilt, not a forecast."),
+      { t: "The lean: " + inst.label, s: "weighted vote of the evidence table", big: "Lean " + (L.label === "none" ? "neither way" : L.label),
+        rows: (inst.evidence || []).map(function (e) { return [e.label, e.value + " \u00b7 " + (e.read > 0 ? "+" : e.read < 0 ? "\u2212" : "0") + " \u00d7 " + n1(e.weight)]; })
+          .concat([["Score", sgn(L.score, 1) + " of \u00b1" + n1(L.max)], ["Record", n0(Rr.leanHits || 0) + " right of " + n0(Rr.leanN || 0) + " resolved"]]),
+        note: "Each row votes +1, 0 or \u22121 times its weight; the sum against the threshold is the lean. Rules on the card at the foot of the page." }));
+
+    /* 7. Before expiry: the calendar. */
+    if (full && exp) {
+      var evs = moEventsBefore(D, inst.expiry, 6);
+      if (evs.length) {
+        lines.push(moLine(evs.some(function (e) { return e.severity === "high"; }) ? "warn" : "info",
+          "<b>Before expiry</b>: " + evs.map(function (e) { return esc(e.label) + " on " + moDay(e.date); }).join(", ") + ".",
+          { t: "Calendar to " + moDate(inst.expiry), s: evs.length + " item(s)", rows: evs.map(function (e) { return [moDate(e.date), e.label + " \u00b7 " + e.severity + (e.note ? " \u00b7 " + e.note : "")]; }),
+            note: "Derived releases follow their monthly convention; MCX expiries from the contract; the EIA report is every Wednesday. FOMC, OPEC+ and RBI dates are announced, not derivable, and appear only when entered in data/calendar.csv." }));
+      }
+    }
+    return '<div class="br-inst"><div class="br-hd">' + esc(inst.label) + " " + moLeanPill(L.label) + "</div>" + lines.join("") + "</div>";
+  }
+
+  function moBriefing(D) {
+    var L = D.instruments || [], ctx = D.context || {};
+    var by = function (k) { return moInst(k); };
+    var g = by("GOLD"), s = by("SILVER"), c = by("CRUDE"), wti = by("WTI"), br = by("BRENT");
+    var ups = L.filter(function (i) { return i.lean.label === "up"; }).map(function (i) { return i.label; });
+    var dns = L.filter(function (i) { return i.lean.label === "down"; }).map(function (i) { return i.label; });
+    var dx = ctx.dxy, fx = ctx.usdinr;
+    var summary = moLine("info",
+      "<b>In one line</b>: " +
+      (dns.length ? esc(dns.join(", ")) + " lean" + (dns.length > 1 ? "" : "s") + " down" : "") +
+      (dns.length && ups.length ? "; " : "") +
+      (ups.length ? esc(ups.join(", ")) + " lean" + (ups.length > 1 ? "" : "s") + " up" : "") +
+      (!dns.length && !ups.length ? "nothing leans either way" : "") + ". " +
+      (dx ? "The dollar is " + sgn(dx.chgPct, 1) + "% over 20 sessions (" + moOrd(dx.pct) + " percentile), " : "") +
+      (fx ? "the rupee " + n2(fx.last) + " (" + sgn(fx.chgPct, 1) + "%)" : "") +
+      (ctx.goldSilver ? "; gold buys " + n1(ctx.goldSilver.now) + " ounces of silver" : "") +
+      (ctx.brentWti ? "; Brent sits $" + n2(ctx.brentWti.now) + " over WTI" : "") + ".",
+      { t: "The desk in one line", s: "as of " + moDate(D.asOf),
+        rows: L.map(function (i) { return [i.label, moMoney(i.price.last, i.currency) + " \u00b7 " + moPctTxt(i.price.chgPct) + " \u00b7 lean " + i.lean.label + " (" + sgn(i.lean.score, 1) + ")"]; })
+          .concat(dx ? [["Dollar index", n2(dx.last) + " \u00b7 " + sgn(dx.chgPct, 2) + "% / 20 sessions \u00b7 " + moOrd(dx.pct) + " pct"]] : [])
+          .concat(fx ? [["USD/INR", n2(fx.last) + " \u00b7 " + sgn(fx.chgPct, 2) + "% / 20 sessions"]] : [])
+          .concat(ctx.goldSilver ? [["Gold/silver ratio", n1(ctx.goldSilver.now) + " \u00b7 " + moOrd(ctx.goldSilver.pct1y) + " pct of 1y"]] : [])
+          .concat(ctx.brentWti ? [["Brent\u2013WTI", "$" + n2(ctx.brentWti.now) + " \u00b7 " + moOrd(ctx.brentWti.pct1y) + " pct of 1y"]] : []),
+        note: "Leans from each instrument's evidence table; dollar index DX-Y.NYB and USD/INR INR=X from Yahoo Finance; ratio and spread on the world prices." });
+
+    return '<section class="card br"><div class="card-hd"><h2>Briefing</h2>' +
+      '<span class="sub">written from the data below &middot; click any line for its source</span>' +
+      '<div class="right"><span class="br-key"><i class="up"></i>positive <i class="down"></i>negative <i class="warn"></i>size of move / watch <i class="info"></i>context</span></div></div>' +
+      '<div class="br-body">' + summary +
+      [g, s, c].filter(Boolean).map(function (i) { return moBriefInstrument(D, i, true); }).join("") +
+      (wti || br ? '<div class="br-inst"><div class="br-hd">World crude</div>' +
+        [wti, br].filter(Boolean).map(function (i) {
+          var p = i.price, hm = (i.horizons || []).filter(function (h) { return h.key === "m1"; })[0] || {}, rt = (i.recent || {}).returns || {};
+          return moLine(i.lean.label === "up" ? "up" : i.lean.label === "down" ? "down" : "info",
+            "<b>" + esc(i.label) + "</b> " + moMoney(p.last, "USD") + " (" + moPctTxt(p.chgPct) + " on the day" + (rt.w1 ? ", " + moPctTxt(rt.w1.pct) + " on the week" : "") +
+            (rt.m1 ? ", " + moPctTxt(rt.m1.pct) + " on the month" : "") + "); one month out one sigma is " + moRange(hm.lo1, hm.hi1, "USD") + "; the desk leans " + (i.lean.label === "none" ? "neither way" : i.lean.label) + ".",
+            { t: i.label, s: moDate(p.asOf) + " settlement", big: moMoney(p.last, "USD"),
+              rows: [["Change", moPctTxt(p.chgPct)], ["Week", rt.w1 ? moPctTxt(rt.w1.pct) : null], ["Month", rt.m1 ? moPctTxt(rt.m1.pct) : null],
+                     ["One-month 1\u03c3", moRange(hm.lo1, hm.hi1, "USD")], ["One-month history 16\u201384%", moRange(hm.elo, hm.ehi, "USD")],
+                     ["Lean", i.lean.label + " (" + sgn(i.lean.score, 1) + ")"]],
+              note: "Source: " + p.world.symbol + " front-month daily bars, Yahoo Finance." });
+        }).join("") + "</div>" : "") +
+      "</div></section>";
+  }
+
   function viewMetOil(m) {
     var D = METOIL || {};
     if (!D.instruments || !D.instruments.length) {
@@ -5074,7 +5296,7 @@ table.ledger { min-width: 800px; }
       "and it is graded on the projection record before it is called a forecast.</p></div></section>";
     var order = ["GOLD", "SILVER", "CRUDE", "WTI", "BRENT"];
     var blocks = order.map(function (k) { var i = moInst(k); return i ? moInstBlock(i) : ""; }).join("");
-    return head + moTiles(D) + moContext(D) + blocks + moRecord(D) + moEvents(D) + moRules(D);
+    return head + moBriefing(D) + moTiles(D) + moContext(D) + blocks + moRecord(D) + moEvents(D) + moRules(D);
   }
 
   var RENDER = {
@@ -8467,6 +8689,8 @@ table.ledger { min-width: 800px; }
     "MET+OIL": "Metals and oil",
     "MET&#43;OIL": "Metals and oil",
     "What sits behind the prices": "Metals and oil",
+    "Briefing": "Metals and oil",
+    "World crude": "WTI",
     "Where it can go": "Projection cone",
     "Next week": "Horizon",
     "Two weeks": "Horizon",
