@@ -1087,6 +1087,10 @@ table.gap { min-width: 560px; }
 .clickable-idx { cursor: pointer; }
 .si { cursor: pointer; }
 .si:hover .si-v { text-decoration: underline; text-underline-offset: 3px; }
+.si-u { font-style: normal; font-size: 9px; color: var(--ink-3); margin-left: 4px; }
+/* Nothing to open: a commodity's history is not in charts.json. */
+.si[data-nochart] { cursor: default; }
+.si[data-nochart]:hover .si-v { text-decoration: none; }
 
 /* ---------- global tape -> India read ----------
    Section 0 of the Direction tab. Laid out as gauge-beside-table rather
@@ -4005,6 +4009,10 @@ table.ledger { min-width: 800px; }
       return "<tr><td class=\"lft\" style=\"color:var(--ink)\">" + esc(it.label) + "</td>" +
         '<td class="lft" style="color:var(--ink-3)">' + esc(it.symbol) + "</td>" +
         "<td>" + n2(it.last) + "</td>" +
+        "<td>" + (it.inr != null
+          ? "\u20b9" + (it.inr >= 1000 ? n0(it.inr) : n2(it.inr)) +
+            ' <span style="color:var(--ink-3);font-size:10px">' + esc(it.inrUnit || "") + "</span>"
+          : "&mdash;") + "</td>" +
         '<td class="' + cls(it.chg) + '">' + sgn(it.chg, 2) + "</td>" +
         '<td class="' + cls(it.chgPct) + '">' + sgn(it.chgPct, 2) + "%</td>" +
         "<td>" + n2(it.open) + "</td><td>" + n2(it.high) + "</td><td>" + n2(it.low) + "</td>" +
@@ -4017,10 +4025,13 @@ table.ledger { min-width: 800px; }
 
     return '<section class="card"><div class="card-hd"><h2>' + esc(L.title || "Commodities &amp; FX") + "</h2>" +
       '<span class="sub">international benchmarks</span></div>' +
-      '<div class="caution"><p><b>Not MCX, and not rupees.</b> ' + esc(L.note || "") + "</p></div>" +
+      '<div class="caution"><p><b>Not MCX.</b> ' + esc(L.note || "") +
+      " The rupee column converts the international price at the spot rate: MCX gold " +
+      "carries import duty and a local premium and trades several per cent above it." +
+      "</p></div>" +
       '<div class="tablewrap"><table class="dt"><thead><tr>' +
       '<th class="lft">Instrument</th><th class="lft">Symbol</th><th>Last</th>' +
-      "<th>Chg</th><th>Chg %</th><th>Open</th><th>High</th><th>Low</th>" +
+      "<th>In rupees</th><th>Chg</th><th>Chg %</th><th>Open</th><th>High</th><th>Low</th>" +
       '<th class="lft">Unit</th><th class="lft">Channel into India</th>' +
       "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
   }
@@ -9687,27 +9698,47 @@ table.ledger { min-width: 800px; }
          runs ahead of the rest. Flag them rather than let the mismatch look
          like a bug. */
       var offHours = s.source !== "allIndices";
-      var dirClass = isVix ? cls(-(s.chgPct || 0)) : cls(s.chgPct);
-      var arrow = (s.chgPct || 0) >= 0 ? "&#9650;" : "&#9660;";
+
+      /* Gold and crude are shown in the unit India trades them in: a
+         dollar-per-ounce number is one conversion away from every decision
+         taken against it. The percentage then carries the rupee's move as
+         well as the commodity's, which is why USD/INR sits on the same
+         strip -- it shows how much of the move is which. */
+      var inRupees = s.inr != null;
+      var shownPct = inRupees ? s.inrChgPct : s.chgPct;
+      var dirClass = isVix ? cls(-(shownPct || 0)) : cls(shownPct);
+      var arrow = (shownPct || 0) >= 0 ? "&#9650;" : "&#9660;";
+      var money = function (v) {
+        return "\u20b9" + (Math.abs(v) >= 1000 ? n0(v) : n2(v));
+      };
 
       /* Only rows with a stored series are clickable. Commodities ride on
          the strip but their history lives in the commodities table, not in
          charts.json, so a chart link would open an empty viewer. */
       var charted = !!(CHARTS && CHARTS[s.name]);
 
-      var title = s.label + "  " + n2(s.last) + (s.unit ? " " + s.unit : "") +
+      var title = s.label + "  " +
+        (inRupees ? money(s.inr) + " " + (s.inrUnit || "") + "\n" +
+                    n2(s.last) + " " + (s.unit || "") + ", settlement basis"
+                  : n2(s.last) + (s.unit ? " " + s.unit : "")) +
         (s.open != null ? "\nO " + n2(s.open) + "  H " + n2(s.high) +
                           "  L " + n2(s.low) + "  PC " + n2(s.prevClose) : "") +
-        (s.ts ? "\nas of " + s.ts : "");
+        (s.ts ? "\nsettled " + s.ts : "") +
+        (s.live != null ? "\nlast trade " + n2(s.live) +
+                          (s.liveTs ? " at " + s.liveTs : "") : "") +
+        (inRupees ? "\nInternational price at the spot rate, not MCX." : "");
 
       return '<div class="si' + (offHours ? " si-alt" : "") +
         (charted ? '" data-chart="' + esc(s.name) : '" data-nochart="1') +
         '" title="' + esc(title) + (charted ? " &mdash; click for chart" : "") + "\">" +
         '<div class="si-k">' + (offHours ? '<span class="si-live"></span>' : "") +
-          esc(s.label) + "</div>" +
-        '<div class="si-v">' + n2(s.last) + "</div>" +
-        '<div class="si-c ' + dirClass + '">' + arrow + " " + sgn(s.chg, 2) +
-          "  " + sgn(s.chgPct, 2) + "%</div>" +
+          esc(s.label) +
+          (inRupees ? '<i class="si-u">' + esc(s.inrUnit || "") + "</i>" : "") + "</div>" +
+        '<div class="si-v">' + (inRupees ? money(s.inr) : n2(s.last)) + "</div>" +
+        '<div class="si-c ' + dirClass + '">' + arrow + " " +
+          (inRupees ? sgn(shownPct, 2) + "%"
+                    : sgn(s.chg, 2) + "  " + sgn(s.chgPct, 2) + "%") +
+        "</div>" +
       "</div>";
     })(s);
   }
