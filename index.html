@@ -7608,6 +7608,10 @@ table.ledger { min-width: 800px; }
     "Global bias": "Global tape &rarr; India read",
     "Brent": "Macro driver",
     "Crude WTI": "Macro driver",
+    /* The strip's own labels. GOLD and BRENT already resolve through the
+       entries above, which are matched case-insensitively; these two do not. */
+    "Silver": "Macro driver",
+    "WTI": "Macro driver",
     "Dollar index": "Macro driver",
     "USD/INR": "Macro driver",
     "US 10-year": "Macro driver",
@@ -9686,13 +9690,19 @@ table.ledger { min-width: 800px; }
       var dirClass = isVix ? cls(-(s.chgPct || 0)) : cls(s.chgPct);
       var arrow = (s.chgPct || 0) >= 0 ? "&#9650;" : "&#9660;";
 
-      var title = s.label + "  " + n2(s.last) +
+      /* Only rows with a stored series are clickable. Commodities ride on
+         the strip but their history lives in the commodities table, not in
+         charts.json, so a chart link would open an empty viewer. */
+      var charted = !!(CHARTS && CHARTS[s.name]);
+
+      var title = s.label + "  " + n2(s.last) + (s.unit ? " " + s.unit : "") +
         (s.open != null ? "\nO " + n2(s.open) + "  H " + n2(s.high) +
                           "  L " + n2(s.low) + "  PC " + n2(s.prevClose) : "") +
         (s.ts ? "\nas of " + s.ts : "");
 
       return '<div class="si' + (offHours ? " si-alt" : "") +
-        '" data-chart="' + esc(s.name) + '" title="' + esc(title) + " &mdash; click for chart\">" +
+        (charted ? '" data-chart="' + esc(s.name) : '" data-nochart="1') +
+        '" title="' + esc(title) + (charted ? " &mdash; click for chart" : "") + "\">" +
         '<div class="si-k">' + (offHours ? '<span class="si-live"></span>' : "") +
           esc(s.label) + "</div>" +
         '<div class="si-v">' + n2(s.last) + "</div>" +
@@ -10223,20 +10233,26 @@ table.ledger { min-width: 800px; }
   }
 
   function preferNewerOffHours(strip) {
-    var eod = {};
-    STRIP_EOD.forEach(function (r) {
-      if (r.source !== "allIndices") eod[r.name] = r;
+    if (!STRIP_EOD.length) return strip;
+
+    /* Walk the exported strip, not the live one, so the order the export
+       chose survives the merge. The live feed carries only NSE indices, so
+       merging the other way appended the commodities to the end of the strip
+       the moment the poller started. */
+    var liveBy = {};
+    strip.forEach(function (r) { liveBy[r.name] = r; });
+
+    var out = [], used = {};
+    STRIP_EOD.forEach(function (e) {
+      used[e.name] = true;
+      var l = liveBy[e.name];
+      if (!l) { out.push(e); return; }
+      if (l.source === "allIndices") { out.push(l); return; }
+      /* GIFT Nifty and NIFTY50 USD exist in both files; each carries its own
+         NSE timestamp, and either copy can be the newer one. */
+      out.push(parseNseStamp(e.ts) > parseNseStamp(l.ts) ? e : l);
     });
-    var seen = {};
-    var out = strip.map(function (r) {
-      if (r.source === "allIndices") return r;
-      seen[r.name] = true;
-      var e = eod[r.name];
-      return (e && parseNseStamp(e.ts) > parseNseStamp(r.ts)) ? e : r;
-    });
-    Object.keys(eod).forEach(function (n) {
-      if (!seen[n]) out.push(eod[n]);
-    });
+    strip.forEach(function (r) { if (!used[r.name]) out.push(r); });
     return out;
   }
 
