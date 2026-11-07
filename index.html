@@ -2024,7 +2024,9 @@ table.ledger { min-width: 800px; }
       '<div class="verdict-call">' + call + "</div>" +
       '<div class="conf"><div class="conf-track"><div class="conf-fill" style="width:' + conf + '%"></div></div>' +
       '<div class="conf-val">' + conf + "% confidence</div></div>" +
-      '<div class="kpi-m">Expiry ' + esc(c.expiry) + " \u00b7 4 sessions left</div></div>" +
+      '<div class="kpi-m">Expiry ' + esc(c.expiry) +
+        (m.dte != null ? " \u00b7 " + m.dte + (m.dte === 1 ? " day" : " days") + " left" : "") +
+        "</div></div>" +
       '<div class="drivers">' + d.map(function (x) {
         return '<div class="driver"><div class="ico ' + x[1] + '">' + x[0] + '</div>' +
           '<div class="k">' + x[2] + '</div><div class="v">' + x[3] + "</div></div>";
@@ -2245,7 +2247,7 @@ table.ledger { min-width: 800px; }
   }
 
   function intlPrice(item, value) {
-    if (value == null || !isFinite(value)) return "—";
+    if (value == null || !isFinite(value)) return "\u2014";
     if (item.kind === "rate") return n3(value) + "%";
     if (item.kind === "crypto") return item.symbol === "BTC-USD" ? "$" + n0(value) : "$" + n2(value);
     if (item.symbol === "EURUSD=X") return nf(value, 4);
@@ -2254,12 +2256,12 @@ table.ledger { min-width: 800px; }
 
   function intlMove(item, horizon) {
     var move = (item.moves || {})[horizon];
-    if (!move) return "—";
+    if (!move) return "\u2014";
     if (item.kind === "rate") {
-      return move.basisPoints == null ? "—" :
+      return move.basisPoints == null ? "\u2014" :
         '<span class="' + cls(move.basisPoints) + '">' + sgn(move.basisPoints, 1) + " bp</span>";
     }
-    return move.percent == null ? "—" :
+    return move.percent == null ? "\u2014" :
       '<span class="' + cls(move.percent) + '">' + sgn(move.percent, 2) + "%</span>";
   }
 
@@ -2273,14 +2275,14 @@ table.ledger { min-width: 800px; }
     item = item || { symbol: symbol, kind: "fx", unit: quote.unit, moves: {} };
     var asOf = item.asOf || (quote && (quote.liveTs || quote.tradeDate)) || "date unavailable";
     var daily = intlMove(item, "1D");
-    if (daily === "—" && quote && quote.chgPct != null && item.kind !== "rate") {
+    if (daily === "\u2014" && quote && quote.chgPct != null && item.kind !== "rate") {
       daily = '<span class="' + cls(quote.chgPct) + '">' + sgn(quote.chgPct, 2) + "%</span>";
     }
-    if (item.kind === "rate" && daily === "—" && quote && quote.chg != null) {
+    if (item.kind === "rate" && daily === "\u2014" && quote && quote.chg != null) {
       daily = '<span class="' + cls(quote.chg) + '">' + sgn(quote.chg * 100, 1) + " bp</span>";
     }
     return marketAsset(esc(label), intlPrice(item, last),
-      (daily === "—" ? "Daily move unavailable" : daily) + " &middot; " +
+      (daily === "\u2014" ? "Daily move unavailable" : daily) + " &middot; " +
       esc(item.unit || quote && quote.unit || "") + " &middot; " + esc(asOf) +
       " &middot; Yahoo Finance daily observation", false);
   }
@@ -2290,9 +2292,9 @@ table.ledger { min-width: 800px; }
       var item = intlItem(entry[0]) || { symbol: entry[0], kind: "fx", moves: {} };
       var quote = watchItem(entry[0]);
       var last = item.last != null ? item.last : quote && quote.last;
-      var source = item.asOf || quote && quote.tradeDate || "—";
+      var source = item.asOf || quote && quote.tradeDate || "\u2014";
       return '<tr><td class="lft">' + esc(entry[1]) + "</td>" +
-        "<td>" + (last == null ? "—" : intlPrice(item, last)) + "</td>" +
+        "<td>" + (last == null ? "\u2014" : intlPrice(item, last)) + "</td>" +
         "<td>" + intlMove(item, "1D") + "</td><td>" + intlMove(item, "1W") + "</td>" +
         "<td>" + intlMove(item, "1M") + "</td><td>" + intlMove(item, "6M") + "</td>" +
         "<td>" + intlMove(item, "1Y") + "</td>" +
@@ -2317,11 +2319,11 @@ table.ledger { min-width: 800px; }
     var rows = tenors.map(function (tenor) {
       var item = internationalRate("United States", tenor);
       return "<tr><td class=\"lft\">" + tenor + "</td>" +
-        "<td>" + (item ? n3(item.yieldPct) + "%" : "—") + "</td>" +
-        '<td class="lft">' + esc(item && item.asOf || "—") + "</td>" +
+        "<td>" + (item ? n3(item.yieldPct) + "%" : "\u2014") + "</td>" +
+        '<td class="lft">' + esc(item && item.asOf || "\u2014") + "</td>" +
         ["1D", "1W", "1M", "6M", "1Y"].map(function (horizon) {
           var change = item && item.changesBp && item.changesBp[horizon];
-          return "<td>" + (change == null ? "—" :
+          return "<td>" + (change == null ? "\u2014" :
             '<span class="' + cls(change) + '">' + sgn(change, 1) + " bp</span>") + "</td>";
         }).join("") + "</tr>";
     }).join("");
@@ -2346,14 +2348,14 @@ table.ledger { min-width: 800px; }
         "</tbody></table></div>";
     }
     var rows = positions.map(function (p) {
-      var net = p.net == null ? "—" : (p.net > 0 ? "+" : "") + n0(p.net);
-      var change = p.netChange == null ? "—" :
+      var net = p.net == null ? "\u2014" : (p.net > 0 ? "+" : "") + n0(p.net);
+      var change = p.netChange == null ? "\u2014" :
         '<span class="' + cls(p.netChange) + '">' +
         (p.netChange > 0 ? "+" : "") + n0(p.netChange) + "</span>";
-      var netOi = p.netPercentOfOi == null ? "—" :
+      var netOi = p.netPercentOfOi == null ? "\u2014" :
         sgn(p.netPercentOfOi, 1) + "%";
       return '<tr><td class="lft">' + esc(p.market) + "</td>" +
-        '<td class="lft">' + esc(p.category) + " · " + esc(p.reportType) + "</td>" +
+        '<td class="lft">' + esc(p.category) + " \u00b7 " + esc(p.reportType) + "</td>" +
         "<td>" + net + "</td><td>" + change + "</td>" +
         "<td>" + n0(p.openInterest) + "</td><td>" + netOi + "</td>" +
         '<td class="lft">' + esc(p.asOf) + "</td></tr>";
@@ -2371,10 +2373,10 @@ table.ledger { min-width: 800px; }
       if (!inst) return null;
       var oi = inst.price && inst.price.oi;
       var evidence = moEv(inst, "buildup");
-      var signal = oi == null ? "Unavailable — no open-interest feed" :
+      var signal = oi == null ? "Unavailable \u2014 no open-interest feed" :
         evidence ? evidence.value : "OI present; signal not classified";
       return '<tr><td class="lft">' + esc(inst.label) + "</td>" +
-        "<td>" + (oi == null ? "—" : n0(oi)) + "</td>" +
+        "<td>" + (oi == null ? "\u2014" : n0(oi)) + "</td>" +
         '<td class="lft">' + esc(signal) + "</td>" +
         '<td class="lft">' + (oi == null ? "No build-up/covering label assigned" :
           "Price/OI convention only; not evidence of trader intent") + "</td></tr>";
@@ -2387,7 +2389,7 @@ table.ledger { min-width: 800px; }
       '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Instrument</th>' +
       "<th>Open interest</th><th class=\"lft\">Signal</th><th class=\"lft\">Interpretation</th>" +
       "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
-      '<div class="caution"><p><b>Evidence rule.</b> Price rising with OI rising is commonly called long build-up; falling price with rising OI, short build-up; rising price with falling OI, short covering; falling price with falling OI, long liquidation. These are mechanical price/OI labels, not proof of who traded or why. CFTC reports are weekly and delayed; they cannot establish an individual trader’s hedging intent.</p></div></section>';
+      '<div class="caution"><p><b>Evidence rule.</b> Price rising with OI rising is commonly called long build-up; falling price with rising OI, short build-up; rising price with falling OI, short covering; falling price with falling OI, long liquidation. These are mechanical price/OI labels, not proof of who traded or why. CFTC reports are weekly and delayed; they cannot establish an individual trader\u2019s hedging intent.</p></div></section>';
   }
 
   function marketInstrumentDetails(keys) {
@@ -2406,7 +2408,7 @@ table.ledger { min-width: 800px; }
     var niftyPct = m.cfg.prevClose ? (m.cfg.spot - m.cfg.prevClose) / m.cfg.prevClose * 100 : null;
     return pageIntro("Market overview",
       "A balanced view of India equities, metals, energy and international macro drivers. Each quote keeps its own source date; unavailable feeds are called out instead of estimated.",
-      "NIFTY settlement " + esc(m.tradeDate || "—")) +
+      "NIFTY settlement " + esc(m.tradeDate || "\u2014")) +
       '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and several metal, energy, FX and US-rate benchmarks are in the saved snapshot. Exact non-US sovereign curves, PMI releases, licensed news, broader spot-market positioning and Murban crude remain unavailable unless a source is explicitly shown below.</div>' +
       '<div class="market-grid">' +
       marketGroup("India Index", "NIFTY 50", "india-index", [
@@ -2414,18 +2416,18 @@ table.ledger { min-width: 800px; }
           '<span class="' + cls(niftyPct) + '">' + sgn(niftyPct, 2) + "%</span> &middot; " +
             sgn(m.cfg.spot - m.cfg.prevClose, 2) + " pts &middot; " + esc(m.tradeDate || ""), false)
       ], "India benchmark and options analytics") +
-      marketGroup("Metal Index", "GOLD · SILVER · COPPER · ALUMINIUM", "metal-index", [
+      marketGroup("Metal Index", "GOLD \u00b7 SILVER \u00b7 COPPER \u00b7 ALUMINIUM", "metal-index", [
         assetFromInst("GOLD", "Gold"),
         assetFromInst("SILVER", "Silver"),
         internationalAsset("HG=F", "Copper"),
         internationalAsset("ALI=F", "Aluminium")
       ], "Precious and industrial metals") +
-      marketGroup("Energy Index", "BRENT · MURBAN · WTI", "energy-index", [
+      marketGroup("Energy Index", "BRENT \u00b7 MURBAN \u00b7 WTI", "energy-index", [
         assetFromInst("BRENT", "Brent crude"),
         marketAsset("Murban crude", "Quote not connected", "Benchmark series not yet configured", true),
         assetFromInst("WTI", "WTI crude")
       ], "Global crude benchmarks") +
-      marketGroup("International", "FX · RATES · PMI · DIGITAL ASSETS", "international", [
+      marketGroup("International", "FX \u00b7 RATES \u00b7 PMI \u00b7 DIGITAL ASSETS", "international", [
         internationalAsset("INR=X", "USD / INR"),
         internationalAsset("DX-Y.NYB", "US dollar index"),
         internationalAsset("EURUSD=X", "EUR / USD"),
@@ -2436,9 +2438,9 @@ table.ledger { min-width: 800px; }
   }
 
   function viewIndiaIndex(m) {
-    return pageIntro("India Index · NIFTY 50",
+    return pageIntro("India Index \u00b7 NIFTY 50",
       "NIFTY 50 options positioning, volatility, breadth and history. Bank Nifty is not part of this workspace.",
-      "NSE snapshot · " + esc(m.tradeDate || "—")) + viewOverview(m);
+      "NSE snapshot \u00b7 " + esc(m.tradeDate || "\u2014")) + viewOverview(m);
   }
 
   function driverCard(title, supply, demand, macro) {
@@ -2450,21 +2452,21 @@ table.ledger { min-width: 800px; }
   }
 
   function viewMetalIndex() {
-    var date = METOIL.asOf || "—";
+    var date = METOIL.asOf || "\u2014";
     return pageIntro("Metal Index",
       "Gold, silver, copper and aluminium with current benchmark levels, multi-horizon moves, evidence and known feed limits. Benchmark closes and MCX contracts are distinct instruments.",
-      "Latest stored settlement · " + esc(date)) +
-      marketGroup("Metals", "GOLD · SILVER · COPPER · ALUMINIUM", "metal-index", [
+      "Latest stored settlement \u00b7 " + esc(date)) +
+      marketGroup("Metals", "GOLD \u00b7 SILVER \u00b7 COPPER \u00b7 ALUMINIUM", "metal-index", [
         assetFromInst("GOLD", "Gold"),
         assetFromInst("SILVER", "Silver"),
-        internationalAsset("HG=F", "Copper · global"),
-        internationalAsset("ALI=F", "Aluminium · global")
+        internationalAsset("HG=F", "Copper \u00b7 global"),
+        internationalAsset("ALI=F", "Aluminium \u00b7 global")
       ], "Gold and silver include MCX settlement analytics; copper and aluminium are global Yahoo benchmarks, not MCX contracts.") +
       '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
-      internationalMovesTable([["GC=F", "Gold · USD/oz"], ["SI=F", "Silver · USD/oz"],
-        ["HG=F", "Copper · USD/lb"], ["ALI=F", "Aluminium · USD/t"]]) + "</section>" +
+      internationalMovesTable([["GC=F", "Gold \u00b7 USD/oz"], ["SI=F", "Silver \u00b7 USD/oz"],
+        ["HG=F", "Copper \u00b7 USD/lb"], ["ALI=F", "Aluminium \u00b7 USD/t"]]) + "</section>" +
       marketPositionEvidence(["GOLD", "SILVER"]) +
-      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC gold, silver and copper reports · contracts, not intent</span></div>' +
+      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC gold, silver and copper reports \u00b7 contracts, not intent</span></div>' +
       internationalPositionsTable(["gold", "silver", "copper"]) +
       '<div class="caution"><p>CFTC positions are weekly Tuesday snapshots, usually published Friday. These futures categories are not the same as MCX open interest or spot-market holdings; net changes do not prove hedging or trader intent.</p></div></section>' +
       marketInstrumentDetails(["GOLD", "SILVER"]) +
@@ -2474,12 +2476,12 @@ table.ledger { min-width: 800px; }
         "US real yields, the dollar, USD/INR, rates, risk appetite and local import duties/premiums. Keep INR conversion visible beside USD benchmarks.") +
       '<section class="card"><div class="card-hd"><h2>Research notes</h2><span class="sub">dated source summaries, not live headlines</span></div>' +
       '<div class="research-feed">' +
-      '<article class="research-item"><div class="research-source">IEA · solar PV supply chains</div><div><h3>Solar demand is a structural silver driver, but the scenario matters</h3>' +
-      '<p>The IEA’s net-zero pathway estimated solar-PV silver demand in 2030 could exceed 30% of total 2020 world production, versus about 10% at the report’s then-current baseline. This is a scenario, not a near-term forecast; efficiency gains and thrifting also matter. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Read IEA context</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">Silver Institute · 2025 survey</div><div><h3>Record industrial use did not mean total demand rose</h3>' +
+      '<article class="research-item"><div class="research-source">IEA \u00b7 solar PV supply chains</div><div><h3>Solar demand is a structural silver driver, but the scenario matters</h3>' +
+      '<p>The IEA\u2019s net-zero pathway estimated solar-PV silver demand in 2030 could exceed 30% of total 2020 world production, versus about 10% at the report\u2019s then-current baseline. This is a scenario, not a near-term forecast; efficiency gains and thrifting also matter. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Read IEA context</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Silver Institute \u00b7 2025 survey</div><div><h3>Record industrial use did not mean total demand rose</h3>' +
       '<p>Its 2025 survey reported 2024 total silver demand down 3% to 1.16 billion ounces, while industrial demand reached a record, led by electronics/electrical uses including PV, autos and grid infrastructure. PV silver loadings fell sharply as manufacturers thrifted material. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Read supply and demand data</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">World Bank · 3 Nov 2026</div><div><h3>Commodity indices diverged in October</h3>' +
-      '<p>The World Bank’s November Pink Sheet said its energy index rose 7.1% in October, with Brent up 7%; metals fell 3.0% and precious metals fell 6.2%. These are monthly index changes, not today’s prices. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">View Pink Sheet updates</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">World Bank \u00b7 3 Nov 2026</div><div><h3>Commodity indices diverged in October</h3>' +
+      '<p>The World Bank\u2019s November Pink Sheet said its energy index rose 7.1% in October, with Brent up 7%; metals fell 3.0% and precious metals fell 6.2%. These are monthly index changes, not today\u2019s prices. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">View Pink Sheet updates</a>.</p></div></article>' +
       "</div></section>" +
       '<section class="card"><div class="card-hd"><h2>Source desk</h2></div><div class="source-list">' +
       sourceItem("IEA", "https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary", "Solar deployment, mineral intensity and supply-chain scenarios.") +
@@ -2491,37 +2493,37 @@ table.ledger { min-width: 800px; }
 
   function sourceItem(name, url, description) {
     return '<div class="source-item"><a href="' + url + '" target="_blank" rel="noopener">' + name +
-      ' ↗</a><p>' + description + "</p></div>";
+      ' \u2197</a><p>' + description + "</p></div>";
   }
 
   function viewEnergyIndex() {
-    var date = METOIL.asOf || "—";
+    var date = METOIL.asOf || "\u2014";
     return pageIntro("Energy Index",
       "Brent, Murban and WTI are distinct crude benchmarks. Compare daily through annual moves, physical drivers and verified positioning evidence; do not infer a cause from price alone.",
-      "Latest stored benchmark settlement · " + esc(date)) +
-      marketGroup("Crude benchmarks", "BRENT · MURBAN · WTI", "energy-index", [
+      "Latest stored benchmark settlement \u00b7 " + esc(date)) +
+      marketGroup("Crude benchmarks", "BRENT \u00b7 MURBAN \u00b7 WTI", "energy-index", [
         assetFromInst("BRENT", "Brent crude"),
         marketAsset("Murban crude", "Quote not connected", "Benchmark series not yet configured", true),
         assetFromInst("WTI", "WTI crude")
       ], "Brent and WTI have stored benchmarks; no Murban quote or physical differential is connected.") +
       '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
-      internationalMovesTable([["BZ=F", "Brent · USD/bbl"], ["CL=F", "WTI · USD/bbl"]]) + "</section>" +
+      internationalMovesTable([["BZ=F", "Brent \u00b7 USD/bbl"], ["CL=F", "WTI \u00b7 USD/bbl"]]) + "</section>" +
       marketPositionEvidence(["CRUDE", "BRENT", "WTI"]) +
-      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC crude reports · contracts, not intent</span></div>' +
+      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC crude reports \u00b7 contracts, not intent</span></div>' +
       internationalPositionsTable(["wti", "brent"]) +
       '<div class="caution"><p>CFTC positions are weekly Tuesday snapshots, usually published Friday. Named WTI financial and Brent last-day futures are specific contracts, not Murban or a complete view of physical-market hedging; net changes do not prove trader intent.</p></div></section>' +
       marketInstrumentDetails(["CRUDE", "BRENT", "WTI"]) +
       driverCard("Crude market drivers",
         "OPEC+ supply policy, producer outages, spare capacity, sanctions, exports, refinery runs and commercial inventories.",
         "Transport and aviation, petrochemicals, industrial activity and seasonal demand; China/India import demand is especially relevant.",
-        "US dollar, rates, freight, geopolitics and the Brent–WTI spread. Show inventory releases with release date and source.") +
+        "US dollar, rates, freight, geopolitics and the Brent\u2013WTI spread. Show inventory releases with release date and source.") +
       '<section class="card"><div class="card-hd"><h2>Source desk</h2><span class="sub">official data first; research and news alongside</span></div><div class="source-list">' +
-      sourceItem("US EIA · Weekly Petroleum Status Report", "https://www.eia.gov/petroleum/supply/weekly/", "US crude stocks, production, imports, refinery activity and petroleum products.") +
-      sourceItem("IEA · Oil Market Report", "https://www.iea.org/reports/oil-market-report", "Global supply/demand balances and monthly market analysis.") +
-      sourceItem("OPEC · Monthly Oil Market Report", "https://www.opec.org/opec_web/en/publications/338.htm", "Producer outlook, demand and supply estimates.") +
-      sourceItem("Reuters · Commodities", "https://www.reuters.com/markets/commodities/", "Fast market reporting; access and licensing may apply.") +
-      sourceItem("WSJ · Commodities", "https://www.wsj.com/market-data/commodities", "Market prices and reporting; data is delayed and access may apply.") +
-      sourceItem("J.P. Morgan · Global Research", "https://www.jpmorgan.com/insights/global-research/commodities", "Institutional commodities outlook; research may require client access.") +
+      sourceItem("US EIA \u00b7 Weekly Petroleum Status Report", "https://www.eia.gov/petroleum/supply/weekly/", "US crude stocks, production, imports, refinery activity and petroleum products.") +
+      sourceItem("IEA \u00b7 Oil Market Report", "https://www.iea.org/reports/oil-market-report", "Global supply/demand balances and monthly market analysis.") +
+      sourceItem("OPEC \u00b7 Monthly Oil Market Report", "https://www.opec.org/opec_web/en/publications/338.htm", "Producer outlook, demand and supply estimates.") +
+      sourceItem("Reuters \u00b7 Commodities", "https://www.reuters.com/markets/commodities/", "Fast market reporting; access and licensing may apply.") +
+      sourceItem("WSJ \u00b7 Commodities", "https://www.wsj.com/market-data/commodities", "Market prices and reporting; data is delayed and access may apply.") +
+      sourceItem("J.P. Morgan \u00b7 Global Research", "https://www.jpmorgan.com/insights/global-research/commodities", "Institutional commodities outlook; research may require client access.") +
       "</div></section>";
   }
 
@@ -2533,7 +2535,7 @@ table.ledger { min-width: 800px; }
         var item = internationalRate(region, tenor);
         var value = item
           ? n3(item.yieldPct) + "%" + '<div class="kpi-m">' +
-            esc(item.asOf || "") + " · " + esc(item.source || "official source") + "</div>"
+            esc(item.asOf || "") + " \u00b7 " + esc(item.source || "official source") + "</div>"
           : '<span class="source-unavailable">Not connected</span>';
         return "<td>" + value + "</td>";
       }).join("");
@@ -2555,45 +2557,45 @@ table.ledger { min-width: 800px; }
         ["^IRX", "US 13-week bill yield"], ["^TNX", "US 10-year yield index"],
         ["^TYX", "US 30-year yield index"]]) + "</section>" +
       '<section class="card"><div class="card-hd"><h2>Sovereign yield curve</h2>' +
-      '<span class="sub">Requested benchmark maturities · yield levels, not bond prices</span></div>' +
+      '<span class="sub">Requested benchmark maturities \u00b7 yield levels, not bond prices</span></div>' +
       '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Market</th>' +
       tenors.map(function (t) { return "<th>" + t + "</th>"; }).join("") +
       "</tr></thead><tbody>" + rateRows + "</tbody></table></div>" +
-      '<div class="mo-sub">United States · official par-yield changes</div>' +
+      '<div class="mo-sub">United States \u00b7 official par-yield changes</div>' +
       internationalYieldMovesTable() +
       '<div class="caution"><p><b>Coverage limit.</b> US tenors use the U.S. Treasury daily par-yield curve and show its observation date. India, euro-area, Japan and China curves remain unconnected; blank cells do not imply zero movement.</p></div></section>' +
       '<section class="card"><div class="card-hd"><h2>Purchasing Managers\u2019 Index</h2>' +
-      '<span class="sub">manufacturing and services · latest released value/date required</span></div>' +
+      '<span class="sub">manufacturing and services \u00b7 latest released value/date required</span></div>' +
       '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Region</th>' +
       "<th>Latest PMI</th><th class=\"lft\">Release / source status</th></tr></thead><tbody>" +
       pmiRows + "</tbody></table></div></section>" +
       '<section class="card"><div class="card-hd"><h2>Positioning, hedging &amp; build-up</h2>' +
-      '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports · contracts, not intent</span></div>' +
+      '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports \u00b7 contracts, not intent</span></div>' +
       internationalPositionsTable() +
       '<div class="caution"><p><b>Coverage and interpretation.</b> CFTC reports are weekly Tuesday snapshots, usually published Friday. Weekly net changes are contract-count changes in the named trader category, not proof of hedging, covering or a directional view. The contracts shown cover selected CME/NYMEX markets; they are not spot USD/INR, USD/CNY or exchange-wide crypto positions. Missing rows mean no selected report observation is available.</p></div></section>' +
-      '<section class="card"><div class="card-hd"><h2>Cross-asset research notes</h2><span class="sub">curated references · item dates shown</span></div>' +
+      '<section class="card"><div class="card-hd"><h2>Cross-asset research notes</h2><span class="sub">curated references \u00b7 item dates shown</span></div>' +
       '<div class="research-feed">' +
-      '<article class="research-item"><div class="research-source">World Bank · 3 Nov 2026</div><div><h3>Energy strengthened while metals weakened in October</h3>' +
-      '<p>Monthly commodity-index context: energy +7.1%, Brent +7%, metals −3.0%, precious metals −6.2%. Useful backdrop, but not a substitute for daily benchmark quotes. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">IEA · solar PV supply chains</div><div><h3>Solar is a long-run silver-demand catalyst; material intensity is part of the balance</h3>' +
-      '<p>The IEA’s net-zero scenario highlighted potentially substantial solar-PV silver demand by 2030, while also documenting efficiency, concentration and trade risks in the supply chain. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">Silver Institute · 2025 survey</div><div><h3>Industrial demand can rise while total demand falls</h3>' +
+      '<article class="research-item"><div class="research-source">World Bank \u00b7 3 Nov 2026</div><div><h3>Energy strengthened while metals weakened in October</h3>' +
+      '<p>Monthly commodity-index context: energy +7.1%, Brent +7%, metals \u22123.0%, precious metals \u22126.2%. Useful backdrop, but not a substitute for daily benchmark quotes. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">IEA \u00b7 solar PV supply chains</div><div><h3>Solar is a long-run silver-demand catalyst; material intensity is part of the balance</h3>' +
+      '<p>The IEA\u2019s net-zero scenario highlighted potentially substantial solar-PV silver demand by 2030, while also documenting efficiency, concentration and trade risks in the supply chain. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Silver Institute \u00b7 2025 survey</div><div><h3>Industrial demand can rise while total demand falls</h3>' +
       '<p>Its 2024 summary reported record industrial demand but a 3% decline in total silver demand, with PV thrifting reducing silver loadings. Distinguish end-use growth from ounces demanded per panel. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
       '<article class="research-item"><div class="research-source">Market attribution rule</div><div><h3>Moves without a verified catalyst remain unattributed</h3>' +
       '<p>This snapshot does not contain a licensed real-time newswire or a complete release calendar. Check primary releases and their timestamps before attributing a yield, FX or commodity move; no move does not prove that no news or positioning change occurred.</p></div></article>' +
       "</div></section>" +
       '<section class="card"><div class="card-hd"><h2>Credible source network</h2><span class="sub">primary data, analysis and news</span></div><div class="source-list">' +
-      sourceItem("US Treasury · daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields; source required for exact curve tenors.") +
-      sourceItem("Federal Reserve · H.15 / H.10", "https://www.federalreserve.gov/releases/h15/", "US interest-rate statistics and foreign exchange releases.") +
-      sourceItem("RBI · Database of Indian Economy", "https://dbie.rbi.org.in/DBIE/", "Official India macroeconomic, interest-rate and FX statistics.") +
-      sourceItem("ECB · yield curves", "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_area_yield_curves/html/index.en.html", "Euro-area zero-coupon, forward and par yield curves; updated on TARGET business days.") +
-      sourceItem("Bank of Japan · statistics", "https://www.boj.or.jp/en/statistics/", "Official market and monetary statistics; use released observation dates.") +
-      sourceItem("CFTC · Commitments of Traders", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly aggregated futures positions; not a record of individual trade purpose.") +
+      sourceItem("US Treasury \u00b7 daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields; source required for exact curve tenors.") +
+      sourceItem("Federal Reserve \u00b7 H.15 / H.10", "https://www.federalreserve.gov/releases/h15/", "US interest-rate statistics and foreign exchange releases.") +
+      sourceItem("RBI \u00b7 Database of Indian Economy", "https://dbie.rbi.org.in/DBIE/", "Official India macroeconomic, interest-rate and FX statistics.") +
+      sourceItem("ECB \u00b7 yield curves", "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_area_yield_curves/html/index.en.html", "Euro-area zero-coupon, forward and par yield curves; updated on TARGET business days.") +
+      sourceItem("Bank of Japan \u00b7 statistics", "https://www.boj.or.jp/en/statistics/", "Official market and monetary statistics; use released observation dates.") +
+      sourceItem("CFTC \u00b7 Commitments of Traders", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly aggregated futures positions; not a record of individual trade purpose.") +
       sourceItem("People\u2019s Bank of China", "http://www.pbc.gov.cn/en/3688006/index.html", "Official monetary policy and financial statistics; market-yield series require a suitable published source.") +
       sourceItem("S&P Global PMI", "https://www.pmi.spglobal.com/Public/Release/PressReleases", "Regional PMI release calendar and press releases; access may vary.") +
-      sourceItem("Reuters · Markets", "https://www.reuters.com/markets/", "Fast global reporting; integration requires a permitted feed/license.") +
-      sourceItem("WSJ · Markets", "https://www.wsj.com/market-data", "Market coverage and data; subscription and redistribution terms apply.") +
-      sourceItem("J.P. Morgan · Global Research", "https://www.jpmorgan.com/insights/global-research", "Institutional macro/commodities research; client access may be required.") +
+      sourceItem("Reuters \u00b7 Markets", "https://www.reuters.com/markets/", "Fast global reporting; integration requires a permitted feed/license.") +
+      sourceItem("WSJ \u00b7 Markets", "https://www.wsj.com/market-data", "Market coverage and data; subscription and redistribution terms apply.") +
+      sourceItem("J.P. Morgan \u00b7 Global Research", "https://www.jpmorgan.com/insights/global-research", "Institutional macro/commodities research; client access may be required.") +
       "</div></section>";
   }
 
@@ -3636,7 +3638,9 @@ table.ledger { min-width: 800px; }
           "</b> (2&times; credit &mdash; loss &asymp; &#8377;" + n0(creditRs) + "). Non-negotiable and set on entry.") +
         ck("3", "Delta breach", "Exit or roll the tested leg if its delta exceeds <b>0.30</b>. " +
           "Delta rising is the market telling you the strike is no longer far away.") +
-        ck("4", "Time exit", "Close by <b>19 Aug</b>, the session before expiry, regardless of P&amp;L. " +
+        ck("4", "Time exit", "Close by " + (sessionBeforeExpiry(c.expiry)
+            ? "<b>" + sessionBeforeExpiry(c.expiry) + "</b>, " : "") +
+          "the session before expiry, regardless of P&amp;L. " +
           "Expiry-day gamma is the worst risk-per-rupee a seller can hold.") +
         ck("5", "Volatility shock", "If India VIX jumps <b>&gt;15%</b> in a session, cut size immediately. " +
           "IV expansion hurts a short-premium book before direction does.") +
@@ -8658,9 +8662,12 @@ table.ledger { min-width: 800px; }
         "</b> a lot. Closing at half of it takes <b>&#8377;" + n0(t) +
         "</b> off the table and hands back the remaining risk." +
         "<br>The margin freed is &#8377;" + n0(st.margin) + " a lot. Holding " +
-        "for the last &#8377;" + n0(st.credit_rs - t) + " means carrying the " +
-        "same &#8377;" + n0(st.max_loss) + " worst case to collect " +
-        n0((st.credit_rs - t) / st.max_loss * 100) + "% of it.";
+        "for the last &#8377;" + n0(st.credit_rs - t) + " means carrying " +
+        (st.max_loss > 0
+          ? "the same &#8377;" + n0(st.max_loss) + " worst case to collect " +
+            n0((st.credit_rs - t) / st.max_loss * 100) + "% of it."
+          : "an uncapped worst case, because the position has no bought " +
+            "wings, to collect it.");
     }),
 
     "Stop loss": _fact("Stop loss", function (m) {
@@ -9466,7 +9473,7 @@ table.ledger { min-width: 800px; }
     "Crude market drivers": "Market section",
     "Rates & sovereign bonds": "Market section",
     "Foreign exchange": "Market section",
-    "Purchasing Managers’ Index": "Market section",
+    "Purchasing Managers\u2019 Index": "Market section",
     "Digital assets": "Market section",
     "Cross-asset research notes": "Market section",
     "Credible source network": "Market section",
@@ -9481,10 +9488,10 @@ table.ledger { min-width: 800px; }
     "Futures market": "Futures contract",
     "CFTC category": "CFTC trader category",
     "Net": "Net futures position",
-    "Weekly Δ net": "Weekly net change",
+    "Weekly \u0394 net": "Weekly net change",
     "Net / OI": "Net to open interest",
     "Global benchmark performance": "Market benchmark",
-    "Aluminium · USD/t": "Market benchmark",
+    "Aluminium \u00b7 USD/t": "Market benchmark",
     "Positioning evidence": "CFTC positioning",
     "Weekly futures positioning": "CFTC positioning",
     "Market": "Market region",
@@ -9690,6 +9697,7 @@ table.ledger { min-width: 800px; }
     "Actual": "Claims",
     "At expiry": "Expiry",
     "Band width": "Band factor",
+    "Overconfident above 85%": "Calibration (ECE)",
     "CALLS": "CE and PE",
     "CE": "CE and PE",
     "Called": "Claims",
@@ -11785,6 +11793,21 @@ table.ledger { min-width: 800px; }
         box.scrollTop = Math.max(0, target);
       }
     );
+  }
+
+  /* "09-Nov-2026" -> "06 Nov": the last weekday before expiry. Exchange
+     holidays are not known here, so this is the weekday, not a calendar
+     guarantee. Returns "" if the date cannot be read. */
+  function sessionBeforeExpiry(expiry) {
+    var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var p = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/.exec(String(expiry || ""));
+    if (!p) return "";
+    var mi = MON.indexOf(p[2].charAt(0).toUpperCase() + p[2].slice(1).toLowerCase());
+    if (mi < 0) return "";
+    var d = new Date(Date.UTC(+p[3], mi, +p[1]));
+    do { d.setUTCDate(d.getUTCDate() - 1); } while (d.getUTCDay() === 0 || d.getUTCDay() === 6);
+    return (d.getUTCDate() < 10 ? "0" : "") + d.getUTCDate() + " " + MON[d.getUTCMonth()];
   }
 
   function render() {
