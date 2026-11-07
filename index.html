@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nifty Options Desk</title>
+<title>Market Desk | India, Metals, Energy &amp; Global</title>
 
 <style>
 /* ============================================================
@@ -409,6 +409,51 @@ body {
 .content { padding: 16px 20px 48px; display: flex; flex-direction: column; gap: 14px; }
 
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.page-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.page-intro h1 { margin: 0; font-family: var(--font-uWi); font-size: 24px; font-weight: 650; letter-spacing: -.025em; }
+.page-intro p { margin: 5px 0 0; max-width: 760px; color: var(--ink-2); font-size: 12.5px; }
+.page-meta { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); }
+.market-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.market-card { min-width: 0; overflow: hidden; }
+.market-card-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 13px 15px; border-bottom: 1px solid var(--line-soft); }
+.market-card-hd h2 { margin: 0; font-family: var(--font-uWi); font-size: 14px; font-weight: 650; }
+.market-card-hd span { color: var(--ink-3); font-family: var(--font-num); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.market-card-body { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); }
+.market-card-body[data-count="1"] { grid-template-columns: 1fr; }
+.market-asset { min-width: 0; padding: 12px 15px; border-bottom: 1px solid var(--line-soft); }
+.market-asset:nth-child(odd) { border-right: 1px solid var(--line-soft); }
+.market-asset-k { color: var(--ink-2); font-size: 11px; }
+.market-asset-v { margin-top: 3px; color: var(--ink); font-family: var(--font-num); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.market-asset-m { margin-top: 3px; color: var(--ink-3); font-family: var(--font-num); font-size: 10px; }
+.market-asset-m .pos, .market-asset-m .neg { font-weight: 600; }
+.market-asset-missing .market-asset-v { color: var(--ink-3); font-family: var(--font-ui); font-size: 12px; font-weight: 500; }
+.market-card-ft { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 15px; }
+.market-card-ft small { color: var(--ink-3); font-size: 10px; }
+.page-link { border: 1px solid var(--line); border-radius: 4px; background: var(--surface-2); color: var(--ink); cursor: pointer; font: inherit; font-size: 11px; padding: 5px 9px; }
+.page-link:hover { border-color: var(--calls); color: var(--calls); }
+.coverage-note { padding: 11px 14px; border-left: 2px solid var(--warn); background: var(--surface-2); color: var(--ink-2); font-size: 11.5px; line-height: 1.55; }
+.coverage-note b { color: var(--ink); }
+.driver-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); }
+.driver-cell { padding: 12px 14px; border-right: 1px solid var(--line-soft); }
+.driver-cell:last-child { border-right: 0; }
+.driver-cell b { display: block; margin-bottom: 4px; font-family: var(--font-num); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--calls); }
+.driver-cell p { margin: 0; color: var(--ink-2); font-size: 11.5px; line-height: 1.5; }
+.source-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); }
+.source-item { padding: 11px 14px; border-bottom: 1px solid var(--line-soft); }
+.source-item a { color: var(--calls); font-size: 12px; font-weight: 600; text-decoration: none; }
+.source-item a:hover { text-decoration: underline; }
+.source-item p { margin: 4px 0 0; color: var(--ink-2); font-size: 11px; line-height: 1.45; }
+.research-feed { display: flex; flex-direction: column; }
+.research-item { display: grid; grid-template-columns: minmax(100px,150px) minmax(0,1fr); gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line-soft); }
+.research-item:last-child { border-bottom: 0; }
+.research-source { color: var(--ink-3); font-family: var(--font-num); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
+.research-item h3 { margin: 0; font-size: 12px; font-weight: 600; }
+.research-item p { margin: 4px 0 0; color: var(--ink-2); font-size: 11.5px; line-height: 1.5; }
+.research-item a { color: var(--calls); text-decoration: none; }
+.research-item a:hover { text-decoration: underline; }
+.page-columns { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.source-unavailable { color: var(--warn); font-size: 10px; }
+
 .card-hd {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
@@ -1414,6 +1459,19 @@ table.ledger { min-width: 800px; }
   .shell { grid-template-columns: 1fr; }
   .rail { flex-direction: row; align-items: center; gap: 16px; overflow-x: auto; padding: 10px 14px; }
   .rail-group, .rail-foot { display: none; }
+  #marketNavGroup { display: flex; flex-direction: row; flex: none; }
+  #marketNavGroup .rail-label { display: none; }
+  #marketNavGroup #railAnalysis { display: flex; align-items: center; gap: 3px; }
+  #marketNavGroup .rail-item { width: auto; white-space: nowrap; padding: 7px 10px; border-left: 0; border-bottom: 2px solid transparent; }
+  #marketNavGroup .rail-item[aria-current="true"] { border-left-color: transparent; border-bottom-color: var(--calls); }
+  #marketNavGroup .rail-item .rail-txt { display: inline !important; }
+  #marketNavGroup .rail-item .rail-mono { display: none !important; }
+  #referenceGroup { display: none; }
+  .market-grid, .page-columns { grid-template-columns: 1fr; }
+  .driver-grid { grid-template-columns: 1fr; }
+  .driver-cell { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+  .driver-cell:last-child { border-bottom: 0; }
+  .source-list { grid-template-columns: 1fr; }
   .verdict { grid-template-columns: 1fr; }
   .verdict-main { border-right: 0; border-bottom: 1px solid var(--line-soft); }
   .leg-grid { grid-template-columns: 1fr; }
@@ -1440,25 +1498,20 @@ table.ledger { min-width: 800px; }
   <nav class="rail">
     <div class="rail-top">
       <div class="brand">
-        <b>Options Desk</b>
-        <span>NSE &middot; EOD</span>
+        <b>Market Desk</b>
+        <span>India &middot; Global</span>
       </div>
       <button class="rail-tog" id="railTog" type="button"
               aria-controls="shell" aria-expanded="true"
               aria-label="Collapse the sidebar">&#9776;</button>
     </div>
 
-    <div class="rail-group">
-      <div class="rail-label">Analysis</div>
+    <div class="rail-group" id="marketNavGroup">
+      <div class="rail-label">Markets</div>
       <div id="railAnalysis"></div>
     </div>
 
-    <div class="rail-group">
-      <div class="rail-label">Universe</div>
-      <div id="railIndices"></div>
-    </div>
-
-    <div class="rail-group">
+    <div class="rail-group" id="referenceGroup">
       <div class="rail-label">Reference</div>
       <button class="rail-item" data-view="learning" id="railLearn"
               title="Learning"><span class="rail-txt">Learning</span>
@@ -1477,7 +1530,7 @@ table.ledger { min-width: 800px; }
       </div>
     </div>
 
-    <div class="strip-wrap">
+    <div class="strip-wrap" id="stripWrap">
       <div class="strip" id="strip" aria-label="Market levels"></div>
       <div class="atabs" id="aTabs" role="tablist" aria-label="Analysis view"></div>
     </div>
@@ -1553,10 +1606,17 @@ table.ledger { min-width: 800px; }
     });
   }
 
+  var PAGES = [
+    { key:"market-overview", label:"Overview", mark:"OV" },
+    { key:"india-index", label:"India Index", mark:"IN" },
+    { key:"metal-index", label:"Metal Index", mark:"MT" },
+    { key:"energy-index", label:"Energy Index", mark:"EN" },
+    { key:"international", label:"International", mark:"GL" }
+  ];
+
   var VIEWS = [
     { key:"overview",  label:"Overview" },
     { key:"strategy",  label:"Direction &amp; strategy" },
-    { key:"metoil",    label:"MET+OIL" },
     { key:"model",     label:"Model data" },
     { key:"watchlist", label:"Watchlist" },
     { key:"stocks",    label:"NIFTY 50 stocks" },
@@ -1775,7 +1835,7 @@ table.ledger { min-width: 800px; }
   /* ==========================================================
      4. STATE
      ========================================================== */
-  var state = { idx: "NIFTY", view: "overview", strike: null,
+  var state = { idx: "NIFTY", page: "market-overview", view: "overview", strike: null,
                 wl: null, wlExpiry: 0 };
 
   /* ==========================================================
@@ -1856,6 +1916,13 @@ table.ledger { min-width: 800px; }
   }
 
   function renderChrome() {
+    var inIndia = state.page === "india-index";
+    document.getElementById("idxTabs").style.display = inIndia ? "" : "none";
+    document.getElementById("aTabs").style.display = inIndia ? "" : "none";
+    document.getElementById("stripWrap").style.display = inIndia ? "" : "none";
+    document.getElementById("stamp").style.display = inIndia ? "" : "none";
+    document.getElementById("freshness").style.display = inIndia ? "" : "none";
+
     document.getElementById("idxTabs").innerHTML = INDICES.map(function (c) {
       return '<button class="idx-tab" role="tab" data-idx="' + c.key + '" aria-selected="' +
         (c.key === state.idx) + '">' + esc(c.label) + "</button>";
@@ -1866,25 +1933,28 @@ table.ledger { min-width: 800px; }
         (v.key === state.view) + '">' + v.label + "</button>";
     }).join("");
 
-    document.getElementById("railAnalysis").innerHTML = VIEWS.map(function (v) {
-      return '<button class="rail-item" data-view="' + v.key + '" aria-current="' +
-        (v.key === state.view) + '" title="' + esc(v.label.replace(/&amp;/g, "&")) +
-        '"><span class="rail-txt">' + v.label + "</span>" +
-        '<span class="rail-mono">' + railMark(v.key, v.label) + "</span></button>";
+    document.getElementById("railAnalysis").innerHTML = PAGES.map(function (p) {
+      return '<button class="rail-item" data-page="' + p.key + '" aria-current="' +
+        (p.key === state.page) + '" title="' + esc(p.label) +
+        '"><span class="rail-txt">' + esc(p.label) + "</span>" +
+        '<span class="rail-mono">' + p.mark + "</span></button>";
     }).join("");
 
     var rl = document.getElementById("railLearn");
     if (rl) rl.setAttribute("aria-current", state.view === "learning");
 
-    document.getElementById("railIndices").innerHTML = INDICES.map(function (c) {
-      var m = MODEL[c.key], chg = (c.spot - c.prevClose) / c.prevClose * 100;
-      return '<button class="rail-item" data-idx="' + c.key + '" aria-current="' +
-        (c.key === state.idx) + '" title="' + esc(c.label) + '">' +
-        '<span class="rail-txt">' + esc(c.label) + "</span>" +
-        '<span class="rail-mono">' + railMark(c.key, c.label) + "</span>" +
-        '<span class="spark ' + cls(chg) + '" data-chart="' + esc(c.label) +
-          '" title="chart">' + sgn(chg, 2) + "%</span></button>";
-    }).join("");
+    var railIndices = document.getElementById("railIndices");
+    if (railIndices) {
+      railIndices.innerHTML = INDICES.map(function (c) {
+        var m = MODEL[c.key], chg = (c.spot - c.prevClose) / c.prevClose * 100;
+        return '<button class="rail-item" data-idx="' + c.key + '" aria-current="' +
+          (c.key === state.idx) + '" title="' + esc(c.label) + '">' +
+          '<span class="rail-txt">' + esc(c.label) + "</span>" +
+          '<span class="rail-mono">' + railMark(c.key, c.label) + "</span>" +
+          '<span class="spark ' + cls(chg) + '" data-chart="' + esc(c.label) +
+            '" title="chart">' + sgn(chg, 2) + "%</span></button>";
+      }).join("");
+    }
   }
 
   /* ==========================================================
@@ -2097,6 +2167,330 @@ table.ledger { min-width: 800px; }
       '<section class="card"><div class="card-hd"><h2>PCR trend</h2><span class="sub">15 sessions</span>' +
       '<div class="right"><span class="kpi-m">neutral band 0.9 &ndash; 1.1</span></div></div>' +
       '<div class="chart-body">' + pcrSvg(m) + "</div></section></div>" + pipeline(m);
+  }
+
+  function pageIntro(title, description, meta) {
+    return '<header class="page-intro"><div><h1>' + title + '</h1><p>' + description +
+      '</p></div><div class="page-meta">' + (meta || "") + "</div></header>";
+  }
+
+  function marketAsset(label, value, detail, missing) {
+    return '<div class="market-asset' + (missing ? " market-asset-missing" : "") + '">' +
+      '<div class="market-asset-k">' + label + "</div>" +
+      '<div class="market-asset-v">' + value + "</div>" +
+      '<div class="market-asset-m">' + detail + "</div></div>";
+  }
+
+  function marketGroup(title, tag, page, assets, footer) {
+    return '<section class="card market-card"><div class="market-card-hd"><h2>' + title +
+      '</h2><span>' + tag + "</span></div>" +
+      '<div class="market-card-body" data-count="' + assets.length + '">' + assets.join("") + "</div>" +
+      '<div class="market-card-ft"><small>' + footer + '</small><button class="page-link" type="button" data-page="' +
+      page + '">Open section &rarr;</button></div></section>';
+  }
+
+  function assetFromInst(key, label) {
+    var inst = moInst(key);
+    if (!inst || !inst.price || inst.price.last == null) {
+      return marketAsset(label, "Quote not connected", '<span class="source-unavailable">No value in the stored feed</span>', true);
+    }
+    var p = inst.price, cur = inst.currency;
+    return marketAsset(esc(label), moMoney(p.last, cur),
+      '<span class="' + cls(p.chgPct) + '">' + moPctTxt(p.chgPct) + "</span> &middot; " +
+      esc(inst.unit || moUnitShort(inst)) + " &middot; " + moDate(p.asOf) +
+      (p.contract ? " &middot; MCX settlement via Moneycontrol" : " &middot; Yahoo Finance front month"), false);
+  }
+
+  function intlItem(symbol) {
+    var items = (INTERNATIONAL && INTERNATIONAL.items) || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].symbol === symbol) return items[i];
+    }
+    return null;
+  }
+
+  function watchItem(symbol) {
+    for (var i = 0; i < WATCH.length; i++) {
+      var items = WATCH[i].items || [];
+      for (var j = 0; j < items.length; j++) {
+        if (items[j].symbol === symbol) return items[j];
+      }
+    }
+    return null;
+  }
+
+  function intlPrice(item, value) {
+    if (value == null || !isFinite(value)) return "—";
+    if (item.kind === "rate") return n3(value) + "%";
+    if (item.kind === "crypto") return item.symbol === "BTC-USD" ? "$" + n0(value) : "$" + n2(value);
+    if (item.symbol === "EURUSD=X") return n4(value);
+    return n2(value);
+  }
+
+  function intlMove(item, horizon) {
+    var move = (item.moves || {})[horizon];
+    if (!move) return "—";
+    if (item.kind === "rate") {
+      return move.basisPoints == null ? "—" :
+        '<span class="' + cls(move.basisPoints) + '">' + sgn(move.basisPoints, 1) + " bp</span>";
+    }
+    return move.percent == null ? "—" :
+      '<span class="' + cls(move.percent) + '">' + sgn(move.percent, 2) + "%</span>";
+  }
+
+  function internationalAsset(symbol, label) {
+    var item = intlItem(symbol), quote = watchItem(symbol);
+    var last = item && item.last != null ? item.last : quote && quote.last;
+    if (last == null) {
+      return marketAsset(esc(label), "Quote not connected",
+        "No value in the saved feed; no estimate substituted", true);
+    }
+    item = item || { symbol: symbol, kind: "fx", unit: quote.unit, moves: {} };
+    var asOf = item.asOf || (quote && (quote.liveTs || quote.tradeDate)) || "date unavailable";
+    var daily = intlMove(item, "1D");
+    if (daily === "—" && quote && quote.chgPct != null && item.kind !== "rate") {
+      daily = '<span class="' + cls(quote.chgPct) + '">' + sgn(quote.chgPct, 2) + "%</span>";
+    }
+    if (item.kind === "rate" && daily === "—" && quote && quote.chg != null) {
+      daily = '<span class="' + cls(quote.chg) + '">' + sgn(quote.chg * 100, 1) + " bp</span>";
+    }
+    return marketAsset(esc(label), intlPrice(item, last),
+      (daily === "—" ? "Daily move unavailable" : daily) + " &middot; " +
+      esc(item.unit || quote && quote.unit || "") + " &middot; " + esc(asOf) +
+      " &middot; Yahoo Finance daily observation", false);
+  }
+
+  function internationalMovesTable(symbols) {
+    var rows = symbols.map(function (entry) {
+      var item = intlItem(entry[0]) || { symbol: entry[0], kind: "fx", moves: {} };
+      var quote = watchItem(entry[0]);
+      var last = item.last != null ? item.last : quote && quote.last;
+      var source = item.asOf || quote && quote.tradeDate || "—";
+      return '<tr><td class="lft">' + esc(entry[1]) + "</td>" +
+        "<td>" + (last == null ? "—" : intlPrice(item, last)) + "</td>" +
+        "<td>" + intlMove(item, "1D") + "</td><td>" + intlMove(item, "1W") + "</td>" +
+        "<td>" + intlMove(item, "1M") + "</td><td>" + intlMove(item, "6M") + "</td>" +
+        "<td>" + intlMove(item, "1Y") + "</td>" +
+        '<td class="lft">' + esc(source) + "</td></tr>";
+    }).join("");
+    return '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Instrument</th><th>Last</th><th>1D</th><th>1W</th><th>1M</th>' +
+      "<th>6M</th><th>1Y</th><th class=\"lft\">As of</th></tr></thead><tbody>" +
+      rows + "</tbody></table></div>";
+  }
+
+  function marketPositionEvidence(keys) {
+    var rows = keys.map(function (key) {
+      var inst = moInst(key);
+      if (!inst) return null;
+      var oi = inst.price && inst.price.oi;
+      var evidence = moEv(inst, "buildup");
+      var signal = oi == null ? "Unavailable — no open-interest feed" :
+        evidence ? evidence.value : "OI present; signal not classified";
+      return '<tr><td class="lft">' + esc(inst.label) + "</td>" +
+        "<td>" + (oi == null ? "—" : n0(oi)) + "</td>" +
+        '<td class="lft">' + esc(signal) + "</td>" +
+        '<td class="lft">' + (oi == null ? "No build-up/covering label assigned" :
+          "Price/OI convention only; not evidence of trader intent") + "</td></tr>";
+    }).filter(Boolean).join("");
+    if (!rows) {
+      rows = '<tr><td colspan="4" class="lft">No verified open-interest or trader-position feed is connected for these instruments.</td></tr>';
+    }
+    return '<section class="card"><div class="card-hd"><h2>Positioning evidence</h2>' +
+      '<span class="sub">observed OI only; intent is not observable here</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Instrument</th>' +
+      "<th>Open interest</th><th class=\"lft\">Signal</th><th class=\"lft\">Interpretation</th>" +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<div class="caution"><p><b>Evidence rule.</b> Price rising with OI rising is commonly called long build-up; falling price with rising OI, short build-up; rising price with falling OI, short covering; falling price with falling OI, long liquidation. These are mechanical price/OI labels, not proof of who traded or why. CFTC reports are weekly and delayed; they cannot establish an individual trader’s hedging intent.</p></div></section>';
+  }
+
+  function marketInstrumentDetails(keys) {
+    var blocks = keys.map(function (key) {
+      var inst = moInst(key);
+      if (!inst) return "";
+      return '<details class="mo-hist"><summary>Open full evidence &middot; ' +
+        esc(inst.label) + "</summary>" + moInstBlock(inst) + "</details>";
+    }).join("");
+    return blocks ? '<section class="card"><div class="card-hd"><h2>Instrument detail</h2>' +
+      '<span class="sub">expand for horizons, model evidence and session history</span></div>' +
+      blocks + "</section>" : "";
+  }
+
+  function viewMarketOverview(m) {
+    var niftyPct = m.cfg.prevClose ? (m.cfg.spot - m.cfg.prevClose) / m.cfg.prevClose * 100 : null;
+    var ctx = METOIL.context || {}, fx = ctx.usdinr, dx = ctx.dxy;
+    var fxAsset = fx
+      ? marketAsset("USD / INR", n2(fx.last), '<span class="' + cls(fx.chgPct) + '">' + sgn(fx.chgPct, 2) +
+        "% (20 sessions)</span> &middot; " + esc(fx.asOf || ""), false)
+      : marketAsset("USD / INR", "Quote not connected", "No value in the stored feed", true);
+    var dxyAsset = dx
+      ? marketAsset("US dollar index", n2(dx.last), '<span class="' + cls(dx.chgPct) + '">' + sgn(dx.chgPct, 2) +
+        "% (20 sessions)</span> &middot; " + esc(dx.asOf || ""), false)
+      : marketAsset("US dollar index", "Quote not connected", "No value in the stored feed", true);
+
+    return pageIntro("Market overview",
+      "A balanced view of India equities, metals, energy and international macro drivers. Each quote keeps its own source date; unavailable feeds are called out instead of estimated.",
+      "NIFTY settlement " + esc(m.tradeDate || "—")) +
+      '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and the current gold, silver and crude benchmarks are available from the saved market snapshot. Copper, aluminium, Murban crude, global rates, PMIs and crypto do not yet have connected quote feeds.</div>' +
+      '<div class="market-grid">' +
+      marketGroup("India Index", "NIFTY 50", "india-index", [
+        marketAsset("NIFTY 50", n2(m.cfg.spot),
+          '<span class="' + cls(niftyPct) + '">' + sgn(niftyPct, 2) + "%</span> &middot; " +
+            sgn(m.cfg.spot - m.cfg.prevClose, 2) + " pts &middot; " + esc(m.tradeDate || ""), false)
+      ], "India benchmark and options analytics") +
+      marketGroup("Metal Index", "GOLD · SILVER · COPPER · ALUMINIUM", "metal-index", [
+        assetFromInst("GOLD", "Gold"),
+        assetFromInst("SILVER", "Silver"),
+        marketAsset("Copper", "Quote not connected", "Global and MCX series not yet configured", true),
+        marketAsset("Aluminium", "Quote not connected", "Global and MCX series not yet configured", true)
+      ], "Precious and industrial metals") +
+      marketGroup("Energy Index", "BRENT · MURBAN · WTI", "energy-index", [
+        assetFromInst("BRENT", "Brent crude"),
+        marketAsset("Murban crude", "Quote not connected", "Benchmark series not yet configured", true),
+        assetFromInst("WTI", "WTI crude")
+      ], "Global crude benchmarks") +
+      marketGroup("International", "FX · RATES · PMI · DIGITAL ASSETS", "international", [
+        fxAsset, dxyAsset,
+        marketAsset("Global rates & PMIs", "Coverage plan", "US · Euro area · Japan · China · India", true),
+        marketAsset("Bitcoin & Ethereum", "Quotes not connected", "No crypto source in the stored feed", true)
+      ], "Cross-asset context and sourced research") +
+      "</div>";
+  }
+
+  function viewIndiaIndex(m) {
+    return pageIntro("India Index · NIFTY 50",
+      "NIFTY 50 options positioning, volatility, breadth and history. Bank Nifty is not part of this workspace.",
+      "NSE snapshot · " + esc(m.tradeDate || "—")) + viewOverview(m);
+  }
+
+  function driverCard(title, supply, demand, macro) {
+    return '<section class="card"><div class="card-hd"><h2>' + title + " drivers</h2></div>" +
+      '<div class="driver-grid"><div class="driver-cell"><b>Supply</b><p>' + supply +
+      '</p></div><div class="driver-cell"><b>Demand</b><p>' + demand +
+      '</p></div><div class="driver-cell"><b>Macro &amp; FX</b><p>' + macro +
+      "</p></div></div></section>";
+  }
+
+  function viewMetalIndex() {
+    var date = METOIL.asOf || "—";
+    return pageIntro("Metal Index",
+      "Precious and industrial metals, with supply, end-use demand and macro/FX drivers shown together. Values below are exchange or benchmark settlements, not live quotes.",
+      "Latest stored settlement · " + esc(date)) +
+      marketGroup("Metals", "GOLD · SILVER · COPPER · ALUMINIUM", "metal-index", [
+        assetFromInst("GOLD", "Gold"),
+        assetFromInst("SILVER", "Silver"),
+        marketAsset("Copper", "Quote not connected", "Global and MCX series not yet configured", true),
+        marketAsset("Aluminium", "Quote not connected", "Global and MCX series not yet configured", true)
+      ], "Gold and silver are available in the MCX snapshot; the other two quotes are not yet wired.") +
+      driverCard("Precious & industrial metal",
+        "Mine output, recycling, ore grades, smelter capacity and inventories; separate primary from recycled supply.",
+        "Solar PV, electronics, grids, EVs, construction and jewellery. Industrial use can diverge from investment demand.",
+        "US real yields, the dollar, USD/INR, rates, risk appetite and local import duties/premiums. Keep INR conversion visible beside USD benchmarks.") +
+      '<section class="card"><div class="card-hd"><h2>Research notes</h2><span class="sub">dated source summaries, not live headlines</span></div>' +
+      '<div class="research-feed">' +
+      '<article class="research-item"><div class="research-source">IEA · solar PV supply chains</div><div><h3>Solar demand is a structural silver driver, but the scenario matters</h3>' +
+      '<p>The IEA’s net-zero pathway estimated solar-PV silver demand in 2030 could exceed 30% of total 2020 world production, versus about 10% at the report’s then-current baseline. This is a scenario, not a near-term forecast; efficiency gains and thrifting also matter. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Read IEA context</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Silver Institute · 2025 survey</div><div><h3>Record industrial use did not mean total demand rose</h3>' +
+      '<p>Its 2025 survey reported 2024 total silver demand down 3% to 1.16 billion ounces, while industrial demand reached a record, led by electronics/electrical uses including PV, autos and grid infrastructure. PV silver loadings fell sharply as manufacturers thrifted material. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Read supply and demand data</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">World Bank · 3 Nov 2026</div><div><h3>Commodity indices diverged in October</h3>' +
+      '<p>The World Bank’s November Pink Sheet said its energy index rose 7.1% in October, with Brent up 7%; metals fell 3.0% and precious metals fell 6.2%. These are monthly index changes, not today’s prices. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">View Pink Sheet updates</a>.</p></div></article>' +
+      "</div></section>" +
+      '<section class="card"><div class="card-hd"><h2>Source desk</h2></div><div class="source-list">' +
+      sourceItem("IEA", "https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary", "Solar deployment, mineral intensity and supply-chain scenarios.") +
+      sourceItem("Silver Institute", "https://silverinstitute.org/silver-supply-demand/", "Annual silver survey prepared with Metals Focus; supply, fabrication and demand.") +
+      sourceItem("World Bank Pink Sheet", "https://www.worldbank.org/en/research/commodity-markets", "Monthly benchmark price series for energy and metals.") +
+      sourceItem("USGS", "https://www.usgs.gov/centers/national-minerals-information-center", "Mineral commodity summaries and mine-supply context.") +
+      "</div></section>";
+  }
+
+  function sourceItem(name, url, description) {
+    return '<div class="source-item"><a href="' + url + '" target="_blank" rel="noopener">' + name +
+      ' ↗</a><p>' + description + "</p></div>";
+  }
+
+  function viewEnergyIndex() {
+    var date = METOIL.asOf || "—";
+    return pageIntro("Energy Index",
+      "Brent, Murban and WTI as distinct crude benchmarks. Track physical supply, end-use demand, inventories and the dollar—not price direction alone.",
+      "Latest stored benchmark settlement · " + esc(date)) +
+      marketGroup("Crude benchmarks", "BRENT · MURBAN · WTI", "energy-index", [
+        assetFromInst("BRENT", "Brent crude"),
+        marketAsset("Murban crude", "Quote not connected", "Benchmark series not yet configured", true),
+        assetFromInst("WTI", "WTI crude")
+      ], "Brent and WTI are available; a Murban source feed has not been configured.") +
+      driverCard("Crude market drivers",
+        "OPEC+ supply policy, producer outages, spare capacity, sanctions, exports, refinery runs and commercial inventories.",
+        "Transport and aviation, petrochemicals, industrial activity and seasonal demand; China/India import demand is especially relevant.",
+        "US dollar, rates, freight, geopolitics and the Brent–WTI spread. Show inventory releases with release date and source.") +
+      '<section class="card"><div class="card-hd"><h2>Source desk</h2><span class="sub">official data first; research and news alongside</span></div><div class="source-list">' +
+      sourceItem("US EIA · Weekly Petroleum Status Report", "https://www.eia.gov/petroleum/supply/weekly/", "US crude stocks, production, imports, refinery activity and petroleum products.") +
+      sourceItem("IEA · Oil Market Report", "https://www.iea.org/reports/oil-market-report", "Global supply/demand balances and monthly market analysis.") +
+      sourceItem("OPEC · Monthly Oil Market Report", "https://www.opec.org/opec_web/en/publications/338.htm", "Producer outlook, demand and supply estimates.") +
+      sourceItem("Reuters · Commodities", "https://www.reuters.com/markets/commodities/", "Fast market reporting; access and licensing may apply.") +
+      sourceItem("WSJ · Commodities", "https://www.wsj.com/market-data/commodities", "Market prices and reporting; data is delayed and access may apply.") +
+      sourceItem("J.P. Morgan · Global Research", "https://www.jpmorgan.com/insights/global-research/commodities", "Institutional commodities outlook; research may require client access.") +
+      "</div></section>";
+  }
+
+  function viewInternational() {
+    var ctx = METOIL.context || {}, fx = ctx.usdinr, dx = ctx.dxy;
+    var fxRows = [
+      fx ? marketAsset("USD / INR", n2(fx.last), "Stored quote · " + esc(fx.asOf || ""), false) :
+        marketAsset("USD / INR", "Quote not connected", "No value in the stored feed", true),
+      marketAsset("EUR / USD", "Quote not connected", "Euro-area FX feed not configured", true),
+      marketAsset("USD / JPY", "Quote not connected", "Japan FX feed not configured", true),
+        marketAsset("USD / CNY", "Quote not connected", "China onshore FX feed not configured", true),
+        marketAsset("USD / CNH", "Quote not connected", "China offshore FX feed not configured", true),
+      dx ? marketAsset("US dollar index (DXY)", n2(dx.last), "Stored quote · " + esc(dx.asOf || ""), false) :
+        marketAsset("US dollar index (DXY)", "Quote not connected", "No value in the stored feed", true)
+    ];
+    var rates = [
+      ["United States", "10-year & 30-year Treasury yields"],
+      ["India", "10-year & 30-year government bond yields"],
+      ["Euro area", "ECB policy rates and benchmark yields"],
+      ["Japan", "10-year government bond yield and policy rate"],
+      ["China", "10-year government bond yield and policy rate"]
+    ].map(function (x) { return marketAsset(esc(x[0]), "Not connected", esc(x[1]) + " · source link below", true); });
+    var pmis = ["United States", "Euro area", "Japan", "China", "India"].map(function (x) {
+      return marketAsset(esc(x), "Not connected", "Manufacturing/services PMI · S&P Global or official release", true);
+    });
+
+    return pageIntro("International",
+      "The global context behind metals, crude and foreign exchange: rates, currencies, business activity, digital assets, and sourced developments—with source dates kept visible.",
+      "Coverage status: partial · no paid newswire feed connected") +
+      '<div class="coverage-note"><b>Source and freshness rule.</b> The saved snapshot currently provides USD/INR and DXY context. This page does not yet ingest official sovereign yields, PMI releases, Bitcoin/Ethereum prices, Reuters/WSJ headlines or J.P. Morgan research. Those rows are deliberately marked “Not connected”; links are research destinations, not a claim that data is live.</div>' +
+      '<div class="page-columns">' +
+      marketGroup("Rates & sovereign bonds", "US · INDIA · EURO AREA · JAPAN · CHINA", "international", rates,
+        "Show release/observation date and tenor; distinguish policy rates from market yields.") +
+      marketGroup("Foreign exchange", "USD · INR · EUR · JPY · CNH", "international", fxRows,
+        "FX moves feed directly into INR commodity costs and imported inflation.") +
+      marketGroup("Purchasing Managers’ Index", "MANUFACTURING & SERVICES", "international", pmis,
+        "PMIs are survey diffusion indices; show region, release date and source.") +
+      marketGroup("Digital assets", "BTC · ETH", "international", [
+        marketAsset("Bitcoin", "Quote not connected", "USD reference price · provider not configured", true),
+        marketAsset("Ethereum", "Quote not connected", "USD reference price · provider not configured", true)
+      ], "Keep crypto separate from traditional FX and sovereign rates.") +
+      "</div>" +
+      '<section class="card"><div class="card-hd"><h2>Cross-asset research notes</h2><span class="sub">curated references · item dates shown</span></div>' +
+      '<div class="research-feed">' +
+      '<article class="research-item"><div class="research-source">World Bank · 3 Nov 2026</div><div><h3>Energy strengthened while metals weakened in October</h3>' +
+      '<p>Monthly commodity-index context: energy +7.1%, Brent +7%, metals −3.0%, precious metals −6.2%. Useful backdrop, but not a substitute for daily benchmark quotes. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">IEA · solar PV supply chains</div><div><h3>Solar is a long-run silver-demand catalyst; material intensity is part of the balance</h3>' +
+      '<p>The IEA’s net-zero scenario highlighted potentially substantial solar-PV silver demand by 2030, while also documenting efficiency, concentration and trade risks in the supply chain. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Silver Institute · 2025 survey</div><div><h3>Industrial demand can rise while total demand falls</h3>' +
+      '<p>Its 2024 summary reported record industrial demand but a 3% decline in total silver demand, with PV thrifting reducing silver loadings. Distinguish end-use growth from ounces demanded per panel. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      "</div></section>" +
+      '<section class="card"><div class="card-hd"><h2>Credible source network</h2><span class="sub">primary data, analysis and news</span></div><div class="source-list">' +
+      sourceItem("US Treasury · daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields.") +
+      sourceItem("Federal Reserve · H.15 / H.10", "https://www.federalreserve.gov/releases/h15/", "US interest-rate statistics and foreign exchange releases.") +
+      sourceItem("RBI · Database / publications", "https://www.rbi.org.in/Scripts/BS_ViewBulletin.aspx", "India monetary, rates and FX publications; select appropriate series before wiring.") +
+      sourceItem("ECB · policy rates", "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/key_ecb_interest_rates/html/index.en.html", "Euro-area key interest rates and effective dates.") +
+      sourceItem("Bank of Japan · market statistics", "https://www.boj.or.jp/en/statistics/market/long/index.htm", "Japanese long-term interest-rate statistics.") +
+      sourceItem("S&P Global PMI", "https://www.pmi.spglobal.com/Public/Release/PressReleases", "Regional PMI release calendar and press releases; access may vary.") +
+      sourceItem("Reuters · Markets", "https://www.reuters.com/markets/", "Fast global reporting; integration requires a permitted feed/license.") +
+      sourceItem("WSJ · Markets", "https://www.wsj.com/market-data", "Market coverage and data; subscription and redistribution terms apply.") +
+      sourceItem("J.P. Morgan · Global Research", "https://www.jpmorgan.com/insights/global-research", "Institutional macro/commodities research; client access may be required.") +
+      "</div></section>";
   }
 
   /* The chain and the build-up were two tabs reading the same rows. Only
@@ -5301,6 +5695,11 @@ table.ledger { min-width: 800px; }
 
   var RENDER = {
     overview: viewOverview, strategy: viewStrategy,
+    "market-overview": viewMarketOverview,
+    "india-index": viewIndiaIndex,
+    "metal-index": viewMetalIndex,
+    "energy-index": viewEnergyIndex,
+    international: viewInternational,
     model: viewModelData,
     metoil: viewMetOil,
     /* Merged away, kept as aliases so a saved view key still resolves. */
@@ -5352,6 +5751,11 @@ table.ledger { min-width: 800px; }
   }
 
   var DEEP = {
+    "Market section": [
+      "A page groups related instruments and the information needed to understand them; the section heading is not itself a quoted market series.",
+      "Displayed values come from the stored snapshots. Each value carries its observation date, and a missing feed is shown as unavailable rather than filled with an estimate.",
+      "Research links are source destinations, not a live newswire. Automated headlines and market data need permitted provider feeds and explicit freshness checks."
+    ],
     /* ---- metals and oil ------------------------------------------ */
     "Metals and oil": [
       "The page for gold, silver and crude on their MCX contracts, in rupees, with WTI and Brent in dollars beside them. Each instrument gets the same treatment: the settled price and how it compares with the world price, a projected range for next week, two weeks, one month, two months and the contract's own expiry, an evidence table of hard facts, and a session history.",
@@ -6188,6 +6592,15 @@ table.ledger { min-width: 800px; }
   }
 
   var TERMS = {
+    "Market section": {
+      deep: "Market section",
+      how: function (m) {
+        var count = ((METOIL || {}).instruments || []).length;
+        return "NIFTY 50 is <b>" + n2(m.cfg.spot) + "</b> on " +
+          esc(m.cfg.tradeDate || "the stored session") + "; the latest commodity snapshot contains <b>" +
+          n0(count) + "</b> instrument records as of " + esc((METOIL || {}).asOf || "no date") + ".";
+      }
+    },
     /* ---- metals and oil ------------------------------------------ */
     "Metals and oil": {
       deep: "Metals and oil",
@@ -8678,6 +9091,22 @@ table.ledger { min-width: 800px; }
   ];
 
   var TERM_ALIAS = {
+    "India Index": "Market section",
+    "Metal Index": "Market section",
+    "Energy Index": "Market section",
+    "International": "Market section",
+    "Metals": "Market section",
+    "Precious & industrial metal drivers": "Market section",
+    "Research notes": "Market section",
+    "Source desk": "Market section",
+    "Crude benchmarks": "Market section",
+    "Crude market drivers": "Market section",
+    "Rates & sovereign bonds": "Market section",
+    "Foreign exchange": "Market section",
+    "Purchasing Managers’ Index": "Market section",
+    "Digital assets": "Market section",
+    "Cross-asset research notes": "Market section",
+    "Credible source network": "Market section",
     /* The metals-and-oil page. Its instrument names replace the macro
        driver aliases above: the same word now opens the instrument card,
        which carries the macro channel inside it. */
@@ -9063,6 +9492,10 @@ table.ledger { min-width: 800px; }
      does to a position. Written per term because a sentence generated from
      a methodology paragraph reads like a methodology paragraph. */
   var PLAIN = {
+    "Market section": [
+      "A navigation-level grouping of instruments, market data and context for one part of the desk.",
+      "The date and source of a quote matter: this workspace keeps unavailable or stale inputs visible instead of implying a complete live feed."
+    ],
     /* ---- metals and oil ------------------------------------------ */
     "Metals and oil": [
       "Gold, silver and crude in rupees on MCX, WTI and Brent in dollars: where each one is, where it can plausibly be on five dates, and which way the facts lean.",
@@ -10875,7 +11308,8 @@ table.ledger { min-width: 800px; }
     TT = m.t;
     renderChrome();
     paintLiveStamp();
-    document.getElementById("content").innerHTML = RENDER[state.view](m);
+    var renderer = state.page === "india-index" ? RENDER[state.view] : RENDER[state.page];
+    document.getElementById("content").innerHTML = renderer(m);
     attachHovers();
     centreOnAtm();
   }
@@ -10884,12 +11318,13 @@ table.ledger { min-width: 800px; }
      index or tab -- that is the whole point of it. */
   function renderStrip() {
     var el = document.getElementById("strip");
-    if (!STRIP.length) { el.parentNode.style.display = "none"; return; }
+    var visible = STRIP.filter(function (s) { return s.name === "NIFTY 50"; });
+    if (!visible.length) { el.parentNode.style.display = "none"; return; }
 
     /* Grouped, with a divider between families, so 25+ indices stay
        scannable instead of reading as one undifferentiated run. */
     var lastGroup = null;
-    el.innerHTML = STRIP.map(function (s) {
+    el.innerHTML = visible.map(function (s) {
       var sep = (s.group && s.group !== lastGroup && lastGroup !== null)
         ? '<div class="si-sep" aria-hidden="true"></div>' : "";
       if (s.group) lastGroup = s.group;
@@ -11808,11 +12243,32 @@ table.ledger { min-width: 800px; }
       return;
     }
 
+    var page = e.target.closest("[data-page]");
+    if (page) {
+      state.page = page.getAttribute("data-page");
+      if (state.page === "india-index") state.view = "overview";
+      closeDrawer();
+      render();
+      return;
+    }
+
     var idx = e.target.closest("[data-idx]");
-    if (idx) { state.idx = idx.getAttribute("data-idx"); closeDrawer(); render(); return; }
+    if (idx) {
+      state.idx = idx.getAttribute("data-idx");
+      state.page = "india-index";
+      closeDrawer();
+      render();
+      return;
+    }
 
     var view = e.target.closest("[data-view]");
-    if (view) { state.view = view.getAttribute("data-view"); closeDrawer(); render(); return; }
+    if (view) {
+      state.view = view.getAttribute("data-view");
+      state.page = "india-index";
+      closeDrawer();
+      render();
+      return;
+    }
 
     var mh = e.target.closest("[data-mh]");
     if (mh) {
@@ -11947,5 +12403,3 @@ table.ledger { min-width: 800px; }
 <script src="vendor/lightweight-charts.js"></script>
 </body>
 </html>
-
-
