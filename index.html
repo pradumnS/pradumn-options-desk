@@ -456,6 +456,47 @@ body {
 .research-item p { margin: 4px 0 0; color: var(--ink-2); font-size: 11.5px; line-height: 1.5; }
 .research-item a { color: var(--calls); text-decoration: none; }
 .research-item a:hover { text-decoration: underline; }
+.brf-pad { padding: 12px 14px; display: grid; gap: 10px; }
+.brf-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+@media (max-width: 760px) { .brf-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.brf-flow > div { background: var(--surface); padding: 8px 10px; display: grid; gap: 1px; font-size: 12px; }
+.brf-step { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--calls); }
+.brf-dim { color: var(--ink-3); font-size: 11px; }
+.brf-one { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: baseline; font-size: 13.5px; }
+.brf-one .brf-dim { grid-column: 2; }
+.brf-tag { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--calls); }
+.brf-heat { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 4px; }
+.brf-heat > div { border-radius: 4px; padding: 6px 8px; font-size: 11.5px; display: grid; }
+.brf-num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.brf-hu2 { background: rgba(63,185,80,.28); } .brf-hu1 { background: rgba(63,185,80,.13); }
+.brf-hd1 { background: rgba(248,81,73,.13); } .brf-hd2 { background: rgba(248,81,73,.26); } .brf-h0 { background: var(--surface-2); }
+.brf-stories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+@media (max-width: 900px) { .brf-stories { grid-template-columns: 1fr; } }
+.brf-story { display: grid; grid-template-rows: auto 1fr auto; margin: 0; }
+.brf-title { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; font-size: 14px; }
+.brf-body { padding: 10px 14px; display: grid; gap: 10px; align-content: start; }
+.brf-body p { margin: 0; color: var(--ink-2); font-size: 12.5px; line-height: 1.55; }
+.brf-h { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px; }
+.brf-why { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.brf-why li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; font-size: 12.5px; color: var(--ink-2); align-items: baseline; }
+.brf-src { font-size: 10px; border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; white-space: nowrap; color: var(--ink-3); text-decoration: none; }
+.brf-src.brf-desk { color: var(--calls); border-color: var(--calls); }
+.brf-src.brf-gap { color: var(--warn); border-color: var(--warn); }
+a.brf-src:hover { text-decoration: underline; }
+.brf-so { background: var(--calls-dim); border-radius: 4px; padding: 8px 10px; font-size: 12.5px; }
+.brf-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; padding: 8px 14px; border-top: 1px solid var(--line-soft); font-size: 11.5px; }
+.brf-learn { color: var(--ok); cursor: pointer; font-weight: 600; }
+.brf-open { color: var(--calls); cursor: pointer; }
+.brf-learn:hover, .brf-open:hover { text-decoration: underline; }
+.brf-learn:focus-visible, .brf-open:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
+.brf-chip { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.brf-chip.brf-down { color: var(--down); } .brf-chip.brf-up { color: var(--up); } .brf-chip.brf-sell { color: var(--up); } .brf-chip.brf-none { color: var(--ink-3); }
+.brf-table td { vertical-align: top; }
+.brf-grp td { background: var(--surface-2); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.brf-focus td { background: var(--calls-dim); }
+.brf-lesson { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 20px; padding: 12px 14px; }
+@media (max-width: 760px) { .brf-lesson { grid-template-columns: 1fr; } }
+.brf-lesson p { margin: 0; font-size: 12.5px; color: var(--ink-2); }
 .ana-pick { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 14px 0; }
 .ana-pick button { font: inherit; font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); cursor: pointer; }
 .ana-pick button.on { border-color: var(--calls); color: var(--calls); background: var(--calls-dim); }
@@ -1706,6 +1747,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   var TECHFUND = {};         /* techfund.json -- note + valuation */
   var STOCKS = {};           /* stocks.json  -- index constituents */
   var ANALYSIS = {};         /* analysis.json -- why markets moved, sources */
+  var BRIEF = {};            /* brief.json -- the morning brief on the Overview */
 
   function getJson(name) {
     return fetch(SNAPSHOT + name, { cache: "no-store" }).then(function (r) {
@@ -2512,11 +2554,98 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       blocks + "</section>" : "";
   }
 
+  /* ---------- morning brief (brief.json) ----------
+     Read top to bottom: glance at the heat strip, read why each market
+     moved, act from the decision table, learn from yesterday's graded call.
+     Every sentence arrives assembled upstream from stored figures; each
+     reason carries its source. Text fields may hold entities (&#8377;),
+     so they are inserted as built, never from user input. */
+  function brfChg(v) {
+    if (v == null || !isFinite(v)) return "\u2014";
+    return (v > 0 ? "+" : "") + n2(v) + "%";
+  }
+  function brfHeat(v) {
+    if (v == null) return "brf-h0";
+    return v >= 1 ? "brf-hu2" : v >= 0.25 ? "brf-hu1" : v <= -1 ? "brf-hd2" : v <= -0.25 ? "brf-hd1" : "brf-h0";
+  }
+  function briefSection() {
+    var b = BRIEF || {};
+    if (!b.stories || !b.stories.length) {
+      return '<section class="card brf"><div class="card-hd"><h2>Morning brief</h2>' +
+        '<span class="sub">why markets moved and what to do today</span></div>' +
+        '<div class="brf-pad">The brief is built by <b>export_snapshot.py</b> after the evening feeds. It is not in this snapshot yet.</div></section>';
+    }
+    var flow = '<div class="brf-flow">' + [
+      ["1 \u00b7 Glance", "What moved", "10 seconds"], ["2 \u00b7 Read", "Why it happened", "3 minutes, before the open"],
+      ["3 \u00b7 Act", "Decision table", "during the session"], ["4 \u00b7 Learn", "Yesterday's lesson", "after the close"]
+    ].map(function (f) {
+      return '<div><span class="brf-step">' + f[0] + '</span><b>' + f[1] + '</b><span class="brf-dim">' + f[2] + "</span></div>";
+    }).join("") + "</div>";
+
+    var one = '<div class="brf-one"><span class="brf-tag">Today</span><span><b>' + b.oneLine + '</b></span>' +
+      '<span class="brf-dim">Built ' + esc(b.generatedAt || "") + " from the " + esc(b.session || "") +
+      " session. Re-check at the open.</span></div>";
+
+    var heat = '<div class="brf-heat">' + (b.heat || []).map(function (h) {
+      return '<div class="' + brfHeat(h.chg) + '"><span>' + esc(h.label) + '</span><span class="brf-num">' + brfChg(h.chg) + "</span></div>";
+    }).join("") + "</div>";
+
+    var stories = '<div class="brf-stories">' + b.stories.map(function (s) {
+      var why = (s.why || []).map(function (r) {
+        var src = r.link
+          ? '<a class="brf-src brf-' + esc(r.kind) + '" href="' + esc(r.link) + '" target="_blank" rel="noopener">' + esc(r.source) + "</a>"
+          : '<span class="brf-src brf-' + esc(r.kind) + '">' + esc(r.source) + "</span>";
+        return "<li><span>" + r.text + "</span>" + src + "</li>";
+      }).join("");
+      return '<article class="card brf-story"><div class="brf-title"><b>' + s.title + '</b><span class="brf-dim">' + s.sub + "</span></div>" +
+        '<div class="brf-body"><div><div class="brf-h">What happened</div><p>' + (s.what || []).join(" ") + "</p></div>" +
+        '<div><div class="brf-h">Why</div><ul class="brf-why">' + why + "</ul></div>" +
+        '<div class="brf-so"><b>So today:</b> ' + s.so + "</div></div>" +
+        '<div class="brf-foot"><span class="brf-learn" data-term="' + esc(s.learn) + '" tabindex="0">Learn: ' + esc(s.learnLabel) + "</span>" +
+        '<span class="brf-open" data-page="' + esc(s.page) + '" tabindex="0">Open section &rarr;</span></div></article>';
+    }).join("") + "</div>";
+
+    var groups = [];
+    var rows = (b.table || []).map(function (r) {
+      var g = "";
+      if (groups.indexOf(r.group) < 0) {
+        groups.push(r.group);
+        g = '<tr class="brf-grp"><td colspan="7" data-term="Morning brief">' + esc(r.group) + "</td></tr>";
+      }
+      var chg = r.chgText || brfChg(r.chg);
+      return g + '<tr' + (r.focus ? ' class="brf-focus"' : "") + '><td class="lft" data-term="Morning brief"><b>' + esc(r.market) + "</b></td>" +
+        '<td class="brf-num">' + r.last + '<br><span class="' + cls(r.chg) + '">' + chg + "</span></td>" +
+        '<td class="brf-num">' + r.range + '<br><span class="brf-dim">' + esc(r.rangeNote || "") + "</span></td>" +
+        '<td><span class="brf-chip brf-' + esc(r.chip) + '">' + esc(r.call) + "</span>" +
+          (r.detail ? '<br><span class="brf-dim">' + esc(r.detail) + "</span>" : "") + "</td>" +
+        '<td class="lft">' + (r.act ? esc(r.act) : '<span class="brf-dim">\u2014</span>') + "</td>" +
+        '<td class="lft">' + (r.cancel ? esc(r.cancel) : '<span class="brf-dim">\u2014</span>') + "</td>" +
+        '<td class="brf-num">' + (r.record ? esc(r.record) : '<span class="brf-dim">\u2014</span>') + "</td></tr>";
+    }).join("");
+    var table = '<section class="card brf"><div class="card-hd"><h2>Decision table</h2>' +
+      '<span class="sub">the same calls as the stories, for use during the session</span></div>' +
+      '<div class="tablewrap"><table class="dt brf-table"><thead><tr><th class="lft">Market</th><th>Last</th>' +
+      "<th>Range ahead</th><th>Call</th><th class=\"lft\">Act if</th><th class=\"lft\">Cancel if</th><th>Record</th></tr></thead><tbody>" +
+      rows + "</tbody></table></div></section>";
+
+    var l = b.lesson;
+    var lesson = l ? '<section class="card brf"><div class="card-hd"><h2>Yesterday\u2019s lesson</h2>' +
+      '<span class="sub">graded ' + esc(l.resolvedOn) + " &middot; " + esc(l.verdict) + "</span></div>" +
+      '<div class="brf-lesson"><div><div class="brf-h">The call</div><p>' + esc(l.call) + "</p></div>" +
+      '<div><div class="brf-h">What happened</div><p>' + esc(l.what) + (l.why ? " " + l.why : "") + "</p></div>" +
+      '<div><div class="brf-h">What to watch</div><p>' + esc(l.watch) + "</p></div></div></section>" : "";
+
+    return '<section class="card brf"><div class="card-hd"><h2>Morning brief</h2>' +
+      '<span class="sub">what happened, why, and what to do today</span></div>' +
+      '<div class="brf-pad">' + flow + one + heat + "</div></section>" + stories + table + lesson;
+  }
+
   function viewMarketOverview(m) {
     var niftyPct = m.cfg.prevClose ? (m.cfg.spot - m.cfg.prevClose) / m.cfg.prevClose * 100 : null;
     return pageIntro("Market overview",
       "A balanced view of India equities, metals, energy and international macro drivers. Each quote keeps its own source date; unavailable feeds are called out instead of estimated.",
       "NIFTY settlement " + esc(m.tradeDate || "\u2014")) +
+      briefSection() +
       '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and several metal, energy, FX and US-rate benchmarks are in the saved snapshot. Exact non-US sovereign curves, PMI releases, licensed news, broader spot-market positioning and Murban crude remain unavailable unless a source is explicitly shown below.</div>' +
       '<div class="market-grid">' +
       marketGroup("India Index", "NIFTY 50", "india-index", [
@@ -5196,10 +5325,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
           "</b> (2&times; credit &mdash; loss &asymp; &#8377;" + n0(creditRs) + "). Non-negotiable and set on entry.") +
         ck("3", "Delta breach", "Exit or roll the tested leg if its delta exceeds <b>0.30</b>. " +
           "Delta rising is the market telling you the strike is no longer far away.") +
-        ck("4", "Time exit", "Close by " + (sessionBeforeExpiry(c.expiry)
+        ck("4", "Time exit", "Decide by " + (sessionBeforeExpiry(c.expiry)
             ? "<b>" + sessionBeforeExpiry(c.expiry) + "</b>, " : "") +
-          "the session before expiry, regardless of P&amp;L. " +
-          "Expiry-day gamma is the worst risk-per-rupee a seller can hold.") +
+          "the session before expiry, whether to hold into expiry. Holding is allowed; " +
+          "on expiry day price moves hit premiums hardest, so hold smaller than a normal week.") +
         ck("5", "Volatility shock", "If India VIX jumps <b>&gt;15%</b> in a session, cut size immediately. " +
           "IV expansion hurts a short-premium book before direction does.") +
         ck("6", "Margin buffer", "Keep <b>&ge;40%</b> of capital unutilised as cash. " +
@@ -7418,6 +7547,11 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   var DEEP = {
+    "Morning brief": [
+      "The first thing to read each day: a heat strip of what moved, one story per market group (what happened, why, and what to do today), a decision table with triggers and exits, and yesterday's graded call.",
+      "Each reason carries its source. A blue tag is the desk's own stored data: FII/DII flows, participant positions, futures open interest, the driver regression, CFTC positioning. A grey tag is a headline from a reputable publisher, quoted as written and linked. Headlines are only used when published on or after the session and when they describe a move.",
+      "The calls are the desk's existing ones: NIFTY's logged claims (strikes and their survival odds) and the graded metal and energy leans. Yesterday's lesson compares the last next-session range with the close and names what the range could not see."
+    ],
     "Market analysis": [
       "One reading per market: how far it moved against its own recent volatility, how much of that move its usual drivers account for, how traders are positioned, what is scheduled next, and what the news is saying. Every sentence is generated from figures shown beside it.",
       "The driver split is a regression of daily changes on the listed driver series over the last 60 sessions. Sensitivity is the fitted change per unit move in the driver; 'accounts for' is sensitivity times the driver's move today. The fit percentage says how much of normal daily variation the drivers explain. The part they do not explain is printed, not filled in with a story.",
@@ -8359,6 +8493,16 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   var TERMS = {
+    "Morning brief": {
+      deep: "Morning brief",
+      how: function () {
+        var b = BRIEF || {};
+        return "Built " + esc(b.generatedAt || "(not yet built)") + " for the " + esc(b.session || "latest") +
+          " session: <b>" + n0((b.stories || []).length) + "</b> stories and <b>" + n0((b.table || []).length) +
+          "</b> decision rows. NIFTY range shown is the 68% next-session band; metal and energy ranges are 5-session; " +
+          "leans need <b>3</b> of up to <b>9</b> signals to make a call.";
+      }
+    },
     "Market analysis": {
       deep: "Market analysis",
       how: function () {
@@ -11274,6 +11418,14 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     "Band width": "Band factor",
     "Overconfident above 85%": "Calibration (ECE)",
     "Calendar and source status": "Market analysis",
+    "Morning brief": "Morning brief",
+    "Decision table": "Morning brief",
+    "Yesterday\u2019s lesson": "Morning brief",
+    "Range ahead": "Morning brief",
+    "Call": "Morning brief",
+    "Act if": "Morning brief",
+    "Cancel if": "Morning brief",
+    "Record": "Morning brief",
     "Today": "Market analysis",
     "Sensitivity": "Market analysis",
     "Accounts for": "Market analysis",
@@ -11495,6 +11647,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
      does to a position. Written per term because a sentence generated from
      a methodology paragraph reads like a methodology paragraph. */
   var PLAIN = {
+    "Morning brief": [
+      "Read this first: why each market moved, what the desk would do today, and how yesterday's call turned out.",
+      "Blue tags are the desk's own numbers; grey tags are news headlines. Click a tag to open the article."
+    ],
     "Market analysis": [
       "Why a market moved today, what could move it next, and where each piece of that came from.",
       "Read the unexplained part and the headlines together: the numbers say how much is unaccounted for, the news is where to look for it."
@@ -14218,6 +14374,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         ANALYSIS = a || {};
         if (["international", "energy-index", "metal-index"].indexOf(state.page) >= 0) render();
       }).catch(function () { ANALYSIS = {}; });
+      getJson("brief.json").then(function (b) {
+        BRIEF = b || {};
+        if (state.page === "market-overview") render();
+      }).catch(function () { BRIEF = {}; });
       var m = MODEL[state.idx];
       var fr = freshness(m, MANIFEST);
       setFresh(fr.tag, fr.msg, fr.state, fr.age);
