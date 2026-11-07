@@ -2047,7 +2047,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         state.page === "metal-index" ? mtlState.metal : "";
       var h = "#" + state.page + (sub ? "/" + sub : "");
       /* The open expiry tab on Nifty Today, so a refresh lands on it. */
-      if (state.page === "india-index" && state.view === "today" &&
+      if (state.page === "india-index" && (state.view === "today" || state.view === "options") &&
           typeof hzState !== "undefined" && hzState.exp) h += "/" + hzState.exp;
       if (location.hash !== h && history && history.replaceState) history.replaceState(null, "", h);
     } catch (e) { /* no address bar (tests, file://): nothing to keep */ }
@@ -8239,7 +8239,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   function nfxOptions(m) {
     var o = nfxCards(nfxSafe(viewOverview, m));
     var ch = nfxCards(nfxSafe(viewChain, m));
-    return '<div class="nfx-view">' +
+    var hz = (HZN && HZN.ladder) ? nfxBand("Every expiry", "weekly, next week, this month, next month: click an expiry") +
+      nfxSafe(hzExpiryCard, m) + nfxSafe(hzOiCard, m) +
+      nfxBand("Front expiry", "the contract the rest of this tab is about") : "";
+    return '<div class="nfx-view">' + hz +
       nfxPick(o, ["Open interest by strike"]) +
       '<div class="two">' + nfxPick(o, ["15 sessions", "PCR trend"]) + "</div>" +
       nfxExcept(ch, ["How to read this table"]) +
