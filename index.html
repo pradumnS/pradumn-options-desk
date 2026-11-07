@@ -2203,10 +2203,35 @@ table.ledger { min-width: 800px; }
 
   function intlItem(symbol) {
     var items = (INTERNATIONAL && INTERNATIONAL.items) || [];
+    var found = null;
     for (var i = 0; i < items.length; i++) {
-      if (items[i].symbol === symbol) return items[i];
+      if (items[i].symbol === symbol) {
+        found = items[i];
+        break;
+      }
     }
-    return null;
+    var quote = watchItem(symbol);
+    if (!found && !quote) return null;
+    var kind = symbol === "^IRX" || symbol === "^TNX" || symbol === "^TYX"
+      ? "rate" : symbol === "BTC-USD" || symbol === "ETH-USD"
+      ? "crypto" : symbol === "GC=F" || symbol === "SI=F" || symbol === "HG=F" ||
+        symbol === "ALI=F" || symbol === "CL=F" || symbol === "BZ=F"
+      ? "commodity" : "fx";
+    found = found || { symbol: symbol, kind: kind, moves: {}, history: [] };
+    if (found.kind == null) found.kind = kind;
+    if (found.last == null && quote) found.last = quote.last;
+    if (!found.asOf && quote) found.asOf = quote.tradeDate;
+    if (!found.unit && quote) found.unit = quote.unit;
+    found.moves = found.moves || {};
+    if (!found.moves["1D"] && quote) {
+      var delta = quote.chg;
+      found.moves["1D"] = {
+        delta: delta,
+        percent: quote.chgPct,
+        basisPoints: found.kind === "rate" && delta != null ? delta * 100 : null
+      };
+    }
+    return found;
   }
 
   function watchItem(symbol) {
@@ -2223,7 +2248,7 @@ table.ledger { min-width: 800px; }
     if (value == null || !isFinite(value)) return "—";
     if (item.kind === "rate") return n3(value) + "%";
     if (item.kind === "crypto") return item.symbol === "BTC-USD" ? "$" + n0(value) : "$" + n2(value);
-    if (item.symbol === "EURUSD=X") return n4(value);
+    if (item.symbol === "EURUSD=X") return nf(value, 4);
     return n2(value);
   }
 
@@ -2279,6 +2304,67 @@ table.ledger { min-width: 800px; }
       rows + "</tbody></table></div>";
   }
 
+  function internationalRate(market, tenor) {
+    var rates = (INTERNATIONAL && INTERNATIONAL.rates) || [];
+    for (var i = 0; i < rates.length; i++) {
+      if (rates[i].market === market && rates[i].tenor === tenor) return rates[i];
+    }
+    return null;
+  }
+
+  function internationalYieldMovesTable() {
+    var tenors = ["2M", "6M", "1Y", "2Y", "10Y", "30Y"];
+    var rows = tenors.map(function (tenor) {
+      var item = internationalRate("United States", tenor);
+      return "<tr><td class=\"lft\">" + tenor + "</td>" +
+        "<td>" + (item ? n3(item.yieldPct) + "%" : "—") + "</td>" +
+        '<td class="lft">' + esc(item && item.asOf || "—") + "</td>" +
+        ["1D", "1W", "1M", "6M", "1Y"].map(function (horizon) {
+          var change = item && item.changesBp && item.changesBp[horizon];
+          return "<td>" + (change == null ? "—" :
+            '<span class="' + cls(change) + '">' + sgn(change, 1) + " bp</span>") + "</td>";
+        }).join("") + "</tr>";
+    }).join("");
+    return '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">US tenor</th><th>Yield</th><th class="lft">As of</th>' +
+      "<th>1D</th><th>1W</th><th>1M</th><th>6M</th><th>1Y</th>" +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div>";
+  }
+
+  function internationalPositionsTable(matchTerms) {
+    var positions = (INTERNATIONAL && INTERNATIONAL.positions) || [];
+    if (matchTerms && matchTerms.length) {
+      positions = positions.filter(function (p) {
+        return matchTerms.some(function (term) {
+          return String(p.market || "").toLowerCase().indexOf(term.toLowerCase()) >= 0;
+        });
+      });
+    }
+    if (!positions.length) {
+      return '<div class="tablewrap"><table class="dt"><tbody>' +
+        '<tr><td class="lft">No matching selected CFTC futures positions are present in the saved snapshot.</td></tr>' +
+        "</tbody></table></div>";
+    }
+    var rows = positions.map(function (p) {
+      var net = p.net == null ? "—" : (p.net > 0 ? "+" : "") + n0(p.net);
+      var change = p.netChange == null ? "—" :
+        '<span class="' + cls(p.netChange) + '">' +
+        (p.netChange > 0 ? "+" : "") + n0(p.netChange) + "</span>";
+      var netOi = p.netPercentOfOi == null ? "—" :
+        sgn(p.netPercentOfOi, 1) + "%";
+      return '<tr><td class="lft">' + esc(p.market) + "</td>" +
+        '<td class="lft">' + esc(p.category) + " · " + esc(p.reportType) + "</td>" +
+        "<td>" + net + "</td><td>" + change + "</td>" +
+        "<td>" + n0(p.openInterest) + "</td><td>" + netOi + "</td>" +
+        '<td class="lft">' + esc(p.asOf) + "</td></tr>";
+    }).join("");
+    return '<div class="tablewrap tall"><table class="dt"><thead><tr>' +
+      '<th class="lft">Futures market</th><th class="lft">CFTC category</th>' +
+      "<th>Net</th><th>Weekly \u0394 net</th><th>Open interest</th>" +
+      "<th>Net / OI</th><th class=\"lft\">Position date</th>" +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div>";
+  }
+
   function marketPositionEvidence(keys) {
     var rows = keys.map(function (key) {
       var inst = moInst(key);
@@ -2318,20 +2404,10 @@ table.ledger { min-width: 800px; }
 
   function viewMarketOverview(m) {
     var niftyPct = m.cfg.prevClose ? (m.cfg.spot - m.cfg.prevClose) / m.cfg.prevClose * 100 : null;
-    var ctx = METOIL.context || {}, fx = ctx.usdinr, dx = ctx.dxy;
-    var fxAsset = fx
-      ? marketAsset("USD / INR", n2(fx.last), '<span class="' + cls(fx.chgPct) + '">' + sgn(fx.chgPct, 2) +
-        "% (20 sessions)</span> &middot; " + esc(fx.asOf || ""), false)
-      : marketAsset("USD / INR", "Quote not connected", "No value in the stored feed", true);
-    var dxyAsset = dx
-      ? marketAsset("US dollar index", n2(dx.last), '<span class="' + cls(dx.chgPct) + '">' + sgn(dx.chgPct, 2) +
-        "% (20 sessions)</span> &middot; " + esc(dx.asOf || ""), false)
-      : marketAsset("US dollar index", "Quote not connected", "No value in the stored feed", true);
-
     return pageIntro("Market overview",
       "A balanced view of India equities, metals, energy and international macro drivers. Each quote keeps its own source date; unavailable feeds are called out instead of estimated.",
       "NIFTY settlement " + esc(m.tradeDate || "—")) +
-      '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and the current gold, silver and crude benchmarks are available from the saved market snapshot. Copper, aluminium, Murban crude, global rates, PMIs and crypto do not yet have connected quote feeds.</div>' +
+      '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and several metal, energy, FX and US-rate benchmarks are in the saved snapshot. Exact non-US sovereign curves, PMI releases, licensed news, broader spot-market positioning and Murban crude remain unavailable unless a source is explicitly shown below.</div>' +
       '<div class="market-grid">' +
       marketGroup("India Index", "NIFTY 50", "india-index", [
         marketAsset("NIFTY 50", n2(m.cfg.spot),
@@ -2341,8 +2417,8 @@ table.ledger { min-width: 800px; }
       marketGroup("Metal Index", "GOLD · SILVER · COPPER · ALUMINIUM", "metal-index", [
         assetFromInst("GOLD", "Gold"),
         assetFromInst("SILVER", "Silver"),
-        marketAsset("Copper", "Quote not connected", "Global and MCX series not yet configured", true),
-        marketAsset("Aluminium", "Quote not connected", "Global and MCX series not yet configured", true)
+        internationalAsset("HG=F", "Copper"),
+        internationalAsset("ALI=F", "Aluminium")
       ], "Precious and industrial metals") +
       marketGroup("Energy Index", "BRENT · MURBAN · WTI", "energy-index", [
         assetFromInst("BRENT", "Brent crude"),
@@ -2350,9 +2426,11 @@ table.ledger { min-width: 800px; }
         assetFromInst("WTI", "WTI crude")
       ], "Global crude benchmarks") +
       marketGroup("International", "FX · RATES · PMI · DIGITAL ASSETS", "international", [
-        fxAsset, dxyAsset,
-        marketAsset("Global rates & PMIs", "Coverage plan", "US · Euro area · Japan · China · India", true),
-        marketAsset("Bitcoin & Ethereum", "Quotes not connected", "No crypto source in the stored feed", true)
+        internationalAsset("INR=X", "USD / INR"),
+        internationalAsset("DX-Y.NYB", "US dollar index"),
+        internationalAsset("EURUSD=X", "EUR / USD"),
+        internationalAsset("BTC-USD", "Bitcoin"),
+        internationalAsset("ETH-USD", "Ethereum")
       ], "Cross-asset context and sourced research") +
       "</div>";
   }
@@ -2374,14 +2452,22 @@ table.ledger { min-width: 800px; }
   function viewMetalIndex() {
     var date = METOIL.asOf || "—";
     return pageIntro("Metal Index",
-      "Precious and industrial metals, with supply, end-use demand and macro/FX drivers shown together. Values below are exchange or benchmark settlements, not live quotes.",
+      "Gold, silver, copper and aluminium with current benchmark levels, multi-horizon moves, evidence and known feed limits. Benchmark closes and MCX contracts are distinct instruments.",
       "Latest stored settlement · " + esc(date)) +
       marketGroup("Metals", "GOLD · SILVER · COPPER · ALUMINIUM", "metal-index", [
         assetFromInst("GOLD", "Gold"),
         assetFromInst("SILVER", "Silver"),
-        marketAsset("Copper", "Quote not connected", "Global and MCX series not yet configured", true),
-        marketAsset("Aluminium", "Quote not connected", "Global and MCX series not yet configured", true)
-      ], "Gold and silver are available in the MCX snapshot; the other two quotes are not yet wired.") +
+        internationalAsset("HG=F", "Copper · global"),
+        internationalAsset("ALI=F", "Aluminium · global")
+      ], "Gold and silver include MCX settlement analytics; copper and aluminium are global Yahoo benchmarks, not MCX contracts.") +
+      '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
+      internationalMovesTable([["GC=F", "Gold · USD/oz"], ["SI=F", "Silver · USD/oz"],
+        ["HG=F", "Copper · USD/lb"], ["ALI=F", "Aluminium · USD/t"]]) + "</section>" +
+      marketPositionEvidence(["GOLD", "SILVER"]) +
+      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC gold, silver and copper reports · contracts, not intent</span></div>' +
+      internationalPositionsTable(["gold", "silver", "copper"]) +
+      '<div class="caution"><p>CFTC positions are weekly Tuesday snapshots, usually published Friday. These futures categories are not the same as MCX open interest or spot-market holdings; net changes do not prove hedging or trader intent.</p></div></section>' +
+      marketInstrumentDetails(["GOLD", "SILVER"]) +
       driverCard("Precious & industrial metal",
         "Mine output, recycling, ore grades, smelter capacity and inventories; separate primary from recycled supply.",
         "Solar PV, electronics, grids, EVs, construction and jewellery. Industrial use can diverge from investment demand.",
@@ -2411,13 +2497,20 @@ table.ledger { min-width: 800px; }
   function viewEnergyIndex() {
     var date = METOIL.asOf || "—";
     return pageIntro("Energy Index",
-      "Brent, Murban and WTI as distinct crude benchmarks. Track physical supply, end-use demand, inventories and the dollar—not price direction alone.",
+      "Brent, Murban and WTI are distinct crude benchmarks. Compare daily through annual moves, physical drivers and verified positioning evidence; do not infer a cause from price alone.",
       "Latest stored benchmark settlement · " + esc(date)) +
       marketGroup("Crude benchmarks", "BRENT · MURBAN · WTI", "energy-index", [
         assetFromInst("BRENT", "Brent crude"),
         marketAsset("Murban crude", "Quote not connected", "Benchmark series not yet configured", true),
         assetFromInst("WTI", "WTI crude")
-      ], "Brent and WTI are available; a Murban source feed has not been configured.") +
+      ], "Brent and WTI have stored benchmarks; no Murban quote or physical differential is connected.") +
+      '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
+      internationalMovesTable([["BZ=F", "Brent · USD/bbl"], ["CL=F", "WTI · USD/bbl"]]) + "</section>" +
+      marketPositionEvidence(["CRUDE", "BRENT", "WTI"]) +
+      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC crude reports · contracts, not intent</span></div>' +
+      internationalPositionsTable(["wti", "brent"]) +
+      '<div class="caution"><p>CFTC positions are weekly Tuesday snapshots, usually published Friday. Named WTI financial and Brent last-day futures are specific contracts, not Murban or a complete view of physical-market hedging; net changes do not prove trader intent.</p></div></section>' +
+      marketInstrumentDetails(["CRUDE", "BRENT", "WTI"]) +
       driverCard("Crude market drivers",
         "OPEC+ supply policy, producer outages, spare capacity, sanctions, exports, refinery runs and commercial inventories.",
         "Transport and aviation, petrochemicals, industrial activity and seasonal demand; China/India import demand is especially relevant.",
@@ -2433,44 +2526,51 @@ table.ledger { min-width: 800px; }
   }
 
   function viewInternational() {
-    var ctx = METOIL.context || {}, fx = ctx.usdinr, dx = ctx.dxy;
-    var fxRows = [
-      fx ? marketAsset("USD / INR", n2(fx.last), "Stored quote · " + esc(fx.asOf || ""), false) :
-        marketAsset("USD / INR", "Quote not connected", "No value in the stored feed", true),
-      marketAsset("EUR / USD", "Quote not connected", "Euro-area FX feed not configured", true),
-      marketAsset("USD / JPY", "Quote not connected", "Japan FX feed not configured", true),
-        marketAsset("USD / CNY", "Quote not connected", "China onshore FX feed not configured", true),
-        marketAsset("USD / CNH", "Quote not connected", "China offshore FX feed not configured", true),
-      dx ? marketAsset("US dollar index (DXY)", n2(dx.last), "Stored quote · " + esc(dx.asOf || ""), false) :
-        marketAsset("US dollar index (DXY)", "Quote not connected", "No value in the stored feed", true)
-    ];
-    var rates = [
-      ["United States", "10-year & 30-year Treasury yields"],
-      ["India", "10-year & 30-year government bond yields"],
-      ["Euro area", "ECB policy rates and benchmark yields"],
-      ["Japan", "10-year government bond yield and policy rate"],
-      ["China", "10-year government bond yield and policy rate"]
-    ].map(function (x) { return marketAsset(esc(x[0]), "Not connected", esc(x[1]) + " · source link below", true); });
-    var pmis = ["United States", "Euro area", "Japan", "China", "India"].map(function (x) {
-      return marketAsset(esc(x), "Not connected", "Manufacturing/services PMI · S&P Global or official release", true);
-    });
-
+    var regions = ["United States", "India", "Euro area", "Japan", "China"];
+    var tenors = ["2M", "6M", "1Y", "2Y", "10Y", "30Y"];
+    var rateRows = regions.map(function (region) {
+      var cells = tenors.map(function (tenor) {
+        var item = internationalRate(region, tenor);
+        var value = item
+          ? n3(item.yieldPct) + "%" + '<div class="kpi-m">' +
+            esc(item.asOf || "") + " · " + esc(item.source || "official source") + "</div>"
+          : '<span class="source-unavailable">Not connected</span>';
+        return "<td>" + value + "</td>";
+      }).join("");
+      return '<tr><td class="lft">' + esc(region) + "</td>" + cells + "</tr>";
+    }).join("");
+    var pmiRows = regions.map(function (region) {
+      return '<tr><td class="lft">' + esc(region) + '</td><td><span class="source-unavailable">Not connected</span></td>' +
+        '<td class="lft">No verified release value/date in this snapshot</td></tr>';
+    }).join("");
     return pageIntro("International",
-      "The global context behind metals, crude and foreign exchange: rates, currencies, business activity, digital assets, and sourced developments—with source dates kept visible.",
-      "Coverage status: partial · no paid newswire feed connected") +
-      '<div class="coverage-note"><b>Source and freshness rule.</b> The saved snapshot currently provides USD/INR and DXY context. This page does not yet ingest official sovereign yields, PMI releases, Bitcoin/Ethereum prices, Reuters/WSJ headlines or J.P. Morgan research. Those rows are deliberately marked “Not connected”; links are research destinations, not a claim that data is live.</div>' +
-      '<div class="page-columns">' +
-      marketGroup("Rates & sovereign bonds", "US · INDIA · EURO AREA · JAPAN · CHINA", "international", rates,
-        "Show release/observation date and tenor; distinguish policy rates from market yields.") +
-      marketGroup("Foreign exchange", "USD · INR · EUR · JPY · CNH", "international", fxRows,
-        "FX moves feed directly into INR commodity costs and imported inflation.") +
-      marketGroup("Purchasing Managers’ Index", "MANUFACTURING & SERVICES", "international", pmis,
-        "PMIs are survey diffusion indices; show region, release date and source.") +
-      marketGroup("Digital assets", "BTC · ETH", "international", [
-        marketAsset("Bitcoin", "Quote not connected", "USD reference price · provider not configured", true),
-        marketAsset("Ethereum", "Quote not connected", "USD reference price · provider not configured", true)
-      ], "Keep crypto separate from traditional FX and sovereign rates.") +
-      "</div>" +
+      "Global rates, FX, business activity, digital assets and evidence behind cross-asset moves. A market level is separated from its interpretation; observation dates and missing feeds stay visible.",
+      "Snapshot through " + esc((INTERNATIONAL && INTERNATIONAL.asOf) || "date unavailable")) +
+      '<div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, selected US yield-index series and BTC/ETH use saved Yahoo Finance observations and history; the US curve and selected weekly positions use official Treasury and CFTC reports. India, euro-area, Japan and China curves, PMI releases and a licensed Reuters/WSJ/J.P. Morgan news feed are not connected. A price move without a timestamped release or positioning signal is shown as unattributed, not explained by guesswork.</div>' +
+      '<section class="card"><div class="card-hd"><h2>Cross-asset levels &amp; changes</h2>' +
+      '<span class="sub">FX and crypto in percent; yields in basis points</span></div>' +
+      internationalMovesTable([["INR=X", "USD/INR"], ["EURUSD=X", "EUR/USD"],
+        ["JPY=X", "USD/JPY"], ["CNY=X", "USD/CNY"], ["DX-Y.NYB", "US Dollar Index"],
+        ["BTC-USD", "Bitcoin"], ["ETH-USD", "Ethereum"],
+        ["^IRX", "US 13-week bill yield"], ["^TNX", "US 10-year yield index"],
+        ["^TYX", "US 30-year yield index"]]) + "</section>" +
+      '<section class="card"><div class="card-hd"><h2>Sovereign yield curve</h2>' +
+      '<span class="sub">Requested benchmark maturities · yield levels, not bond prices</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Market</th>' +
+      tenors.map(function (t) { return "<th>" + t + "</th>"; }).join("") +
+      "</tr></thead><tbody>" + rateRows + "</tbody></table></div>" +
+      '<div class="mo-sub">United States · official par-yield changes</div>' +
+      internationalYieldMovesTable() +
+      '<div class="caution"><p><b>Coverage limit.</b> US tenors use the U.S. Treasury daily par-yield curve and show its observation date. India, euro-area, Japan and China curves remain unconnected; blank cells do not imply zero movement.</p></div></section>' +
+      '<section class="card"><div class="card-hd"><h2>Purchasing Managers\u2019 Index</h2>' +
+      '<span class="sub">manufacturing and services · latest released value/date required</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Region</th>' +
+      "<th>Latest PMI</th><th class=\"lft\">Release / source status</th></tr></thead><tbody>" +
+      pmiRows + "</tbody></table></div></section>" +
+      '<section class="card"><div class="card-hd"><h2>Positioning, hedging &amp; build-up</h2>' +
+      '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports · contracts, not intent</span></div>' +
+      internationalPositionsTable() +
+      '<div class="caution"><p><b>Coverage and interpretation.</b> CFTC reports are weekly Tuesday snapshots, usually published Friday. Weekly net changes are contract-count changes in the named trader category, not proof of hedging, covering or a directional view. The contracts shown cover selected CME/NYMEX markets; they are not spot USD/INR, USD/CNY or exchange-wide crypto positions. Missing rows mean no selected report observation is available.</p></div></section>' +
       '<section class="card"><div class="card-hd"><h2>Cross-asset research notes</h2><span class="sub">curated references · item dates shown</span></div>' +
       '<div class="research-feed">' +
       '<article class="research-item"><div class="research-source">World Bank · 3 Nov 2026</div><div><h3>Energy strengthened while metals weakened in October</h3>' +
@@ -2479,13 +2579,17 @@ table.ledger { min-width: 800px; }
       '<p>The IEA’s net-zero scenario highlighted potentially substantial solar-PV silver demand by 2030, while also documenting efficiency, concentration and trade risks in the supply chain. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
       '<article class="research-item"><div class="research-source">Silver Institute · 2025 survey</div><div><h3>Industrial demand can rise while total demand falls</h3>' +
       '<p>Its 2024 summary reported record industrial demand but a 3% decline in total silver demand, with PV thrifting reducing silver loadings. Distinguish end-use growth from ounces demanded per panel. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Market attribution rule</div><div><h3>Moves without a verified catalyst remain unattributed</h3>' +
+      '<p>This snapshot does not contain a licensed real-time newswire or a complete release calendar. Check primary releases and their timestamps before attributing a yield, FX or commodity move; no move does not prove that no news or positioning change occurred.</p></div></article>' +
       "</div></section>" +
       '<section class="card"><div class="card-hd"><h2>Credible source network</h2><span class="sub">primary data, analysis and news</span></div><div class="source-list">' +
-      sourceItem("US Treasury · daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields.") +
+      sourceItem("US Treasury · daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields; source required for exact curve tenors.") +
       sourceItem("Federal Reserve · H.15 / H.10", "https://www.federalreserve.gov/releases/h15/", "US interest-rate statistics and foreign exchange releases.") +
-      sourceItem("RBI · Database / publications", "https://www.rbi.org.in/Scripts/BS_ViewBulletin.aspx", "India monetary, rates and FX publications; select appropriate series before wiring.") +
-      sourceItem("ECB · policy rates", "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/key_ecb_interest_rates/html/index.en.html", "Euro-area key interest rates and effective dates.") +
-      sourceItem("Bank of Japan · market statistics", "https://www.boj.or.jp/en/statistics/market/long/index.htm", "Japanese long-term interest-rate statistics.") +
+      sourceItem("RBI · Database of Indian Economy", "https://dbie.rbi.org.in/DBIE/", "Official India macroeconomic, interest-rate and FX statistics.") +
+      sourceItem("ECB · yield curves", "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_area_yield_curves/html/index.en.html", "Euro-area zero-coupon, forward and par yield curves; updated on TARGET business days.") +
+      sourceItem("Bank of Japan · statistics", "https://www.boj.or.jp/en/statistics/", "Official market and monetary statistics; use released observation dates.") +
+      sourceItem("CFTC · Commitments of Traders", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly aggregated futures positions; not a record of individual trade purpose.") +
+      sourceItem("People\u2019s Bank of China", "http://www.pbc.gov.cn/en/3688006/index.html", "Official monetary policy and financial statistics; market-yield series require a suitable published source.") +
       sourceItem("S&P Global PMI", "https://www.pmi.spglobal.com/Public/Release/PressReleases", "Regional PMI release calendar and press releases; access may vary.") +
       sourceItem("Reuters · Markets", "https://www.reuters.com/markets/", "Fast global reporting; integration requires a permitted feed/license.") +
       sourceItem("WSJ · Markets", "https://www.wsj.com/market-data", "Market coverage and data; subscription and redistribution terms apply.") +
@@ -5057,11 +5161,12 @@ table.ledger { min-width: 800px; }
          one recorded on the day it is made so it can be scored.
      ========================================================== */
   var METOIL = {};            /* metoil.json */
+  var INTERNATIONAL = {};     /* international.json */
   var MO_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var MO_NOT_BUILT = "The metals-and-oil page has not been built for this " +
     "snapshot. Run <em>python metoil.py</em> after the daily job and reload; " +
-    "it needs the 6 world histories (10 years each) and the 3 MCX contract " +
+    "it needs the world histories (10 years each) and the MCX contract " +
     "chains that job stores.";
 
   function moFirst() {
@@ -5755,6 +5860,101 @@ table.ledger { min-width: 800px; }
       "A page groups related instruments and the information needed to understand them; the section heading is not itself a quoted market series.",
       "Displayed values come from the stored snapshots. Each value carries its observation date, and a missing feed is shown as unavailable rather than filled with an estimate.",
       "Research links are source destinations, not a live newswire. Automated headlines and market data need permitted provider feeds and explicit freshness checks."
+    ],
+    "Market horizon": [
+      "A horizon compares the latest stored observation with an earlier one. The 1D, 1W, 1M, 6M and 1Y labels describe comparison windows, not forecasts or guaranteed holding periods.",
+      "Daily history uses the nearest available sessions, so weekends and market holidays can make calendar spans differ. A blank comparison means the saved history is insufficient; it does not mean zero movement.",
+      "In a yield-curve table, a maturity such as 6M or 1Y instead names the tenor. Read the table heading and source date before comparing levels across instruments."
+    ],
+    "Observation date": [
+      "The date the source says a value or position describes. A position date is the report's observation date, while a quote date belongs to its own feed.",
+      "It is not necessarily the publication, download or trade-execution date. CFTC reports describe Tuesday positions and are generally published later, so their data lag current prices.",
+      "Always compare values with their displayed dates. Different sources can update on different schedules, and a stale or missing observation should not be silently treated as current."
+    ],
+    "Evidence interpretation": [
+      "An interpretation summarizes observed data using a stated convention. A price/open-interest label is a mechanical classification, not a directly observed account or trader action.",
+      "CFTC categories show grouped reportable futures positions. Net changes do not identify the specific trades, the reason for taking them, or whether the position hedges another exposure.",
+      "Attribute a move to a catalyst only when a dated, credible release or report supports it. Otherwise leave the cause unattributed rather than turning a correlation into an explanation."
+    ],
+    "Futures contract": [
+      "A futures market is a standardized exchange-traded contract with a named underlying, contract terms and delivery or settlement basis. Its price and open interest refer to that contract.",
+      "The same commodity can have several contracts and benchmarks. WTI financial crude, Brent last-day futures, MCX crude, Murban and physical cargo prices are not interchangeable series.",
+      "Use the contract label and source when interpreting positions. A contract-specific report cannot describe every venue, spot holding, physical hedge or participant in the wider market."
+    ],
+    "CFTC trader category": [
+      "The CFTC groups reportable futures positions into classifications such as Asset Manager, Leveraged Money, Managed Money and Producer/Merchant, depending on the report family.",
+      "These are regulatory reporting categories rather than named funds or a complete census of market participants. A category's net position is the group's longs less shorts for that contract.",
+      "A Producer/Merchant position may be consistent with commercial exposure, but the report does not prove any individual position is a hedge or reveal its purpose."
+    ],
+    "Net futures position": [
+      "Net contracts equal reported long contracts minus reported short contracts for one named category, contract and observation date. Positive is net long; negative is net short.",
+      "The number is a snapshot, not gross exposure: large long and short books can offset to a small net. Open interest provides the total contract count for context.",
+      "The data is delayed weekly CFTC futures reporting. It does not show real-time flows, every exchange or OTC exposure, or the motive of any trader."
+    ],
+    "Weekly net change": [
+      "The latest net position minus the preceding weekly report's net position, measured in contracts for the same CFTC category and market.",
+      "A positive change means the reported net became more long or less short; a negative change means it became less long or more short. It does not identify which legs changed.",
+      "This is not proof of long build-up, short covering or hedging by itself. Compare gross longs, gross shorts, price, open interest, dates and other evidence before describing a position shift."
+    ],
+    "Net to open interest": [
+      "Net contracts divided by total market open interest, expressed as a percentage. It gives the category's net direction and size relative to all open contracts.",
+      "Open interest counts outstanding contracts across both sides; it is not a directional total. The ratio can change because net positions move, total open interest moves, or both.",
+      "This ratio is not a percentage of all investor exposure or physical supply. It only describes the selected CFTC category within the named futures market and report."
+    ],
+    "CFTC positioning": [
+      "Selected official CFTC Traders in Financial Futures and Disaggregated futures-only reports are shown for named currency, Treasury, digital-asset and commodity contracts.",
+      "The CFTC snapshot records positions on Tuesday and is usually released Friday. The displayed weekly change compares the latest two observations, so it is delayed evidence rather than a live positioning feed.",
+      "The selection does not cover spot USD/INR or USD/CNY, every futures venue, exchange-wide crypto positions or all physical hedging. A blank row means no selected observation is present."
+    ],
+    "Market benchmark": [
+      "A benchmark is a named reference price for an instrument, unit and market. Gold may be quoted per troy ounce, copper per pound, and crude per barrel.",
+      "Benchmark returns compare saved daily closes. A percent change is relative to the earlier close; displayed source dates are needed to judge whether benchmarks are synchronized.",
+      "Benchmarks can differ by contract, exchange, currency and observation time. Do not treat a futures benchmark as an identical physical price or infer a cause from the move alone."
+    ],
+    "Market region": [
+      "A country or economic area whose currency, government debt or activity measure is being monitored. Similar labels do not imply that every market has the same source coverage.",
+      "The US curve shown here comes from the official Treasury daily par-yield series. Other sovereign curves and PMI releases must be connected to their own reliable sources before values are shown.",
+      "An unavailable region is not evidence that its rate or activity is unchanged. Check the source, maturity, release date and methodology when comparing regions."
+    ],
+    "Sovereign yield": [
+      "A government-debt yield is the annualized rate associated with a stated maturity and pricing methodology. The dashboard's Treasury curve uses official daily par yields.",
+      "Yield and bond price generally move in opposite directions, but the yield change alone does not explain why prices moved. Policy expectations, inflation, supply and risk can matter.",
+      "Par, zero-coupon, auction and traded bond yields are distinct measures. Compare like-for-like tenors and sources, and read basis-point changes with the observation date."
+    ],
+    "Treasury tenor": [
+      "A tenor names the maturity point on the US Treasury par-yield curve: for example 2M means two months and 10Y means ten years.",
+      "The table reports yield levels, while horizon columns report basis-point changes over an earlier observation window. These are different dimensions and should not be read as bond prices.",
+      "The source is the US Treasury daily curve. Missing history or cells are unavailable, not zero; non-US tenors remain unconnected until a comparable official feed is added."
+    ],
+    "Purchasing Managers' Index (PMI)": [
+      "A PMI is a survey-based diffusion index that summarizes business conditions for a specified sector and reporting region. Manufacturing and services readings are separate measures.",
+      "Values, seasonal adjustment and release timing depend on the survey provider. Read the latest published value with its release date, source and whether it is a flash or final report.",
+      "This dashboard currently shows explicit unavailable status where no verified PMI feed is connected. It does not substitute a prior reading or infer activity from unrelated market prices."
+    ],
+    "Foreign exchange pair": [
+      "An FX pair quotes one currency against another. In EUR/USD, EUR is the base currency and USD is the quote currency; USD/JPY and USD/CNY use the opposite dollar orientation.",
+      "A rising quote means the base currency buys more units of the quote currency. Check the pair convention before describing appreciation or depreciation.",
+      "Daily observations are indicative source quotes and may not equal an executable price. OTC positioning, central-bank intervention and spot-market flow are not established by the quote alone."
+    ],
+    "Digital asset": [
+      "Bitcoin and Ethereum are digital assets whose displayed spot quotes are price observations from the stated source, with their own dates and currency denomination.",
+      "A spot price change does not show open interest, liquidations, exchange flows or derivatives positioning. Those require separate, dated and methodologically clear sources.",
+      "The selected CFTC Bitcoin futures categories cover that reported futures market only. They are not exchange-wide crypto positions and do not provide equivalent Ethereum positioning."
+    ],
+    "US Dollar Index": [
+      "The US Dollar Index is a weighted measure of the dollar against a defined basket of major currencies. It summarizes a basket rather than quoting the dollar against one currency.",
+      "Its composition and weights differ from trade-weighted or emerging-market currency indexes. Compare its source and date with individual FX pairs before drawing conclusions.",
+      "A dollar-index move can provide cross-asset context, but it does not by itself establish the cause of a move in metals, crude, rates or a particular currency."
+    ],
+    "Treasury futures position": [
+      "A Treasury futures row describes a CFTC-reported category's positions in the specifically named US Treasury futures contract, such as a 2-year or 10-year note future.",
+      "The net is long contracts minus short contracts, and weekly change compares two report dates. It is not a direct measure of cash-bond holdings or yield-curve exposure.",
+      "Futures duration, basis trades, options and cash holdings can alter how a position behaves. The CFTC category and contract data cannot identify a trader's strategy or motive."
+    ],
+    "Currency futures position": [
+      "A currency futures row describes a CFTC category's reported position in the named Euro FX or Japanese Yen futures market, not all FX transactions.",
+      "Net and weekly net change are contract counts. They do not measure spot USD/INR, USD/CNY or every OTC hedge, and a directional-looking net may offset another exposure.",
+      "Use the observation date and category before discussing a shift. These delayed reports provide context for the named futures market, not proof of an individual investor's view."
     ],
     /* ---- metals and oil ------------------------------------------ */
     "Metals and oil": [
@@ -9090,6 +9290,169 @@ table.ledger { min-width: 800px; }
     ["Break above", "P(profit)"]
   ];
 
+  var MARKET_PAGE_TERMS = {
+    "Market horizon": {
+      deep: "Market horizon",
+      how: function () {
+        return "A horizon compares the latest stored observation with an earlier one. " +
+          "1D, 1W, 1M, 6M and 1Y use the nearest available daily observations; " +
+          "the latest source date and missing history matter.";
+      }
+    },
+    "Observation date": {
+      deep: "Observation date",
+      how: function () {
+        return "The date the source says this value or position describes. CFTC " +
+          "Tuesday snapshots are usually published Friday, about 3 days later; " +
+          "this is not necessarily the download or execution date. At roughly 52 " +
+          "weekly reports a year, that timing matters.";
+      }
+    },
+    "Evidence interpretation": {
+      deep: "Evidence interpretation",
+      how: function () {
+        return "A label summarizes the observed data using a stated convention. The " +
+          "4 price/open-interest quadrants are mechanical labels; for example, " +
+          "1 rising price with 1 rising OI is not proof of who traded or why.";
+      }
+    },
+    "Futures contract": {
+      deep: "Futures contract",
+      how: function () {
+        return "A standardized exchange-traded contract for a specified market and " +
+          "delivery basis. The 3 crude references Brent, Murban and WTI have distinct " +
+          "markets; Treasury 2-year and 10-year futures also differ from spot and " +
+          "physical prices.";
+      }
+    },
+    "CFTC trader category": {
+      deep: "CFTC trader category",
+      how: function () {
+        return "A CFTC reporting classification such as Asset Manager, Leveraged " +
+          "Money, Managed Money or Producer/Merchant. This selection shows 2 " +
+          "categories per report family across 2 report families (4 selected " +
+          "categories total); these grouped positions do not " +
+          "identify a trader's purpose.";
+      }
+    },
+    "Net futures position": {
+      deep: "Net futures position",
+      how: function () {
+        return "Long contracts minus short contracts for the named CFTC category " +
+          "and futures market. For example, 12 long minus 5 short equals 7 net; " +
+          "positive is net long.";
+      }
+    },
+    "Weekly net change": {
+      deep: "Weekly net change",
+      how: function () {
+        return "The latest reported net position minus the preceding weekly report's " +
+          "net. It compares 2 weekly observations; for example, a move from 10 to " +
+          "15 contracts is +5, not proof of opening, closing or hedging intent.";
+      }
+    },
+    "Net to open interest": {
+      deep: "Net to open interest",
+      how: function () {
+        return "Net contracts divided by total market open interest. For example, " +
+          "10 net / 100 open contracts = 10%; it is not a share of all market risk.";
+      }
+    },
+    "CFTC positioning": {
+      deep: "CFTC positioning",
+      how: function () {
+        return "Selected official CFTC futures reports. Tuesday positions are usually " +
+          "published Friday and therefore lag current prices; selected contracts do " +
+          "not represent all venues, spot markets or physical hedging. Reports are " +
+          "weekly (7 days) across 52 weeks, not live.";
+      }
+    },
+    "Market benchmark": {
+      deep: "Market benchmark",
+      how: function () {
+        return "A named reference price for a particular instrument, currency and " +
+          "unit. Benchmarks can differ by contract, exchange, currency and observation " +
+          "time; the 1D, 1W and 1M moves need comparable source dates.";
+      }
+    },
+    "Market region": {
+      deep: "Market region",
+      how: function () {
+        return "The country or economic area whose yield or activity measure is being " +
+          "shown. The US curve has 6 tenors from 2M through 30Y; other regions need " +
+          "their own sources.";
+      }
+    },
+    "Sovereign yield": {
+      deep: "Sovereign yield",
+      how: function () {
+        return "A government-debt yield for a stated maturity and source methodology. " +
+          "The official US Treasury curve here reports 6 daily tenors from 2M to 30Y.";
+      }
+    },
+    "Treasury tenor": {
+      deep: "Treasury tenor",
+      how: function () {
+        return "The remaining maturity point on the US Treasury par-yield curve: " +
+          "2M, 6M, 1Y, 2Y, 10Y and 30Y. A curve level is a yield, not the bond's " +
+          "price or an investment return.";
+      }
+    },
+    "Purchasing Managers' Index (PMI)": {
+      deep: "Purchasing Managers' Index (PMI)",
+      how: function () {
+        return "A survey-based diffusion index of business conditions. 50 is the " +
+          "common neutral threshold; a reading of 52 is above it. Read the release " +
+          "date and provider because methodology and sectors differ.";
+      }
+    },
+    "Foreign exchange pair": {
+      deep: "Foreign exchange pair",
+      how: function () {
+        return "A quoted exchange rate between two currencies. The pair convention " +
+          "states how many units of the quote currency correspond to one unit of the " +
+          "base currency. For example, USD/JPY = 100 quotes 100 yen per dollar.";
+      }
+    },
+    "Digital asset": {
+      deep: "Digital asset",
+      how: function () {
+        return "A digital-token price observation. A spot quote is not a derivatives " +
+          "position, exchange-wide flow measure or evidence of trader positioning. " +
+          "The 2 spot assets shown and selected Bitcoin futures reports are distinct " +
+          "from the 7-day positioning feed refreshed once per week; 1 quote is not a flow.";
+      }
+    },
+    "US Dollar Index": {
+      deep: "US Dollar Index",
+      how: function () {
+        return "A weighted index of the US dollar against a defined basket of major " +
+          "currencies. It is not an exchange rate against any single currency; the " +
+          "basket contains 6 currencies. A 1-point index change is not a 1% FX move.";
+      }
+    },
+    "Treasury futures position": {
+      deep: "Treasury futures position",
+      how: function () {
+        return "A CFTC-reported futures position in a named US Treasury contract. " +
+          "It is not a cash-bond holding or a yield-curve position by itself. Named " +
+          "2-year and 10-year contracts are separate futures markets.";
+      }
+    },
+    "Currency futures position": {
+      deep: "Currency futures position",
+      how: function () {
+        return "A CFTC-reported position in a named currency futures contract. It " +
+          "does not cover the full OTC foreign-exchange market or establish a hedging " +
+          "motive. The selection includes 2 named currency futures markets and " +
+          "2 trader categories from 1 weekly report.";
+      }
+    }
+  };
+  Object.keys(MARKET_PAGE_TERMS).forEach(function (name) {
+    if (!TERMS[name]) TERMS[name] = MARKET_PAGE_TERMS[name];
+  });
+
   var TERM_ALIAS = {
     "India Index": "Market section",
     "Metal Index": "Market section",
@@ -9107,6 +9470,53 @@ table.ledger { min-width: 800px; }
     "Digital assets": "Market section",
     "Cross-asset research notes": "Market section",
     "Credible source network": "Market section",
+    "1D": "Market horizon",
+    "1W": "Market horizon",
+    "1M": "Market horizon",
+    "6M": "Market horizon",
+    "1Y": "Market horizon",
+    "As of": "Observation date",
+    "Position date": "Observation date",
+    "Interpretation": "Evidence interpretation",
+    "Futures market": "Futures contract",
+    "CFTC category": "CFTC trader category",
+    "Net": "Net futures position",
+    "Weekly Δ net": "Weekly net change",
+    "Net / OI": "Net to open interest",
+    "Global benchmark performance": "Market benchmark",
+    "Aluminium · USD/t": "Market benchmark",
+    "Positioning evidence": "CFTC positioning",
+    "Weekly futures positioning": "CFTC positioning",
+    "Market": "Market region",
+    "2M": "Treasury tenor",
+    "2Y": "Treasury tenor",
+    "10Y": "Treasury tenor",
+    "30Y": "Treasury tenor",
+    "US tenor": "Treasury tenor",
+    "Yield": "Sovereign yield",
+    "Latest PMI": "Purchasing Managers' Index (PMI)",
+    "Release / source status": "Purchasing Managers' Index (PMI)",
+    "Cross-asset levels & changes": "Market benchmark",
+    "Sovereign yield curve": "Sovereign yield",
+    "Positioning, hedging & build-up": "CFTC positioning",
+    "USD/JPY": "Foreign exchange pair",
+    "USD/CNY": "Foreign exchange pair",
+    "EUR/USD": "Foreign exchange pair",
+    "Bitcoin": "Digital asset",
+    "Ethereum": "Digital asset",
+    "US 13-week bill yield": "Sovereign yield",
+    "US 30-year yield index": "Sovereign yield",
+    "United States": "Market region",
+    "India": "Market region",
+    "Euro area": "Market region",
+    "Japan": "Market region",
+    "China": "Market region",
+    "US Treasury bond": "Treasury futures position",
+    "US Treasury 2-year note": "Treasury futures position",
+    "US Treasury 5-year note": "Treasury futures position",
+    "US Treasury 10-year note": "Treasury futures position",
+    "Japanese Yen": "Currency futures position",
+    "Euro FX": "Currency futures position",
     /* The metals-and-oil page. Its instrument names replace the macro
        driver aliases above: the same word now opens the instrument card,
        which carries the macro channel inside it. */
@@ -9495,6 +9905,82 @@ table.ledger { min-width: 800px; }
     "Market section": [
       "A navigation-level grouping of instruments, market data and context for one part of the desk.",
       "The date and source of a quote matter: this workspace keeps unavailable or stale inputs visible instead of implying a complete live feed."
+    ],
+    "Market horizon": [
+      "A comparison between the latest stored value and an earlier observation.",
+      "It shows how far a market moved over that window; it is not a forecast."
+    ],
+    "Observation date": [
+      "The date the source says a value or position describes.",
+      "It tells you how current the evidence is, not when it was published or downloaded."
+    ],
+    "Evidence interpretation": [
+      "A concise reading of observed market data using a stated rule.",
+      "It can organize evidence, but it cannot prove an unseen trader's motive or a move's cause."
+    ],
+    "Futures contract": [
+      "A standardized exchange-traded agreement for a named market and contract terms.",
+      "Different futures, spot and physical benchmarks can have different prices and positions."
+    ],
+    "CFTC trader category": [
+      "A CFTC grouping of reportable futures traders, such as Asset Manager or Managed Money.",
+      "The category shows aggregated positions, not the identity or intention of an individual trader."
+    ],
+    "Net futures position": [
+      "Long contracts minus short contracts for one category and futures market.",
+      "A positive result is net long and a negative result is net short."
+    ],
+    "Weekly net change": [
+      "The difference between the latest reported net position and the prior weekly report.",
+      "It shows a change in reported contracts, not why a trader changed exposure."
+    ],
+    "Net to open interest": [
+      "Net contracts divided by the market's total open interest.",
+      "It puts the category's net position in context without measuring all market risk."
+    ],
+    "CFTC positioning": [
+      "Selected official CFTC reports of positions in specified futures markets.",
+      "These weekly snapshots are delayed and do not cover every venue, spot market or hedge."
+    ],
+    "Market benchmark": [
+      "A reference price for a specified instrument, unit and market.",
+      "Benchmark returns are comparable only when their contracts, currencies and source dates are understood."
+    ],
+    "Market region": [
+      "The country or economic area associated with a rate, currency or activity measure.",
+      "Unavailable data for one region is not evidence that its market did not move."
+    ],
+    "Sovereign yield": [
+      "The stated interest rate associated with government debt of a specified maturity.",
+      "A yield is not a bond price, and its methodology and source should be checked."
+    ],
+    "Treasury tenor": [
+      "The maturity point represented by a US Treasury curve observation.",
+      "A tenor's yield level and the change over a period are separate readings."
+    ],
+    "Purchasing Managers' Index (PMI)": [
+      "A survey-based measure of business conditions for a region and sector.",
+      "Read the number with its release date, provider and survey methodology."
+    ],
+    "Foreign exchange pair": [
+      "An exchange rate quoted between a base currency and a quote currency.",
+      "The pair's order determines which currency is strengthening when the quote changes."
+    ],
+    "Digital asset": [
+      "A digital-token price observation from the named source.",
+      "A spot price is separate from derivatives positions, liquidations and exchange flows."
+    ],
+    "US Dollar Index": [
+      "A weighted measure of the US dollar against a defined basket of currencies.",
+      "It is not a bilateral exchange rate or a complete measure of dollar exposure."
+    ],
+    "Treasury futures position": [
+      "A reported position in a named US Treasury futures contract.",
+      "It is not the same as a cash-bond holding or a directly measured yield view."
+    ],
+    "Currency futures position": [
+      "A reported position in a named currency futures contract.",
+      "It does not represent every OTC foreign-exchange transaction or hedge."
     ],
     /* ---- metals and oil ------------------------------------------ */
     "Metals and oil": [
@@ -12087,7 +12573,8 @@ table.ledger { min-width: 800px; }
         getJson("history.json").catch(function () { return {}; }),
         getJson("stocks.json").catch(function () { return {}; }),
         getJson("techfund.json").catch(function () { return {}; }),
-        getJson("metoil.json").catch(function () { return {}; })
+        getJson("metoil.json").catch(function () { return {}; }),
+        getJson("international.json").catch(function () { return { items: [] }; })
       ]);
     }).then(function (both) {
       var acc = both[0], mkt = both[1], wl = both[2], ch = both[3],
@@ -12101,6 +12588,7 @@ table.ledger { min-width: 800px; }
       STOCKS = stk || {};
       TECHFUND = tf || {};
       METOIL = both[7] || {};
+      INTERNATIONAL = both[8] || {};
       /* The MCX and crude series ride into the same chart store as the
          indices, so the strip cells for GOLD, SILVER, CRUDE, BRENT and
          WTI open the candlestick viewer like any index. Merged before
