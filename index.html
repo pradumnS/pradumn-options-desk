@@ -456,6 +456,27 @@ body {
 .research-item p { margin: 4px 0 0; color: var(--ink-2); font-size: 11.5px; line-height: 1.5; }
 .research-item a { color: var(--calls); text-decoration: none; }
 .research-item a:hover { text-decoration: underline; }
+.ana-pick { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 14px 0; }
+.ana-pick button { font: inherit; font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); cursor: pointer; }
+.ana-pick button.on { border-color: var(--calls); color: var(--calls); background: var(--calls-dim); }
+.ana-pick button .pos, .ana-pick button .neg { margin-left: 4px; font-family: var(--font-num); }
+.ana-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0; }
+.ana-block { padding: 12px 14px; border-top: 1px solid var(--line-soft); min-width: 0; }
+.ana-block h3 { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.ana-block p { margin: 0 0 8px; color: var(--ink-2); font-size: 12px; line-height: 1.55; }
+.ana-head { padding: 12px 14px 4px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.ana-head .big { font-family: var(--font-num); font-size: 20px; color: var(--ink); }
+.ana-news { list-style: none; margin: 0; padding: 0; }
+.ana-news li { padding: 6px 0; border-bottom: 1px solid var(--line-soft); font-size: 12px; line-height: 1.45; }
+.ana-news li:last-child { border-bottom: 0; }
+.ana-news a { color: var(--ink); text-decoration: none; }
+.ana-news a:hover { color: var(--calls); text-decoration: underline; }
+.ana-meta { display: block; color: var(--ink-3); font-size: 10.5px; margin-top: 2px; }
+.ana-tier { display: inline-block; font-size: 9.5px; padding: 0 5px; border-radius: 3px; border: 1px solid var(--line); margin-right: 4px; }
+.ana-tier.t1 { color: var(--up); border-color: var(--up); }
+.ana-tier.t2 { color: var(--calls); border-color: var(--calls); }
+.ana-tier.t3 { color: var(--ink-3); }
+.ana-ok { color: var(--ok); } .ana-stale { color: var(--warn); } .ana-missing { color: var(--down); }
 .page-columns { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
 .source-unavailable { color: var(--warn); font-size: 10px; }
 
@@ -1486,6 +1507,72 @@ table.ledger { min-width: 800px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+</style>
+<style id="mtl-css">
+/* ---------- Metal Index: managed-money study (mtl-*) ---------- */
+.mtl-lede { padding: 12px 16px 4px; }
+.mtl-lede p { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.6; max-width: 980px; }
+.mtl-lede b { color: var(--ink); }
+.mtl-pick { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 8px; }
+.mtl-btn { font: 600 12px var(--font-ui); padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); }
+.mtl-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.mtl-btn.on { background: var(--calls-dim); color: var(--calls); border-color: var(--calls); }
+.mtl-btn:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
+.mtl-row { cursor: pointer; }
+.mtl-row:hover td { background: var(--surface-2); }
+.mtl-row.on td { background: var(--calls-dim); }
+.mtl-ex { display: block; font-size: 9.5px; color: var(--ink-3); font-family: var(--font-num); letter-spacing: .08em; }
+.mtl-cot { display: inline-block; min-width: 34px; padding: 2px 6px; border-radius: 4px; font-family: var(--font-num);
+  font-weight: 600; text-align: center; background: var(--surface-3); color: var(--ink); }
+.mtl-hot  { background: rgba(63,185,80,.22); color: var(--up); }
+.mtl-warm { background: rgba(63,185,80,.10); color: var(--up); }
+.mtl-cool { background: rgba(248,81,73,.10); color: var(--down); }
+.mtl-cold { background: rgba(248,81,73,.22); color: var(--down); }
+.mtl-note { padding: 10px 16px 14px; color: var(--ink-3); font-size: 11.5px; line-height: 1.55; }
+.mtl-note b, .mtl-note em { color: var(--ink-2); font-style: normal; }
+.mtl-sub { padding: 10px 16px 0; color: var(--ink-2); font-size: 12px; font-weight: 600; }
+.mtl-kpis { padding: 12px 16px 0; }
+.mtl-kpis .kpi { background: var(--surface-2); border-radius: var(--r); }
+.mtl-kpis .kpi-v small { font-size: 11px; color: var(--ink-3); font-weight: 500; }
+.mtl-story { padding: 6px 16px 10px; display: grid; gap: 2px; }
+.mtl-para h3 { margin: 10px 0 3px; font: 600 10px var(--font-num); letter-spacing: .12em; text-transform: uppercase; color: var(--calls); }
+.mtl-para p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--ink-2); max-width: 980px; }
+.mtl-para b { color: var(--ink); }
+.mtl-para em { color: var(--ink); font-style: italic; }
+.mtl-chart { display: block; width: 100%; height: auto; padding: 8px 8px 0; box-sizing: border-box; }
+.mtl-grid { stroke: var(--line-soft); stroke-width: 1; }
+.mtl-zero { stroke: var(--ink-3); stroke-width: 1; }
+.mtl-ax { fill: var(--ink-3); font: 10px var(--font-num); }
+.mtl-ax-px { fill: var(--puts); }
+.mtl-bar-up { fill: var(--up); opacity: .55; }
+.mtl-bar-dn { fill: var(--down); opacity: .55; }
+.mtl-line-px { fill: none; stroke: var(--puts); stroke-width: 2; }
+.mtl-line-l { fill: none; stroke: var(--up); stroke-width: 1.8; }
+.mtl-line-s { fill: none; stroke: var(--down); stroke-width: 1.8; }
+.mtl-ep-dot { fill: var(--surface); stroke: var(--calls); stroke-width: 2; }
+.mtl-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 4px 16px 6px; font-size: 11px; color: var(--ink-3); }
+.mtl-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mtl-sw { display: inline-block; width: 12px; height: 8px; border-radius: 2px; }
+.mtl-sw-up { background: var(--up); opacity: .6; } .mtl-sw-dn { background: var(--down); opacity: .6; }
+.mtl-sw-px { background: var(--puts); height: 3px; } .mtl-sw-ep { width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--calls); }
+.mtl-sw-l { background: var(--up); height: 3px; } .mtl-sw-s { background: var(--down); height: 3px; }
+.mtl-corr { position: relative; height: 6px; margin-top: 5px; background: var(--surface-3); border-radius: 3px; min-width: 90px; }
+.mtl-corr-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--ink-3); }
+.mtl-corr-bar { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.mtl-corr-bar.pos { background: var(--up); } .mtl-corr-bar.neg { background: var(--down); }
+.mtl-why { min-width: 260px; max-width: 460px; white-space: normal !important; line-height: 1.5; font-size: 12px; color: var(--ink-2); }
+.mtl-why b { color: var(--ink); }
+.dt tr.mtl-live td { background: var(--calls-dim); }
+.mtl-primer { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; padding: 12px 16px 16px; }
+.mtl-pc { background: var(--surface-2); border-radius: var(--r); padding: 12px 14px; }
+.mtl-pc h3 { margin: 0 0 6px; font-size: 13px; color: var(--ink); }
+.mtl-pc p { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--ink-2); }
+.mtl-pc b, .mtl-pc em { color: var(--ink); }
+@media (max-width: 720px) {
+  .mtl-why { min-width: 200px; }
+  .mtl-para p, .mtl-lede p { font-size: 12.5px; }
+}
 /* ============================================================
    READING COMFORT (Warm Paper) -- appearance only.
    Slightly larger text, more air between cards, softer edges.
@@ -1618,6 +1705,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   var MHIST = {};            /* history.json -- per-day audit trail */
   var TECHFUND = {};         /* techfund.json -- note + valuation */
   var STOCKS = {};           /* stocks.json  -- index constituents */
+  var ANALYSIS = {};         /* analysis.json -- why markets moved, sources */
 
   function getJson(name) {
     return fetch(SNAPSHOT + name, { cache: "no-store" }).then(function (r) {
@@ -1856,7 +1944,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
      4. STATE
      ========================================================== */
   var state = { idx: "NIFTY", page: "market-overview", view: "overview", strike: null,
-                wl: null, wlExpiry: 0 };
+                wl: null, wlExpiry: 0, anaSym: "JPY=X" };
 
   /* ==========================================================
      5. RENDER &mdash; chrome
@@ -2482,13 +2570,11 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         internationalAsset("HG=F", "Copper \u00b7 global"),
         internationalAsset("ALI=F", "Aluminium \u00b7 global")
       ], "Gold and silver include MCX settlement analytics; copper and aluminium are global Yahoo benchmarks, not MCX contracts.") +
+      mtlDesk() +
       '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
       internationalMovesTable([["GC=F", "Gold \u00b7 USD/oz"], ["SI=F", "Silver \u00b7 USD/oz"],
         ["HG=F", "Copper \u00b7 USD/lb"], ["ALI=F", "Aluminium \u00b7 USD/t"]]) + "</section>" +
       marketPositionEvidence(["GOLD", "SILVER"]) +
-      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC gold, silver and copper reports \u00b7 contracts, not intent</span></div>' +
-      internationalPositionsTable(["gold", "silver", "copper"]) +
-      '<div class="caution"><p>CFTC positions are weekly Tuesday snapshots, usually published Friday. These futures categories are not the same as MCX open interest or spot-market holdings; net changes do not prove hedging or trader intent.</p></div></section>' +
       marketInstrumentDetails(["GOLD", "SILVER"]) +
       driverCard("Precious & industrial metal",
         "Mine output, recycling, ore grades, smelter capacity and inventories; separate primary from recycled supply.",
@@ -2508,43 +2594,1494 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       sourceItem("Silver Institute", "https://silverinstitute.org/silver-supply-demand/", "Annual silver survey prepared with Metals Focus; supply, fabrication and demand.") +
       sourceItem("World Bank Pink Sheet", "https://www.worldbank.org/en/research/commodity-markets", "Monthly benchmark price series for energy and metals.") +
       sourceItem("USGS", "https://www.usgs.gov/centers/national-minerals-information-center", "Mineral commodity summaries and mine-supply context.") +
+      sourceItem("CFTC \u00b7 Disaggregated COT", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly futures positions by trader group; source of every managed-money figure on this page.") +
       "</div></section>";
   }
+
+  /* ==========================================================
+     METAL INDEX \u00b7 managed-money positioning study
+     Data: snapshot/metals.json, written by metals_cot.py.
+     Everything in this block is mtl-prefixed and owned by the
+     Metal Index tab. It reads shared helpers but changes none.
+     ========================================================== */
+  var MTL = {};
+  var mtlState = { metal: "gold" };
+
+  function mtlOk(v) { return v !== null && v !== undefined && isFinite(Number(v)); }
+  function mtlN(v) { return mtlOk(v) ? Math.round(v).toLocaleString("en-US") : "\u2014"; }
+  function mtlS(v) {
+    if (!mtlOk(v)) return "\u2014";
+    return (v > 0 ? "+" : v < 0 ? "\u2212" : "") + Math.abs(Math.round(v)).toLocaleString("en-US");
+  }
+  function mtlP(v, d) {
+    if (!mtlOk(v)) return "\u2014";
+    d = d == null ? 1 : d;
+    return (v > 0 ? "+" : v < 0 ? "\u2212" : "") + Math.abs(v).toFixed(d) + "%";
+  }
+  function mtlBp(v) { return mtlOk(v) ? (v > 0 ? "+" : v < 0 ? "\u2212" : "") + Math.abs(v).toFixed(0) + " bp" : "\u2014"; }
+  function mtlCol(v, txt) { return '<span class="' + (mtlOk(v) ? (v > 0 ? "pos" : v < 0 ? "neg" : "neu") : "neu") + '">' + txt + "</span>"; }
+  function mtlDate(d, short) {
+    if (!d) return "\u2014";
+    var o = short ? { day: "numeric", month: "short", year: "2-digit", timeZone: "UTC" }
+                  : { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" };
+    return new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", o);
+  }
+  function mtlUsd(v) {
+    if (!mtlOk(v)) return "\u2014";
+    var a = Math.abs(v);
+    return (v < 0 ? "\u2212" : "") + "$" + (a >= 1e9 ? (a / 1e9).toFixed(1) + "bn" : a >= 1e6 ? (a / 1e6).toFixed(0) + "m" : Math.round(a).toLocaleString("en-US"));
+  }
+  function mtlPx(m, v) {
+    if (!mtlOk(v)) return "\u2014";
+    return "$" + Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: v < 20 ? 3 : 2 });
+  }
+  function mtlCur() {
+    var ms = MTL.metals || [];
+    for (var i = 0; i < ms.length; i++) if (ms[i].key === mtlState.metal) return ms[i];
+    return ms[0] || null;
+  }
+  function mtlStudy(m, key) {
+    for (var i = 0; i < (m.study || []).length; i++) if (m.study[i].key === key) return m.study[i];
+    return {};
+  }
+  function mtlCrowdLabel(c) {
+    if (!mtlOk(c)) return { t: "Not enough history", k: "neu" };
+    if (c >= 85) return { t: "Crowded long", k: "hot" };
+    if (c >= 65) return { t: "Leaning long", k: "warm" };
+    if (c > 35) return { t: "Middle of range", k: "mid" };
+    if (c > 15) return { t: "Leaning short", k: "cool" };
+    return { t: "Washed out", k: "cold" };
+  }
+  function mtlSide(n) { return n > 0 ? "net long" : n < 0 ? "net short" : "flat"; }
+  function mtlStrength(r) {
+    var a = Math.abs(r || 0);
+    return a >= 0.4 ? "Strong" : a >= 0.2 ? "Moderate" : a >= 0.1 ? "Weak" : "No real link";
+  }
+  function mtlEn(n) { return n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : n + "th"; }
+
+  /* ---- the whole positioning desk ------------------------------------ */
+  function mtlDesk() {
+    var ms = MTL.metals || [];
+    if (!ms.length) {
+      return '<section class="card"><div class="card-hd"><h2>Managed money positioning</h2></div>' +
+        '<div class="coverage-note"><b>Positioning study not loaded.</b> snapshot/metals.json is missing or empty. Run <em>python metals_cot.py</em> (or the daily export) and reload.</div></section>';
+    }
+    var m = mtlCur();
+    return '<section class="card mtl-intro"><div class="card-hd"><h2>Managed money: who is positioned, and why it changes</h2>' +
+        '<span class="sub">CFTC Disaggregated COT \u00b7 positions as of ' + esc(mtlDate(MTL.asOf)) +
+        ' \u00b7 next report ' + esc(mtlDate(MTL.nextRelease)) + "</span></div>" +
+        '<div class="mtl-lede"><p><b>Managed money</b> is the CFTC\u2019s label for hedge funds and commodity trading advisers (CTAs). They are the speculators: they trade metals to profit from the price, not to hedge a mine, a refinery or a jewellery business. Their positions swing the most, so their changes explain a large share of medium-term moves. This section shows what they hold, what they changed this week, and what has actually driven their changes over ' +
+        (m ? Math.round(m.weeksStored / 52) : 6) + " years of weekly data, so you can learn to read them yourself.</p></div>" +
+        mtlSummary(ms) + "</section>" +
+      mtlDecodeCard(m) +
+      mtlChartsCard(m) +
+      mtlDriversCard(m) +
+      mtlEpisodesCard(m) +
+      mtlWeeklyCard(m) +
+      mtlCrowdCard(m) +
+      mtlOtherSideCard(m) +
+      mtlPrimerCard();
+  }
+
+  function mtlSummary(ms) {
+    var rows = ms.map(function (m) {
+      var L = m.latest, c = mtlCrowdLabel(L.cot), on = m.key === mtlState.metal;
+      return '<tr class="mtl-row' + (on ? " on" : "") + '" data-mtl="' + m.key + '">' +
+        '<td class="lft"><b>' + esc(m.label) + "</b><span class=\"mtl-ex\">" + esc(m.exchange) + "</span></td>" +
+        "<td>" + mtlPx(m, L.px) + '<div class="kpi-m">' + mtlCol(L.pxW, mtlP(L.pxW, 1)) + " wk</div></td>" +
+        "<td>" + mtlS(L.net) + '<div class="kpi-m">' + mtlUsd(L.notionalUsd) + "</div></td>" +
+        "<td>" + mtlCol(L.dN, mtlS(L.dN)) + "</td>" +
+        '<td class="lft">' + esc(L.action || "\u2014") + "</td>" +
+        '<td><span class="mtl-cot mtl-' + c.k + '">' + (mtlOk(L.cot) ? Math.round(L.cot) : "\u2014") + "</span></td>" +
+        '<td class="lft">' + c.t + "</td></tr>";
+    }).join("");
+    var alu = MTL.aluminium;
+    return '<div class="mtl-pick">' + ms.map(function (m) {
+        return '<button type="button" class="mtl-btn' + (m.key === mtlState.metal ? " on" : "") +
+          '" data-mtl="' + m.key + '">' + esc(m.label) + "</button>";
+      }).join("") + "</div>" +
+      '<div class="tablewrap"><table class="dt mtl-sum"><thead><tr><th class="lft">Metal</th><th>Price</th>' +
+      "<th>MM net (contracts)</th><th>Week \u0394 net</th><th class=\"lft\">What they did</th>" +
+      '<th>COT index</th><th class="lft">Positioning</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      '<div class="mtl-note">Click a metal to open its full study below. <b>COT index</b> = where today\u2019s net position sits in its own 3-year range (0 = most bearish, 100 = most bullish). ' +
+      (alu ? "Aluminium is not listed: COMEX aluminium is thin (open interest " + mtlN(alu.oi) + " contracts, managed money " + mtlN(alu.mmL) + " long / " + mtlN(alu.mmS) + " short at " + esc(mtlDate(alu.date)) + "). Real aluminium positioning sits on the LME, whose report is not connected." : "") +
+      "</div>";
+  }
+
+  /* ---- 1. this week, decoded ----------------------------------------- */
+  function mtlDecodeCard(m) {
+    if (!m) return "";
+    var L = m.latest, nm = m.label, c = mtlCrowdLabel(L.cot);
+    var prevNet = L.net - (L.dN || 0);
+    var flipped = prevNet !== 0 && L.net !== 0 && (prevNet > 0) !== (L.net > 0);
+    var buyer = (L.dN || 0) > 0;
+    var z = Math.abs(L.z || 0);
+    var size = z >= 2 ? "a big week, about " + z.toFixed(1) + "\u00d7 a typical week\u2019s change" :
+      z >= 1 ? "an above-average week (" + z.toFixed(1) + "\u00d7 typical)" :
+      "a routine week (" + z.toFixed(1) + "\u00d7 typical)";
+    var usdMove = mtlOk(L.dN) && mtlOk(L.px) ? Math.abs(L.dN) * m.contractSize * L.px : null;
+
+    var p1 = "In the week to <b>" + esc(mtlDate(L.date)) + "</b>, managed money " +
+      (flipped ? "<b>flipped</b> from " + mtlSide(prevNet) + " to " + mtlSide(L.net) + " in " + nm :
+        (buyer ? "<b>increased</b>" : "<b>reduced</b>") + " its net position in " + nm) +
+      " by <b>" + mtlN(Math.abs(L.dN)) + " contracts</b>, leaving it <b>" + mtlS(L.net) + "</b> (" + mtlSide(L.net) + ")." +
+      " Under the hood, longs " + (L.dL >= 0 ? "rose " : "fell ") + mtlN(Math.abs(L.dL)) +
+      " and shorts " + (L.dS >= 0 ? "rose " : "fell ") + mtlN(Math.abs(L.dS)) + ": <b>" + esc(L.action) + "</b>, meaning " + esc(L.actionLong) + "." +
+      " One contract is " + mtlN(m.contractSize) + " " + esc(m.sizeUnit) + ", so the change is roughly <b>" + mtlUsd(usdMove) +
+      "</b> of " + nm + ". That was " + size + "." +
+      (L.streak >= 2 ? " This is the <b>" + mtlEn(L.streak) + " straight week</b> they have been net " + (buyer ? "buyers" : "sellers") + "." : "");
+
+    var st = mtlStudy(m, "pxW");
+    var withPx = mtlOk(L.pxW) && mtlOk(L.dN) && L.dN !== 0 && (L.pxW > 0) === (L.dN > 0);
+    var p2 = "Over the same Tuesday-to-Tuesday week, " + nm + " " + (L.pxW >= 0 ? "rose " : "fell ") + mtlCol(L.pxW, mtlP(Math.abs(L.pxW), 1).replace("+", "")) +
+      ", the dollar index moved " + mtlCol(L.dxyW, mtlP(L.dxyW, 1)) + " and the US 10-year yield moved " + mtlCol(L.tnxW, mtlBp(L.tnxW)) + ". " +
+      (withPx ? "They traded <b>with</b> the price. That is their normal behaviour: over " + mtlN(st.n) + " weeks, their net change pointed the same way as price " + mtlN(st.sameSign) + "% of the time. Funds largely <em>follow</em> price."
+              : "They traded <b>against</b> the price, which happens in only about " + mtlN(100 - (st.sameSign || 0)) + "% of weeks. A week like this is worth a closer look: it can mean profit-taking into strength, bargain-hunting into weakness, or positions being rolled or hedged rather than a trend being chased.");
+
+    var dTL = L.dTL, dTS = L.dTS;
+    var breadth = "";
+    if (mtlOk(L.tL) && mtlOk(L.tS)) {
+      breadth = "<b>" + mtlN(L.tL) + "</b> funds hold longs (" + mtlS(dTL) + " on the week) and <b>" + mtlN(L.tS) + "</b> hold shorts (" + mtlS(dTS) + "). " +
+        "The average long fund holds " + mtlN(L.avgLongSize) + " contracts (" + mtlN(L.avgLongSizePrev) + " a week earlier). ";
+      if (buyer && dTL > 0) breadth += "More funds joined the long side, so the buying was <b>broad</b>, not just a few large players.";
+      else if (buyer && dTL <= 0) breadth += "The buying came from <b>existing</b> holders adding size, not from new funds joining. That is narrower participation.";
+      else if (!buyer && dTL < 0) breadth += "Funds <b>left</b> the long side entirely, not just trimmed. That is a stronger exit signal than a size cut.";
+      else breadth += "Long holders trimmed size but did not leave. It reads as <b>de-risking</b>, not abandonment.";
+    }
+
+    var cr = m.crowding || {}, hi = cr.high || {}, lo = cr.low || {}, all = cr.all || {};
+    var p4 = "Today\u2019s COT index is <b>" + (mtlOk(L.cot) ? Math.round(L.cot) : "\u2014") + "/100: " + c.t.toLowerCase() + "</b>. " +
+      "The 3-year range of the net position is " + mtlS(L.min3y) + " to " + mtlS(L.max3y) + ", and the current net is " + mtlP(L.netPctOi, 1).replace("+", "") + " of all open interest. ";
+    if (L.cot >= 85) {
+      p4 += "History check: after past weeks this stretched (" + hi.weeks + " weeks), " + nm + " moved " + mtlP(hi.avg12, 1) + " over the next 12 weeks on average (up " + mtlN(hi.up12) +
+        "% of the time), versus " + mtlP(all.avg12, 1) + " for all weeks. Funds then <b>cut</b> net by an average " + mtlN(Math.abs(hi.netChg8)) + " contracts within 8 weeks. Crowded positions have to unwind eventually, and the unwinding is selling.";
+    } else if (L.cot <= 15) {
+      p4 += "History check: after past weeks this washed-out (" + lo.weeks + " weeks), " + nm + " moved " + mtlP(lo.avg12, 1) + " over the next 12 weeks on average (up " + mtlN(lo.up12) +
+        "% of the time), versus " + mtlP(all.avg12, 1) + " for all weeks. Funds then <b>added</b> an average " + mtlN(Math.abs(lo.netChg8)) + " contracts within 8 weeks. When nobody is left to sell, short covering can fuel a sharp bounce.";
+    } else {
+      p4 += "That is not an extreme, so positioning on its own is not a contrarian signal right now. There is room for funds to add or cut in either direction.";
+    }
+
+    var os = m.otherSide || {};
+    var p5 = "Somebody always takes the other side. This week swap dealers changed by " + mtlCol(L.dSwN, mtlS(L.dSwN)) + " and producers/merchants by " + mtlCol(L.dPmN, mtlS(L.dPmN)) +
+      ". Over the full history their net positions move <b>opposite</b> to managed money (correlation " + (os.sw != null ? os.sw.toFixed(2) : "\u2014") + " for swap dealers, " +
+      (os.pm != null ? os.pm.toFixed(2) : "\u2014") + " for producers). When funds buy, it is mostly bank swap desks and miners or refiners hedging future output who sell to them.";
+
+    return '<section class="card"><div class="card-hd"><h2>This week, decoded</h2>' +
+      '<span class="sub">' + esc(m.label) + " \u00b7 " + esc(m.exchange) + " futures \u00b7 positions as of Tuesday " + esc(mtlDate(L.date)) + "</span></div>" +
+      '<div class="kpis mtl-kpis">' +
+      mtlKpi("Managed money net", mtlS(L.net), mtlSide(L.net) + " \u00b7 \u2248 " + mtlUsd(L.notionalUsd)) +
+      mtlKpi("Change this week", mtlCol(L.dN, mtlS(L.dN)), esc(L.action || "")) +
+      mtlKpi("Longs / shorts", mtlN(L.long) + " / " + mtlN(L.short), "\u0394 " + mtlS(L.dL) + " / " + mtlS(L.dS)) +
+      mtlKpi("COT index (3y)", (mtlOk(L.cot) ? Math.round(L.cot) : "\u2014") + "<small>/100</small>", c.t) +
+      mtlKpi("Funds long / short", mtlN(L.tL) + " / " + mtlN(L.tS), "\u0394 " + mtlS(dTL) + " / " + mtlS(dTS)) +
+      "</div>" +
+      '<div class="mtl-story">' +
+      mtlPara("What they did", p1) + mtlPara("What the market did", p2) +
+      (breadth ? mtlPara("How many funds were involved", breadth) : "") +
+      mtlPara("Where that leaves them", p4) + mtlPara("Who was on the other side", p5) +
+      "</div>" +
+      '<div class="caution"><p><b>Reading rule.</b> The CFTC records positions, not reasons. Everything under \u201cwhy\u201d on this page is measured co-movement with price, the dollar and yields, not a confession from the funds. Positions are as of Tuesday and published on Friday, so by the time you read them the market has had three more sessions.</p></div></section>';
+  }
+  function mtlKpi(k, v, m) {
+    return '<div class="kpi"><div class="kpi-k">' + k + '</div><div class="kpi-v">' + v + '</div><div class="kpi-m">' + m + "</div></div>";
+  }
+  function mtlPara(h, body) { return '<div class="mtl-para"><h3>' + h + "</h3><p>" + body + "</p></div>"; }
+
+  /* ---- 2. charts (inline SVG, theme-aware via CSS classes) ----------- */
+  function mtlChartsCard(m) {
+    if (!m) return "";
+    var W = (m.weeks || []).slice(-156);
+    if (W.length < 10) return "";
+    return '<section class="card"><div class="card-hd"><h2>Price vs managed-money position</h2>' +
+      '<span class="sub">' + esc(m.label) + " \u00b7 last " + W.length + " weeks \u00b7 bars = net contracts (left) \u00b7 line = price (right)</span></div>" +
+      mtlNetChart(m, W) +
+      '<div class="mtl-legend"><span><i class="mtl-sw mtl-sw-up"></i>Net long</span><span><i class="mtl-sw mtl-sw-dn"></i>Net short</span><span><i class="mtl-sw mtl-sw-px"></i>Price</span>' +
+      '<span><i class="mtl-sw mtl-sw-ep"></i>Swing turning point</span></div>' +
+      '<div class="mtl-sub">Long and short legs separately: is the net moving because funds buy, or because shorts cover?</div>' +
+      mtlLegChart(m, W) +
+      '<div class="mtl-legend"><span><i class="mtl-sw mtl-sw-l"></i>Gross longs</span><span><i class="mtl-sw mtl-sw-s"></i>Gross shorts</span></div>' +
+      '<div class="mtl-note">What to look for: bars and line usually rise and fall <b>together</b>. Funds build longs as price climbs and unwind as it falls. Where they <b>diverge</b> (price making new highs while the bars shrink), the trend is losing its speculative fuel.</div></section>';
+  }
+
+  function mtlScale(lo, hi, a, b) { return function (v) { return hi === lo ? (a + b) / 2 : a + (v - lo) / (hi - lo) * (b - a); }; }
+
+  function mtlNetChart(m, W) {
+    var w = 900, h = 260, pl = 58, pr = 62, pt = 12, pb = 26;
+    var nets = W.map(function (x) { return x.net; });
+    var pxs = W.map(function (x) { return x.px; }).filter(mtlOk);
+    var nHi = Math.max(0, Math.max.apply(null, nets)), nLo = Math.min(0, Math.min.apply(null, nets));
+    var pHi = Math.max.apply(null, pxs), pLo = Math.min.apply(null, pxs);
+    var pad = (pHi - pLo) * 0.06; pHi += pad; pLo -= pad;
+    var x = mtlScale(0, W.length - 1, pl + 4, w - pr - 4);
+    var yN = mtlScale(nLo, nHi, h - pb, pt);
+    var yP = mtlScale(pLo, pHi, h - pb, pt);
+    var bw = Math.max(1.5, (w - pl - pr) / W.length - 1.2);
+    var out = '<svg class="mtl-chart" viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(m.label) + ' price against managed money net position">';
+    [nLo, nLo / 2, 0, nHi / 2, nHi].forEach(function (v) {
+      if (v === nLo / 2 && nLo === 0) return;
+      if (v === nHi / 2 && nHi === 0) return;
+      out += '<line class="mtl-grid" x1="' + pl + '" x2="' + (w - pr) + '" y1="' + yN(v).toFixed(1) + '" y2="' + yN(v).toFixed(1) + '"/>' +
+        '<text class="mtl-ax" x="' + (pl - 6) + '" y="' + (yN(v) + 3).toFixed(1) + '" text-anchor="end">' + mtlK(v) + "</text>";
+    });
+    [pLo + pad, (pLo + pHi) / 2, pHi - pad].forEach(function (v) {
+      out += '<text class="mtl-ax mtl-ax-px" x="' + (w - pr + 6) + '" y="' + (yP(v) + 3).toFixed(1) + '">' + mtlPxShort(v) + "</text>";
+    });
+    var ep = {};
+    (m.episodes || []).forEach(function (e) { ep[e.from] = 1; ep[e.to] = 1; });
+    W.forEach(function (d, i) {
+      var y0 = yN(0), y1 = yN(d.net);
+      out += '<rect class="' + (d.net >= 0 ? "mtl-bar-up" : "mtl-bar-dn") + '" x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + Math.min(y0, y1).toFixed(1) +
+        '" width="' + bw.toFixed(1) + '" height="' + Math.max(0.5, Math.abs(y1 - y0)).toFixed(1) + '"><title>' + esc(mtlDate(d.d)) + ": net " + mtlS(d.net) +
+        " (\u0394 " + mtlS(d.dN) + ") \u00b7 price " + mtlPx(m, d.px) + "</title></rect>";
+    });
+    var path = "";
+    W.forEach(function (d, i) { if (mtlOk(d.px)) path += (path ? "L" : "M") + x(i).toFixed(1) + "," + yP(d.px).toFixed(1); });
+    out += '<path class="mtl-line-px" d="' + path + '"/>';
+    W.forEach(function (d, i) {
+      if (ep[d.d] && mtlOk(d.px)) out += '<circle class="mtl-ep-dot" cx="' + x(i).toFixed(1) + '" cy="' + yP(d.px).toFixed(1) + '" r="3.5"><title>Turning point ' + esc(mtlDate(d.d)) + "</title></circle>";
+    });
+    out += '<line class="mtl-zero" x1="' + pl + '" x2="' + (w - pr) + '" y1="' + yN(0).toFixed(1) + '" y2="' + yN(0).toFixed(1) + '"/>';
+    out += mtlXTicks(W, x, h);
+    return out + "</svg>";
+  }
+
+  function mtlLegChart(m, W) {
+    var w = 900, h = 170, pl = 58, pr = 62, pt = 10, pb = 26;
+    var vals = [];
+    W.forEach(function (d) { vals.push(d.L, d.S); });
+    var hi = Math.max.apply(null, vals) * 1.05, lo = 0;
+    var x = mtlScale(0, W.length - 1, pl + 4, w - pr - 4), y = mtlScale(lo, hi, h - pb, pt);
+    var out = '<svg class="mtl-chart" viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="Gross long and short contracts">';
+    [0, hi / 2, hi].forEach(function (v) {
+      out += '<line class="mtl-grid" x1="' + pl + '" x2="' + (w - pr) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/>' +
+        '<text class="mtl-ax" x="' + (pl - 6) + '" y="' + (y(v) + 3).toFixed(1) + '" text-anchor="end">' + mtlK(v) + "</text>";
+    });
+    function line(k, c) {
+      var p = "";
+      W.forEach(function (d, i) { p += (p ? "L" : "M") + x(i).toFixed(1) + "," + y(d[k]).toFixed(1); });
+      return '<path class="' + c + '" d="' + p + '"/>';
+    }
+    out += line("L", "mtl-line-l") + line("S", "mtl-line-s") + mtlXTicks(W, x, h);
+    return out + "</svg>";
+  }
+
+  function mtlXTicks(W, x, h) {
+    var out = "", lastY = null;
+    W.forEach(function (d, i) {
+      var yr = d.d.slice(0, 4), mo = d.d.slice(5, 7);
+      if (yr !== lastY && (mo === "01" || i === 0)) {
+        if (i > 3 || i === 0) out += '<text class="mtl-ax" x="' + x(i).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle">' + (i === 0 ? mtlDate(d.d, true) : yr) + "</text>";
+        lastY = yr;
+      }
+    });
+    return out;
+  }
+  function mtlK(v) { var a = Math.abs(v); return (v < 0 ? "\u2212" : "") + (a >= 1000 ? Math.round(a / 1000) + "k" : Math.round(a)); }
+  function mtlPxShort(v) { return v >= 1000 ? Math.round(v).toLocaleString("en-US") : v >= 20 ? v.toFixed(1) : v.toFixed(2); }
+
+  /* ---- 3. what actually drives their changes ------------------------- */
+  function mtlDriversCard(m) {
+    if (!m) return "";
+    var nm = m.label;
+    var verdict = {
+      pxW: function (r, s) {
+        return r >= 0.2 ? "They buy as " + nm + " rises and sell as it falls, in the same week. This is <b>trend following</b>, the core of how CTAs trade." :
+          "Only a loose link with the same week\u2019s price.";
+      },
+      pxM4: function (r) {
+        return Math.abs(r) < 0.1 ? "Almost no link once the week\u2019s own move is known. Funds react <b>within the week</b>; they do not wait a month to confirm a trend." :
+          r > 0 ? "They keep adding after a rising month, so momentum carries over." : "They tend to fade the prior month\u2019s move, taking profits on rallies and buying dips.";
+      },
+      dxyW: function (r) {
+        return Math.abs(r) < 0.1 ? "The dollar barely matters to their weekly decisions in " + nm + "." :
+          r < 0 ? "A rising dollar goes with selling and a falling dollar with buying. " + nm + " is priced in dollars, so a stronger dollar makes it dearer for everyone else." :
+          "Unusually, they tend to buy when the dollar rises.";
+      },
+      tnxW: function (r) {
+        return Math.abs(r) < 0.1 ? "Little direct link with US yields week to week." :
+          r < 0 ? "Rising yields go with selling. " + nm + " pays no interest, so higher yields raise the cost of holding it." :
+          "They tend to buy as yields rise, which is consistent with a growth or inflation story rather than a rates story.";
+      },
+      pxNext: function (r) {
+        return Math.abs(r) < 0.1 ? "<b>No predictive power.</b> What funds did this week says almost nothing about next week\u2019s price. They follow; they do not forecast." :
+          r < 0 ? "Slightly negative: heavy buying tends to precede a <b>weaker</b> next week, an early sign of crowding." :
+          "A small positive carry-over into the next week.";
+      }
+    };
+    var rows = (m.study || []).map(function (s) {
+      var r = s.corr;
+      var wpx = mtlOk(r) ? Math.min(50, Math.abs(r) * 50) : 0;
+      var bar = '<div class="mtl-corr"><span class="mtl-corr-mid"></span><span class="mtl-corr-bar ' + (r >= 0 ? "pos" : "neg") + '" style="' +
+        (r >= 0 ? "left:50%" : "right:50%") + ";width:" + wpx.toFixed(1) + '%"></span></div>';
+      return '<tr><td class="lft"><b>' + esc(s.name) + '</b><div class="kpi-m">' + esc(s.question) + "</div></td>" +
+        "<td>" + (mtlOk(r) ? (r >= 0 ? "+" : "\u2212") + Math.abs(r).toFixed(2) : "\u2014") + bar + "</td>" +
+        "<td>" + mtlN(s.sameSign) + "%</td>" +
+        '<td class="lft">' + mtlStrength(r) + "</td>" +
+        '<td class="lft mtl-why">' + (verdict[s.key] ? verdict[s.key](r || 0) : "") + "</td></tr>";
+    }).join("");
+    var reg = m.regression || {}, b = reg.betas || {};
+    var top = Object.keys(b).sort(function (p, q) { return Math.abs(b[q]) - Math.abs(b[p]); });
+    var regTxt = reg.r2 != null ?
+      "Put the four observable factors together in one model and they explain <b>" + Math.round(reg.r2 * 100) + "%</b> of the week-to-week changes in " + nm +
+      " positioning (" + mtlN(reg.n) + " weeks). The biggest single weight is <b>" + esc(top[0]) + "</b> (standardised beta " + b[top[0]].toFixed(2) + "), next " +
+      esc(top[1]) + " (" + b[top[1]].toFixed(2) + "). The other <b>" + Math.round((1 - reg.r2) * 100) + "%</b> is what this data cannot see: news and Fed communication, inflows to and outflows from funds, risk limits forcing cuts after losses, options hedging, contract rolls" +
+      (m.style === "industrial" ? ", and the physical demand story (China, autos, construction, the energy transition)" : m.style === "precious" ? ", and central-bank or ETF buying of physical metal" : ", and the industrial-versus-investment demand mix") + "." : "";
+    return '<section class="card"><div class="card-hd"><h2>What makes them change? Tested on the data</h2>' +
+      '<span class="sub">' + esc(nm) + " \u00b7 weekly change in managed-money net vs each factor \u00b7 " + mtlN(m.weeksStored) + " weeks since " + esc(mtlDate(m.firstWeek)) + "</span></div>" +
+      '<div class="tablewrap"><table class="dt mtl-drv"><thead><tr><th class="lft">Factor</th><th>Correlation</th><th>Same direction</th><th class="lft">Link</th><th class="lft">What it teaches</th></tr></thead><tbody>' +
+      rows + "</tbody></table></div>" +
+      '<div class="mtl-story">' + mtlPara("Putting it together", regTxt) + "</div>" +
+      '<div class="mtl-note"><b>How to read this table.</b> Correlation runs from \u22121 to +1. Positive means funds add when the factor rises; negative means they cut. Around \u00b10.1 is noise; 0.4 and above is a real habit. \u201cSame direction\u201d counts how often the fund change and the factor moved the same way in a given week (50% = coin flip).</div></section>';
+  }
+
+  /* ---- 4. build-ups and unwinds -------------------------------------- */
+  function mtlEpisodesCard(m) {
+    if (!m || !(m.episodes || []).length) return "";
+    var nm = m.label, eps = m.episodes.slice().reverse();
+    var rows = eps.map(function (e) {
+      var built = e.dNet > 0;
+      var reading = mtlEpisodeReading(m, e);
+      return "<tr" + (e.ongoing ? ' class="mtl-live"' : "") + '><td class="lft"><span>' + esc(mtlDate(e.from, true)) + " \u2192 " + esc(mtlDate(e.to, true)) + "</span>" +
+        '<div class="kpi-m">' + e.weeks + " wk" + (e.ongoing ? " \u00b7 still running" : "") + "</div></td>" +
+        '<td><b class="' + (built ? "pos" : "neg") + '">' + (built ? "Built " : "Cut ") + mtlS(e.dNet) + "</b>" +
+        '<div class="kpi-m">' + esc(e.act) + "<br>L " + mtlS(e.dL) + " \u00b7 S " + mtlS(e.dS) + "</div></td>" +
+        "<td>" + mtlS(e.netFrom) + " \u2192 " + mtlS(e.netTo) + '<div class="kpi-m">COT ' + (mtlOk(e.cotFrom) ? Math.round(e.cotFrom) : "\u2014") + " \u2192 " + (mtlOk(e.cotTo) ? Math.round(e.cotTo) : "\u2014") + "</div></td>" +
+        "<td>" + mtlCol(e.pxPct, mtlP(e.pxPct, 1)) + '<div class="kpi-m">prior 4 wk ' + mtlP(e.pxBefore, 1) + "</div></td>" +
+        "<td>" + mtlCol(e.dxyPct, mtlP(e.dxyPct, 1)) + "</td><td>" + mtlCol(e.tnxBp, mtlBp(e.tnxBp)) + "</td>" +
+        "<td>" + (e.ongoing ? "\u2014" : mtlCol(e.pxAfter4, mtlP(e.pxAfter4, 1))) + "</td>" +
+        '<td class="lft mtl-why">' + reading + "</td></tr>";
+    }).join("");
+    var withCount = m.episodes.filter(function (e) { return mtlOk(e.pxPct) && (e.pxPct > 0) === (e.dNet > 0); }).length;
+    return '<section class="card"><div class="card-hd"><h2>When they changed their minds: build-ups and unwinds</h2>' +
+      '<span class="sub">' + esc(nm) + " \u00b7 each swing in managed-money net, newest first \u00b7 market context over the same weeks</span></div>" +
+      '<div class="mtl-story">' + mtlPara("The pattern", "Of the last " + m.episodes.length + " swings in " + nm + " positioning, <b>" + withCount + "</b> moved in the same direction as price. A swing ends when funds reverse by more than about " +
+        mtlN(0.6 * m.sdNet) + " contracts (0.6 standard deviations of the net). Each row is one decision cycle: what they did, what the market did around them, and what happened next.") + "</div>" +
+      '<div class="tablewrap tall"><table class="dt mtl-ep"><thead><tr><th class="lft">Period</th><th>What funds did</th><th>Net (COT)</th><th>Price</th>' +
+      '<th>Dollar</th><th>10y yield</th><th>Price 4 wk after</th><th class="lft">Reading</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      '<div class="caution"><p><b>Attribution limit.</b> \u201cReading\u201d lines up the swing with price, the dollar and yields over the same weeks. Look up the Fed meetings, CPI prints, China data or geopolitical events in those dates to complete the story. That is the habit this table is meant to build.</p></div></section>';
+  }
+
+  function mtlEpisodeReading(m, e) {
+    var built = e.dNet > 0, parts = [];
+    if (mtlOk(e.pxPct)) {
+      var withPx = (e.pxPct > 0) === built;
+      parts.push(withPx ? (built ? "Chased a " + mtlP(e.pxPct, 1) + " rally" : "Sold into a " + mtlP(e.pxPct, 1) + " decline") :
+        (built ? "Bought while price fell " + mtlP(e.pxPct, 1) + ": bottom-fishing or early accumulation" : "Sold while price rose " + mtlP(e.pxPct, 1) + ": profit-taking into strength"));
+    }
+    if (mtlOk(e.pxBefore) && Math.abs(e.pxBefore) >= 3) {
+      parts.push(((e.pxBefore > 0) === built ? "followed a " : "reversed a ") + mtlP(e.pxBefore, 1) + " prior month");
+    }
+    if (mtlOk(e.dxyPct) && Math.abs(e.dxyPct) >= 1) {
+      var dHelp = (e.dxyPct < 0) === built;
+      parts.push((dHelp ? "dollar " + (e.dxyPct < 0 ? "fell" : "rose") + " " + mtlP(Math.abs(e.dxyPct), 1).replace("+", "") + " in support" :
+        "despite the dollar " + (e.dxyPct < 0 ? "falling" : "rising") + " " + mtlP(Math.abs(e.dxyPct), 1).replace("+", "")));
+    }
+    if (m.style !== "industrial" && mtlOk(e.tnxBp) && Math.abs(e.tnxBp) >= 15) {
+      var yHelp = (e.tnxBp < 0) === built;
+      parts.push((yHelp ? "yields " + (e.tnxBp < 0 ? "fell " : "rose ") + Math.abs(Math.round(e.tnxBp)) + " bp in support" :
+        "yields " + (e.tnxBp < 0 ? "fell " : "rose ") + Math.abs(Math.round(e.tnxBp)) + " bp but did not stop them"));
+    }
+    if (mtlOk(e.cotTo) && e.cotTo >= 85) parts.push("ended <b>crowded long</b>");
+    if (mtlOk(e.cotTo) && e.cotTo <= 15) parts.push("ended <b>washed out</b>");
+    if (!e.ongoing && mtlOk(e.pxAfter4)) {
+      var cont = (e.pxAfter4 > 0) === built;
+      parts.push("next 4 wk price " + mtlP(e.pxAfter4, 1) + (cont ? " (trend continued)" : " (turned against them)"));
+    }
+    var s = parts.join("; ");
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) + "." : "\u2014";
+  }
+
+  /* ---- 5. weekly log ------------------------------------------------- */
+  function mtlWeeklyCard(m) {
+    if (!m) return "";
+    var W = (m.weeks || []).slice(-16).reverse();
+    var rows = W.map(function (d) {
+      var c = mtlCrowdLabel(d.cot);
+      return '<tr><td class="lft"><span>' + esc(mtlDate(d.d, true)) + "</span></td>" +
+        "<td>" + mtlPx(m, d.px) + '<div class="kpi-m">' + mtlCol(d.pxW, mtlP(d.pxW, 1)) + "</div></td>" +
+        "<td>" + mtlCol(d.dL, mtlS(d.dL)) + "</td><td>" + mtlCol(-(d.dS || 0), mtlS(d.dS)) + "</td>" +
+        "<td><b>" + mtlCol(d.dN, mtlS(d.dN)) + "</b></td><td>" + mtlS(d.net) + "</td>" +
+        '<td class="lft">' + esc(d.act || "\u2014") + "</td>" +
+        '<td><span class="mtl-cot mtl-' + c.k + '">' + (mtlOk(d.cot) ? Math.round(d.cot) : "\u2014") + "</span></td>" +
+        "<td>" + mtlN(d.tL) + " / " + mtlN(d.tS) + "</td>" +
+        "<td>" + mtlCol(d.dxyW, mtlP(d.dxyW, 1)) + "</td><td>" + mtlCol(d.tnxW, mtlBp(d.tnxW)) + "</td></tr>";
+    }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Week by week: the last 16 reports</h2>' +
+      '<span class="sub">' + esc(m.label) + " \u00b7 newest first \u00b7 contracts</span></div>" +
+      '<div class="tablewrap"><table class="dt mtl-wk"><thead><tr><th class="lft">Tuesday</th><th>Price \u00b7 wk</th><th>\u0394 longs</th><th>\u0394 shorts</th><th>\u0394 net</th><th>Net</th>' +
+      '<th class="lft">Action</th><th>COT</th><th>Funds L / S</th><th>Dollar</th><th>10y</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      '<div class="mtl-note"><b>The four actions.</b> <em>New longs</em> and <em>new shorts</em> are fresh conviction: money committing to a view. <em>Short covering</em> and <em>long liquidation</em> are exits, often forced by stop-losses or risk limits, and tend to be sharp but short-lived. A rally driven by short covering is weaker evidence than one driven by new longs. A rise in shorts is coloured red because it is bearish positioning.</div></section>';
+  }
+
+  /* ---- 6. crowding: what happened after extremes --------------------- */
+  function mtlCrowdCard(m) {
+    if (!m) return "";
+    var cr = m.crowding || {}, nm = m.label;
+    function row(lbl, b, k) {
+      return '<tr><td class="lft"><b>' + lbl + "</b></td><td>" + mtlN(b.weeks) + "</td><td>" + mtlCol(b.avg4, mtlP(b.avg4, 1)) + "</td><td>" + mtlN(b.up4) + "%</td>" +
+        "<td>" + mtlCol(b.avg12, mtlP(b.avg12, 1)) + "</td><td>" + mtlN(b.up12) + "%</td><td>" + mtlCol(b.netChg8, mtlS(b.netChg8)) + "</td></tr>";
+    }
+    var hi = cr.high || {}, all = cr.all || {}, lo = cr.low || {};
+    var lesson;
+    if (mtlOk(hi.avg12) && mtlOk(all.avg12)) {
+      lesson = hi.avg12 < all.avg12 - 1 ?
+        "In " + nm + ", crowded-long weeks were followed by <b>weaker</b> returns than average. Crowding has worked as a warning sign here." :
+        hi.avg12 > all.avg12 + 1 ?
+        "In " + nm + ", crowded-long weeks were still followed by <b>above-average</b> returns. In strong trends, crowded can stay crowded, so \u201ctoo many longs\u201d alone has not been a reason to sell." :
+        "In " + nm + ", crowded-long weeks were followed by roughly average returns. Crowding alone has not been a timing signal.";
+      lesson += " In either case funds usually <b>reduced</b> the position afterwards (average 8-week change " + mtlS(hi.netChg8) + " contracts), so an extreme tells you which way the next big position change is likely to go, if not when.";
+    }
+    return '<section class="card"><div class="card-hd"><h2>When positioning gets extreme: what happened next</h2>' +
+      '<span class="sub">' + esc(nm) + " \u00b7 COT index buckets vs forward price and position change</span></div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Weeks where COT index was\u2026</th><th>Weeks</th><th>Price next 4 wk</th><th>% up</th><th>Price next 12 wk</th><th>% up</th><th>Fund net change next 8 wk</th></tr></thead><tbody>' +
+      row("\u2265 85 (crowded long)", hi) + row("\u2264 15 (washed out)", lo) + row("All weeks (baseline)", all) + "</tbody></table></div>" +
+      (lesson ? '<div class="mtl-story">' + mtlPara("What this teaches", lesson) + "</div>" : "") +
+      '<div class="mtl-note">Small samples (fewer than about 20 weeks) are anecdotes, not evidence. Overlapping windows also mean neighbouring weeks are not independent.</div></section>';
+  }
+
+  /* ---- 7. the other side --------------------------------------------- */
+  function mtlOtherSideCard(m) {
+    if (!m) return "";
+    var L = m.latest, os = m.otherSide || {};
+    var g = [
+      ["Managed money", L.net, L.dN, null, "Hedge funds and CTAs. Speculative, trend-following; the group this page studies."],
+      ["Producer / merchant / processor / user", L.pmN, L.dPmN, os.pm, "Miners, refiners, fabricators and jewellers hedging real metal. Usually net short: they lock in prices for future output, and sell more into rallies."],
+      ["Swap dealers", L.swN, L.dSwN, os.sw, "Banks that sell OTC swaps to clients (e.g. pension funds wanting metal exposure) and hedge that book in futures. Often the mirror image of the funds."],
+      ["Other reportables", L.orN, L.dOrN, os.or, "Large traders who fit none of the above: family offices, some proprietary firms, ETF-related accounts."],
+      ["Non-reportable (small traders)", L.nrN, L.dNrN, os.nr, "Everyone below the CFTC reporting threshold, mostly retail and small funds."]
+    ];
+    var rows = g.map(function (r) {
+      return '<tr><td class="lft"><b>' + r[0] + "</b></td><td>" + mtlS(r[1]) + "</td><td>" + mtlCol(r[2], mtlS(r[2])) + "</td><td>" +
+        (r[3] == null ? "\u2014" : (r[3] >= 0 ? "+" : "\u2212") + Math.abs(r[3]).toFixed(2)) + '</td><td class="lft mtl-why">' + r[4] + "</td></tr>";
+    }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Who is on the other side</h2>' +
+      '<span class="sub">' + esc(m.label) + " \u00b7 all CFTC trader groups \u00b7 nets sum to zero across groups</span></div>" +
+      '<div class="tablewrap"><table class="dt mtl-os"><thead><tr><th class="lft">Group</th><th>Net</th><th>Week \u0394</th><th>Correlation with fund net</th><th class="lft">Who they are and why they trade</th></tr></thead><tbody>' +
+      rows + "</tbody></table></div>" +
+      '<div class="mtl-note">Every futures contract has a buyer and a seller, so one group\u2019s buying is another\u2019s selling. A strongly negative correlation means that group is the funds\u2019 usual counterparty. Spreading positions are excluded, so totals may not net exactly to zero.</div></section>';
+  }
+
+  /* ---- 8. primer ----------------------------------------------------- */
+  function mtlPrimerCard() {
+    var items = [
+      ["Who they are", "Two kinds of money sit under \u201cmanaged money\u201d. <b>CTAs and systematic funds</b> run rules: buy when price breaks above moving averages or recent highs, sell when it breaks below, and size each position by volatility. <b>Discretionary macro funds</b> take views on the Fed, inflation, the dollar, China and geopolitics. CTAs explain why positioning follows price so closely; macro funds explain the swings that start <em>before</em> price moves."],
+      ["What makes them buy", "Rising price (the trend signal itself), a falling dollar, falling real yields (for gold and silver), easing Fed expectations, inflation scares, geopolitical stress, and for copper and palladium, stronger growth or supply disruptions. Volatility dropping also lets volatility-targeting funds carry <em>bigger</em> positions for the same risk."],
+      ["What makes them sell", "Price breaking down through trend levels (stop-losses and systematic exits), a rising dollar or real yields, hawkish Fed surprises, a volatility spike (risk models force smaller positions), exchange margin increases, and losses elsewhere in the portfolio that force de-risking across everything."],
+      ["Why changes are often sudden", "Many funds watch similar signals, so they tend to move together. When a crowded trade breaks, everyone heads for the same exit, and long liquidation can push price down further, triggering more stops. That feedback loop is why unwinds from a high COT index are usually faster than the build-ups."],
+      ["How to read each Friday report", "1. Net change: who bought, who sold. 2. Decompose it: new longs, short covering, liquidation or new shorts? 3. Breadth: did the number of funds change? 4. Context: did price, the dollar and yields agree? 5. Stretch: where is the COT index? 6. Write down your read before the next report, then check it a week later."],
+      ["Limits of this data", "Futures only, no options, OTC or physical holdings. Weekly snapshots (Tuesday) published with a 3-day lag. Categories are self-reported and broad. It shows <b>what</b> funds hold, never <b>why</b>; every \u201cwhy\u201d here is inferred from co-movement. LME positioning (where base metals mainly trade) and MCX are separate markets."]
+    ];
+    return '<section class="card"><div class="card-hd"><h2>How managed money makes decisions: a primer</h2><span class="sub">read once, then use the sections above every Friday</span></div>' +
+      '<div class="mtl-primer">' + items.map(function (it) {
+        return '<div class="mtl-pc"><h3>' + it[0] + "</h3><p>" + it[1] + "</p></div>";
+      }).join("") + "</div></section>";
+  }
+
+  /* ---- glossary: every label above opens a plain-language panel ------
+     Registered into the shared DEEP / PLAIN / TERMS / TERM_ALIAS tables by
+     mtlRegisterTerms(), called once just before boot(). Never overwrites
+     an existing entry. */
+  function mtlHowMetal(fn) {
+    return function () {
+      var m = mtlCur();
+      if (!m || !m.latest) return "The positioning study is not loaded, so there is no figure to show.";
+      return fn(m, m.latest);
+    };
+  }
+  var MTL_TERMS = {
+    "Managed money net position": {
+      plain: ["Managed money is the CFTC\u2019s group for hedge funds and commodity trading advisers; their net position is long contracts minus short contracts.",
+        "A large positive number means speculators as a group are betting on higher prices; a negative number means they are betting on lower prices."],
+      deep: ["The CFTC Disaggregated Commitments of Traders report splits every reportable futures position into producers/merchants, swap dealers, managed money and other reportables. Managed money covers registered CTAs, CPOs and unregistered funds identified as speculators.",
+        "Net = longs \u2212 shorts, in contracts. Spreading positions (a long and a short in different months) are excluded because they carry no outright direction. Multiply by the contract size and price to get the dollar exposure.",
+        "Positions are measured each Tuesday and published the following Friday afternoon (US time)."],
+      how: mtlHowMetal(function (m, L) {
+        return esc(m.label) + ": longs <b>" + mtlN(L.long) + "</b> \u2212 shorts <b>" + mtlN(L.short) + "</b> = net <b>" + mtlS(L.net) + "</b> contracts. " +
+          "\u00d7 " + mtlN(m.contractSize) + " " + esc(m.sizeUnit) + " \u00d7 " + mtlPx(m, L.px) + " \u2248 <b>" + mtlUsd(L.notionalUsd) + "</b>. That is " +
+          mtlP(L.netPctOi, 1).replace("+", "") + " of total open interest (" + mtlN(L.oi) + ").";
+      })
+    },
+    "Weekly change in managed money": {
+      plain: ["The difference between this week\u2019s and last week\u2019s position for the same group, split into the change in longs and the change in shorts.",
+        "Splitting it matters: the same +10,000 net can come from new buying or from shorts running for cover, and they mean different things."],
+      deep: ["\u0394 net = \u0394 longs \u2212 \u0394 shorts. A rise in shorts lowers the net, so it is shown in red even though the number is positive.",
+        "A typical week is measured by the standard deviation of weekly changes over the full history; a change above about 2\u00d7 that is a large, unusual week.",
+        "Because reports are a week apart, a change can hide intra-week reversals; it is the net result of five sessions."],
+      how: mtlHowMetal(function (m, L) {
+        return "\u0394 longs <b>" + mtlS(L.dL) + "</b> \u2212 \u0394 shorts <b>" + mtlS(L.dS) + "</b> = \u0394 net <b>" + mtlS(L.dN) + "</b>. A typical week in " + esc(m.label) +
+          " moves \u00b1" + mtlN(m.sdWeeklyChange) + " contracts, so this week was " + Math.abs(L.z || 0).toFixed(1) + "\u00d7 typical.";
+      })
+    },
+    "Managed money action": {
+      plain: ["A label for what funds did, read from which leg moved: new longs, short covering, long liquidation, new shorts, or both legs at once.",
+        "New positions show fresh conviction; covering and liquidation are exits, often forced by stops or risk limits."],
+      deep: ["Net up with longs up and shorts down = buying on both legs. Net up with longs up = new longs. Net up with only shorts falling = short covering.",
+        "Net down with longs down and shorts up = selling on both legs. Net down with shorts up = new shorts. Net down with only longs falling = long liquidation.",
+        "For swings over several weeks the same rule is applied to the total change in each leg across the period."],
+      how: mtlHowMetal(function (m, L) {
+        return "This week: longs " + mtlS(L.dL) + ", shorts " + mtlS(L.dS) + " \u2192 <b>" + esc(L.action || "\u2014") + "</b> (" + esc(L.actionLong || "") + ").";
+      })
+    },
+    "COT index": {
+      plain: ["Where the current managed-money net position sits within its own range over the last three years, on a 0 to 100 scale.",
+        "Near 100 means funds are about as bullish as they have been in three years (crowded long); near 0 means as bearish (washed out)."],
+      deep: ["COT index = (net \u2212 3-year minimum) \u00f7 (3-year maximum \u2212 3-year minimum) \u00d7 100, using 156 weekly reports.",
+        "It compares a market with itself, so a gold reading and a copper reading of 80 both mean \u201chigh for that market\u201d even though the contract counts differ completely.",
+        "Extremes are not timing signals on their own: in a strong trend a crowded position can stay crowded for months. The forward-return table shows how it has worked for each metal."],
+      how: mtlHowMetal(function (m, L) {
+        return "(" + mtlS(L.net) + " \u2212 " + mtlS(L.min3y) + ") \u00f7 (" + mtlS(L.max3y) + " \u2212 " + mtlS(L.min3y) + ") \u00d7 100 = <b>" +
+          (mtlOk(L.cot) ? L.cot.toFixed(0) : "\u2014") + "</b>: " + mtlCrowdLabel(L.cot).t.toLowerCase() + ".";
+      })
+    },
+    "Driver correlation": {
+      plain: ["How closely the weekly change in fund positioning has moved with a given factor, from \u22121 (always opposite) to +1 (always together).",
+        "It measures habit, not cause: a strong link shows what funds have tended to react to, not why any single fund traded."],
+      deep: ["Pearson correlation between the weekly change in managed-money net and each factor over the same Tuesday-to-Tuesday week, across all stored reports.",
+        "\u201cSame direction\u201d is the share of weeks where both moved the same way (50% is a coin flip). \u201cNext week\u2019s price\u201d tests whether fund buying predicts the following week.",
+        "The combined model is a standardised least-squares regression on all four factors; its R\u00b2 is the share of weekly changes they explain together."],
+      how: mtlHowMetal(function (m) {
+        var s = mtlStudy(m, "pxW"), r = m.regression || {};
+        return esc(m.label) + ": correlation with same-week price <b>" + (mtlOk(s.corr) ? s.corr.toFixed(2) : "\u2014") + "</b> over " + mtlN(s.n) +
+          " weeks; same direction " + mtlN(s.sameSign) + "% of weeks. All four factors together: R\u00b2 = <b>" + (r.r2 != null ? Math.round(r.r2 * 100) + "%" : "\u2014") + "</b>.";
+      })
+    },
+    "Fund breadth": {
+      plain: ["The number of separate managed-money traders holding long and short positions, from the CFTC\u2019s trader-count columns.",
+        "It shows whether a move is broad (many funds joining) or narrow (a few large funds changing size)."],
+      deep: ["Each reportable trader with a position above the CFTC reporting level counts once per side. Average position = total longs \u00f7 number of long traders.",
+        "Rising longs with a rising trader count is broad buying. Rising longs with a flat or falling count is concentration, which can reverse quickly if those few funds change their minds.",
+        "Funds leaving a side entirely is a stronger signal than funds trimming size."],
+      how: mtlHowMetal(function (m, L) {
+        return mtlN(L.tL) + " funds long (" + mtlS(L.dTL) + "), " + mtlN(L.tS) + " short (" + mtlS(L.dTS) + "). Average long: " + mtlN(L.long) + " \u00f7 " + mtlN(L.tL) +
+          " = <b>" + mtlN(L.avgLongSize) + "</b> contracts per fund.";
+      })
+    },
+    "Weekly market context": {
+      plain: ["The metal\u2019s price, the US dollar index and the US 10-year yield, each measured from Tuesday close to Tuesday close to match the CFTC week.",
+        "Placed beside the position change, they show what the market was doing while funds traded."],
+      deep: ["Price is the front-month futures close (COMEX gold, silver and copper; NYMEX platinum and palladium) from Yahoo Finance daily history.",
+        "Dollar = ICE US Dollar Index (DXY) percentage change. 10y = the CBOE 10-year yield index (^TNX) change in basis points.",
+        "Weekly context lines up co-movement only. Check dated releases (Fed, CPI, payrolls, China data) for the same week before naming a cause."],
+      how: mtlHowMetal(function (m, L) {
+        return "Week to " + esc(mtlDate(L.date)) + ": " + esc(m.label) + " " + mtlP(L.pxW, 2) + " to " + mtlPx(m, L.px) + "; dollar " + mtlP(L.dxyW, 2) + "; 10-year " + mtlBp(L.tnxW) +
+          ". The prior four weeks: " + esc(m.label) + " " + mtlP(L.pxM4, 1) + ".";
+      })
+    },
+    "CFTC trader groups": {
+      plain: ["The CFTC sorts every large futures trader into producers/merchants, swap dealers, managed money and other reportables; smaller traders are non-reportable.",
+        "Every contract has a buyer and a seller, so when one group buys, another group sells."],
+      deep: ["Producers/merchants hedge physical metal (mines, refiners, fabricators). Swap dealers hedge OTC swaps sold to clients. Managed money is speculative funds. Other reportables are large traders that fit none of these.",
+        "Correlation with the fund net shows each group\u2019s usual role: strongly negative means it is the funds\u2019 usual counterparty.",
+        "Classification is by the trader\u2019s main business, as reported to the CFTC; a firm\u2019s individual trades are not classified one by one."],
+      how: mtlHowMetal(function (m, L) {
+        var os = m.otherSide || {};
+        return esc(m.label) + " nets: managed money " + mtlS(L.net) + ", producers " + mtlS(L.pmN) + ", swap dealers " + mtlS(L.swN) + ", other " + mtlS(L.orN) + ", small traders " + mtlS(L.nrN) +
+          ". Correlation with funds: swap dealers " + (os.sw != null ? os.sw.toFixed(2) : "\u2014") + ", producers " + (os.pm != null ? os.pm.toFixed(2) : "\u2014") + ".";
+      })
+    },
+    "Positioning swings": {
+      plain: ["A swing is one full build-up or unwind of the managed-money net position, from one turning point to the next.",
+        "Each row is one decision cycle: how much funds added or cut, and what price, the dollar and yields did over the same weeks."],
+      deep: ["A turning point is confirmed when the net reverses by more than 0.6 standard deviations of its full-history level. Smaller wiggles stay inside a swing.",
+        "\u201cPrice 4 wk after\u201d is measured from the swing\u2019s last week, so it shows whether the move continued after funds finished.",
+        "The reading column is generated from the numbers, not from news. Complete it by checking the dated events in that window."],
+      how: mtlHowMetal(function (m) {
+        var e = (m.episodes || [])[m.episodes.length - 1];
+        if (!e) return "No swings detected yet.";
+        return "Latest swing in " + esc(m.label) + ": " + esc(mtlDate(e.from)) + " to " + esc(mtlDate(e.to)) + ", net " + mtlS(e.netFrom) + " \u2192 " + mtlS(e.netTo) +
+          " (" + mtlS(e.dNet) + "), price " + mtlP(e.pxPct, 1) + ". Threshold: " + mtlN(0.6 * m.sdNet) + " contracts.";
+      })
+    }
+  };
+  var MTL_ALIAS = {
+    "Managed money: who is positioned, and why it changes": "Managed money net position",
+    "Managed money positioning": "Managed money net position",
+    "How managed money makes decisions: a primer": "Managed money net position",
+    "Metal": "Managed money net position", "MM net (contracts)": "Managed money net position",
+    "Managed money net": "Managed money net position", "Net": "Managed money net position",
+    "Net (COT)": "Managed money net position",
+    "This week, decoded": "Weekly change in managed money",
+    "Week by week: the last 16 reports": "Weekly change in managed money",
+    "Week \u0394 net": "Weekly change in managed money", "Change this week": "Weekly change in managed money",
+    "\u0394 net": "Weekly change in managed money", "\u0394 longs": "Weekly change in managed money",
+    "\u0394 shorts": "Weekly change in managed money", "Longs / shorts": "Weekly change in managed money",
+    "Week \u0394": "Weekly change in managed money",
+    "What they did": "Managed money action", "Action": "Managed money action", "What funds did": "Managed money action",
+    "COT": "COT index", "COT index (3y)": "COT index", "Positioning": "COT index",
+    "When positioning gets extreme: what happened next": "COT index",
+    "Weeks where COT index was\u2026": "COT index", "Weeks": "COT index",
+    "Price next 4 wk": "COT index", "Price next 12 wk": "COT index", "% up": "COT index",
+    "Fund net change next 8 wk": "COT index",
+    "What makes them change? Tested on the data": "Driver correlation",
+    "Factor": "Driver correlation", "Correlation": "Driver correlation", "Same direction": "Driver correlation",
+    "Link": "Driver correlation", "What it teaches": "Driver correlation",
+    "Correlation with fund net": "CFTC trader groups",
+    "Funds long / short": "Fund breadth", "Funds L / S": "Fund breadth",
+    "Price vs managed-money position": "Weekly market context", "Price": "Weekly market context",
+    "Price \u00b7 wk": "Weekly market context", "Dollar": "Weekly market context",
+    "10y yield": "Weekly market context", "10y": "Weekly market context", "Tuesday": "Weekly market context",
+    "Group": "CFTC trader groups", "Who they are and why they trade": "CFTC trader groups",
+    "Who is on the other side": "CFTC trader groups",
+    "When they changed their minds: build-ups and unwinds": "Positioning swings",
+    "Period": "Positioning swings", "Price 4 wk after": "Positioning swings"
+  };
+  function mtlRegisterTerms() {
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(MTL_TERMS).forEach(function (k) {
+      var t = MTL_TERMS[k];
+      if (!has(DEEP, k)) DEEP[k] = t.deep;
+      if (!has(PLAIN, k)) PLAIN[k] = t.plain;
+      if (!has(TERMS, k)) TERMS[k] = { deep: k, how: t.how };
+    });
+    Object.keys(MTL_ALIAS).forEach(function (k) {
+      if (!has(TERM_ALIAS, k)) TERM_ALIAS[k] = MTL_ALIAS[k];
+    });
+  }
+
+  /* Metal picker. Its own listener, so the shared click handler is untouched. */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-mtl]");
+    if (!b) return;
+    mtlState.metal = b.getAttribute("data-mtl");
+    var y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  });
+
+  /* Standalone loader: no slot in boot()'s Promise.all, so other tabs'
+     loaders stay independent. Re-renders only if the Metal tab is open. */
+  getJson("metals.json").then(function (d) {
+    MTL = d || {};
+    if (state.page === "metal-index" && MODEL[state.idx]) render();
+  }).catch(function () { MTL = {}; });
 
   function sourceItem(name, url, description) {
     return '<div class="source-item"><a href="' + url + '" target="_blank" rel="noopener">' + name +
       ' \u2197</a><p>' + description + "</p></div>";
   }
 
+  /* ===================== Energy positioning (claude-17) =====================
+     Reads snapshot/energy.json, written by energy_cot.py: weekly CFTC + ICE
+     Commitments of Traders for crude, products and gas, EIA weekly
+     inventories, and front-month prices. Everything below separates three
+     things the eye tends to merge: what was held (fact), what else was true
+     that week (coincident context), and what history says this group tends
+     to do (statistics with n). A motive is never asserted. */
+  var ENERGY = {};
+  var NRG_SEL = "WTI";
+  var NRG_CAT = [
+    { k: "mm", label: "Managed money", color: "var(--calls)" },
+    { k: "pm", label: "Producers & merchants", color: "var(--puts)" },
+    { k: "sw", label: "Swap dealers", color: "var(--maxpain)" },
+    { k: "or", label: "Other reportables", color: "var(--nrg-or)" }
+  ];
+  var NRG_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  (function nrgStyles() {
+    if (document.getElementById("nrg-css")) return;
+    var css =
+      ":root{--nrg-or:#2A9D78}" +
+      ".nrg-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}" +
+      ".nrg-tab{background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);border-radius:999px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer}" +
+      ".nrg-tab:hover{color:var(--ink)}" +
+      ".nrg-tab[aria-pressed=true]{background:var(--calls-dim);color:var(--ink);border-color:var(--calls)}" +
+      ".nrg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;padding:12px 14px}" +
+      ".nrg-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:6px 18px;padding:4px 14px 12px}" +
+      ".nrg-cell{background:var(--surface-2);border:1px solid var(--line-soft);border-radius:var(--r);padding:10px 12px}" +
+      ".nrg-cell h4{margin:0 0 5px;font-size:12.5px;font-weight:650;color:var(--ink)}" +
+      ".nrg-cell p{margin:0 0 6px;color:var(--ink-2);font-size:12.5px;line-height:1.55}" +
+      ".nrg-cell p:last-child{margin-bottom:0}" +
+      ".nrg-cell .nrg-big{font-family:var(--font-num);font-size:18px;color:var(--ink);margin:2px 0 4px}" +
+      ".nrg-lesson{border-left:3px solid var(--calls)}" +
+      ".nrg-story{margin:0;padding:12px 14px 12px 32px;color:var(--ink-2);font-size:13px;line-height:1.6}" +
+      ".nrg-story li{margin:0 0 4px}" +
+      ".nrg-story li:first-child{color:var(--ink)}" +
+      ".nrg-pbar{position:relative;height:6px;background:linear-gradient(90deg,var(--puts-dim),var(--surface-3) 30%,var(--surface-3) 70%,var(--calls-dim));border-radius:3px;min-width:70px}" +
+      ".nrg-pbar i{position:absolute;top:-3px;width:3px;height:12px;margin-left:-1.5px;border-radius:2px;background:var(--ink)}" +
+      ".nrg-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2);margin:2px 0 4px}" +
+      ".nrg-legend span:before{content:'';display:inline-block;width:12px;height:3px;border-radius:2px;background:var(--c);margin-right:6px;vertical-align:middle}" +
+      ".nrg-ch{padding:0 0 4px}" +
+      ".nrg-ch-h{font-size:12px;color:var(--ink);font-weight:600;margin:10px 0 0}" +
+      ".nrg-ch-s{font-size:11.5px;color:var(--ink-3);margin:0 0 2px}" +
+      ".nrg-pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;border:1px solid var(--line);white-space:nowrap;color:var(--ink)}" +
+      ".nrg-pill.up{background:var(--calls-dim);border-color:var(--calls)}" +
+      ".nrg-pill.dn{background:var(--puts-dim);border-color:var(--puts)}" +
+      ".nrg-log details{border-top:1px solid var(--line-soft)}" +
+      ".nrg-log summary{display:grid;grid-template-columns:86px minmax(150px,1.4fr) 80px 70px 1fr;gap:10px;align-items:center;padding:8px 14px;cursor:pointer;font-size:12.5px;list-style:none}" +
+      ".nrg-log summary::-webkit-details-marker{display:none}" +
+      ".nrg-log summary:hover{background:var(--surface-2)}" +
+      ".nrg-log summary .num{font-family:var(--font-num);text-align:right}" +
+      ".nrg-log .nrg-story{padding-top:4px;background:var(--surface-2)}" +
+      ".nrg-log-h{display:grid;grid-template-columns:86px minmax(150px,1.4fr) 80px 70px 1fr;gap:10px;padding:6px 14px;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}" +
+      ".nrg-log-h span:nth-child(3),.nrg-log-h span:nth-child(4){text-align:right}" +
+      "@media (max-width:640px){.nrg-log summary,.nrg-log-h{grid-template-columns:72px 1fr 64px}.nrg-log summary>:nth-child(n+4),.nrg-log-h>:nth-child(n+4){display:none}}" +
+      ".nrg-act{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;padding:0 14px 12px}" +
+      ".nrg-act div{border:1px solid var(--line-soft);border-radius:var(--r);padding:8px 10px;font-size:12px;color:var(--ink-2);line-height:1.5}" +
+      ".nrg-act b{display:block;color:var(--ink);font-size:12.5px;margin-bottom:2px}" +
+      ".nrg-board tr[data-nrg]{cursor:pointer}" +
+      ".nrg-board tr[data-nrg]:hover td{background:var(--surface-2)}" +
+      ".nrg-board tr.on td{background:var(--calls-dim)}";
+    var el = document.createElement("style");
+    el.id = "nrg-css";
+    el.textContent = css;
+    document.head.appendChild(el);
+  })();
+
+  document.addEventListener("click", function (ev) {
+    var t = ev.target && ev.target.closest ? ev.target.closest("[data-nrg]") : null;
+    if (!t) return;
+    NRG_SEL = t.getAttribute("data-nrg");
+    var y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+    var focus = document.getElementById("nrg-focus");
+    if (focus && t.tagName === "TR") focus.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  /* Standalone loader, same pattern as metals.json: a missing file costs
+     only the positioning cards. */
+  getJson("energy.json").then(function (d) {
+    ENERGY = d || {};
+    if (state.page === "energy-index" && MODEL[state.idx]) render();
+  }).catch(function () { ENERGY = {}; });
+
+  function nrgD(iso, yr) {
+    var p = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ""));
+    if (!p) return "\u2014";
+    return p[3] + " " + NRG_MON[+p[2] - 1] + (yr === false ? "" : " " + p[1].slice(2));
+  }
+  function nrgN(v, d) {
+    if (v == null || !isFinite(v)) return "\u2014";
+    return Number(v).toLocaleString("en-US", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+  }
+  /* Contracts in thousands, signed: +21.7k / \u22129.4k. */
+  function nrgK(v, signed) {
+    if (v == null || !isFinite(v)) return "\u2014";
+    var a = Math.abs(v), s = a >= 1000 ? (a / 1000).toFixed(1) + "k" : String(Math.round(a));
+    return (v < 0 ? "\u2212" : signed && v > 0 ? "+" : "") + s;
+  }
+  function nrgPct(v, d) { return v == null || !isFinite(v) ? "\u2014" : sgn(v, d == null ? 1 : d) + "%"; }
+  function nrgR(r) { return r == null ? "\u2014" : (r < 0 ? "\u2212" : "") + Math.abs(r).toFixed(2); }
+  function nrgOrd(p) {
+    if (p == null) return "\u2014";
+    var n = Math.round(p), s = ["th", "st", "nd", "rd"], v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+  function nrgMarket(key) {
+    var ms = (ENERGY && ENERGY.markets) || [];
+    for (var i = 0; i < ms.length; i++) if (ms[i].key === key) return ms[i];
+    return ms[0] || null;
+  }
+
+  /* weeks[] arrive as rows; turn them back into objects with weekly deltas. */
+  function nrgRows(m) {
+    var ix = {};
+    (m.weekCols || []).forEach(function (c, i) { ix[c] = i; });
+    var out = (m.weeks || []).map(function (r) {
+      var o = { d: r[ix.d], oi: r[ix.oi], px: r[ix.px], ret: r[ix.ret],
+                pct3y: r[ix.pct3y], z: r[ix.z], tL: r[ix.tMmL], tS: r[ix.tMmS], c: {} };
+      ["pm", "sw", "mm", "or", "nr"].forEach(function (k) {
+        var L = r[ix[k + "L"]], S = r[ix[k + "S"]];
+        o.c[k] = { L: L, S: S, net: L != null && S != null ? L - S : null };
+      });
+      return o;
+    });
+    out.forEach(function (o, i) {
+      var p = out[i - 1];
+      Object.keys(o.c).forEach(function (k) {
+        var a = o.c[k], b = p && p.c[k];
+        a.dL = b && a.L != null && b.L != null ? a.L - b.L : null;
+        a.dS = b && a.S != null && b.S != null ? a.S - b.S : null;
+        a.dNet = b && a.net != null && b.net != null ? a.net - b.net : null;
+      });
+    });
+    return out;
+  }
+
+  function nrgActionPill(action, dNet) {
+    if (!action) return '<span class="nrg-pill">\u2014</span>';
+    var up = action === "Fresh buying" || action === "Short covering";
+    return '<span class="nrg-pill ' + (up ? "up" : "dn") + '" title="' +
+      (up ? "Adds to net length" : "Reduces net length") + '">' + esc(action) + "</span>";
+  }
+  function nrgPbar(p) {
+    if (p == null) return "\u2014";
+    return '<div style="display:flex;align-items:center;gap:8px"><div class="nrg-pbar" title="' +
+      nrgOrd(p) + ' percentile of the last 3 years"><i style="left:' + Math.max(0, Math.min(100, p)) +
+      '%"></i></div><span style="font-family:var(--font-num);font-size:11.5px">' + nrgOrd(p) + "</span></div>";
+  }
+  function nrgCrowd(p) {
+    if (p == null) return "not enough history";
+    return p >= 90 ? "crowded long (top decile)" : p >= 70 ? "heavier long than usual"
+      : p <= 10 ? "very light / crowded short (bottom decile)" : p <= 30 ? "lighter than usual" : "mid-range";
+  }
+
+  /* One-axis line chart; several series only when they share a unit. */
+  function nrgLine(rows, defs, opts) {
+    var W = 330, H = opts.h || 120, TOP = 8, BOT = H - 14, n = rows.length;
+    if (n < 2) return '<div class="caution"><p>Not enough history to chart.</p></div>';
+    var vals = [];
+    defs.forEach(function (s) { rows.forEach(function (r) { var v = s.get(r); if (v != null && isFinite(v)) vals.push(v); }); });
+    if (!vals.length) return '<div class="caution"><p>No values to chart.</p></div>';
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    if (opts.zero) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+    var pad = (hi - lo) * 0.06 || 1; lo -= pad; hi += pad;
+    var X = function (i) { return i / (n - 1) * W; };
+    var Y = function (v) { return BOT - (v - lo) / (hi - lo) * (BOT - TOP); };
+    var fmt = opts.fmt || function (v) { return nrgN(v, 2); };
+    var svg = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(opts.aria || "chart") + '">' +
+      '<line class="gridline" x1="0" y1="' + TOP + '" x2="' + W + '" y2="' + TOP + '"></line>' +
+      '<line class="gridline" x1="0" y1="' + ((TOP + BOT) / 2).toFixed(1) + '" x2="' + W + '" y2="' + ((TOP + BOT) / 2).toFixed(1) + '"></line>' +
+      '<line class="gridline" x1="0" y1="' + BOT + '" x2="' + W + '" y2="' + BOT + '"></line>';
+    if (opts.zero && lo < 0 && hi > 0) {
+      svg += '<line x1="0" y1="' + Y(0).toFixed(1) + '" x2="' + W + '" y2="' + Y(0).toFixed(1) +
+        '" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"></line>';
+    }
+    if (opts.band) {
+      svg += opts.band(X, Y);
+    }
+    defs.forEach(function (s, si) {
+      var seg = [], segs = [];
+      rows.forEach(function (r, i) {
+        var v = s.get(r);
+        if (v == null || !isFinite(v)) { if (seg.length) segs.push(seg); seg = []; return; }
+        seg.push(X(i).toFixed(1) + "," + Y(v).toFixed(1));
+      });
+      if (seg.length) segs.push(seg);
+      segs.forEach(function (sg) {
+        svg += '<polyline fill="none" stroke="' + s.color + '" stroke-width="' + (si === 0 ? 2 : 1.6) +
+          '" stroke-linejoin="round" stroke-linecap="round" points="' + sg.join(" ") + '"></polyline>';
+      });
+      var lv = s.get(rows[n - 1]);
+      if (lv != null) {
+        svg += '<circle cx="' + W + '" cy="' + Y(lv).toFixed(1) + '" r="3" fill="' + s.color +
+          '" stroke="var(--surface)" stroke-width="2"></circle>';
+      }
+    });
+    svg += '<text class="axis" x="2" y="' + (TOP + 9) + '">' + fmt(hi) + "</text>" +
+      '<text class="axis" x="2" y="' + (BOT - 3) + '">' + fmt(lo) + "</text>" +
+      '<text class="axis" x="0" y="' + (H - 2) + '">' + nrgD(rows[0].d) + "</text>" +
+      '<text class="axis" x="' + W + '" y="' + (H - 2) + '" text-anchor="end">' + nrgD(rows[n - 1].d) + "</text></svg>";
+    var main = defs[0];
+    var pts = rows.map(function (r, i) {
+      var v = main.get(r);
+      var extra = opts.rows ? opts.rows(r) : [];
+      return {
+        x: X(i), y: v != null ? Y(v) : (TOP + BOT) / 2,
+        date: "Week to " + nrgD(r.d), big: v != null ? fmt(v) : "\u2014",
+        rows: (defs.length > 1 ? defs.map(function (s) { return [s.label, fmt(s.get(r))]; }) : []).concat(extra)
+      };
+    });
+    var legend = defs.length > 1 ? '<div class="nrg-legend">' + defs.map(function (s) {
+      return '<span style="--c:' + s.color + '">' + esc(s.label) + "</span>";
+    }).join("") + "</div>" : "";
+    return legend + chartWrap(svg, { pts: pts, color: main.color, vbWidth: W, vbTop: 0, vbHeight: H });
+  }
+
+  /* Weekly change bars: up = net length added, down = removed. */
+  function nrgBars(rows, get, opts) {
+    var W = 330, H = opts.h || 100, TOP = 8, BOT = H - 14, n = rows.length;
+    if (n < 2) return "";
+    var vals = rows.map(get).filter(function (v) { return v != null; });
+    var m = Math.max.apply(null, vals.map(Math.abs).concat([1]));
+    var Y = function (v) { return (TOP + BOT) / 2 - v / m * (BOT - TOP) / 2; };
+    var bw = Math.max(1.5, W / n * 0.7), y0 = Y(0);
+    var X = function (i) { return bw / 2 + i / (n - 1) * (W - bw); };
+    var svg = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(opts.aria || "") + '">' +
+      '<line x1="0" y1="' + y0.toFixed(1) + '" x2="' + W + '" y2="' + y0.toFixed(1) + '" stroke="var(--line)" stroke-width="1"></line>';
+    rows.forEach(function (r, i) {
+      var v = get(r);
+      if (v == null) return;
+      var y = Y(v), top = Math.min(y, y0), h = Math.max(1, Math.abs(y - y0));
+      svg += '<rect x="' + (X(i) - bw / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bw.toFixed(1) +
+        '" height="' + h.toFixed(1) + '" rx="1" fill="' + (v >= 0 ? "var(--calls)" : "var(--puts)") + '"></rect>';
+    });
+    svg += '<text class="axis" x="2" y="' + (TOP + 8) + '">+' + nrgK(m) + "</text>" +
+      '<text class="axis" x="2" y="' + (BOT) + '">\u2212' + nrgK(m) + "</text>" +
+      '<text class="axis" x="0" y="' + (H - 2) + '">' + nrgD(rows[0].d) + "</text>" +
+      '<text class="axis" x="' + W + '" y="' + (H - 2) + '" text-anchor="end">' + nrgD(rows[n - 1].d) + "</text></svg>";
+    var pts = rows.map(function (r, i) {
+      var v = get(r), mm = r.c.mm;
+      return { x: X(i), y: v != null ? Y(v) : y0, date: "Week to " + nrgD(r.d),
+        big: nrgK(v, true) + " net", chg: r.ret != null ? "price " + nrgPct(r.ret) : null, chgUp: r.ret != null ? r.ret >= 0 : null,
+        rows: [["Longs \u0394", nrgK(mm.dL, true)], ["Shorts \u0394", nrgK(mm.dS, true)], ["Net after", nrgK(mm.net, true)]] };
+    });
+    return chartWrap(svg, { pts: pts, color: "var(--calls)", vbWidth: W, vbTop: 0, vbHeight: H });
+  }
+
+  function nrgPrimer() {
+    return '<section class="card"><div class="card-hd"><h2>How to read energy positioning</h2>' +
+      '<span class="sub">the players, the timing and the four moves \u00b7 read once, then use the sections below</span></div>' +
+      '<details><summary style="padding:10px 14px;cursor:pointer;color:var(--ink-2);font-size:12.5px">Open the primer \u2014 who the trader groups are and why they behave differently</summary>' +
+      '<div class="nrg-grid">' +
+      '<div class="nrg-cell"><h4>Managed money (funds, CTAs)</h4><p>Hedge funds and commodity trading advisers trading for profit. No physical oil to protect, so their position <b>is</b> their view. Many run systematic trend and momentum models, which is why they tend to buy after prices rise and sell after they fall. They are the group most likely to move price in the short run and the one most watched.</p></div>' +
+      '<div class="nrg-cell"><h4>Producers, merchants, processors, users</h4><p>Oil producers, refiners, traders and airlines hedging real barrels. Producers sell futures to lock in future revenue, so this group is usually <b>net short</b>, and sells harder when prices rise (better prices to hedge at). Their short is insurance, not a bearish bet.</p></div>' +
+      '<div class="nrg-cell"><h4>Swap dealers</h4><p>Banks that write over-the-counter swaps for clients (e.g. an airline buying a fixed fuel price) and hedge the resulting exposure in futures. Their position mirrors their clients\u2019 hedging, not a house view.</p></div>' +
+      '<div class="nrg-cell"><h4>Other reportables &amp; small traders</h4><p>Large traders that fit no other bucket (proprietary firms, some family offices), plus non-reportable positions below CFTC/ICE reporting size. Useful as residual context.</p></div>' +
+      '<div class="nrg-cell"><h4>Timing</h4><p>Positions are as of <b>Tuesday</b> close and published <b>Friday</b> (3 days late). So a Friday report describes a market that has already traded three more sessions. EIA inventory data arrives Wednesday (oil) and Thursday (gas) for the week ending the previous Friday.</p></div>' +
+      '<div class="nrg-cell"><h4>Every contract has two sides</h4><p>Total longs always equal total shorts. If managed money adds 20k longs, someone else sold 20k \u2014 usually producers and swap dealers. That is why the commercial and fund lines below look like mirror images.</p></div>' +
+      "</div>" +
+      '<div class="mo-sub" style="padding:0 14px">The four moves \u2014 read the two legs, not just the net</div>' +
+      '<div class="nrg-act">' +
+      '<div><b>Fresh buying</b>New long positions opened. Conviction that price goes up; adds new money.</div>' +
+      '<div><b>Short covering</b>Existing shorts bought back. Can be fear or profit-taking rather than a bullish view, and often fuels sharp rallies that fade once covering ends.</div>' +
+      '<div><b>Long liquidation</b>Existing longs sold. Funds giving up on (or banking) a bullish trade; money leaving.</div>' +
+      '<div><b>Fresh shorting</b>New short positions opened. An active bearish bet.</div>' +
+      "</div></details></section>";
+  }
+
+  function nrgBoard() {
+    var ms = (ENERGY && ENERGY.markets) || [];
+    var rows = ms.map(function (m) {
+      var L = m.latest || {}, mm = (L.cats || {}).mm || {};
+      var streak = L.streak ? L.streak + " wk " + (L.streakUp ? "adding" : "cutting") : "\u2014";
+      return '<tr data-nrg="' + esc(m.key) + '"' + (m.key === NRG_SEL ? ' class="on"' : "") + ">" +
+        '<td class="lft"><b>' + esc(m.label) + '</b><div class="kpi-m">' + esc(m.venue) + "</div></td>" +
+        "<td>" + nrgK(mm.net, true) + "</td>" +
+        '<td class="' + cls(mm.dNet) + '">' + nrgK(mm.dNet, true) + "</td>" +
+        '<td class="lft">' + nrgActionPill(L.action, mm.dNet) + "</td>" +
+        '<td class="lft">' + nrgPbar(L.pct3y) + "</td>" +
+        "<td>" + streak + "</td>" +
+        "<td>" + (L.longShare == null ? "\u2014" : nrgN(L.longShare, 0) + "%") + "</td>" +
+        '<td class="' + cls(L.ret) + '">' + (L.ret == null ? "\u2014" : nrgPct(L.ret)) + "</td></tr>";
+    }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Managed money across energy \u2014 this week</h2>' +
+      '<span class="sub">positions to ' + esc(nrgD(ENERGY.asOf)) + " \u00b7 click a row to study that market</span></div>" +
+      '<div class="tablewrap"><table class="dt nrg-board"><thead><tr><th class="lft">Market</th><th>Net</th><th>Week \u0394</th>' +
+      '<th class="lft">Largest leg</th><th class="lft">3-year percentile</th><th>Streak</th><th>Long share</th><th>Price wk</th></tr></thead><tbody>' +
+      rows + "</tbody></table></div>" +
+      '<div class="caution"><p><b>How to use this.</b> The percentile places today\u2019s net against the last 156 weekly reports for the same market: near 100 = funds hold about as much net length as they have in three years (crowded long; fewer new buyers left), near 0 = the opposite. <i>Long share</i> is longs \u00f7 (longs + shorts) for managed money. Price is the front-month future over the same Tuesday-to-Tuesday window; ICE Gasoil and Dubai have no stored price.</p></div></section>';
+  }
+
+  function nrgHolders(m, rows) {
+    var last = rows[rows.length - 1], back = rows[rows.length - 5];
+    var body = ["mm", "pm", "sw", "or", "nr"].map(function (k) {
+      var c = last.c[k], b = back && back.c[k];
+      var d4 = b && c.net != null && b.net != null ? c.net - b.net : null;
+      var lab = (ENERGY.categories || {})[k] || k;
+      return "<tr><td class=\"lft\">" + esc(lab) + "</td><td>" + nrgN(c.L) + "</td><td>" + nrgN(c.S) + "</td>" +
+        "<td>" + nrgK(c.net, true) + '</td><td class="' + cls(c.dNet) + '">' + nrgK(c.dNet, true) + "</td>" +
+        '<td class="' + cls(d4) + '">' + nrgK(d4, true) + "</td>" +
+        "<td>" + (last.oi ? nrgPct(c.net / last.oi * 100) : "\u2014") + "</td></tr>";
+    }).join("");
+    var L = m.latest || {}, t = L.traders || {}, mm = last.c.mm;
+    var tr = t.mmL != null ? '<p class="mo-sub" style="padding:0 14px 10px">Managed-money traders: <b>' + t.mmL + "</b> long, <b>" + t.mmS +
+      "</b> short" + (t.mmSp != null ? ", " + t.mmSp + " spreading" : "") + ". Average long " + nrgN(mm.L / t.mmL) +
+      " contracts per trader, average short " + nrgN(mm.S / t.mmS) + ". Many traders holding small positions is a broad consensus; few traders holding large ones is concentrated and can unwind fast.</p>" : "";
+    return '<section class="card"><div class="card-hd"><h2>Who holds what \u00b7 ' + esc(m.label) + "</h2>" +
+      '<span class="sub">contracts, week to ' + esc(nrgD(last.d)) + " \u00b7 open interest " + nrgN(last.oi) + "</span></div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Trader group</th><th>Long</th><th>Short</th><th>Net</th><th>1-week \u0394</th><th>4-week \u0394</th><th>Net / OI</th></tr></thead><tbody>' +
+      body + "</tbody></table></div>" + tr + "</section>";
+  }
+
+  function nrgCharts(m, rows) {
+    var hasPx = rows.some(function (r) { return r.px != null; });
+    var u = m.unit || "";
+    var last52 = rows.slice(-52);
+    return '<section class="card"><div class="card-hd"><h2>Positions vs price \u00b7 ' + esc(m.label) + "</h2>" +
+      '<span class="sub">' + rows.length + " weekly reports \u00b7 same time axis \u00b7 hover for the week</span></div>" +
+      '<div class="nrg-two"><div class="nrg-ch">' +
+      (hasPx ? '<div class="nrg-ch-h">Price \u00b7 ' + esc(u) + '</div><div class="nrg-ch-s">front-month close on each report Tuesday</div>' +
+        nrgLine(rows, [{ label: "Price", color: "var(--ink-2)", get: function (r) { return r.px; } }],
+          { h: 120, fmt: function (v) { return nrgN(v, u.indexOf("gal") >= 0 || u.indexOf("MMBtu") >= 0 ? 3 : 2); },
+            aria: m.label + " price on each report date",
+            rows: function (r) { return [["MM net", nrgK(r.c.mm.net, true)], ["3y pctile", nrgOrd(r.pct3y)]]; } })
+        : '<div class="nrg-ch-h">Price</div><div class="caution"><p>No price series is stored for this ICE contract, so price-response statistics are not computed.</p></div>') +
+      '</div><div class="nrg-ch"><div class="nrg-ch-h">Managed money net position</div><div class="nrg-ch-s">contracts \u00b7 above the dashed line = net long</div>' +
+      nrgLine(rows, [{ label: "Managed money net", color: "var(--calls)", get: function (r) { return r.c.mm.net; } }],
+        { h: 120, zero: true, fmt: function (v) { return nrgK(v, true); }, aria: "Managed money net position by week",
+          rows: function (r) { return [["Longs", nrgN(r.c.mm.L)], ["Shorts", nrgN(r.c.mm.S)], ["3y pctile", nrgOrd(r.pct3y)], ["Price", r.px == null ? "\u2014" : nrgN(r.px, 2)]]; } }) +
+      '</div><div class="nrg-ch"><div class="nrg-ch-h">Who is on each side</div><div class="nrg-ch-s">net contracts by group \u00b7 notice the mirror image</div>' +
+      nrgLine(rows, NRG_CAT.map(function (c) { return { label: c.label, color: c.color, get: function (r) { return r.c[c.k].net; } }; }),
+        { h: 140, zero: true, fmt: function (v) { return nrgK(v, true); }, aria: "Net positions of four trader groups by week" }) +
+      '</div><div class="nrg-ch"><div class="nrg-ch-h">Managed money weekly change \u00b7 last 52 weeks</div><div class="nrg-ch-s">blue = net length added \u00b7 orange = removed \u00b7 hover for the two legs</div>' +
+      nrgBars(last52, function (r) { return r.c.mm.dNet; }, { h: 140, aria: "Managed money weekly net change, last 52 weeks" }) +
+      "</div></div></section>";
+  }
+
+  function nrgThisWeek(m) {
+    var L = m.latest || {};
+    return '<section class="card" id="nrg-focus"><div class="card-hd"><h2>What managed money did this week \u00b7 ' + esc(m.label) + "</h2>" +
+      '<span class="sub">' + esc(m.contract || "") + " \u00b7 positions to " + esc(nrgD(m.asOf)) + "</span></div>" +
+      '<ol class="nrg-story">' + (L.story || []).map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ol>" +
+      '<div class="caution"><p><b>Facts vs. reasons.</b> Line 1 is the reported position change. The other lines are what was <i>observably true in the same window</i> (price, inventories against their seasonal norm, the dollar, who took the other side). They are the conditions funds were reacting to, not a statement of any trader\u2019s motive. Use the statistics below to judge how often each kind of condition has actually lined up with fund flows in this market.</p></div></section>';
+  }
+
+  function nrgLessons(m) {
+    var s = m.stats || {}, a = s.after || {};
+    var f = function (x) { return x && x.r != null ? "r = " + nrgR(x.r) + " (" + x.read + ", n = " + x.n + ")" : "not enough data"; };
+    var cells = [];
+    if (s.withTrendPct != null) {
+      var wt = s.withTrendPct;
+      cells.push('<div class="nrg-cell nrg-lesson"><h4>Do they follow price?</h4><div class="nrg-big">' + nrgN(wt, 0) + "% of weeks</div>" +
+        "<p>Share of weeks since " + esc(nrgD(s.from)) + " in which managed money changed its net position in the <b>same direction</b> as that week\u2019s price move. Same-week link: " + f(s.sameWeek) + ".</p>" +
+        "<p><b>Lesson:</b> " + (wt >= 60 ? "this group mostly <b>follows</b> price. Its buying usually confirms a rally already under way rather than anticipating one; its selling confirms a decline. Treat a fund-buying headline as a description of momentum, not a forecast."
+          : wt >= 52 ? "a mild tendency to move with price, not a strong one."
+          : "in this market funds do not systematically chase price; flows are closer to independent of the weekly move.") + "</p></div>");
+    }
+    cells.push('<div class="nrg-cell nrg-lesson"><h4>Does their move predict the next month?</h4><div class="nrg-big">' + nrgR((s.next4w || {}).r) + "</div>" +
+      "<p>Correlation between a week\u2019s fund flow and the price change over the <b>following 4 weeks</b>: " + f(s.next4w) + ". Next week only: " + f(s.next1w) + ".</p>" +
+      "<p><b>Lesson:</b> " + ((s.next4w || {}).r == null ? "no price series to test against." :
+        Math.abs(s.next4w.r) < 0.1 ? "almost no forecasting power. Positioning explains the move that just happened far better than the next one, so on its own a weekly COT change is not a trade signal."
+        : s.next4w.r > 0 ? "some follow-through: weeks of fund buying have tended to be followed by further gains (still a correlation, not a guarantee)."
+        : "a contrarian tendency: heavy fund buying has tended to be followed by weaker prices.") + "</p></div>");
+    cells.push('<div class="nrg-cell nrg-lesson"><h4>Who takes the other side?</h4><div class="nrg-big">' + nrgR((s.vsCommercials || {}).r) + "</div>" +
+      "<p>Correlation between the weekly change of managed money and of producers + swap dealers combined: " + f(s.vsCommercials) + ".</p>" +
+      "<p><b>Lesson:</b> " + ((s.vsCommercials || {}).r != null && s.vsCommercials.r < -0.5 ?
+        "near mirror image. When funds buy, hedgers sell \u2014 producers lock in higher prices for future output and banks offload client hedges. Commercial selling into a rally is hedging, not a bearish call."
+        : "the mirror is looser here; other reportables and small traders absorb a meaningful part of fund flow.") + "</p></div>");
+    if (s.vsInventory) {
+      cells.push('<div class="nrg-cell nrg-lesson"><h4>Do inventories drive them?</h4><div class="nrg-big">' + nrgR(s.vsInventory.r) + "</div>" +
+        "<p>Fund flow vs. the " + esc(s.vsInventory.series) + " change <i>relative to its 5-year seasonal norm</i> released in the same window: " + f(s.vsInventory) + ". Negative = funds add length when stocks draw more than usual.</p>" +
+        "<p><b>Lesson:</b> " + (s.vsInventory.r == null ? "not enough overlapping data." : Math.abs(s.vsInventory.r) < 0.15 ?
+          "one weekly inventory surprise explains little of the weekly flow; price momentum dominates. Inventories matter through the trend they build over months, which shows up in price first."
+          : s.vsInventory.r < 0 ? "a visible link: tighter-than-normal weeks coincide with fund buying, looser weeks with selling."
+          : "an unexpected positive link; treat with caution, it may reflect seasonal timing rather than reaction.") + "</p></div>");
+    }
+    cells.push('<div class="nrg-cell nrg-lesson"><h4>The dollar</h4><div class="nrg-big">' + nrgR((s.vsDollar || {}).r) + "</div>" +
+      "<p>Fund flow vs. the US dollar index move in the same window: " + f(s.vsDollar) + ". Prior 4-week price trend vs. this week\u2019s flow: " + f(s.prior4w) + ".</p>" +
+      "<p><b>Lesson:</b> " + (((s.vsDollar || {}).r != null && Math.abs(s.vsDollar.r) >= 0.15) ? "the dollar shows a measurable association here." : "weekly dollar moves explain little of fund flow in this market.") +
+      " A weak 4-week-trend link means funds react within the same week rather than on a lag.</p></div>");
+    var row = function (lab, b, hint) {
+      return "<tr><td class=\"lft\">" + lab + '<div class="kpi-m">' + hint + "</div></td><td>" + (b && b.n || 0) + "</td>" +
+        '<td class="' + cls(b && b.avg) + '">' + (b && b.avg != null ? nrgPct(b.avg) : "\u2014") + "</td>" +
+        "<td>" + (b && b.up != null ? nrgN(b.up, 0) + "%" : "\u2014") + "</td></tr>";
+    };
+    var ext = s.after ? '<div class="mo-sub" style="padding:0 14px">What price did over the next 4 weeks after\u2026</div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Situation</th><th>Weeks</th><th>Avg 4-wk return</th><th>% up</th></tr></thead><tbody>' +
+      row("Any week (baseline)", a.all, "compare every row to this") +
+      row("Funds crowded long", a.crowdedLong, "net \u2265 90th percentile of trailing 3 years") +
+      row("Funds crowded short / very light", a.crowdedShort, "net \u2264 10th percentile") +
+      row("Unusually large fund buying", a.bigBuy, "weekly change \u2265 2 standard deviations") +
+      row("Unusually large fund selling", a.bigSell, "weekly change \u2264 \u22122 standard deviations") +
+      "</tbody></table></div>" +
+      '<div class="caution"><p><b>Read the n.</b> A row built from a handful of weeks is an anecdote, not a pattern. Extremes matter because when nearly every fund is already long, the pool of new buyers is thin and the position itself becomes a source of selling if the story changes \u2014 but the table shows whether that has actually paid off here.</p></div>' : "";
+    return '<section class="card"><div class="card-hd"><h2>How managed money behaves in ' + esc(m.label) + "</h2>" +
+      '<span class="sub">' + (s.weeks || 0) + " weekly reports since " + esc(nrgD(s.from)) + " \u00b7 correlations, not causes</span></div>" +
+      '<div class="nrg-grid">' + cells.join("") + "</div>" + ext + "</section>";
+  }
+
+  function nrgLog(m) {
+    var items = (m.log || []).map(function (w, i) {
+      return "<details" + (i === 0 ? " open" : "") + "><summary>" +
+        "<span>" + esc(nrgD(w.d)) + "</span>" +
+        "<span>" + nrgActionPill(w.action, w.dNet) + ' <span style="color:var(--ink-3);font-size:11.5px">' + esc((w.combo || "").split(" \u2014 ")[0]) + "</span></span>" +
+        '<span class="num ' + cls(w.dNet) + '">' + nrgK(w.dNet, true) + "</span>" +
+        '<span class="num ' + cls(w.ret) + '">' + (w.ret == null ? "\u2014" : nrgPct(w.ret)) + "</span>" +
+        "<span>" + nrgPbar(w.pct3y) + "</span></summary>" +
+        '<ol class="nrg-story">' + (w.story || []).map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") +
+        (w.fr4 != null ? '<li style="color:var(--ink-3)">Hindsight: over the next 4 weeks price moved ' + nrgPct(w.fr4) + ".</li>" : "") +
+        "</ol></details>";
+    }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Decision log \u00b7 ' + esc(m.label) + "</h2>" +
+      '<span class="sub">last ' + (m.log || []).length + " reports, newest first \u00b7 open a week to see what was true when they moved</span></div>" +
+      '<div class="nrg-log"><div class="nrg-log-h"><span>Week to</span><span>What they did</span><span>Net \u0394</span><span>Price</span><span>Crowding</span></div>' +
+      items + "</div>" +
+      '<div class="caution"><p><b>Learning drill.</b> Before opening a week, guess the move from the context lines, then check. The hindsight line shows whether following the funds that week would have paid over the next month.</p></div></section>';
+  }
+
+  function nrgInventory(m) {
+    var inv = (ENERGY && ENERGY.inventories) || {};
+    var keys = { WTI: ["crude", "cushing", "refutil", "production"], BRENT: ["crude", "refutil"], DUBAI: ["crude"],
+      NATGAS: ["natgas"], RBOB: ["gasoline", "refutil"], ULSD: ["distillate", "refutil"], GASOIL: ["distillate"] }[m.key] || [];
+    var cells = keys.filter(function (k) { return inv[k]; }).map(function (k) {
+      var s = inv[k], L = s.latest || {}, u = s.unit;
+      var rows = (s.hist || []).map(function (h) { return { d: h[0], v: h[1] }; });
+      var tight = L.surprise != null && L.surprise < 0;
+      var verdict = k === "refutil" || k === "production" ? "" :
+        L.surprise == null ? "" : '<p><b>' + (tight ? "Tighter" : "Looser") + " than seasonal</b> by " + nrgN(Math.abs(L.surprise)) + " " + u +
+          " (normal change for this week: " + sgn(L.norm, 0) + "). " + (L.vs5yPct != null ? "Level is " + nrgPct(L.vs5yPct) + " vs. the 5-year average for this week." : "") + "</p>";
+      return '<div class="nrg-cell"><h4>' + esc(s.label) + '</h4><div class="nrg-big">' + nrgN(L.value, u === "%" ? 1 : 0) + " " + esc(u) +
+        ' <span class="' + (k === "refutil" || k === "production" ? "neu" : cls(-(L.chg || 0))) + '" style="font-size:12px">' + sgn(L.chg, u === "%" ? 1 : 0) + "</span></div>" +
+        '<p style="font-size:11.5px;color:var(--ink-3)">week to ' + esc(nrgD(L.weekEnd)) + "</p>" + verdict +
+        nrgLine(rows, [{ label: s.label, color: "var(--ink-2)", get: function (r) { return r.v; } }],
+          { h: 70, fmt: function (v) { return nrgN(v, u === "%" ? 1 : 0); }, aria: s.label + " weekly, two years" }) + "</div>";
+    }).join("");
+    if (!cells) return "";
+    return '<section class="card"><div class="card-hd"><h2>Fundamentals funds watch \u00b7 EIA weekly</h2>' +
+      '<span class="sub">US data; drawn more than seasonal = tighter market</span></div><div class="nrg-grid">' + cells + "</div>" +
+      '<div class="caution"><p><b>Why seasonal.</b> Crude stocks normally build in spring refinery maintenance and draw in summer; gas storage builds April\u2013October and draws in winter. A 2-million-barrel draw can be bullish in one month and normal in another, so each change is compared with the average change for the same week over the prior five years. US-only data; Brent, Gasoil and Dubai respond to global balances these do not capture.</p></div></section>';
+  }
+
+  function nrgDrivers(m) {
+    var A = typeof ANALYSIS !== "undefined" ? ANALYSIS : null;
+    if (!A || !A.instruments || !m.priceSymbol) return "";
+    var it = null;
+    for (var i = 0; i < A.instruments.length; i++) if (A.instruments[i].symbol === m.priceSymbol) it = A.instruments[i];
+    if (!it || !(it.why || []).length) return "";
+    return '<section class="card"><div class="card-hd"><h2>Price drivers today \u00b7 ' + esc(m.label) + "</h2>" +
+      '<span class="sub">from the cross-asset Market analysis \u00b7 ' + esc(it.asOf || "") + "</span></div>" +
+      '<ol class="nrg-story">' + it.why.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ol></section>";
+  }
+
+  function nrgPositioning() {
+    var ms = (ENERGY && ENERGY.markets) || [];
+    if (!ms.length) {
+      return '<section class="card"><div class="card-hd"><h2>Energy positioning</h2></div>' +
+        '<div class="caution"><p>The energy positioning snapshot (energy.json) is not loaded. Run <code>python energy_cot.py</code> to fetch CFTC/ICE positions and EIA inventories.</p></div></section>';
+    }
+    var m = nrgMarket(NRG_SEL);
+    NRG_SEL = m.key;
+    var rows = nrgRows(m);
+    var tabs = '<div class="nrg-tabs" role="group" aria-label="Energy market">' + ms.map(function (x) {
+      return '<button class="nrg-tab" data-nrg="' + esc(x.key) + '" aria-pressed="' + (x.key === m.key) + '">' + esc(x.label) + "</button>";
+    }).join("") + "</div>";
+    var note = m.key === "DUBAI" ? '<div class="coverage-note"><b>Murban proxy.</b> No exchange publishes Murban positioning in a public COT file. ICE Dubai 1st-line is the nearest published Middle-East sour crude benchmark; it is related to, but not the same as, Murban.</div>' : "";
+    return nrgBoard() + nrgPrimer() + tabs + note + nrgThisWeek(m) + nrgCharts(m, rows) + nrgHolders(m, rows) +
+      nrgLessons(m) + nrgLog(m) + nrgInventory(m) + nrgDrivers(m);
+  }
+
   function viewEnergyIndex() {
     var date = METOIL.asOf || "\u2014";
     return pageIntro("Energy Index",
-      "Brent, Murban and WTI are distinct crude benchmarks. Compare daily through annual moves, physical drivers and verified positioning evidence; do not infer a cause from price alone.",
-      "Latest stored benchmark settlement \u00b7 " + esc(date)) +
+      "Who is positioned in crude, products and gas, when they change, and what was true when they did. Positions are weekly CFTC and ICE reports; inventories are EIA weekly data. Built to learn how positioning decisions form, not to forecast.",
+      "Positions to " + esc(nrgD(ENERGY.asOf)) + " \u00b7 benchmark settlement " + esc(date)) +
       marketGroup("Crude benchmarks", "BRENT \u00b7 MURBAN \u00b7 WTI", "energy-index", [
         assetFromInst("BRENT", "Brent crude"),
-        marketAsset("Murban crude", "Quote not connected", "Benchmark series not yet configured", true),
+        marketAsset("Murban crude", "Quote not connected", "Positioning proxy: ICE Dubai 1st line", true),
         assetFromInst("WTI", "WTI crude")
       ], "Brent and WTI have stored benchmarks; no Murban quote or physical differential is connected.") +
+      nrgPositioning() +
       '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
       internationalMovesTable([["BZ=F", "Brent \u00b7 USD/bbl"], ["CL=F", "WTI \u00b7 USD/bbl"]]) + "</section>" +
       marketPositionEvidence(["CRUDE", "BRENT", "WTI"]) +
-      '<section class="card"><div class="card-hd"><h2>Weekly futures positioning</h2><span class="sub">selected CFTC crude reports \u00b7 contracts, not intent</span></div>' +
-      internationalPositionsTable(["wti", "brent"]) +
-      '<div class="caution"><p>CFTC positions are weekly Tuesday snapshots, usually published Friday. Named WTI financial and Brent last-day futures are specific contracts, not Murban or a complete view of physical-market hedging; net changes do not prove trader intent.</p></div></section>' +
       marketInstrumentDetails(["CRUDE", "BRENT", "WTI"]) +
-      driverCard("Crude market drivers",
+      driverCard("Crude market",
         "OPEC+ supply policy, producer outages, spare capacity, sanctions, exports, refinery runs and commercial inventories.",
         "Transport and aviation, petrochemicals, industrial activity and seasonal demand; China/India import demand is especially relevant.",
         "US dollar, rates, freight, geopolitics and the Brent\u2013WTI spread. Show inventory releases with release date and source.") +
       '<section class="card"><div class="card-hd"><h2>Source desk</h2><span class="sub">official data first; research and news alongside</span></div><div class="source-list">' +
+      sourceItem("CFTC \u00b7 Disaggregated Commitments of Traders", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly NYMEX WTI, Henry Hub, RBOB and ULSD positions by trader group.") +
+      sourceItem("ICE \u00b7 Commitments of Traders", "https://www.ice.com/report/122", "Weekly ICE Brent, Gasoil and Dubai positions in the same disaggregated groups.") +
       sourceItem("US EIA \u00b7 Weekly Petroleum Status Report", "https://www.eia.gov/petroleum/supply/weekly/", "US crude stocks, production, imports, refinery activity and petroleum products.") +
+      sourceItem("US EIA \u00b7 Weekly Natural Gas Storage", "https://ir.eia.gov/ngs/ngs.html", "Lower-48 working gas in storage, released Thursdays.") +
       sourceItem("IEA \u00b7 Oil Market Report", "https://www.iea.org/reports/oil-market-report", "Global supply/demand balances and monthly market analysis.") +
       sourceItem("OPEC \u00b7 Monthly Oil Market Report", "https://www.opec.org/opec_web/en/publications/338.htm", "Producer outlook, demand and supply estimates.") +
       sourceItem("Reuters \u00b7 Commodities", "https://www.reuters.com/markets/commodities/", "Fast market reporting; access and licensing may apply.") +
-      sourceItem("WSJ \u00b7 Commodities", "https://www.wsj.com/market-data/commodities", "Market prices and reporting; data is delayed and access may apply.") +
       sourceItem("J.P. Morgan \u00b7 Global Research", "https://www.jpmorgan.com/insights/global-research/commodities", "Institutional commodities outlook; research may require client access.") +
       "</div></section>";
+  }
+  /* Energy glossary. Merged by nrgRegisterTerms() just before boot(), same
+     pattern as the Metal tab: never overwrites an existing entry. Every
+     how() explains the term with the selected market's own numbers. */
+  function nrgHow(fn) {
+    return function () {
+      var mk = nrgMarket(NRG_SEL);
+      if (!mk) return "The energy positioning snapshot (energy.json) is not loaded, so there are no live figures to show.";
+      var rows = nrgRows(mk);
+      return fn(mk, mk.latest || {}, rows, rows[rows.length - 1] || null);
+    };
+  }
+  var NRG_TERMS = {
+    "Energy positioning primer": {
+      plain: ["A short guide to the weekly Commitments of Traders reports for oil, products and gas: who the trader groups are, when the data is measured, and the four ways a position can change.",
+        "Read it once; every table on the Energy tab uses these groups and moves."],
+      deep: ["CFTC (for NYMEX contracts) and ICE Futures Europe (for Brent, Gasoil and Dubai) publish every reportable futures position split into producer/merchant, swap dealer, managed money and other reportable groups, plus the non-reportable remainder.",
+        "Positions are measured at Tuesday's close and published on Friday, so the data is three sessions old when it appears."],
+      how: nrgHow(function (m, L, R, w) {
+        return "The latest report for " + esc(m.label) + " describes positions at the close of <b>" + nrgD(m.asOf) + "</b>. Open interest that day was <b>" +
+          nrgN(w && w.oi) + "</b> contracts, of which managed money held <b>" + nrgN(w && w.c.mm.L) + "</b> long and <b>" + nrgN(w && w.c.mm.S) + "</b> short.";
+      })
+    },
+    "Managed money across energy": {
+      plain: ["One row per energy futures market showing what hedge funds and CTAs (the managed money group) held at the latest report and how that changed on the week.",
+        "Click a row to open that market's charts, statistics and decision log."],
+      deep: ["Net = long contracts minus short contracts for the managed money group. Week change compares two consecutive Tuesday reports.",
+        "Markets: NYMEX WTI, ICE Brent, ICE Dubai 1st line, NYMEX Henry Hub gas, RBOB gasoline, NY Harbor ULSD, ICE Gasoil. Contracts differ in size, so compare percentiles, not raw counts, across markets."],
+      how: nrgHow(function () {
+        var ms = (ENERGY && ENERGY.markets) || [];
+        var cut = ms.filter(function (x) { return x.latest && x.latest.cats && x.latest.cats.mm.dNet < 0; }).length;
+        return "In the report to <b>" + nrgD(ENERGY.asOf) + "</b>, managed money cut net length in <b>" + cut + "</b> of " + ms.length +
+          " energy markets and added in " + (ms.length - cut) + ". " + ms.map(function (x) {
+            return esc(x.label) + " " + nrgK(x.latest.cats.mm.net, true) + " (" + nrgK(x.latest.cats.mm.dNet, true) + ")";
+          }).join("; ") + ".";
+      })
+    },
+    "Largest leg": {
+      plain: ["Which of the two sides of the managed money position moved more this week: fresh buying (longs up), long liquidation (longs down), short covering (shorts down) or fresh shorting (shorts up).",
+        "Two weeks with the same net change can mean opposite things: new buyers arriving is conviction; shorts buying back is often fear or profit-taking and can fade quickly."],
+      deep: ["The label compares the absolute weekly change in long contracts with that in short contracts and names the bigger one.",
+        "The second tag (bullish turn, bearish turn, both sides grew, de-risking) reads both legs together: longs up and shorts down is a bullish turn; both down is de-risking; both up means more conviction on each side."],
+      how: nrgHow(function (m, L, R, w) {
+        return esc(m.label) + ": longs changed <b>" + nrgK(w.c.mm.dL, true) + "</b> and shorts <b>" + nrgK(w.c.mm.dS, true) +
+          "</b>. The bigger of the two is the " + (Math.abs(w.c.mm.dL || 0) >= Math.abs(w.c.mm.dS || 0) ? "long" : "short") +
+          " leg, so the week reads as <b>" + esc(L.action || "-") + "</b>; together the legs are <b>" + esc(L.combo || "-") + "</b>.";
+      })
+    },
+    "3-year positioning percentile": {
+      plain: ["Where today's managed money net position sits among the last 156 weekly reports for the same market. 100 = the most net long in three years, 0 = the least.",
+        "Near the top, most funds that want to be long already are, so fewer new buyers remain and a change of story can trigger forced selling. Near the bottom, the reverse."],
+      deep: ["Percentile rank with ties split evenly, computed on the trailing 156 reports at each date (so historical rows use only data available then).",
+        "A percentile describes crowding, not direction. The statistics card shows what price actually did after past extremes in this market, with the number of weeks behind each figure."],
+      how: nrgHow(function (m, L) {
+        return esc(m.label) + " managed money net is <b>" + nrgK(L.cats.mm.net, true) + "</b>. Over three years it ranged from <b>" + nrgK(L.min3y, true) +
+          "</b> to <b>" + nrgK(L.max3y, true) + "</b>, which puts today at the <b>" + nrgOrd(L.pct3y) + "</b> percentile: " + nrgCrowd(L.pct3y) + ".";
+      })
+    },
+    "Positioning streak": {
+      plain: ["How many consecutive weekly reports managed money has moved its net position in the same direction, adding length or cutting it.",
+        "Trend-following funds tend to scale into a move over several weeks rather than all at once, so a long streak is the footprint of a persistent flow; a streak that breaks is often the first sign that the flow is tiring."],
+      deep: ["Counted backwards from the latest report until the sign of the weekly net change flips. A week with exactly zero change ends the count.",
+        "A streak says nothing about size: three small cuts and three large cuts both count as three. Read it with the weekly change bars on the market chart."],
+      how: nrgHow(function (m, L, R) {
+        var last = R.slice(-Math.max(1, L.streak || 1)).map(function (r) { return nrgK(r.c.mm.dNet, true); }).join(", ");
+        return esc(m.label) + ": managed money has been <b>" + (L.streakUp ? "adding" : "cutting") + "</b> net length for <b>" + (L.streak || 0) +
+          "</b> consecutive report(s). The weekly changes in that run were " + last + " contracts.";
+      })
+    },
+    "Long share": {
+      plain: ["Managed money longs divided by managed money longs plus shorts. 50% = evenly split; 80% = four longs for every short.",
+        "It shows how one-sided the fund community is. A market can have a small net with a high gross on both sides (disagreement) or a large net with few shorts (consensus); long share tells them apart."],
+      deep: ["Uses outright positions only; spreading positions (long one month, short another) are excluded because they carry no direction.",
+        "Unlike the net, it is unit-free, so it can be compared across contracts of different size, for example WTI (1,000 barrels) against RBOB (42,000 gallons)."],
+      how: nrgHow(function (m, L, R, w) {
+        return esc(m.label) + ": managed money long <b>" + nrgN(w.c.mm.L) + "</b>, short <b>" + nrgN(w.c.mm.S) + "</b>. Long share = " + nrgN(w.c.mm.L) +
+          " / (" + nrgN(w.c.mm.L) + " + " + nrgN(w.c.mm.S) + ") = <b>" + (L.longShare == null ? "-" : nrgN(L.longShare, 1) + "%") + "</b>.";
+      })
+    },
+    "COT trader group": {
+      plain: ["The Commitments of Traders reports sort every large trader into one group by their main business.",
+        "Producer/merchant: oil companies, refiners, traders and users hedging physical barrels; usually net short. Swap dealers: banks hedging client swaps. Managed money: hedge funds and CTAs trading for profit. Other reportables: large traders in no other group. Non-reportable: positions below the reporting threshold."],
+      deep: ["Long and short are open futures contracts held by the group at Tuesday's close. Net = long - short. Net / OI divides the net by total open interest in the market.",
+        "Every long has a matching short somewhere, so the groups' nets always sum to zero across the market. When one group adds net length, others must reduce it."],
+      how: nrgHow(function (m, L, R, w) {
+        var sum = ["pm", "sw", "mm", "or", "nr"].reduce(function (a, k) { return a + (w.c[k].net || 0); }, 0);
+        return esc(m.label) + " nets on " + nrgD(w.d) + ": producers " + nrgK(w.c.pm.net, true) + ", swap dealers " + nrgK(w.c.sw.net, true) +
+          ", managed money " + nrgK(w.c.mm.net, true) + ", other reportables " + nrgK(w.c.or.net, true) + ", small traders " + nrgK(w.c.nr.net, true) +
+          ". They sum to <b>" + nrgN(sum) + "</b> contracts, because every long has a short.";
+      })
+    },
+    "Net position change": {
+      plain: ["How much a group's net position (longs minus shorts) changed over one week or over four weeks, in contracts.",
+        "One week shows the latest decision; four weeks shows the direction of travel. When the two disagree, the latest week may be a pause or the start of a turn, which is worth watching in the decision log."],
+      deep: ["1-week compares the latest report with the previous one; 4-week compares it with the report four weeks earlier, which smooths single-week noise such as contract rolls and holiday-thin weeks.",
+        "Net change = change in longs minus change in shorts, so a rise in shorts lowers the net even though the short count went up."],
+      how: nrgHow(function (m, L, R, w) {
+        var b = R[R.length - 5];
+        return esc(m.label) + " managed money net: <b>" + nrgK(w.c.mm.net, true) + "</b> now, " + nrgK(R[R.length - 2] && R[R.length - 2].c.mm.net, true) +
+          " a week ago (1-week <b>" + nrgK(w.c.mm.dNet, true) + "</b>), " + nrgK(b && b.c.mm.net, true) + " four weeks ago (4-week <b>" +
+          nrgK(b ? w.c.mm.net - b.c.mm.net : null, true) + "</b>).";
+      })
+    },
+    "Forward returns after positioning extremes": {
+      plain: ["What the front-month price did over the four weeks after each kind of situation, across the stored history. 'Any week' is the baseline every other row should be compared with.",
+        "A row built from few weeks is an anecdote; read the Weeks column first."],
+      deep: ["Crowded long/short: managed money net at or above the 90th / at or below the 10th percentile of its trailing three years. Unusually large buying/selling: a weekly change of at least two standard deviations of the prior 52 weekly changes.",
+        "Avg 4-wk return is the mean percentage change in the front-month close from the report Tuesday to four reports later; % up is the share of those cases where it rose. Front-month continuous prices include roll effects."],
+      how: nrgHow(function (m) {
+        var a = (m.stats || {}).after || {}, all = a.all || {}, cs = a.crowdedShort || {}, cl = a.crowdedLong || {};
+        return esc(m.label) + ": across <b>" + (all.n || 0) + "</b> weeks the next 4 weeks averaged <b>" + nrgPct(all.avg) + "</b> (" + nrgN(all.up, 0) +
+          "% up). After crowded-long weeks (n=" + (cl.n || 0) + ") the average was " + nrgPct(cl.avg) + "; after crowded-short weeks (n=" + (cs.n || 0) + ") " + nrgPct(cs.avg) + ".";
+      })
+    },
+    "Positions vs price": {
+      plain: ["Price and positioning on the same weekly time axis, drawn as separate charts so each has its own honest scale, plus every trader group's net and the managed money weekly change.",
+        "Look for where the fund line turns relative to the price line: if funds mostly turn after price does, they are following the trend rather than leading it."],
+      deep: ["Price is the front-month close on each report Tuesday. Separate panels avoid the false impressions a two-axis chart creates, where the apparent fit depends on how each axis was stretched.",
+        "Hover any chart for that week's numbers. ICE Gasoil and Dubai have no stored price series, so only the positioning panels are drawn for them."],
+      how: nrgHow(function (m, L, R) {
+        var a = R[0], z = R[R.length - 1];
+        return "Over the " + R.length + " reports shown for " + esc(m.label) + ", price went from <b>" + (a.px == null ? "-" : nrgN(a.px, 2)) + "</b> to <b>" +
+          (z.px == null ? "-" : nrgN(z.px, 2)) + "</b> while managed money net went from <b>" + nrgK(a.c.mm.net, true) + "</b> to <b>" + nrgK(z.c.mm.net, true) + "</b>.";
+      })
+    },
+    "Fund behaviour statistics": {
+      plain: ["Measured tendencies of managed money in this market over all stored weeks: do they follow price, do their moves predict the next month, who takes the other side, and do inventories or the dollar line up with their flows.",
+        "These are correlations with the sample size shown; they describe how the group has behaved, not why any individual traded."],
+      deep: ["Correlation r runs from -1 to +1. Below 0.1 in size is treated as negligible, 0.1-0.3 weak, 0.3-0.5 moderate, above 0.5 strong.",
+        "Each correlation uses only weeks where both series exist; n is shown beside every figure."],
+      how: nrgHow(function (m) {
+        var s = m.stats || {};
+        return esc(m.label) + ": funds moved with the weekly price in <b>" + nrgN(s.withTrendPct, 0) + "%</b> of " + (s.weeks || 0) +
+          " weeks; same-week r = <b>" + nrgR((s.sameWeek || {}).r) + "</b>, next-4-week r = <b>" + nrgR((s.next4w || {}).r) + "</b>, vs commercials r = <b>" + nrgR((s.vsCommercials || {}).r) + "</b>.";
+      })
+    },
+    "Positioning decision log": {
+      plain: ["The last 20 weekly reports for one market. Each row shows what managed money did; open it to see what else was observably true in the same week (price, inventories against their seasonal norm, the dollar, who took the other side) and, in hindsight, what price did next.",
+        "Use it as a drill: guess the move from the context, then check."],
+      deep: ["Context lines are coincident facts, not stated motives. The hindsight line uses the front-month close four reports later."],
+      how: nrgHow(function (m) {
+        var lg = m.log || [], buys = lg.filter(function (x) { return (x.dNet || 0) > 0; }).length;
+        return "Of the last <b>" + lg.length + "</b> reports for " + esc(m.label) + ", managed money added net length in <b>" + buys + "</b> and cut it in <b>" + (lg.length - buys) + "</b>.";
+      })
+    },
+    "EIA weekly inventories vs seasonal norm": {
+      plain: ["US crude, Cushing, gasoline, distillate and natural gas storage from the EIA, with each weekly change compared with the average change for the same week over the prior five years.",
+        "A draw larger than normal (or a build smaller than normal) points to a tighter market; the reverse to a looser one."],
+      deep: ["Petroleum data covers the week ending Friday and is released the following Wednesday; gas storage on Thursday. On the decision log, each COT week is paired with the report released inside its Tuesday-to-Tuesday window."],
+      how: nrgHow(function () {
+        var c = ((ENERGY.inventories || {}).crude || {}).latest || {};
+        return "US commercial crude stocks: <b>" + nrgN(c.value) + "</b> kb in the week to " + nrgD(c.weekEnd) + ", a change of <b>" + sgn(c.chg, 0) +
+          "</b> kb against a 5-year norm of " + sgn(c.norm, 0) + " kb for the same week, so <b>" + (c.surprise == null ? "-" : (c.surprise < 0 ? "tighter" : "looser") + " by " + nrgN(Math.abs(c.surprise)) + " kb") + "</b>.";
+      })
+    }
+  };
+  var NRG_ALIAS = {
+    "How to read energy positioning": "Energy positioning primer",
+    "What they did": "Largest leg",
+    "3-year percentile": "3-year positioning percentile", "3y pctile": "3-year positioning percentile",
+    "Crowding": "3-year positioning percentile",
+    "Streak": "Positioning streak",
+    "Trader group": "COT trader group", "Long": "COT trader group", "Short": "COT trader group",
+    "Managed money": "COT trader group", "Producer / merchant / processor / user": "COT trader group",
+    "Swap dealers": "COT trader group", "Other reportables": "COT trader group",
+    "Non-reportable (small traders)": "COT trader group", "Net / OI": "COT trader group",
+    "1-week \u0394": "Net position change", "4-week \u0394": "Net position change", "Net \u0394": "Net position change",
+    "Situation": "Forward returns after positioning extremes",
+    "Avg 4-wk return": "Forward returns after positioning extremes",
+    "Any week (baseline)": "Forward returns after positioning extremes",
+    "Funds crowded long": "Forward returns after positioning extremes",
+    "Funds crowded short / very light": "Forward returns after positioning extremes",
+    "Unusually large fund buying": "Forward returns after positioning extremes",
+    "Unusually large fund selling": "Forward returns after positioning extremes",
+    "Who holds what": "COT trader group",
+    "How managed money behaves in": "Fund behaviour statistics",
+    "Decision log": "Positioning decision log",
+    "Fundamentals funds watch": "EIA weekly inventories vs seasonal norm",
+    "What managed money did this week": "Largest leg"
+  };
+  function nrgRegisterTerms() {
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(NRG_TERMS).forEach(function (k) {
+      var t = NRG_TERMS[k];
+      if (!has(DEEP, k)) DEEP[k] = t.deep || t.plain;
+      if (!has(PLAIN, k)) PLAIN[k] = t.plain;
+      if (!has(TERMS, k)) TERMS[k] = { deep: k, how: t.how };
+    });
+    Object.keys(NRG_ALIAS).forEach(function (k) {
+      if (!has(TERM_ALIAS, k) && !has(TERMS, k)) TERM_ALIAS[k] = NRG_ALIAS[k];
+    });
+  }
+
+  /* =================== end Energy positioning (claude-17) =================== */
+
+  /* ---------- market analysis (analysis.json) ----------
+     One instrument at a time: what moved and by how much, what the
+     configured drivers account for, positioning, what could happen next,
+     sourced headlines, and the freshness of every input. Every sentence
+     is generated upstream from figures in the same payload. */
+  function anaChg(v, kind) {
+    if (v == null || !isFinite(v)) return "\u2014";
+    return (v > 0 ? "+" : "") + (kind === "rate" ? n1(v) + " bp" : n2(v) + "%");
+  }
+  function anaPx(v, kind) {
+    if (v == null || !isFinite(v)) return "\u2014";
+    if (kind === "rate") return n3(v) + "%";
+    var a = Math.abs(v);
+    return a >= 10000 ? n0(v) : a >= 10 ? n2(v) : v.toFixed(4);
+  }
+  function anaAge(iso) {
+    if (!iso) return "";
+    var h = (Date.now() - new Date(iso).getTime()) / 36e5;
+    if (!isFinite(h)) return "";
+    return h < 1 ? "under 1h ago" : h < 48 ? Math.round(h) + "h ago" : Math.round(h / 24) + "d ago";
+  }
+  function analysisSection() {
+    var list = (ANALYSIS && ANALYSIS.instruments) || [];
+    if (!list.length) {
+      return '<section class="card"><div class="card-hd"><h2>Market analysis</h2>' +
+        '<span class="sub">what moved, why, and what could happen</span></div>' +
+        '<div class="ana-block"><p>The analysis file is not in this snapshot yet. It is built by ' +
+        "<b>fetch_commodities.py</b> (calendars and headlines) and <b>export_snapshot.py</b>.</p></div></section>";
+    }
+    var r = list.filter(function (i) { return i.symbol === state.anaSym; })[0] || list[0];
+    var k = r.kind;
+    var pick = '<div class="ana-pick">' + list.map(function (i) {
+      var c = i.change == null ? "" : '<span class="' + (i.change >= 0 ? "pos" : "neg") + '">' +
+        anaChg(i.change, i.kind) + "</span>";
+      return '<button type="button" data-ana="' + esc(i.symbol) + '" class="' +
+        (i.symbol === r.symbol ? "on" : "") + '">' + esc(i.label) + c + "</button>";
+    }).join("") + "</div>";
+
+    var head = '<div class="ana-head"><span class="big">' + anaPx(r.last, k) + "</span>" +
+      '<span class="' + ((r.change || 0) >= 0 ? "pos" : "neg") + '">' + anaChg(r.change, k) + "</span>" +
+      '<span class="kpi-m">' + esc(r.label) + " \u00b7 session " + esc(r.asOf || "") +
+      (r.z != null ? " \u00b7 " + n1(Math.abs(r.z)) + "\u03c3 day" : "") + "</span></div>";
+
+    var paras = function (arr) {
+      return (arr || []).map(function (t) { return "<p>" + esc(t) + "</p>"; }).join("");
+    };
+
+    var drv = "";
+    if (r.drivers && r.drivers.length) {
+      drv = '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Driver</th>' +
+        "<th>Today</th><th>Sensitivity</th><th>Accounts for</th></tr></thead><tbody>" +
+        r.drivers.map(function (d) {
+          return '<tr><td class="lft" data-term="Market analysis">' + esc(d.label) + "</td><td>" + anaChg(d.today, d.kind) +
+            "</td><td>" + (d.beta == null ? "\u2014" : (d.beta > 0 ? "+" : "") + n2(d.beta)) +
+            "</td><td>" + anaChg(d.contribution, k) + "</td></tr>";
+        }).join("") +
+        '<tr><td class="lft">Not explained</td><td></td><td></td><td>' + anaChg(r.residual, k) + "</td></tr>" +
+        "</tbody></table></div>" +
+        '<p class="kpi-m">Fit: ' + (r.fit ? n0(r.fit.r2 * 100) + "% of daily variation explained over " +
+          r.fit.n + " sessions (" + esc(r.fit.from) + " to " + esc(r.fit.to) + ")" : "not enough shared history") + "</p>";
+    }
+
+    var ev = (r.events || []).length
+      ? '<ul class="ana-news">' + r.events.map(function (e) {
+          var src = (e.sources || []).map(function (s) { return s.name; }).join(", ") || e.source || "";
+          var tag = e.confirmed ? "confirmed" : e.official ? "official" : e.kind === "release" ? "release rule" : "single source";
+          return "<li><b>" + esc(e.date) + "</b> \u00b7 " + esc(e.label) +
+            '<span class="ana-meta">' + esc(e.regionLabel || e.region || "") + " \u00b7 " + esc(e.severity || "") +
+            " \u00b7 " + esc(tag) + (src ? " \u00b7 " + esc(src) : "") + (e.note ? " \u00b7 " + esc(e.note) : "") +
+            "</span></li>";
+        }).join("") + "</ul>"
+      : "<p>No scheduled events in its regions within 30 days.</p>";
+
+    var news = (r.headlines || []).length
+      ? '<ul class="ana-news">' + r.headlines.map(function (h) {
+          return '<li><span class="ana-tier t' + h.tier + '">' +
+            (h.tier === 1 ? "Tier 1" : h.tier === 2 ? "Tier 2" : "Other") + "</span>" +
+            '<a href="' + esc(h.link) + '" target="_blank" rel="noopener">' + esc(h.title) + "</a>" +
+            '<span class="ana-meta">' + esc(h.publisher || "") + (h.analyst ? " \u00b7 " + esc(h.analyst) : "") +
+            " \u00b7 " + esc(anaAge(h.publishedAt)) + " \u00b7 via " + esc(h.via || "") + "</span></li>";
+        }).join("") + "</ul>"
+      : "<p>No headlines fetched for this market in the last four days.</p>";
+
+    var fresh = '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Input</th>' +
+      '<th class="lft">As of</th><th class="lft">Source</th><th>Status</th></tr></thead><tbody>' +
+      (r.freshness || []).map(function (f) {
+        return '<tr><td class="lft" data-term="Market analysis">' + esc(f.input) + '</td><td class="lft">' + esc(f.asOf || "\u2014") +
+          '</td><td class="lft">' + esc(f.source || "") + '</td><td class="ana-' + esc(f.status) + '">' +
+          esc(f.status) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    var rules = ANALYSIS.rules || {};
+    return '<section class="card"><div class="card-hd"><h2>Market analysis</h2>' +
+      '<span class="sub">what moved, why, and what could happen \u00b7 built ' +
+      esc(ANALYSIS.generatedAt || "") + "</span></div>" + pick + head +
+      '<div class="ana-grid">' +
+      '<div class="ana-block"><h3>Why it moved</h3>' + paras(r.why) + drv + "</div>" +
+      '<div class="ana-block"><h3>What could happen</h3>' + paras(r.next) + "<h3>Events ahead</h3>" + ev + "</div>" +
+      '<div class="ana-block"><h3>What the news says</h3>' + news + "</div>" +
+      '<div class="ana-block"><h3>Sources and freshness</h3>' + fresh +
+      '<p class="kpi-m">Rules: prices ' + (rules.priceDays || "?") + " days, CFTC " +
+      (rules.positionsDays || "?") + " days, headlines " + (rules.newsHours || "?") +
+      " hours. Tier is a reputation label for the publisher, not a filter; read the article before relying on it.</p></div>" +
+      "</div></section>" + analysisSourcesCard();
+  }
+  function analysisSourcesCard() {
+    var src = (ANALYSIS && ANALYSIS.sources) || [];
+    var cal = (ANALYSIS && ANALYSIS.calendar) || [];
+    if (!src.length && !cal.length) return "";
+    return '<section class="card"><div class="card-hd"><h2>Calendar and source status</h2>' +
+      '<span class="sub">central-bank dates from the banks, cross-checked; every provider\u2019s last fetch</span></div>' +
+      '<div class="ana-grid"><div class="ana-block"><h3>Decisions ahead</h3><ul class="ana-news">' +
+      cal.map(function (e) {
+        return "<li><b>" + esc(e.date) + "</b> \u00b7 " + esc(e.label) + '<span class="ana-meta">' +
+          (e.confirmed ? "confirmed by " : e.official ? "official \u00b7 " : "single source \u00b7 ") +
+          esc((e.sources || []).map(function (s) { return s.name; }).join(", ")) +
+          (e.detail ? " \u00b7 " + esc(e.detail) : "") + "</span></li>";
+      }).join("") + "</ul></div>" +
+      '<div class="ana-block"><h3>Providers</h3><div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Provider</th><th class="lft">Kind</th><th>Items</th><th class="lft">Last success</th></tr></thead><tbody>' +
+      src.map(function (s) {
+        return '<tr><td class="lft" data-term="Market analysis">' + esc(s.provider) + '</td><td class="lft">' + esc(s.kind) +
+          "</td><td>" + (s.items == null ? "\u2014" : n0(s.items)) + '</td><td class="lft ' +
+          (s.error ? "ana-stale" : "ana-ok") + '">' + esc(s.lastOk ? anaAge(s.lastOk) : "never") +
+          (s.error ? " \u00b7 " + esc(s.error) : "") + "</td></tr>";
+      }).join("") + "</tbody></table></div></div></div></section>";
   }
 
   function viewInternational() {
@@ -2568,7 +4105,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return pageIntro("International",
       "Global rates, FX, business activity, digital assets and evidence behind cross-asset moves. A market level is separated from its interpretation; observation dates and missing feeds stay visible.",
       "Snapshot through " + esc((INTERNATIONAL && INTERNATIONAL.asOf) || "date unavailable")) +
-      '<div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, selected US yield-index series and BTC/ETH use saved Yahoo Finance observations and history; the US curve and selected weekly positions use official Treasury and CFTC reports. India, euro-area, Japan and China curves, PMI releases and a licensed Reuters/WSJ/J.P. Morgan news feed are not connected. A price move without a timestamped release or positioning signal is shown as unattributed, not explained by guesswork.</div>' +
+      '<div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, selected US yield-index series and BTC/ETH use saved Yahoo Finance observations and history; the US curve and weekly positions use official Treasury and CFTC reports. Central-bank dates come from the Fed, BoJ, ECB and RBI pages and are cross-checked against ForexFactory and your own calendar. Headlines come from Google News and Bing News (thousands of publishers) plus FXStreet, ForexLive and Investing.com, each shown with its publisher, time and a reputation tier. India, euro-area, Japan and China curves and PMI values are still not connected. Every input below shows its as-of date; anything past its freshness limit is flagged stale.</div>' +
+      analysisSection() +
       '<section class="card"><div class="card-hd"><h2>Cross-asset levels &amp; changes</h2>' +
       '<span class="sub">FX and crypto in percent; yields in basis points</span></div>' +
       internationalMovesTable([["INR=X", "USD/INR"], ["EURUSD=X", "EUR/USD"],
@@ -2601,8 +4139,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<p>The IEA\u2019s net-zero scenario highlighted potentially substantial solar-PV silver demand by 2030, while also documenting efficiency, concentration and trade risks in the supply chain. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
       '<article class="research-item"><div class="research-source">Silver Institute \u00b7 2025 survey</div><div><h3>Industrial demand can rise while total demand falls</h3>' +
       '<p>Its 2024 summary reported record industrial demand but a 3% decline in total silver demand, with PV thrifting reducing silver loadings. Distinguish end-use growth from ounces demanded per panel. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">Market attribution rule</div><div><h3>Moves without a verified catalyst remain unattributed</h3>' +
-      '<p>This snapshot does not contain a licensed real-time newswire or a complete release calendar. Check primary releases and their timestamps before attributing a yield, FX or commodity move; no move does not prove that no news or positioning change occurred.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Market attribution rule</div><div><h3>The unexplained part of a move is stated, not filled in</h3>' +
+      '<p>The Market analysis card splits each move into what its drivers account for and what they do not. Headlines are aggregated, not a licensed real-time newswire, so open the article and check its timestamp against the move before treating it as the cause.</p></div></article>' +
       "</div></section>" +
       '<section class="card"><div class="card-hd"><h2>Credible source network</h2><span class="sub">primary data, analysis and news</span></div><div class="source-list">' +
       sourceItem("US Treasury \u00b7 daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields; source required for exact curve tenors.") +
@@ -5880,10 +7418,15 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   var DEEP = {
+    "Market analysis": [
+      "One reading per market: how far it moved against its own recent volatility, how much of that move its usual drivers account for, how traders are positioned, what is scheduled next, and what the news is saying. Every sentence is generated from figures shown beside it.",
+      "The driver split is a regression of daily changes on the listed driver series over the last 60 sessions. Sensitivity is the fitted change per unit move in the driver; 'accounts for' is sensitivity times the driver's move today. The fit percentage says how much of normal daily variation the drivers explain. The part they do not explain is printed, not filled in with a story.",
+      "Calendars come from the publishers themselves (Fed, BoJ, ECB, RBI) and are cross-checked against ForexFactory and your own calendar file; two agreeing sources mark an event confirmed. Headlines come from news aggregators covering thousands of publishers plus specialist FX feeds, each with publisher, time and a reputation tier. A tier labels the publisher, it does not vouch for the article. Every input shows its as-of date and is flagged stale past its freshness limit."
+    ],
     "Market section": [
       "A page groups related instruments and the information needed to understand them; the section heading is not itself a quoted market series.",
       "Displayed values come from the stored snapshots. Each value carries its observation date, and a missing feed is shown as unavailable rather than filled with an estimate.",
-      "Research links are source destinations, not a live newswire. Automated headlines and market data need permitted provider feeds and explicit freshness checks."
+      "Research links are source destinations. Headlines on the International page are aggregated from public news feeds with their publisher and time; they are not a licensed real-time newswire."
     ],
     "Market horizon": [
       "A horizon compares the latest stored observation with an earlier one. The 1D, 1W, 1M, 6M and 1Y labels describe comparison windows, not forecasts or guaranteed holding periods.",
@@ -6816,6 +8359,18 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   var TERMS = {
+    "Market analysis": {
+      deep: "Market analysis",
+      how: function () {
+        var list = (ANALYSIS && ANALYSIS.instruments) || [];
+        var src = (ANALYSIS && ANALYSIS.sources) || [];
+        return "This snapshot holds <b>" + n0(list.length) + "</b> market readings built " +
+          esc((ANALYSIS && ANALYSIS.generatedAt) || "(not yet built)") + ", from <b>" +
+          n0(src.length) + "</b> calendar and news providers. Drivers are fitted over the last <b>60</b> " +
+          "sessions; a price older than <b>4</b> days, a CFTC report older than <b>10</b> days or " +
+          "headlines older than <b>48</b> hours are flagged stale.";
+      }
+    },
     "Market section": {
       deep: "Market section",
       how: function (m) {
@@ -9718,6 +11273,16 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     "At expiry": "Expiry",
     "Band width": "Band factor",
     "Overconfident above 85%": "Calibration (ECE)",
+    "Calendar and source status": "Market analysis",
+    "Today": "Market analysis",
+    "Sensitivity": "Market analysis",
+    "Accounts for": "Market analysis",
+    "Not explained": "Market analysis",
+    "Input": "Market analysis",
+    "Provider": "Market analysis",
+    "Kind": "Market analysis",
+    "Items": "Market analysis",
+    "Last success": "Market analysis",
     "CALLS": "CE and PE",
     "CE": "CE and PE",
     "Called": "Claims",
@@ -9930,6 +11495,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
      does to a position. Written per term because a sentence generated from
      a methodology paragraph reads like a methodology paragraph. */
   var PLAIN = {
+    "Market analysis": [
+      "Why a market moved today, what could move it next, and where each piece of that came from.",
+      "Read the unexplained part and the headlines together: the numbers say how much is unaccounted for, the news is where to look for it."
+    ],
     "Market section": [
       "A navigation-level grouping of instruments, market data and context for one part of the desk.",
       "The date and source of a quote matter: this workspace keeps unavailable or stale inputs visible instead of implying a complete live feed."
@@ -12644,6 +14213,11 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       renderStrip();
       render();
       startLive();
+      /* Analysis loads on its own so a missing file costs only its cards. */
+      getJson("analysis.json").then(function (a) {
+        ANALYSIS = a || {};
+        if (["international", "energy-index", "metal-index"].indexOf(state.page) >= 0) render();
+      }).catch(function () { ANALYSIS = {}; });
       var m = MODEL[state.idx];
       var fr = freshness(m, MANIFEST);
       setFresh(fr.tag, fr.msg, fr.state, fr.age);
@@ -12808,6 +14382,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       return;
     }
 
+    var ana = e.target.closest("[data-ana]");
+    if (ana) { state.anaSym = ana.getAttribute("data-ana"); render(); return; }
+
     var wl = e.target.closest("[data-wl]");
     if (wl) { state.wl = wl.getAttribute("data-wl"); state.wlExpiry = 0; render(); return; }
 
@@ -12928,6 +14505,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   });
 
   initRail();
+  if (typeof mtlRegisterTerms === "function") mtlRegisterTerms();   /* Metal Index glossary, merged before first lookup */
+  if (typeof nrgRegisterTerms === "function") nrgRegisterTerms();   /* Energy Index glossary (claude-17) */
   boot();
 })();
 </script>
