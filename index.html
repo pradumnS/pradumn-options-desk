@@ -8,7 +8,7 @@
 <style>
 /* ============================================================
    TOKENS -- "Warm Paper". Dark-first: :root carries the warm-charcoal
-   night palette. Day is cream paper, defined for both the media-query
+   night palette. Day is dimmed sepia paper, defined for both the media-query
    (unstamped) case and the explicit [data-theme="light"] stamp.
    No pure black or pure white anywhere: long reading sessions.
    Every text colour meets WCAG AA (4.5:1) on bg, surface and surface-2.
@@ -58,28 +58,28 @@
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg:        #F2ECE1;
-    --surface:   #FBF8F2;
-    --surface-2: #F1EBE0;
-    --surface-3: #E8E0D2;
-    --line:      #DDD3C2;
-    --line-soft: #EAE3D6;
+    --bg:        #DDD3C0;
+    --surface:   #E7DECD;
+    --surface-2: #DCD2BF;
+    --surface-3: #D1C6B1;
+    --line:      #C4B8A1;
+    --line-soft: #D3C9B6;
 
-    --ink:   #2B2620;
-    --ink-2: #5A5146;
-    --ink-3: #6E6254;
+    --ink:   #28231D;
+    --ink-2: #4D4439;
+    --ink-3: #5C5145;
 
-    --calls:     #2D628C;
-    --calls-dim: rgba(45,98,140,.14);
-    --puts:      #9A520D;
-    --puts-dim:  rgba(154,82,13,.15);
-    --maxpain:   #874672;
+    --calls:     #255577;
+    --calls-dim: rgba(37,85,119,.14);
+    --puts:      #844508;
+    --puts-dim:  rgba(132,69,8,.15);
+    --maxpain:   #733B60;
 
-    --up:   #3A7437;
-    --down: #AA372B;
+    --up:   #2F622D;
+    --down: #943024;
 
-    --warn: #826000;
-    --ok:   #3A7437;
+    --warn: #6A4E00;
+    --ok:   #2F622D;
 
     --shadow: 0 1px 2px rgba(60,45,25,.06), 0 10px 28px -18px rgba(60,45,25,.24);
     --shadow-lg: -18px 0 48px -20px rgba(60,45,25,.28);
@@ -88,28 +88,28 @@
 }
 
 :root[data-theme="light"] {
-  --bg:        #F2ECE1;
-  --surface:   #FBF8F2;
-  --surface-2: #F1EBE0;
-  --surface-3: #E8E0D2;
-  --line:      #DDD3C2;
-  --line-soft: #EAE3D6;
+  --bg:        #DDD3C0;
+  --surface:   #E7DECD;
+  --surface-2: #DCD2BF;
+  --surface-3: #D1C6B1;
+  --line:      #C4B8A1;
+  --line-soft: #D3C9B6;
 
-  --ink:   #2B2620;
-  --ink-2: #5A5146;
-  --ink-3: #6E6254;
+  --ink:   #28231D;
+  --ink-2: #4D4439;
+  --ink-3: #5C5145;
 
-  --calls:     #2D628C;
-  --calls-dim: rgba(45,98,140,.14);
-  --puts:      #9A520D;
-  --puts-dim:  rgba(154,82,13,.15);
-  --maxpain:   #874672;
+  --calls:     #255577;
+  --calls-dim: rgba(37,85,119,.14);
+  --puts:      #844508;
+  --puts-dim:  rgba(132,69,8,.15);
+  --maxpain:   #733B60;
 
-  --up:   #3A7437;
-  --down: #AA372B;
+  --up:   #2F622D;
+  --down: #943024;
 
-  --warn: #826000;
-  --ok:   #3A7437;
+  --warn: #6A4E00;
+  --ok:   #2F622D;
 
   --shadow: 0 1px 2px rgba(60,45,25,.06), 0 10px 28px -18px rgba(60,45,25,.24);
   --shadow-lg: -18px 0 48px -20px rgba(60,45,25,.28);
