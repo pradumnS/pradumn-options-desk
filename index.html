@@ -8190,12 +8190,12 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var chainRows = S.slice().reverse().map(function (s) {
       var tag = s[0] === p.callWall ? " hz-cw" : s[0] === p.putWall ? " hz-pw" : atm && s[0] === atm[0] ? " hz-atm" : "";
       return '<tr class="' + tag.trim() + '"><td class="lft"><span>' + n0(s[0]) + "</span></td>" +
-        '<td class="hz-oi">' + bar(s[1], "var(--calls)") + "<em>" + n2(s[1] / LAKH) + "L</em></td>" +
-        '<td class="' + cls(s[2]) + '">' + lk(s[2]) + "</td><td>" + (s[3] != null ? n2(s[3]) : "&mdash;") + "</td>" +
-        "<td>" + (s[6] != null ? n2(s[6]) : "&mdash;") + '</td><td class="' + cls(s[5]) + '">' + lk(s[5]) + "</td>" +
-        '<td class="hz-oi">' + bar(s[4], "var(--puts)") + "<em>" + n2(s[4] / LAKH) + "L</em></td></tr>";
+        '<td class="hz-oi">' + bar(s[1], "var(--calls)") + "<em>" + n0(s[1]) + "</em></td>" +
+        '<td class="' + cls(s[2]) + '">' + sgn(s[2], 0) + "</td><td>" + (s[3] != null ? n2(s[3]) : "&mdash;") + "</td>" +
+        "<td>" + (s[6] != null ? n2(s[6]) : "&mdash;") + '</td><td class="' + cls(s[5]) + '">' + sgn(s[5], 0) + "</td>" +
+        '<td class="hz-oi">' + bar(s[4], "var(--puts)") + "<em>" + n0(s[4]) + "</em></td></tr>";
     }).join("");
-    var chainT = '<div class="tablewrap tall"><table class="dt hz-chain"><thead><tr><th class="lft">Strike</th>' +
+    var chainT = '<div class="tablewrap"><table class="dt hz-chain"><thead><tr><th class="lft">Strike</th>' +
       "<th>Call OI</th><th>Call OI chg</th><th>Call price</th><th>Put price</th><th>Put OI chg</th><th>Put OI</th>" +
       "</tr></thead><tbody>" + chainRows + "</tbody></table></div>";
     var top = (cur.top || []).map(function (c) {
@@ -8208,7 +8208,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<span class="sub">click an expiry &middot; NIFTY ' + n0(L.spot) + " on " + esc(L.d) + "</span></div>" +
       tabs + kp + rec +
       '<p class="side-why"><b>Open interest by strike</b> &mdash; calls left, puts right; bars scale to the largest OI shown. ' +
-      "Call wall, put wall and the at-the-money strike are highlighted. Prices are the bid/ask mid on live sessions, the close otherwise.</p>" +
+      "Open interest in contracts. Call wall, put wall and the at-the-money strike are highlighted. Prices are the bid/ask mid on live sessions, the close otherwise.</p>" +
       chainT +
       (top.length ? '<p class="side-why"><b>Spreads with a positive expected profit on this expiry</b>, best per rupee at risk first. ' +
         "Only those keeping their credit in " + n0(((HZN.rule || {}).minPwin || 0) * 100) + "%+ of history can be recommended.</p>" +
