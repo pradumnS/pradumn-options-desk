@@ -5046,12 +5046,24 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       var prev = m.hist[i + 1];
       var chg = h.chgPct != null ? h.chgPct
               : (prev ? (h.close - prev.close) / prev.close * 100 : null);
+      /* Session anatomy: overnight gap, body, and where the close sits in the range. */
+      var hc = h.c != null ? h.c : h.close;
+      var pc = prev ? (prev.c != null ? prev.c : prev.close) : null;
+      var gap = (pc != null && h.o != null) ? h.o - pc : null;
+      var body = (h.o != null && hc != null) ? hc - h.o : null;
+      var offLo = (h.l != null && hc != null) ? hc - h.l : null;
+      var offHi = (h.h != null && hc != null) ? h.h - hc : null;
+      function dcell(v, signed) {
+        if (v == null || !isFinite(v)) return "<td>&mdash;</td>";
+        return signed ? '<td class="' + cls(v) + '">' + sgn(v, 2) + "</td>" : "<td>" + n2(v) + "</td>";
+      }
       return '<tr><td class="lft">' + DTL(h.date) + "</td>" +
         "<td>" + n2(h.o) + "</td>" +
         "<td>" + n2(h.h) + "</td>" +
         "<td>" + n2(h.l) + "</td>" +
         '<td style="color:var(--ink)">' + n2(h.c != null ? h.c : h.close) + "</td>" +
         '<td class="' + cls(chg) + '">' + sgn(chg, 2) + "%</td>" +
+        dcell(gap, true) + dcell(body, true) + dcell(offLo, false) + dcell(offHi, false) +
         "<td>" + (h.volume != null ? n0(h.volume) : "&mdash;") + "</td>" +
         "<td>" + (h.turnover != null ? n2(h.turnover) : "&mdash;") + "</td>" +
         "<td>" + n2(h.pcr) + "</td>" +
@@ -5069,6 +5081,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<div class="tablewrap"><table class="dt hist"><thead><tr>' +
       '<th class="lft">Date</th>' +
       "<th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Chg</th>" +
+      "<th>Open &minus; prev close</th><th>Close &minus; open</th>" +
+      "<th>Close &minus; low</th><th>High &minus; close</th>" +
       "<th>Shares traded</th><th>Turnover</th>" +
       "<th>PCR</th><th>Max pain</th><th>Spot &minus; MP</th><th>ATM IV</th><th>VIX</th>" +
       "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
@@ -10076,6 +10090,56 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         return "The volatility backed out of the premium at the strike " +
           "nearest spot, <b>" + n2(m.atmIv) + "%</b>. Every band on this " +
           "desk is built from it.";
+      }
+    },
+    "Open &minus; prev close": {
+      deep: "Spot",
+      how: function (m) {
+        var a = m.hist && m.hist[0], b = m.hist && m.hist[1];
+        var pc = b ? (b.c != null ? b.c : b.close) : null;
+        if (!a || pc == null || a.o == null) return "The overnight gap: today's open less yesterday's close.";
+        var g = a.o - pc;
+        return "The overnight gap: what news, global markets and GIFT Nifty did while the " +
+          "exchange was shut. Latest session opened <b>" + sgn(g, 2) + "</b> points from the " +
+          "prior close. Positive means a gap up. Compare it with Close &minus; open: a gap " +
+          "that the session then reverses (gap up, red body) is buyers being faded; a gap " +
+          "the session extends is conviction.";
+      }
+    },
+    "Close &minus; open": {
+      deep: "Spot",
+      how: function (m) {
+        var a = m.hist && m.hist[0];
+        var c = a ? (a.c != null ? a.c : a.close) : null;
+        if (!a || c == null || a.o == null) return "The session body: close less open.";
+        return "The session body: what happened during trading hours only, with the overnight " +
+          "gap stripped out. Latest session <b>" + sgn(c - a.o, 2) + "</b> points. Chg % mixes " +
+          "gap and body together; splitting them shows whether the move came from overnight " +
+          "news or from the Indian session itself.";
+      }
+    },
+    "Close &minus; low": {
+      deep: "Spot",
+      how: function (m) {
+        var a = m.hist && m.hist[0];
+        var c = a ? (a.c != null ? a.c : a.close) : null;
+        if (!a || c == null || a.l == null || a.h == null) return "How far the close sits above the day's low.";
+        var r = a.h - a.l;
+        return "How far buyers lifted the close off the day's low: <b>" + n2(c - a.l) + "</b> points " +
+          "of a <b>" + n2(r) + "</b>-point range in the latest session. A large value next to a " +
+          "small High &minus; close means the day closed near its high: buyers held control into the " +
+          "close.";
+      }
+    },
+    "High &minus; close": {
+      deep: "Spot",
+      how: function (m) {
+        var a = m.hist && m.hist[0];
+        var c = a ? (a.c != null ? a.c : a.close) : null;
+        if (!a || c == null || a.h == null) return "How far the close sits below the day's high.";
+        return "How far sellers pushed the close back from the day's high: <b>" + n2(a.h - c) +
+          "</b> points in the latest session. The two together add up to the day's range. When " +
+          "this is the bigger one, the day closed in its lower half and the rally (if any) was sold.";
       }
     },
     "Close": {
