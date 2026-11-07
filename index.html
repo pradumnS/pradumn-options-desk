@@ -1631,6 +1631,12 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 @media (prefers-reduced-motion: reduce) { body { transition: none; } }
 </style>
 <style id="nfx-css">
+/* ---------- Buy or sell today (side-*) ---------- */
+.side-v { font: 700 22px var(--font-num); letter-spacing: .02em; padding: 10px 16px 2px; }
+.side-why { margin: 6px 16px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+.side-bt { color: var(--ink-3); }
+.side-list { margin: 4px 16px 10px 34px; padding: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+.side-list li { margin-bottom: 4px; }
 /* ---------- Nifty Index: compact five-tab layout (nfx-*) ---------- */
 .nfx-view > .card, .nfx-view > section, .nfx-view .two { margin-bottom: 10px; }
 .nfx-band { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
@@ -5302,7 +5308,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         { side: "CE", strike: bestCE.strike, credit: bestCE.credit, qty: -1 },
         { side: "PE", strike: bestPE.strike, credit: bestPE.credit, qty: -1 }
       ];
-      var defined = lowVol;
+      /* Wings at every VIX level: a naked short is only shown when the
+         chain has no priced wing strikes, and the name says so. */
+      var defined = true;
       var wingCE = null, wingPE = null;
       if (defined) {
         wingCE = m.rows.filter(function (r) { return r.strike === bestCE.strike + c.step * 2; })[0];
@@ -5328,12 +5336,17 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       }
       var romTotal = creditRs / marginReq * 100;
 
-      var name = defined ? "Iron condor &middot; defined risk" : "Short strangle &middot; naked";
+      var name = (defined && wingCE && wingPE) ? "Iron condor &middot; defined risk"
+        : "Short strangle &middot; naked (no priced wings)";
+      var sideNow = (sideNote(m).side || {}).side;
 
       structCard =
         '<section class="card"><div class="card-hd"><h2>Recommended structure</h2>' +
-        '<span class="sub">' + name + "</span>" +
+        '<span class="sub">' + (sideNow === "aside" ? "stand aside &middot; " : "") + name + "</span>" +
         '<div class="right"><span class="kpi-m">' + esc(c.label) + " &middot; " + esc(c.expiry) + "</span></div></div>" +
+        (sideNow === "aside" ? '<div class="caution"><p><b>The rule says stand aside today.</b> ' +
+          esc((sideNote(m).side || {}).why || "") + " The structure below is what selling would look like " +
+          "if you trade anyway &mdash; trade it smaller than a sell day.</p></div>" : "") +
         (lowVol ? '<div class="caution"><p><b>India VIX ' + n2(c.vix) + " is low.</b> Naked premium here is thin " +
           "relative to gap risk, so this is proposed as <b>defined risk</b> with protective wings, and at reduced size. " +
           "Selling naked into low IV is the single most common way option sellers blow up.</p></div>" : "") +
@@ -5424,8 +5437,14 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       "<p><b>Backtest before trusting it.</b> Once you have 100+ sessions stored, replay these rules against them. " +
       "Until then treat every suggestion as a hypothesis.</p></div></section>";
 
+    var SDn = sideNote(m).side;
+    if (SDn && SDn.side === "buy" && SDn.straddle) {
+      var bc = sideBuyCards(m, SDn);
+      structCard = bc.struct; exitCard = bc.exit; gapCard = bc.gap;
+    }
+
     return macroCard(m) + rangeCard + quantCards(m) + probCard + strikeCard +
-           structCard + exitCard + gapCard + honesty;
+           sideCard(m) + structCard + exitCard + gapCard + honesty + sideEvidenceCard(m);
   }
 
   /* ----------------------------------------------------------
@@ -7596,11 +7615,12 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var s = nfxCards(nfxSafe(viewStrategy, m));
     var ready = s.some(function (c) { return nfxHas(c, "Expected range"); });
     var trade = ready
-      ? nfxPick(s, ["Expected range", "Recommended structure", "Exit plan", "Gap scenarios"])
+      ? nfxPick(s, ["Expected range", "Buy or sell today", "Recommended structure", "Exit plan", "Gap scenarios"])
       : s.map(function (c) { return c.h; }).join("");
     return '<div class="nfx-view">' + verdict(m) + kpis(m) +
       nfxBand("The trade", "range, structure and exit plan for " + esc(m.cfg.expiry || "the current expiry")) +
-      trade + nfxEventsNear(m) +
+      trade + nfxMore("Does the side rule work? The backtest", nfxPick(s, ["Does the side rule work?"])) +
+      nfxEventsNear(m) +
       nfxMore("What this section can and cannot do", nfxPick(s, ["What this section can and cannot do"])) +
       "</div>";
   }
@@ -7620,6 +7640,253 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return nfxBand("Next few days", near.length + " event" + (near.length === 1 ? "" : "s") + " within 5 days") +
       eventCard(withEvents(near)) +
       (rest.length ? nfxMore("Show " + rest.length + " later events", eventCard(withEvents(rest))) : "");
+  }
+
+  /* ==========================================================
+     SIDE: sell, buy or stand aside. The decision is made in
+     side.py (one place, so the ledger grades what the page
+     shows) and arrives in techfund.json as note.side.
+     ========================================================== */
+  function sideNote(m) {
+    var key = (m && m.cfg && m.cfg.key) || state.idx;
+    return (((TECHFUND || {})[key] || {}).note) || {};
+  }
+  function sideWord(s) {
+    return s === "sell" ? "Sell premium" : s === "buy" ? "Buy premium" : "Stand aside";
+  }
+  function sideColor(s) {
+    return s === "sell" ? "var(--up)" : s === "buy" ? "var(--calls)" : "var(--maxpain)";
+  }
+  function sidePts(v) { return v == null ? "&mdash;" : sgn(v, 0); }
+  function sidePct(v) { return v == null ? "&mdash;" : n0(v) + "%"; }
+
+  function sideCard(m) {
+    var NT = sideNote(m), SD = NT.side;
+    if (!SD) return "";
+    var I = SD.inputs || {}, R = SD.rule || {}, ST = SD.straddle, BT = SD.backtest || {};
+    var rs = (BT.rule || {}).sell, as = (BT.always || {}).sell;
+    var sig = (SD.signals || []).map(function (s) {
+      var r = s.record;
+      return "<li><b>" + esc(s.label) + "</b> &mdash; " + esc(s.text) + ". " +
+        (r ? "Buying on this reason: " + sidePts(r.avgPts) + " pts average, " + sidePct(r.winPct) +
+             " won, over " + r.expiries + " expiries &mdash; <b>" + (s.proven ? "proven" : "not proven") + "</b>."
+           : "No backtest record yet.") + "</li>";
+    }).join("");
+    var rows = [
+      ["Implied / forecast", n2(I.ratio) + "&times;",
+        "selling needs &ge; " + n2(R.rich) + "&times; &middot; implied " + n1(I.iv) + "% against a forecast " + n1(I.rvForecast) + "%"],
+      ["Measured events", String(I.measuredEvents || 0),
+        (I.calendarHigh || 0) + " marked &lsquo;high&rsquo; before expiry; only types that have moved NIFTY " +
+        n2(R.eventMinX) + "&times; a normal day, over " + (R.eventMinN || 0) + "+ cases, count"],
+      ["Realised vol 5 / 21", n1(I.rv5) + "% / " + n1(I.rv21) + "%",
+        I.rising ? "rising and above implied" : "not rising above implied"],
+      ["Dealer gamma", esc(I.gamma || "n/a"),
+        I.gamma === "short" ? "dealer hedging amplifies moves" : "dealer hedging damps moves"]
+    ].map(function (r) {
+      return '<tr><td class="lft"><span>' + r[0] + "</span></td><td>" + r[1] + '</td><td class="lft">' + r[2] + "</td></tr>";
+    }).join("");
+    return '<section class="card side-card"><div class="card-hd"><h2>Buy or sell today</h2>' +
+      '<span class="sub">decided on ' + esc(NT.data_date || "") + " data &middot; " + esc(NT.expiry || "") + " expiry</span></div>" +
+      '<div class="side-v" style="color:' + sideColor(SD.side) + '">' + sideWord(SD.side) + "</div>" +
+      '<p class="side-why">' + esc(SD.why) + "</p>" +
+      (ST ? '<p class="side-why">ATM straddle <b>' + n0(ST.strike) + "</b> costs <b>" + n1(ST.cost) +
+        " pts</b> (&#8377;" + n0(ST.cost_rs) + " a lot). The seller wins if NIFTY settles between <b>" +
+        n0(ST.breakevens[0]) + "</b> and <b>" + n0(ST.breakevens[1]) + "</b>; the buyer wins outside it.</p>" : "") +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Input</th><th>Today</th>' +
+      '<th class="lft">What it means</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      (sig ? '<p class="side-why"><b>Reasons to buy present today</b></p><ul class="side-list">' + sig + "</ul>" : "") +
+      (rs && as ? '<p class="side-why side-bt">Backtest, ' + esc(BT.from || "") + " to " + esc(BT.to || "") +
+        ": on the " + rs.n + " sessions this rule said sell, selling the straddle won " + sidePct(rs.winPct) +
+        " and averaged <b>" + sidePts(rs.avgPts) + " pts</b>, against " + sidePts(as.avgPts) +
+        " pts for selling every session. No exits, costs or slippage.</p>" : "") +
+      "</section>";
+  }
+
+  function sideEvidenceCard(m) {
+    var SD = sideNote(m).side;
+    var BT = SD && SD.backtest;
+    if (!BT || !BT.bySignal) return "";
+    var tr = function (cells) {
+      return "<tr>" + cells.map(function (c, i) {
+        return i === 0 ? '<td class="lft"><span>' + c + "</span></td>" : "<td>" + c + "</td>";
+      }).join("") + "</tr>";
+    };
+    var labels = { event: "Measured event", vol: "Realised vol rising", gamma: "Dealers short gamma", none: "No reason" };
+    var today = {};
+    (SD.signals || []).forEach(function (s) { today[s.key] = 1; });
+    var sigRows = ["event", "vol", "gamma", "none"].map(function (k) {
+      var r = BT.bySignal[k];
+      if (!r) return "";
+      var ok = k !== "none" && r.expiries >= (SD.rule || {}).minExpiries && r.avgPts > 0 && r.medianPts > 0;
+      return tr([labels[k], k === "none" ? "&mdash;" : (today[k] ? "yes" : "no"), r.n, r.expiries,
+        sidePts(r.avgPts), sidePct(r.winPct), k === "none" ? "baseline" : (ok ? "proven" : "not proven")]);
+    }).join("");
+    var R = BT.rule || {}, A = BT.always || {};
+    var appr = [["Rule says sell", R.sell, "sell"], ["Rule says buy", R.buy, "buy"],
+                ["Rule says aside, sold anyway", R.asideIfSold, "sell"],
+                ["Always sell", A.sell, "sell"], ["Always buy", A.buy, "buy"]].map(function (x) {
+      var r = x[1];
+      return r ? tr([x[0], r.n, sidePct(r.winPct), sidePts(r.avgPts), sidePts(r.worstPts)])
+               : tr([x[0], "0", "&mdash;", "&mdash;", "&mdash;"]);
+    }).join("");
+    var buck = (BT.sellerByRatio || []).map(function (b) {
+      return tr([esc(b.bucket), b.n, sidePct(b.winPct), sidePts(b.avgPts)]);
+    }).join("");
+    var EV = ((SD.evidence || {}).events || {});
+    var evRows = Object.keys(EV.events || {}).map(function (k) { return [k, EV.events[k]]; })
+      .filter(function (x) { return x[1].n >= 4; })
+      .sort(function (a, b) { return b[1].x - a[1].x; })
+      .map(function (x) {
+        return tr([esc(x[0]), x[1].n, n2(x[1].x) + "&times;", x[1].counts ? "yes" : "no"]);
+      }).join("");
+    var tbl = function (head, body) {
+      return '<div class="tablewrap"><table class="dt"><thead><tr>' + head.map(function (h, i) {
+        return "<th" + (i === 0 ? ' class="lft"' : "") + ">" + h + "</th>";
+      }).join("") + "</tr></thead><tbody>" + body + "</tbody></table></div>";
+    };
+    return '<section class="card"><div class="card-hd"><h2>Does the side rule work?</h2>' +
+      '<span class="sub">' + BT.sessions + " sessions &middot; " + BT.expiries + " expiries &middot; " +
+      esc(BT.from || "") + " to " + esc(BT.to || "") + "</span></div>" +
+      '<p class="side-why">Every stored session replayed with only what was known that day. ' +
+      "The trade is the ATM straddle held to expiry: the buyer gets the move minus the cost, the seller the reverse. " +
+      "Points per lot-unit, before costs. Sessions sharing an expiry are not independent, so read the expiry counts too.</p>" +
+      '<p class="side-why"><b>Reasons to buy, tested.</b> A reason is used only if buying on it paid on average and at the median, over at least ' +
+      ((SD.rule || {}).minExpiries || 0) + " expiries.</p>" +
+      tbl(["Reason", "Today", "Sessions", "Expiries", "Buyer avg", "Buyer won", "Status"], sigRows) +
+      '<p class="side-why"><b>The rule against simple alternatives.</b></p>' +
+      tbl(["Approach", "Sessions", "Won", "Avg pts", "Worst pts"], appr) +
+      '<p class="side-why"><b>Selling by how rich premium was</b> (implied vol divided by the forecast realised vol).</p>' +
+      tbl(["Implied / forecast", "Sessions", "Seller won", "Seller avg"], buck) +
+      (evRows ? '<p class="side-why"><b>Which events actually move NIFTY</b> &mdash; median move on the session after, against a normal day&rsquo;s ' +
+        n2(EV.baseline) + "%.</p>" + tbl(["Event", "Cases", "Move vs normal day", "Counts"], evRows) : "") +
+      "</section>";
+  }
+
+  /* The long straddle, for the day the rule says buy. */
+  function sideBuyCards(m, SD) {
+    var c = m.cfg, ST = SD.straddle;
+    var row = m.rows.filter(function (r) { return r.strike === ST.strike; })[0] || {};
+    var ce = (row.ce && row.ce.ltp) || ST.cost / 2, pe = (row.pe && row.pe.ltp) || ST.cost / 2;
+    var legs = [{ side: "CE", strike: ST.strike, credit: ce, qty: 1 },
+                { side: "PE", strike: ST.strike, credit: pe, qty: 1 }];
+    var cost = ce + pe, costRs = cost * c.lot;
+    var struct = '<section class="card"><div class="card-hd"><h2>Recommended structure</h2>' +
+      '<span class="sub">Long straddle &middot; defined risk</span>' +
+      '<div class="right"><span class="kpi-m">' + esc(c.label) + " &middot; " + esc(c.expiry) + "</span></div></div>" +
+      '<div class="legs">' + legs.map(function (l) {
+        return '<div class="leg-row"><span class="leg-act buy">Buy</span><span class="leg-desc">' +
+          n0(l.strike) + " " + l.side + '</span><span class="leg-prem">&minus;' + n2(l.credit) + "</span></div>";
+      }).join("") + "</div>" +
+      '<div class="struct">' +
+        sc("Net debit", "&#8377;" + n0(costRs), n2(cost) + " &times; " + c.lot) +
+        sc("Breakevens", n0(ST.strike - cost) + " &ndash; " + n0(ST.strike + cost), "at expiry") +
+        sc("Max loss", "&#8377;" + n0(costRs), "the premium paid") +
+        sc("Needs a move of", n2(cost / c.spot * 100) + "%", "either way, by expiry") +
+      "</div></section>";
+    var exit = '<section class="card"><div class="card-hd"><h2>Exit plan</h2>' +
+      '<span class="sub">a buyer&rsquo;s plan is about time, not price</span></div><div class="checks">' +
+      ck("1", "Profit target", "Sell when the straddle is worth <b>" + n2(cost * 1.5) + "</b> (+50%). Moves come and go; take them.") +
+      ck("2", "Stop", "Sell if it falls to <b>" + n2(cost * 0.5) + "</b>. Every quiet session costs the buyer time value.") +
+      ck("3", "After the reason", "If the event you bought for has passed and NIFTY did not move, sell the same day. The reason is gone.") +
+      ck("4", "Size", "The whole premium can be lost. Size so that &#8377;" + n0(costRs) + " a lot is a loss you take calmly.") +
+      "</div></section>";
+    var scen = [-3, -2, -1, -0.5, 0, 0.5, 1, 2, 3];
+    var pls = scen.map(function (g) { return payoff(legs, c.spot * (1 + g / 100), c.lot); });
+    var worst = Math.max.apply(null, pls.map(Math.abs)) || 1;
+    var gap = '<section class="card"><div class="card-hd"><h2>Gap scenarios</h2>' +
+      '<span class="sub">P&amp;L at expiry by move in spot</span></div>' +
+      '<div class="tablewrap"><table class="dt gap"><thead><tr>' +
+      '<th class="lft">Gap</th><th>Spot</th><th>P&amp;L</th><th class="lft">&nbsp;</th></tr></thead><tbody>' +
+      scen.map(function (g, i) {
+        var pl = pls[i];
+        return '<tr><td class="lft">' + (g > 0 ? "+" : "") + n1(g) + "%</td><td>" + n0(c.spot * (1 + g / 100)) + "</td>" +
+          '<td class="' + cls(pl) + '">' + (pl >= 0 ? "+" : "&minus;") + "&#8377;" + n0(Math.abs(pl)) + "</td>" +
+          '<td class="lft"><span class="bar-pl" style="width:' + (Math.abs(pl) / worst * 100).toFixed(1) +
+          "%;background:" + (pl >= 0 ? "var(--up)" : "var(--down)") + '"></span></td></tr>';
+      }).join("") + "</tbody></table></div></section>";
+    return { struct: struct, exit: exit, gap: gap };
+  }
+
+  function sideHow(fn) {
+    return function (m) {
+      m = m || MODEL[state.idx];
+      var SD = sideNote(m).side;
+      if (!SD) return "No side decision in this session&rsquo;s note yet. ATM implied vol is " +
+        n2(m && m.atmIv) + "% with " + ((m && m.dte) || 0) + " days to expiry; the rule needs the note to run.";
+      return fn(SD, m);
+    };
+  }
+  var SIDE_TERMS = {
+    "Buy or sell today": {
+      plain: ["Whether to sell option premium, buy it, or do nothing this expiry, decided by a written rule from measured inputs.",
+        "Selling wins small and often; buying wins rarely and big. The rule only buys when a reason to expect a big move has actually paid buyers before."],
+      deep: ["Sell needs implied vol at least 1.10&times; the HAR forecast of realised vol, and no event before expiry that has measurably moved NIFTY.",
+        "Buy needs a reason for a large move (measured event, realised vol rising above implied, dealers short gamma) whose backtest paid buyers on average and at the median over 10+ expiries, and premium below 1.10&times;.",
+        "Everything else is standing aside. Each sell or buy is recorded and graded at expiry against the ATM straddle&rsquo;s breakevens."],
+      how: sideHow(function (S) {
+        var I = S.inputs || {};
+        return "Implied " + n2(I.iv) + "% / forecast " + n2(I.rvForecast) + "% = <b>" + n2(I.ratio) + "&times;</b> against the " +
+          n2((S.rule || {}).rich) + "&times; a seller needs; " + (I.measuredEvents || 0) + " measured event(s) before expiry; " +
+          (S.signals || []).length + " reason(s) to buy present. Result: <b>" + sideWord(S.side) + "</b>.";
+      })
+    },
+    "Side rule backtest": {
+      plain: ["The rule replayed on every stored session, using only what was known on that day, to see whether it would have made money.",
+        "If a reason to buy never paid, the rule does not use it, and the page says so."],
+      deep: ["Trade tested: the ATM straddle held to expiry. Buyer P&amp;L = |settle &minus; strike| &minus; cost; seller P&amp;L is the reverse.",
+        "Event impact is measured only on bars up to each session, so the replay does not see the future. The gate on buy reasons is set on the same sample, which flatters it; the live graded record is the real test.",
+        "Sessions that share an expiry are correlated: one big week counts once for each session open into it."],
+      how: sideHow(function (S) {
+        var B = S.backtest || {}, r = (B.rule || {}).sell, a = (B.always || {}).sell;
+        if (!r || !a) return "The backtest has not been built yet; it covers " + (B.sessions || 0) + " sessions so far.";
+        return B.sessions + " sessions over " + B.expiries + " expiries. Rule&rsquo;s sells: " + r.n + " sessions, " + n0(r.winPct) +
+          "% won, <b>" + sgn(r.avgPts, 0) + " pts</b> average, worst " + sgn(r.worstPts, 0) + ". Selling every session: " +
+          n0(a.winPct) + "% won, " + sgn(a.avgPts, 0) + " pts, worst " + sgn(a.worstPts, 0) + ".";
+      })
+    },
+    "Event impact on NIFTY": {
+      plain: ["How much NIFTY actually moved on the session after each kind of scheduled release, against an ordinary day.",
+        "A calendar calls many releases &lsquo;high impact&rsquo;. Most barely move NIFTY; this measures which ones do."],
+      deep: ["Move = absolute close-to-close log return, in percent. Indian releases are matched to the same session, foreign ones to the next Indian session.",
+        "An event type counts only with 8+ past cases and a median move 1.25&times; an ordinary day&rsquo;s.",
+        "The option market knows the calendar too, so an event that moves NIFTY is often already in the price."],
+      how: sideHow(function (S) {
+        var E = (S.evidence || {}).events || {};
+        var top = Object.keys(E.events || {}).filter(function (k) { return E.events[k].counts; });
+        return "An ordinary session moves NIFTY " + n2(E.baseline) + "% (median of " + (E.sessions || 0) + "). Event types that count: " +
+          (top.length ? top.map(function (k) { return esc(k) + " " + n2(E.events[k].x) + "&times;"; }).join(", ") : "none") + ".";
+      })
+    }
+  };
+  var SIDE_ALIAS = {
+    "Does the side rule work?": "Side rule backtest",
+    "Input": "Buy or sell today", "Today": "Buy or sell today", "What it means": "Buy or sell today",
+    "Implied / forecast": "Buy or sell today", "Measured events": "Event impact on NIFTY",
+    "Realised vol 5 / 21": "Buy or sell today", "Dealer gamma": "Buy or sell today",
+    "Reason": "Side rule backtest", "Sessions": "Side rule backtest", "Expiries": "Side rule backtest",
+    "Buyer avg": "Side rule backtest", "Buyer won": "Side rule backtest", "Status": "Side rule backtest",
+    "Approach": "Side rule backtest", "Won": "Side rule backtest", "Avg pts": "Side rule backtest",
+    "Worst pts": "Side rule backtest", "Seller won": "Side rule backtest", "Seller avg": "Side rule backtest",
+    "Event": "Event impact on NIFTY", "Cases": "Event impact on NIFTY",
+    "Move vs normal day": "Event impact on NIFTY", "Counts": "Event impact on NIFTY",
+    "Measured event": "Event impact on NIFTY", "Realised vol rising": "Buy or sell today",
+    "Dealers short gamma": "Buy or sell today", "No reason": "Side rule backtest",
+    "Rule says sell": "Side rule backtest", "Rule says buy": "Side rule backtest",
+    "Rule says aside, sold anyway": "Side rule backtest", "Always sell": "Side rule backtest",
+    "Always buy": "Side rule backtest", "Net debit": "Buy or sell today", "Needs a move of": "Buy or sell today",
+    "After the reason": "Buy or sell today", "Stop": "Buy or sell today", "Size": "Buy or sell today"
+  };
+  function sideRegisterTerms() {
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(SIDE_TERMS).forEach(function (k) {
+      var t = SIDE_TERMS[k];
+      if (!has(DEEP, k)) DEEP[k] = t.deep;
+      if (!has(PLAIN, k)) PLAIN[k] = t.plain;
+      if (!has(TERMS, k)) TERMS[k] = { deep: k, how: t.how };
+    });
+    Object.keys(SIDE_ALIAS).forEach(function (k) {
+      if (!has(TERM_ALIAS, k)) TERM_ALIAS[k] = SIDE_ALIAS[k];
+    });
   }
 
   /* Options: where the open interest sits, the chain, the expiry watchlist. */
@@ -14846,6 +15113,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   });
 
   initRail();
+  if (typeof sideRegisterTerms === "function") sideRegisterTerms();   /* Buy-or-sell glossary */
   if (typeof mtlRegisterTerms === "function") mtlRegisterTerms();   /* Metal Index glossary, merged before first lookup */
   if (typeof nrgRegisterTerms === "function") nrgRegisterTerms();   /* Energy Index glossary (claude-17) */
   boot();
