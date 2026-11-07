@@ -7,108 +7,113 @@
 
 <style>
 /* ============================================================
-   TOKENS &mdash; dark-first. :root carries the complete dark palette.
-   Light is the deviation, defined for both the media-query
+   TOKENS -- "Warm Paper". Dark-first: :root carries the warm-charcoal
+   night palette. Day is cream paper, defined for both the media-query
    (unstamped) case and the explicit [data-theme="light"] stamp.
+   No pure black or pure white anywhere: long reading sessions.
+   Every text colour meets WCAG AA (4.5:1) on bg, surface and surface-2.
    ============================================================ */
 :root {
   /* Freshness state. Defined here as well as on the state classes, because
      a token that exists only inside .mock.ok resolves to nothing before the
      verdict is known -- the bar would render with no colour at all. */
-  --fresh:     #66798B;
-  --fresh-dim: rgba(102,121,139,.10);
+  --fresh:     #9D917F;
+  --fresh-dim: rgba(157,145,127,.10);
 
-  --bg:        #0B0F14;
-  --surface:   #121821;
-  --surface-2: #18202B;
-  --surface-3: #1E2833;
-  --line:      #232E3B;
-  --line-soft: #1A2029;
+  --bg:        #1A1714;
+  --surface:   #221E1A;
+  --surface-2: #2A2520;
+  --surface-3: #332D27;
+  --line:      #3A332B;
+  --line-soft: #2C2722;
 
-  --ink:   #E6EDF3;
-  --ink-2: #9DB0C2;
-  --ink-3: #66798B;
+  --ink:   #E9E1D3;
+  --ink-2: #C2B6A5;
+  --ink-3: #9D917F;
 
-  /* Data identity &mdash; Okabe&ndash;Ito derived. Calls cool (ceiling), puts warm (floor). */
-  --calls:      #56B4E9;
-  --calls-dim:  rgba(86,180,233,.16);
-  --puts:       #E69F00;
-  --puts-dim:   rgba(230,159,0,.16);
-  --maxpain:    #CC79A7;
+  /* Data identity. Calls cool (ceiling), puts warm (floor). */
+  --calls:      #7FB2D9;
+  --calls-dim:  rgba(127,178,217,.15);
+  --puts:       #E2A55B;
+  --puts-dim:   rgba(226,165,91,.15);
+  --maxpain:    #CF93BC;
 
-  /* Direction &mdash; reserved. Never used for call/put identity. */
-  --up:   #3FB950;
-  --down: #F85149;
+  /* Direction -- reserved. Never used for call/put identity. */
+  --up:   #8CC084;
+  --down: #E8806F;
 
-  --warn: #D29922;
-  --ok:   #3FB950;
+  --warn: #D9B060;
+  --ok:   #8CC084;
 
-  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -12px rgba(0,0,0,.7);
-  --shadow-lg: -18px 0 48px -18px rgba(0,0,0,.75);
+  --shadow: 0 1px 2px rgba(0,0,0,.28), 0 10px 28px -16px rgba(0,0,0,.55);
+  --shadow-lg: -18px 0 48px -18px rgba(0,0,0,.6);
 
   --font-uWi: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-ui:  "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-num: "Cascadia Mono", "Consolas", ui-monospace, "SF Mono", Menlo, monospace;
 
-  --r: 6px;
+  --r: 8px;
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg:        #F4F6F9;
-    --surface:   #FFFFFF;
-    --surface-2: #EEF2F7;
-    --surface-3: #E4EAF2;
-    --line:      #D5DEE8;
-    --line-soft: #E6ECF3;
+    --bg:        #F2ECE1;
+    --surface:   #FBF8F2;
+    --surface-2: #F1EBE0;
+    --surface-3: #E8E0D2;
+    --line:      #DDD3C2;
+    --line-soft: #EAE3D6;
 
-    --ink:   #0E161F;
-    --ink-2: #4B5C6D;
-    --ink-3: #7C8C9C;
+    --ink:   #2B2620;
+    --ink-2: #5A5146;
+    --ink-3: #6E6254;
 
-    --calls:     #0072B2;
-    --calls-dim: rgba(0,114,178,.13);
-    --puts:      #A96800;
-    --puts-dim:  rgba(169,104,0,.15);
-    --maxpain:   #A1457F;
+    --calls:     #2D628C;
+    --calls-dim: rgba(45,98,140,.14);
+    --puts:      #9A520D;
+    --puts-dim:  rgba(154,82,13,.15);
+    --maxpain:   #874672;
 
-    --up:   #1A7F37;
-    --down: #C0392B;
+    --up:   #3A7437;
+    --down: #AA372B;
 
-    --warn: #8A6100;
-    --ok:   #1A7F37;
+    --warn: #826000;
+    --ok:   #3A7437;
 
-    --shadow: 0 1px 2px rgba(16,32,48,.06), 0 8px 24px -14px rgba(16,32,48,.24);
-    --shadow-lg: -18px 0 48px -20px rgba(16,32,48,.3);
+    --shadow: 0 1px 2px rgba(60,45,25,.06), 0 10px 28px -18px rgba(60,45,25,.24);
+    --shadow-lg: -18px 0 48px -20px rgba(60,45,25,.28);
+    color-scheme: light;
   }
 }
 
 :root[data-theme="light"] {
-  --bg:        #F4F6F9;
-  --surface:   #FFFFFF;
-  --surface-2: #EEF2F7;
-  --surface-3: #E4EAF2;
-  --line:      #D5DEE8;
-  --line-soft: #E6ECF3;
+  --bg:        #F2ECE1;
+  --surface:   #FBF8F2;
+  --surface-2: #F1EBE0;
+  --surface-3: #E8E0D2;
+  --line:      #DDD3C2;
+  --line-soft: #EAE3D6;
 
-  --ink:   #0E161F;
-  --ink-2: #4B5C6D;
-  --ink-3: #7C8C9C;
+  --ink:   #2B2620;
+  --ink-2: #5A5146;
+  --ink-3: #6E6254;
 
-  --calls:     #0072B2;
-  --calls-dim: rgba(0,114,178,.13);
-  --puts:      #A96800;
-  --puts-dim:  rgba(169,104,0,.15);
-  --maxpain:   #A1457F;
+  --calls:     #2D628C;
+  --calls-dim: rgba(45,98,140,.14);
+  --puts:      #9A520D;
+  --puts-dim:  rgba(154,82,13,.15);
+  --maxpain:   #874672;
 
-  --up:   #1A7F37;
-  --down: #C0392B;
+  --up:   #3A7437;
+  --down: #AA372B;
 
-  --warn: #8A6100;
-  --ok:   #1A7F37;
+  --warn: #826000;
+  --ok:   #3A7437;
 
-  --shadow: 0 1px 2px rgba(16,32,48,.06), 0 8px 24px -14px rgba(16,32,48,.24);
-  --shadow-lg: -18px 0 48px -20px rgba(16,32,48,.3);
+  --shadow: 0 1px 2px rgba(60,45,25,.06), 0 10px 28px -18px rgba(60,45,25,.24);
+  --shadow-lg: -18px 0 48px -20px rgba(60,45,25,.28);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -644,7 +649,7 @@ table.hist { min-width: 620px; }
 
 /* ---------- drawer ---------- */
 .scrim {
-  position: fixed; inset: 0; background: rgba(4,8,12,.55);
+  position: fixed; inset: 0; background: rgba(16,12,8,.48);
   opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 40;
 }
 .scrim.open { opacity: 1; pointer-events: auto; }
@@ -1117,7 +1122,7 @@ table.gap { min-width: 560px; }
 
 /* ---------- candlestick overlay ---------- */
 .ck-scrim {
-  position: fixed; inset: 0; background: rgba(4,8,12,.72);
+  position: fixed; inset: 0; background: rgba(16,12,8,.62);
   opacity: 0; pointer-events: none; transition: opacity .16s ease; z-index: 60;
 }
 .ck-scrim.open { opacity: 1; pointer-events: auto; }
@@ -1481,6 +1486,21 @@ table.ledger { min-width: 800px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+/* ============================================================
+   READING COMFORT (Warm Paper) -- appearance only.
+   Slightly larger text, more air between cards, softer edges.
+   ============================================================ */
+body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s ease, color .25s ease; }
+.content { gap: 18px; padding: 20px 24px 56px; }
+.card { border-color: var(--line-soft); }
+.card-hd h2 { font-size: 13.5px; letter-spacing: .005em; }
+.kpi { padding: 14px 16px; }
+.rail-item { border-radius: 0 var(--r) var(--r) 0; margin-right: 10px; width: calc(100% - 10px); }
+.rail-item[aria-current="true"] { background: var(--calls-dim); }
+.shell[data-rail="collapsed"] .rail-item { margin-right: 0; width: 100%; border-radius: 0; }
+::selection { background: var(--calls-dim); }
+* { scrollbar-color: var(--surface-3) transparent; }
+@media (prefers-reduced-motion: reduce) { body { transition: none; } }
 </style>
 </head>
 <body>
