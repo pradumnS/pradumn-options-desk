@@ -2003,6 +2003,29 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   var state = { idx: "NIFTY", page: "market-overview", view: "today", strike: null,
                 wl: null, wlExpiry: 0, anaSym: "JPY=X" };
 
+  /* Keep the open tab across a refresh. The address carries it:
+     #india-index/analysis, #metal-index/silver, #energy-index.
+     render() writes it back with replaceState, so a refresh reopens
+     the same place and the link can be shared. */
+  var NAV_HASH = (function () {
+    try {
+      var h = String(location.hash || "").replace(/^#/, "").split("/");
+      return { page: decodeURIComponent(h[0] || ""), sub: decodeURIComponent(h[1] || "") };
+    } catch (e) { return { page: "", sub: "" }; }
+  })();
+  if (PAGES.some(function (p) { return p.key === NAV_HASH.page; })) {
+    state.page = NAV_HASH.page;
+    if (state.page === "india-index" && NAV_HASH.sub) state.view = NAV_HASH.sub;
+  }
+  function navWriteHash() {
+    try {
+      var sub = state.page === "india-index" ? state.view :
+        state.page === "metal-index" ? mtlState.metal : "";
+      var h = "#" + state.page + (sub ? "/" + sub : "");
+      if (location.hash !== h && history && history.replaceState) history.replaceState(null, "", h);
+    } catch (e) { /* no address bar (tests, file://): nothing to keep */ }
+  }
+
   /* ==========================================================
      5. RENDER &mdash; chrome
      ========================================================== */
@@ -2750,6 +2773,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
      ========================================================== */
   var MTL = {};
   var mtlState = { metal: "gold" };
+  if (NAV_HASH.page === "metal-index" && NAV_HASH.sub) mtlState.metal = NAV_HASH.sub;
 
   function mtlOk(v) { return v !== null && v !== undefined && isFinite(Number(v)); }
   function mtlN(v) { return mtlOk(v) ? Math.round(v).toLocaleString("en-US") : "\u2014"; }
@@ -13717,6 +13741,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     paintLiveStamp();
     /* Old Nifty sub-tab keys (saved links, in-page buttons) land on their new tab. */
     if (state.page === "india-index" && NFX_ALIAS[state.view]) state.view = NFX_ALIAS[state.view];
+    if (state.page === "india-index" && !RENDER[state.view]) state.view = "today";
+    navWriteHash();
     var renderer = state.page === "india-index" ? RENDER[state.view] : RENDER[state.page];
     document.getElementById("content").innerHTML = renderer(m);
     attachHovers();
