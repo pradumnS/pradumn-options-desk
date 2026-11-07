@@ -7620,6 +7620,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return '<div class="nfx-view">' + verdict(m) + kpis(m) +
       nfxBand("The trade", "range, structure and exit plan for " + esc(m.cfg.expiry || "the current expiry")) +
       trade + nfxMore("Does the side rule work? The backtest", nfxPick(s, ["Does the side rule work?"])) +
+      nfxSafe(nfxHorizons, m) +
       nfxEventsNear(m) +
       nfxMore("What this section can and cannot do", nfxPick(s, ["What this section can and cannot do"])) +
       "</div>";
@@ -7888,6 +7889,246 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       if (!has(TERM_ALIAS, k)) TERM_ALIAS[k] = SIDE_ALIAS[k];
     });
   }
+
+  /* ==========================================================
+     HZN: every expiry, this week to next month. Built by
+     horizons.py into snapshot/horizons.json.
+     ========================================================== */
+  var HZN = null;
+  var HZN_KIND = { iron_condor: "Iron condor", bull_put_spread: "Bull put spread",
+                   bear_call_spread: "Bear call spread", aside: "Stand aside" };
+  var HZN_SIG = { pcr: "PCR", flow: "New OI flow", walls: "Wall distance", pain: "Max pain" };
+  var HZN_B = { week: "This week", week2: "Next week", monthly: "This month", next_month: "Next month" };
+  function hzRs(v) { return v == null ? "&mdash;" : (v < 0 ? "&minus;" : "") + "&#8377;" + n0(Math.abs(v)); }
+  function hzP(v) { return v == null ? "&mdash;" : n0(v * 100) + "%"; }
+  function hzTbl(head, rows) {
+    return '<div class="tablewrap"><table class="dt"><thead><tr>' + head.map(function (h, i) {
+      return "<th" + (i === 0 ? ' class="lft"' : "") + ">" + h + "</th>";
+    }).join("") + "</tr></thead><tbody>" + rows.map(function (r) {
+      return "<tr>" + r.map(function (c, i) {
+        return i === 0 ? '<td class="lft"><span>' + c + "</span></td>" : "<td>" + c + "</td>";
+      }).join("") + "</tr>";
+    }).join("") + "</tbody></table></div>";
+  }
+  function hzLegs(p) {
+    return (p.legs || []).map(function (l) {
+      return (l.kind === "bull_put" ? "Sell " + n0(l.short) + " PE / buy " + n0(l.long) + " PE"
+                                    : "Sell " + n0(l.short) + " CE / buy " + n0(l.long) + " CE");
+    }).join("<br>") || "&mdash;";
+  }
+
+  function hzStrategyCard() {
+    var L = HZN && HZN.ladder;
+    if (!L || !(L.rungs || []).length) return "";
+    var R = HZN.rule || {};
+    var rows = L.rungs.map(function (r) {
+      var p = r.pick || {}, lg = p.legs || [];
+      var pw = lg.length ? Math.min.apply(null, lg.map(function (l) { return l.pWin; })) : null;
+      return [esc(r.label), esc(r.expiry), r.sessions, esc(r.lean.direction),
+        "<b>" + (HZN_KIND[p.kind] || esc(p.kind)) + "</b>", hzLegs(p),
+        hzRs(p.creditRs), '<b class="' + cls(p.evRs || 0) + '">' + hzRs(p.evRs) + "</b>",
+        hzP(pw), hzRs(p.maxLossRs)];
+    });
+    return '<section class="card"><div class="card-hd"><h2>Strategy by expiry</h2>' +
+      '<span class="sub">NIFTY ' + n0(L.spot) + " &middot; " + esc(L.d) + " &middot; lot " + L.lot + "</span></div>" +
+      '<p class="side-why">For every expiry the desk prices each credit spread at what you would actually get ' +
+      "(sell at the bid, buy at the ask), then scores it on " + n0(L.historyN) + " sessions of NIFTY history since " +
+      esc(L.historyFrom || "") + ", scaled to today&rsquo;s " + n1(L.sigma * 100) + "% volatility and checked against raw history; " +
+      "the worse of the two counts. A spread is recommended only if its expected profit after &#8377;" + n0(R.costRs) +
+      " costs is positive and it kept its credit in at least " + n0((R.minPwin || 0) * 100) + "% of cases. " +
+      "Lean comes from OI signals that have predicted the settle; none has yet, so every lean is neutral.</p>" +
+      hzTbl(["Horizon", "Expiry", "Sessions left", "OI lean", "Pick", "Strikes", "Credit", "Expected profit", "Kept credit", "Max loss"], rows) +
+      "</section>";
+  }
+
+  function hzOiCard() {
+    var L = HZN && HZN.ladder;
+    if (!L || !(L.rungs || []).length) return "";
+    var bl = function (xs) { return (xs || []).map(function (x) { return n0(x.strike); }).join(", ") || "&mdash;"; };
+    var lk = function (v) { return v == null ? "&mdash;" : sgn(v / LAKH, 1) + "L"; };
+    var rows = L.rungs.map(function (r) {
+      var p = r.positioning || {};
+      return [esc(r.label), n2(p.pcr), n0(p.putWall), n0(p.callWall), n0(p.maxPain),
+        n0(p.straddle) + " pts", lk(p.peAdd), lk(p.ceAdd), bl(p.peBuild), bl(p.ceBuild)];
+    });
+    return '<section class="card"><div class="card-hd"><h2>Weekly vs monthly OI</h2>' +
+      '<span class="sub">where the money sits in each expiry, and where it was added today</span></div>' +
+      '<p class="side-why">The monthly contract carries the large, slower positions; weeklies carry the fast money. ' +
+      "Walls are the strikes with the most open interest; &ldquo;building at&rdquo; lists the three strikes with the largest OI added today. " +
+      "Straddle is the at-the-money call plus put: the move the market prices to that expiry.</p>" +
+      hzTbl(["Horizon", "PCR", "Put wall", "Call wall", "Max pain", "Straddle", "Puts added", "Calls added", "Puts building at", "Calls building at"], rows) +
+      "</section>";
+  }
+
+  function hzOddsCard() {
+    var L = HZN && HZN.ladder;
+    if (!L || !(L.rungs || []).length) return "";
+    var head = ["Move"].concat(L.rungs.map(function (r) { return esc(r.label); }));
+    var rows = (L.rungs[0].odds || []).map(function (o, i) {
+      return [n0(o.pts) + " pts down / up"].concat(L.rungs.map(function (r) {
+        var x = (r.odds || [])[i] || {};
+        return hzP(x.pBelow) + " / " + hzP(x.pAbove);
+      }));
+    });
+    return '<section class="card"><div class="card-hd"><h2>How far can NIFTY go by each expiry?</h2>' +
+      '<span class="sub">share of historical cases that settled beyond each distance</span></div>' +
+      '<p class="side-why">Each figure is the larger of two counts: NIFTY&rsquo;s real moves since ' + esc(L.historyFrom || "") +
+      " over the same number of sessions, and the same moves resized to today&rsquo;s " + n1(L.sigma * 100) +
+      "% volatility. Taking the larger keeps the crash years in the answer even in a calm market.</p>" +
+      hzTbl(head, rows) + "</section>";
+  }
+
+  function hzSignalCard() {
+    var S = HZN && HZN.study;
+    if (!S) return "";
+    var R = HZN.rule || {}, rows = [];
+    ["week", "week2", "monthly", "next_month"].forEach(function (b) {
+      var x = S[b] || {};
+      Object.keys(HZN_SIG).forEach(function (k) {
+        var v = x[k];
+        if (!v || !v.n) return;
+        rows.push([HZN_B[b] + " &middot; " + HZN_SIG[k], v.n, v.expiries, hzP(v.hit), sgn(v.avgSignedPct, 2) + "%",
+          v.bull + " / " + v.bear, v.proven ? "proven" : "not proven"]);
+      });
+    });
+    return '<section class="card"><div class="card-hd"><h2>Do OI signals call direction?</h2>' +
+      '<span class="sub">each reading tested against where NIFTY settled at that expiry</span></div>' +
+      '<p class="side-why">A signal leans the strategy only after it has called the settle at least ' + n0((R.minHit || 0) * 100) +
+      "% of the time over " + (R.minSessions || 0) + "+ sessions and " + (R.minExpiries || 0) + "+ expiries. " +
+      "On this history none qualifies. At the monthly expiry the usual bullish readings &mdash; high PCR, spot near the put wall &mdash; " +
+      "were followed by a lower settle more often than not.</p>" +
+      hzTbl(["Horizon / signal", "Sessions", "Expiries", "Right", "Avg move, signed", "Bull / bear calls", "Status"], rows) +
+      "</section>";
+  }
+
+  function hzReplayCard() {
+    var P = HZN && HZN.replay;
+    if (!P) return "";
+    var order = ["week", "week2", "week3", "monthly", "next_month"];
+    var lab = { week: "This week", week2: "Next week", week3: "Week after", monthly: "This month", next_month: "Next month" };
+    var rows = order.filter(function (b) { return P[b]; }).map(function (b) {
+      var x = P[b];
+      return [lab[b], x.n, x.expiries, n0(x.winPct) + "%", hzRs(x.avgRs), hzRs(x.predictedAvgRs), hzRs(x.worstRs)];
+    });
+    return '<section class="card"><div class="card-hd"><h2>Has this ladder made money?</h2>' +
+      '<span class="sub">every stored session replayed &middot; built ' + esc(HZN.replayBuilt || "") + "</span></div>" +
+      '<p class="side-why">Each session&rsquo;s recommendation for each expiry, held to settlement, per lot, after costs. ' +
+      "Archive sessions have only closing prices, so a " + n0((HZN.rule || {}).haircut * 100) + "% bid/ask haircut is charged on each leg. " +
+      "Few separate expiries sit behind each row, so read the counts before the averages.</p>" +
+      hzTbl(["Horizon", "Trades", "Expiries", "Won", "Avg per lot", "Predicted avg", "Worst"], rows) +
+      "</section>";
+  }
+
+  function hzHow(fn) {
+    return function () {
+      var L = HZN && HZN.ladder;
+      if (!L || !(L.rungs || []).length) return "The horizon ladder has not loaded, so there are no figures for this session yet (0 expiries).";
+      return fn(L);
+    };
+  }
+  var HZN_TERMS = {
+    "Strategy by expiry": {
+      plain: ["One recommendation per expiry: this week, next week, this month and next month, each judged on its own.",
+        "If nothing pays on one expiry, another may; standing aside on an expiry is a valid answer."],
+      deep: ["Every out-of-the-money credit spread with traded legs is priced at the bid for the leg sold and the ask for the leg bought.",
+        "Its payoff is averaged over every historical case of the same number of sessions since 2007, resized to today&rsquo;s volatility, and again over the raw cases; the worse average counts. Costs of about &#8377;120 a spread come off.",
+        "The best spread by expected profit per rupee at risk is shown, provided it kept its credit in 70%+ of cases."],
+      how: hzHow(function (L) {
+        return L.rungs.map(function (r) {
+          return esc(r.label) + " (" + esc(r.expiry) + ", " + r.sessions + " sessions): <b>" + (HZN_KIND[r.pick.kind] || r.pick.kind) +
+            "</b>" + (r.pick.evRs != null ? ", expected " + hzRs(r.pick.evRs) : "");
+        }).join("; ") + ". NIFTY " + n0(L.spot) + ", volatility " + n1(L.sigma * 100) + "%.";
+      })
+    },
+    "Weekly vs monthly OI": {
+      plain: ["Open interest is the number of option contracts still open at each strike; it shows where positions sit.",
+        "Comparing the weekly and monthly expiries separates fast trading money from larger, slower positions."],
+      deep: ["PCR = put OI / call OI for that expiry. Put wall and call wall are the strikes with the most put and call OI.",
+        "Max pain is the settle that would cost option writers least in total.",
+        "OI added is today&rsquo;s change in open interest; strikes where it rose most are where new positions are being opened."],
+      how: hzHow(function (L) {
+        return L.rungs.map(function (r) {
+          var p = r.positioning || {};
+          return esc(r.label) + ": PCR " + n2(p.pcr) + ", put wall " + n0(p.putWall) + ", call wall " + n0(p.callWall);
+        }).join("; ") + ".";
+      })
+    },
+    "How far can NIFTY go?": {
+      plain: ["The share of past cases in which NIFTY ended at least that many points lower, or higher, by the same number of sessions.",
+        "It answers how often a strike that far away would have been reached at expiry."],
+      deep: ["Each historical n-session move is divided by the 21-session volatility before it, then multiplied by today&rsquo;s volatility.",
+        "The same distance is also counted on raw moves, and the larger share is shown, so a crash from a calm start is not scaled away.",
+        "History since 2007 includes 2008, 2016 and 2020."],
+      how: hzHow(function (L) {
+        var r = L.rungs[L.rungs.length - 1], o = (r.odds || [])[3] || {};
+        return "By " + esc(r.label.toLowerCase()) + " (" + r.sessions + " sessions), NIFTY ended " + n0(o.pts) + "+ points lower in " +
+          hzP(o.pBelow) + " and higher in " + hzP(o.pAbove) + " of " + n0(L.historyN) + "-session history cases.";
+      })
+    },
+    "OI direction signals": {
+      plain: ["Readings of open interest that traders use to call direction, tested against where NIFTY actually settled.",
+        "A reading is used only once it has been right often enough, over enough separate expiries."],
+      deep: ["PCR above 1.2 reads bullish and below 0.8 bearish. New OI flow reads bullish when puts are added 1.5&times; faster than calls.",
+        "Wall distance reads bullish when spot is much nearer the put wall than the call wall. Max pain reads bullish when it sits 0.5%+ above spot.",
+        "Passing needs 58%+ right over 40+ sessions and 8+ expiries, with a positive average signed move."],
+      how: hzHow(function () {
+        var m = ((HZN.study || {}).monthly || {}).pcr || {};
+        return "Monthly PCR reading: " + (m.n || 0) + " sessions over " + (m.expiries || 0) + " expiries, right " + hzP(m.hit) +
+          ", average signed move " + sgn(m.avgSignedPct || 0, 2) + "%.";
+      })
+    },
+    "Ladder replay": {
+      plain: ["Every stored session run through the same ladder, using only what was known that day, and held to expiry.",
+        "It shows whether the expected profits the page quotes have actually been earned."],
+      deep: ["Odds use history up to each session only. The OI-signal test is fitted on the same sessions, which matters little while no signal passes.",
+        "Archive sessions are priced at the close with a 3% haircut per leg; live sessions at the bid and ask. About &#8377;120 of costs per spread.",
+        "Sessions sharing an expiry are correlated; the expiry count is the honest sample size."],
+      how: hzHow(function () {
+        var P = HZN.replay || {}, m = P.monthly || {}, w = P.week || {};
+        return "This month: " + (m.n || 0) + " trades over " + (m.expiries || 0) + " expiries, won " + n0(m.winPct || 0) + "%, average " +
+          hzRs(m.avgRs) + ". This week: " + (w.n || 0) + " trades, won " + n0(w.winPct || 0) + "%, average " + hzRs(w.avgRs) + ".";
+      })
+    }
+  };
+  var HZN_ALIAS = {
+    "Has this ladder made money?": "Ladder replay", "Do OI signals call direction?": "OI direction signals",
+    "How far can NIFTY go by each expiry?": "How far can NIFTY go?",
+    "Horizon": "Strategy by expiry", "Expiry": "Strategy by expiry", "Sessions left": "Strategy by expiry",
+    "OI lean": "OI direction signals", "Pick": "Strategy by expiry", "Strikes": "Strategy by expiry",
+    "Credit": "Strategy by expiry", "Expected profit": "Strategy by expiry", "Kept credit": "Strategy by expiry",
+    "Max loss": "Strategy by expiry", "PCR": "Weekly vs monthly OI", "Put wall": "Weekly vs monthly OI",
+    "Call wall": "Weekly vs monthly OI", "Max pain": "Weekly vs monthly OI", "Straddle": "Weekly vs monthly OI",
+    "Puts added": "Weekly vs monthly OI", "Calls added": "Weekly vs monthly OI",
+    "Puts building at": "Weekly vs monthly OI", "Calls building at": "Weekly vs monthly OI",
+    "This week": "Strategy by expiry", "Next week": "Strategy by expiry", "Week after": "Strategy by expiry",
+    "This month": "Strategy by expiry", "Next month": "Strategy by expiry",
+    "Horizon / signal": "OI direction signals", "Right": "OI direction signals", "Avg move, signed": "OI direction signals",
+    "Bull / bear calls": "OI direction signals", "Trades": "Ladder replay", "Avg per lot": "Ladder replay",
+    "Predicted avg": "Ladder replay", "Worst": "Ladder replay", "Move": "How far can NIFTY go?"
+  };
+  function hzRegisterTerms() {
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(HZN_TERMS).forEach(function (k) {
+      var t = HZN_TERMS[k];
+      if (!has(DEEP, k)) DEEP[k] = t.deep;
+      if (!has(PLAIN, k)) PLAIN[k] = t.plain;
+      if (!has(TERMS, k)) TERMS[k] = { deep: k, how: t.how };
+    });
+    Object.keys(HZN_ALIAS).forEach(function (k) {
+      if (!has(TERM_ALIAS, k)) TERM_ALIAS[k] = HZN_ALIAS[k];
+    });
+  }
+  function nfxHorizons() {
+    if (!HZN || !HZN.ladder) return "";
+    return nfxBand("Every expiry", "this week to next month: positioning, odds and the best-paying spread") +
+      hzStrategyCard() + hzOiCard() + hzOddsCard() +
+      nfxMore("Do OI signals call direction? The test", hzSignalCard()) +
+      nfxMore("Has this ladder made money? The replay", hzReplayCard());
+  }
+  getJson("horizons.json").then(function (d) {
+    HZN = d || null;
+    if (state.page === "india-index" && MODEL[state.idx]) render();
+  }).catch(function () { HZN = null; });
 
   /* Options: where the open interest sits, the chain, the expiry watchlist. */
   function nfxOptions(m) {
@@ -15114,6 +15355,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
   initRail();
   if (typeof sideRegisterTerms === "function") sideRegisterTerms();   /* Buy-or-sell glossary */
+  if (typeof hzRegisterTerms === "function") hzRegisterTerms();       /* Every-expiry glossary */
   if (typeof mtlRegisterTerms === "function") mtlRegisterTerms();   /* Metal Index glossary, merged before first lookup */
   if (typeof nrgRegisterTerms === "function") nrgRegisterTerms();   /* Energy Index glossary (claude-17) */
   boot();
