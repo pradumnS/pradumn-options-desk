@@ -1630,6 +1630,24 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 * { scrollbar-color: var(--surface-3) transparent; }
 @media (prefers-reduced-motion: reduce) { body { transition: none; } }
 </style>
+<style id="nfx-css">
+/* ---------- Nifty Index: compact five-tab layout (nfx-*) ---------- */
+.nfx-view > .card, .nfx-view > section, .nfx-view .two { margin-bottom: 10px; }
+.nfx-band { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  margin: 18px 2px 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.nfx-band:first-child { margin-top: 4px; }
+.nfx-band h3 { margin: 0; font: 600 11px var(--font-num); letter-spacing: .14em; text-transform: uppercase; color: var(--calls); }
+.nfx-band span { font-size: 11.5px; color: var(--ink-3); }
+.nfx-more { margin: 0 0 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.nfx-more > summary { cursor: pointer; list-style: none; padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.nfx-more > summary::-webkit-details-marker { display: none; }
+.nfx-more > summary::before { content: "+"; display: inline-block; width: 16px; color: var(--calls); font-family: var(--font-num); }
+.nfx-more[open] > summary::before { content: "\2212"; }
+.nfx-more > summary:hover { color: var(--ink); }
+.nfx-more > summary:focus-visible { outline: 2px solid var(--calls); outline-offset: -2px; }
+.nfx-more[open] { padding-bottom: 2px; }
+.nfx-more[open] > .card, .nfx-more[open] > section { margin: 0 8px 8px; }
+</style>
 </head>
 <body>
 
@@ -1765,14 +1783,11 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   ];
 
   var VIEWS = [
-    { key:"overview",  label:"Overview" },
-    { key:"strategy",  label:"Direction &amp; strategy" },
-    { key:"model",     label:"Model data" },
-    { key:"watchlist", label:"Watchlist" },
-    { key:"stocks",    label:"NIFTY 50 stocks" },
-    { key:"chain",     label:"Option chain &amp; OI" },
-    { key:"technicals",label:"Tech-Fund" },
-    { key:"history",   label:"History" }
+    { key:"today",    label:"Today" },
+    { key:"options",  label:"Options &amp; OI" },
+    { key:"analysis", label:"Analysis" },
+    { key:"stocks",   label:"NIFTY 50 stocks" },
+    { key:"record",   label:"Track record" }
   ];
 
   /* ==========================================================
@@ -1985,7 +2000,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   /* ==========================================================
      4. STATE
      ========================================================== */
-  var state = { idx: "NIFTY", page: "market-overview", view: "overview", strike: null,
+  var state = { idx: "NIFTY", page: "market-overview", view: "today", strike: null,
                 wl: null, wlExpiry: 0, anaSym: "JPY=X" };
 
   /* ==========================================================
@@ -7489,7 +7504,144 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return head + moBriefing(D) + moTiles(D) + moContext(D) + blocks + moRecord(D) + moEvents(D) + moRules(D);
   }
 
+  /* ==========================================================
+     NIFTY INDEX \u00b7 compact five-tab layout (nfx-*)
+     Today / Options / Analysis / Stocks / Track record.
+     Each tab is assembled from the existing views' cards, picked
+     by title, so no calculation changes; the old view keys stay
+     in RENDER (tests and saved links use them) and are routed
+     to their new tab by NFX_ALIAS in render().
+     ========================================================== */
+  var NFX_ALIAS = {
+    overview: "today", strategy: "analysis", chain: "options", buildup: "options",
+    watchlist: "options", technicals: "analysis", model: "record", accuracy: "record",
+    modelhist: "record", history: "record"
+  };
+
+  /* Split rendered HTML into top-level <section> cards with their h2 title.
+     Anything between cards is kept as an untitled chunk. */
+  function nfxCards(html) {
+    var out = [], re = /<(\/?)section\b[^>]*>/g, depth = 0, start = 0, last = 0, mt;
+    while ((mt = re.exec(html))) {
+      if (!mt[1]) {
+        if (depth === 0) {
+          if (mt.index > last) out.push({ t: null, h: html.slice(last, mt.index) });
+          start = mt.index;
+        }
+        depth++;
+      } else if (depth > 0) {
+        depth--;
+        if (depth === 0) {
+          var h = html.slice(start, re.lastIndex);
+          var t = (h.match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [])[1] || "";
+          out.push({ t: t, h: h });
+          last = re.lastIndex;
+        }
+      }
+    }
+    if (last < html.length) out.push({ t: null, h: html.slice(last) });
+    return out;
+  }
+  function nfxHas(c, n) { return !!c.t && c.t.indexOf(n) >= 0; }
+  function nfxPick(cards, names) {
+    return names.map(function (n) {
+      return cards.filter(function (c) { return nfxHas(c, n); }).map(function (c) { return c.h; }).join("");
+    }).join("");
+  }
+  function nfxExcept(cards, names) {
+    return cards.filter(function (c) {
+      return !names.some(function (n) { return nfxHas(c, n); });
+    }).map(function (c) { return c.h; }).join("");
+  }
+  function nfxSafe(fn, m) {
+    try { return fn(m) || ""; }
+    catch (e) {
+      return '<section class="card"><div class="caution"><p><b>This block failed to render.</b> ' +
+        esc(e.message || String(e)) + "</p></div></section>";
+    }
+  }
+  function nfxMore(label, inner) {
+    return inner ? '<details class="nfx-more"><summary>' + label + "</summary>" + inner + "</details>" : "";
+  }
+  function nfxBand(title, sub) {
+    return '<div class="nfx-band"><h3>' + title + "</h3><span>" + sub + "</span></div>";
+  }
+
+  /* Today: the read, the numbers, the trade, the next few days. */
+  function nfxToday(m) {
+    var s = nfxCards(nfxSafe(viewStrategy, m));
+    var ready = s.some(function (c) { return nfxHas(c, "Expected range"); });
+    var trade = ready
+      ? nfxPick(s, ["Expected range", "Recommended structure", "Exit plan", "Gap scenarios"])
+      : s.map(function (c) { return c.h; }).join("");
+    return '<div class="nfx-view">' + verdict(m) + kpis(m) +
+      nfxBand("The trade", "range, structure and exit plan for " + esc(m.cfg.expiry || "the current expiry")) +
+      trade + nfxEventsNear(m) +
+      nfxMore("What this section can and cannot do", nfxPick(s, ["What this section can and cannot do"])) +
+      "</div>";
+  }
+
+  function nfxEventsNear(m) {
+    var E = (((TECHFUND || {})[m.cfg.key] || {}).note || {}).events;
+    if (!E || !(E.events || []).length) return "";
+    var near = E.events.filter(function (e) { return e.daysUntil != null && e.daysUntil <= 5; });
+    if (!near.length) near = E.events.slice(0, 3);
+    var rest = E.events.filter(function (e) { return near.indexOf(e) < 0; });
+    function withEvents(list) {
+      var o = {};
+      Object.keys(E).forEach(function (k) { o[k] = E[k]; });
+      o.events = list;
+      return o;
+    }
+    return nfxBand("Next few days", near.length + " event" + (near.length === 1 ? "" : "s") + " within 5 days") +
+      eventCard(withEvents(near)) +
+      (rest.length ? nfxMore("Show " + rest.length + " later events", eventCard(withEvents(rest))) : "");
+  }
+
+  /* Options: where the open interest sits, the chain, the expiry watchlist. */
+  function nfxOptions(m) {
+    var o = nfxCards(nfxSafe(viewOverview, m));
+    var ch = nfxCards(nfxSafe(viewChain, m));
+    return '<div class="nfx-view">' +
+      nfxPick(o, ["Open interest by strike"]) +
+      '<div class="two">' + nfxPick(o, ["15 sessions", "PCR trend"]) + "</div>" +
+      nfxExcept(ch, ["How to read this table"]) +
+      nfxMore("How to read the chain and the Action column", nfxPick(ch, ["How to read this table"])) +
+      nfxBand("Watchlist", "every expiry, index futures and cross-market lists") +
+      nfxSafe(viewWatchlist, m) + "</div>";
+  }
+
+  /* Analysis: global context, volatility and probability, technicals. */
+  function nfxAnalysis(m) {
+    var s = nfxCards(nfxSafe(viewStrategy, m));
+    var t = nfxCards(nfxSafe(viewTechnicals, m));
+    var isPart = function (c) { return !!c.t && (/^\d+ \u00b7 /.test(c.t) || c.t.indexOf("Appendix") === 0); };
+    var main = t.filter(function (c) { return !isPart(c); }).map(function (c) { return c.h; }).join("");
+    var parts = t.filter(isPart);
+    return '<div class="nfx-view">' +
+      nfxBand("Global context", "what the world tape implies for India today") +
+      nfxPick(s, ["Global tape"]) +
+      nfxBand("Volatility &amp; probability", "is premium worth selling, and how far can it move") +
+      nfxPick(s, ["Quantitative layer", "Realised volatility", "Is the seller being paid?", "One-sigma range",
+        "Risk-neutral density", "Market structure", "Price regime", "Tail risk",
+        "Directional probability", "Strike probability"]) +
+      nfxBand("Technicals &amp; valuation", "indicators, pivots, option levels and today\u2019s note") +
+      main +
+      nfxMore("Read the full note (" + parts.length + " parts: the argument against, levels, kill switches, scorecard)",
+        parts.map(function (c) { return c.h; }).join("")) +
+      "</div>";
+  }
+
+  /* Track record: how the calls have scored, and the stored sessions. */
+  function nfxRecord(m) {
+    return '<div class="nfx-view">' + nfxSafe(viewModelData, m) +
+      nfxBand("Session history", "every stored session, newest first") +
+      nfxSafe(viewHistory, m) +
+      nfxMore("Data pipeline status", nfxSafe(pipeline, m)) + "</div>";
+  }
+
   var RENDER = {
+    today: nfxToday, options: nfxOptions, analysis: nfxAnalysis, record: nfxRecord,
     overview: viewOverview, strategy: viewStrategy,
     "market-overview": viewMarketOverview,
     "india-index": viewIndiaIndex,
@@ -13563,6 +13715,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     TT = m.t;
     renderChrome();
     paintLiveStamp();
+    /* Old Nifty sub-tab keys (saved links, in-page buttons) land on their new tab. */
+    if (state.page === "india-index" && NFX_ALIAS[state.view]) state.view = NFX_ALIAS[state.view];
     var renderer = state.page === "india-index" ? RENDER[state.view] : RENDER[state.page];
     document.getElementById("content").innerHTML = renderer(m);
     attachHovers();
@@ -14512,7 +14666,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var page = e.target.closest("[data-page]");
     if (page) {
       state.page = page.getAttribute("data-page");
-      if (state.page === "india-index") state.view = "overview";
+      if (state.page === "india-index") state.view = "today";
       closeDrawer();
       render();
       return;
