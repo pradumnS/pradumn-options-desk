@@ -1637,6 +1637,23 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 .side-bt { color: var(--ink-3); }
 .side-list { margin: 4px 16px 10px 34px; padding: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
 .side-list li { margin-bottom: 4px; }
+/* ---------- Option chain by expiry (hz-*) ---------- */
+.hz-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px 4px; }
+.hz-tab { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 12px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink-2); font: inherit; }
+.hz-tab b { font: 600 13px var(--font-num); color: var(--ink); }
+.hz-tab span { font-size: 10.5px; color: var(--ink-3); }
+.hz-tab:hover { border-color: var(--calls); }
+.hz-tab.on { border-color: var(--calls); background: var(--surface-3); }
+.hz-tab:focus-visible { outline: 2px solid var(--calls); outline-offset: 1px; }
+.hz-chain td.hz-oi { position: relative; min-width: 90px; }
+.hz-chain .hz-bar { position: absolute; top: 25%; height: 50%; opacity: .28; border-radius: 2px; }
+.hz-chain td.hz-oi:nth-child(2) .hz-bar { right: 4px; }
+.hz-chain td.hz-oi:last-child .hz-bar { left: 4px; }
+.hz-chain td.hz-oi em { position: relative; font-style: normal; }
+.hz-chain tr.hz-atm td { background: var(--surface-3); }
+.hz-chain tr.hz-cw td:first-child span { color: var(--calls); font-weight: 600; }
+.hz-chain tr.hz-pw td:first-child span { color: var(--puts); font-weight: 600; }
 /* ---------- Nifty Index: compact five-tab layout (nfx-*) ---------- */
 .nfx-view > .card, .nfx-view > section, .nfx-view .two { margin-bottom: 10px; }
 .nfx-band { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
@@ -2016,8 +2033,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   var NAV_HASH = (function () {
     try {
       var h = String(location.hash || "").replace(/^#/, "").split("/");
-      return { page: decodeURIComponent(h[0] || ""), sub: decodeURIComponent(h[1] || "") };
-    } catch (e) { return { page: "", sub: "" }; }
+      return { page: decodeURIComponent(h[0] || ""), sub: decodeURIComponent(h[1] || ""),
+               exp: decodeURIComponent(h[2] || "") };
+    } catch (e) { return { page: "", sub: "", exp: "" }; }
   })();
   if (PAGES.some(function (p) { return p.key === NAV_HASH.page; })) {
     state.page = NAV_HASH.page;
@@ -2028,6 +2046,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       var sub = state.page === "india-index" ? state.view :
         state.page === "metal-index" ? mtlState.metal : "";
       var h = "#" + state.page + (sub ? "/" + sub : "");
+      /* The open expiry tab on Nifty Today, so a refresh lands on it. */
+      if (state.page === "india-index" && state.view === "today" &&
+          typeof hzState !== "undefined" && hzState.exp) h += "/" + hzState.exp;
       if (location.hash !== h && history && history.replaceState) history.replaceState(null, "", h);
     } catch (e) { /* no address bar (tests, file://): nothing to keep */ }
   }
@@ -7924,7 +7945,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var rows = L.rungs.map(function (r) {
       var p = r.pick || {}, lg = p.legs || [];
       var pw = lg.length ? Math.min.apply(null, lg.map(function (l) { return l.pWin; })) : null;
-      return [esc(r.label), esc(r.expiry), r.sessions, esc(r.lean.direction),
+      return [hzShort(r.expiry) + " &middot; " + esc(r.label), esc(r.expiry), r.sessions, esc(r.lean.direction),
         "<b>" + (HZN_KIND[p.kind] || esc(p.kind)) + "</b>", hzLegs(p),
         hzRs(p.creditRs), '<b class="' + cls(p.evRs || 0) + '">' + hzRs(p.evRs) + "</b>",
         hzP(pw), hzRs(p.maxLossRs)];
@@ -7948,7 +7969,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var lk = function (v) { return v == null ? "&mdash;" : sgn(v / LAKH, 1) + "L"; };
     var rows = L.rungs.map(function (r) {
       var p = r.positioning || {};
-      return [esc(r.label), n2(p.pcr), n0(p.putWall), n0(p.callWall), n0(p.maxPain),
+      return [hzShort(r.expiry) + " &middot; " + esc(r.label), n2(p.pcr), n0(p.putWall), n0(p.callWall), n0(p.maxPain),
         n0(p.straddle) + " pts", lk(p.peAdd), lk(p.ceAdd), bl(p.peBuild), bl(p.ceBuild)];
     });
     return '<section class="card"><div class="card-hd"><h2>Weekly vs monthly OI</h2>' +
@@ -7963,7 +7984,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   function hzOddsCard() {
     var L = HZN && HZN.ladder;
     if (!L || !(L.rungs || []).length) return "";
-    var head = ["Move"].concat(L.rungs.map(function (r) { return esc(r.label); }));
+    var head = ["Move"].concat(L.rungs.map(function (r) { return "<span>" + hzShort(r.expiry) + "<br>" + esc(r.label) + "</span>"; }));
     var rows = (L.rungs[0].odds || []).map(function (o, i) {
       return [n0(o.pts) + " pts down / up"].concat(L.rungs.map(function (r) {
         var x = (r.odds || [])[i] || {};
@@ -8104,7 +8125,12 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     "This month": "Strategy by expiry", "Next month": "Strategy by expiry",
     "Horizon / signal": "OI direction signals", "Right": "OI direction signals", "Avg move, signed": "OI direction signals",
     "Bull / bear calls": "OI direction signals", "Trades": "Ladder replay", "Avg per lot": "Ladder replay",
-    "Predicted avg": "Ladder replay", "Worst": "Ladder replay", "Move": "How far can NIFTY go?"
+    "Predicted avg": "Ladder replay", "Worst": "Ladder replay", "Move": "How far can NIFTY go?",
+    "Option chain by expiry": "Weekly vs monthly OI", "Call OI": "Weekly vs monthly OI",
+    "Call OI chg": "Weekly vs monthly OI", "Call price": "Weekly vs monthly OI", "Put price": "Weekly vs monthly OI",
+    "Put OI chg": "Weekly vs monthly OI", "Put OI": "Weekly vs monthly OI", "Strike": "Weekly vs monthly OI",
+    "Spread": "Strategy by expiry", "Distance": "How far can NIFTY go?", "Credit pts": "Strategy by expiry",
+    "Down": "How far can NIFTY go?", "Up": "How far can NIFTY go?", "Weekly": "Strategy by expiry"
   };
   function hzRegisterTerms() {
     var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
@@ -8118,10 +8144,89 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       if (!has(TERM_ALIAS, k)) TERM_ALIAS[k] = HZN_ALIAS[k];
     });
   }
+  /* One expiry at a time: click a tab, see its whole chain. */
+  var hzState = { exp: NAV_HASH && NAV_HASH.exp ? NAV_HASH.exp : null };
+  function hzShort(e) {
+    var p = String(e || "").split("-");
+    return p.length === 3 ? (+p[0]) + " " + p[1] : esc(e);
+  }
+  function hzExpiryCard() {
+    var L = HZN && HZN.ladder, R = (L && L.rungs) || [];
+    if (!R.length) return "";
+    var cur = R.filter(function (r) { return r.expiry === hzState.exp; })[0] || R[0];
+    hzState.exp = cur.expiry;
+    var tabs = '<div class="hz-tabs" role="tablist">' + R.map(function (r) {
+      var on = r.expiry === cur.expiry;
+      return '<button type="button" role="tab" class="hz-tab' + (on ? " on" : "") + '" aria-selected="' + on +
+        '" data-hzx="' + esc(r.expiry) + '"><b>' + hzShort(r.expiry) + "</b><span>" + esc(r.kind) +
+        " &middot; " + r.sessions + "d</span></button>";
+    }).join("") + "</div>";
+    var p = cur.positioning || {}, pk = cur.pick || {}, lg = pk.legs || [];
+    var lk = function (v) { return v == null ? "&mdash;" : sgn(v / LAKH, 1) + "L"; };
+    var kp = '<div class="struct">' +
+      sc("Sessions left", String(cur.sessions), "to " + esc(cur.expiry)) +
+      sc("PCR", n2(p.pcr), "put OI / call OI") +
+      sc("Put wall", n0(p.putWall), "most put OI") +
+      sc("Call wall", n0(p.callWall), "most call OI") +
+      sc("Max pain", n0(p.maxPain), "writers&rsquo; cheapest settle") +
+      sc("Straddle", n0(p.straddle) + " pts", "move the market prices") +
+      sc("Puts added", lk(p.peAdd), "OI change today") +
+      sc("Calls added", lk(p.ceAdd), "OI change today") + "</div>";
+    var pw = lg.length ? Math.min.apply(null, lg.map(function (l) { return l.pWin; })) : null;
+    var rec = '<div class="caution"><p><b>' + (HZN_KIND[pk.kind] || esc(pk.kind)) + "</b> for " + esc(cur.expiry) +
+      (lg.length ? ": " + hzLegs(pk).replace(/<br>/g, " &middot; ") + ". Credit " + hzRs(pk.creditRs) +
+        ", expected profit <b>" + hzRs(pk.evRs) + "</b> a lot after costs, kept its credit in " + hzP(pw) +
+        " of history, max loss " + hzRs(pk.maxLossRs) + "."
+        : ": no spread on this expiry pays more than history says the risk costs, at today&rsquo;s prices.") +
+      " OI lean: " + esc(cur.lean.direction) + ".</p></div>";
+    var S = cur.strikes || [];
+    var mx = Math.max.apply(null, S.map(function (s) { return Math.max(s[1], s[4]); }).concat([1]));
+    var atm = S.reduce(function (b, s) { return !b || Math.abs(s[0] - L.spot) < Math.abs(b[0] - L.spot) ? s : b; }, null);
+    var bar = function (v, c) {
+      return '<span class="hz-bar" style="width:' + (v / mx * 100).toFixed(1) + "%;background:" + c + '"></span>';
+    };
+    var chainRows = S.slice().reverse().map(function (s) {
+      var tag = s[0] === p.callWall ? " hz-cw" : s[0] === p.putWall ? " hz-pw" : atm && s[0] === atm[0] ? " hz-atm" : "";
+      return '<tr class="' + tag.trim() + '"><td class="lft"><span>' + n0(s[0]) + "</span></td>" +
+        '<td class="hz-oi">' + bar(s[1], "var(--calls)") + "<em>" + n2(s[1] / LAKH) + "L</em></td>" +
+        '<td class="' + cls(s[2]) + '">' + lk(s[2]) + "</td><td>" + (s[3] != null ? n2(s[3]) : "&mdash;") + "</td>" +
+        "<td>" + (s[6] != null ? n2(s[6]) : "&mdash;") + '</td><td class="' + cls(s[5]) + '">' + lk(s[5]) + "</td>" +
+        '<td class="hz-oi">' + bar(s[4], "var(--puts)") + "<em>" + n2(s[4] / LAKH) + "L</em></td></tr>";
+    }).join("");
+    var chainT = '<div class="tablewrap tall"><table class="dt hz-chain"><thead><tr><th class="lft">Strike</th>' +
+      "<th>Call OI</th><th>Call OI chg</th><th>Call price</th><th>Put price</th><th>Put OI chg</th><th>Put OI</th>" +
+      "</tr></thead><tbody>" + chainRows + "</tbody></table></div>";
+    var top = (cur.top || []).map(function (c) {
+      return [(c.kind === "bull_put" ? "Sell " + n0(c.short) + " PE / buy " + n0(c.long) + " PE"
+                                     : "Sell " + n0(c.short) + " CE / buy " + n0(c.long) + " CE"),
+        sgn(c.distance, 0), n2(c.credit), hzP(c.pWin), hzRs(c.evRs), hzRs(c.maxLossRs)];
+    });
+    var odds = (cur.odds || []).map(function (o) { return [n0(o.pts) + " pts", hzP(o.pBelow), hzP(o.pAbove)]; });
+    return '<section class="card"><div class="card-hd"><h2>Option chain by expiry</h2>' +
+      '<span class="sub">click an expiry &middot; NIFTY ' + n0(L.spot) + " on " + esc(L.d) + "</span></div>" +
+      tabs + kp + rec +
+      '<p class="side-why"><b>Open interest by strike</b> &mdash; calls left, puts right; bars scale to the largest OI shown. ' +
+      "Call wall, put wall and the at-the-money strike are highlighted. Prices are the bid/ask mid on live sessions, the close otherwise.</p>" +
+      chainT +
+      (top.length ? '<p class="side-why"><b>Spreads that pay on this expiry</b>, best expected profit per rupee at risk first.</p>' +
+        hzTbl(["Spread", "Distance", "Credit pts", "Kept credit", "Expected profit", "Max loss"], top)
+        : '<p class="side-why">No spread on this expiry has a positive expected profit after costs.</p>') +
+      '<p class="side-why"><b>Odds of reaching each distance by ' + esc(cur.expiry) + "</b></p>" +
+      hzTbl(["Distance", "Down", "Up"], odds) + "</section>";
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-hzx]");
+    if (!b) return;
+    hzState.exp = b.getAttribute("data-hzx");
+    var y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  });
+
   function nfxHorizons() {
     if (!HZN || !HZN.ladder) return "";
     return nfxBand("Every expiry", "this week to next month: positioning, odds and the best-paying spread") +
-      hzStrategyCard() + hzOiCard() + hzOddsCard() +
+      hzStrategyCard() + hzExpiryCard() + hzOiCard() + hzOddsCard() +
       nfxMore("Do OI signals call direction? The test", hzSignalCard()) +
       nfxMore("Has this ladder made money? The replay", hzReplayCard());
   }
