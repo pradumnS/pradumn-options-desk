@@ -1820,12 +1820,18 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         remember which unit it is holding.
      ========================================================== */
   var LAKH = 1e5;
+  /* Stored OI is in SHARES (contracts x lot) for every source since
+     8 Nov 2026 -- the bhavcopy reports shares and live captures are
+     multiplied by the lot on the way in. The views say "lakh contracts",
+     so OI and change-in-OI are divided by the lot as well. Set per
+     snapshot in normalise(); volume is unaffected. */
+  var OI_DIV = LAKH;
 
   function normLeg(b) {
     if (!b) return null;
     return {
       ltp: b.ltp, prevClose: b.prevClose, chg: b.chg, chgPct: b.chgPct,
-      oi: (b.oi || 0) / LAKH, chgOi: (b.chgOi || 0) / LAKH,
+      oi: (b.oi || 0) / OI_DIV, chgOi: (b.chgOi || 0) / OI_DIV,
       vol: (b.vol || 0) / LAKH, iv: b.iv,
       bid: b.bid, ask: b.ask, buildup: b.buildup,
       /* Present only for sessions rebuilt from the F&O bhavcopy. Left null
@@ -1844,6 +1850,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   };
 
   function normalise(d) {
+    OI_DIV = LAKH * (d.lot || 1);
     var rows = (d.rows || []).map(function (r) {
       return {
         strike: r.strike,
@@ -1870,14 +1877,14 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         side: c.side, strike: c.strike, delta: c.delta, pop: c.pop,
         credit: c.ltp, creditRs: c.credit_rs, rom: c.rom_pct,
         margin: c.margin, liquid: c.verdict !== "illiquid",
-        leg: { oi: (c.oi || 0) / LAKH, vol: (c.vol || 0) / LAKH, iv: c.iv },
+        leg: { oi: (c.oi || 0) / OI_DIV, vol: (c.vol || 0) / LAKH, iv: c.iv },
         verdict: VERDICT[c.verdict] || { c: "no", t: c.verdict }
       };
     });
 
     return {
       cfg: cfg, rows: rows, atm: d.atm, maxOi: maxOi,
-      totC: (d.totalCeOi || 0) / LAKH, totP: (d.totalPeOi || 0) / LAKH,
+      totC: (d.totalCeOi || 0) / OI_DIV, totP: (d.totalPeOi || 0) / OI_DIV,
       pcr: d.pcr, maxPain: d.maxPain,
       callWall: d.callWall, putWall: d.putWall,
       sd1: d.sd1, range1: d.range1sd, range2: d.range2sd,
