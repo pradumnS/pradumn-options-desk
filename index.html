@@ -1758,7 +1758,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
   var PAGES = [
     { key:"market-overview", label:"Overview", mark:"OV" },
-    { key:"india-index", label:"India Index", mark:"IN" },
+    { key:"india-index", label:"Nifty Index", mark:"NF" },
     { key:"metal-index", label:"Metal Index", mark:"MT" },
     { key:"energy-index", label:"Energy Index", mark:"EN" },
     { key:"international", label:"International", mark:"GL" }
@@ -2648,7 +2648,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       briefSection() +
       '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and several metal, energy, FX and US-rate benchmarks are in the saved snapshot. Exact non-US sovereign curves, PMI releases, licensed news, broader spot-market positioning and Murban crude remain unavailable unless a source is explicitly shown below.</div>' +
       '<div class="market-grid">' +
-      marketGroup("India Index", "NIFTY 50", "india-index", [
+      marketGroup("Nifty Index", "NIFTY 50", "india-index", [
         marketAsset("NIFTY 50", n2(m.cfg.spot),
           '<span class="' + cls(niftyPct) + '">' + sgn(niftyPct, 2) + "%</span> &middot; " +
             sgn(m.cfg.spot - m.cfg.prevClose, 2) + " pts &middot; " + esc(m.tradeDate || ""), false)
@@ -2675,7 +2675,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   function viewIndiaIndex(m) {
-    return pageIntro("India Index \u00b7 NIFTY 50",
+    return pageIntro("Nifty Index \u00b7 NIFTY 50",
       "NIFTY 50 options positioning, volatility, breadth and history. Bank Nifty is not part of this workspace.",
       "NSE snapshot \u00b7 " + esc(m.tradeDate || "\u2014")) + viewOverview(m);
   }
@@ -11181,6 +11181,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
   var TERM_ALIAS = {
     "India Index": "Market section",
+    "Nifty Index": "Market section",
     "Metal Index": "Market section",
     "Energy Index": "Market section",
     "International": "Market section",
