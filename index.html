@@ -1809,7 +1809,6 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     { key:"today",    label:"Today" },
     { key:"options",  label:"Options &amp; OI" },
     { key:"analysis", label:"Analysis" },
-    { key:"stocks",   label:"NIFTY 50 stocks" },
     { key:"record",   label:"Track record" }
   ];
 
@@ -6265,13 +6264,15 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     }).join("") + "</div>";
 
     var atm = L.atm;
+    /* Stored OI is shares; show lakh contracts like the cards above it. */
+    var oiDiv = 1e5 * ((((MODEL || {})[L.index] || {}).cfg || {}).lot || 1);
     var rows = e.strikes.slice().reverse().map(function (s) {
       var ce = s.ce || {}, pe = s.pe || {};
       var itmC = s.strike < L.spot, itmP = s.strike > L.spot;
       return '<tr class="clickable' + (s.strike === atm ? " atm" : "") + '"' +
         (s.strike === atm ? ' data-atm="1"' : "") + ' data-strike="' + s.strike + '">' +
-        '<td class="' + (itmC ? "itm-c" : "") + '">' + n2(ce.oi != null ? ce.oi / 1e5 : null) + "</td>" +
-        '<td class="' + (itmC ? "itm-c " : "") + cls(ce.chgOi) + '">' + sgn(ce.chgOi != null ? ce.chgOi / 1e5 : null, 2) + "</td>" +
+        '<td class="' + (itmC ? "itm-c" : "") + '">' + n2(ce.oi != null ? ce.oi / oiDiv : null) + "</td>" +
+        '<td class="' + (itmC ? "itm-c " : "") + cls(ce.chgOi) + '">' + sgn(ce.chgOi != null ? ce.chgOi / oiDiv : null, 2) + "</td>" +
         '<td class="' + (itmC ? "itm-c" : "") + '">' + n1(ce.iv) + "</td>" +
         '<td class="' + (itmC ? "itm-c" : "") + '">' + n2(ce.ltp) + "</td>" +
         '<td class="' + (itmC ? "itm-c " : "") + cls(ce.chgPct) + '">' + sgn(ce.chgPct, 1) + "%</td>" +
@@ -6279,14 +6280,14 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         '<td class="' + (itmP ? "itm-p " : "") + cls(pe.chgPct) + '">' + sgn(pe.chgPct, 1) + "%</td>" +
         '<td class="' + (itmP ? "itm-p" : "") + '">' + n2(pe.ltp) + "</td>" +
         '<td class="' + (itmP ? "itm-p" : "") + '">' + n1(pe.iv) + "</td>" +
-        '<td class="' + (itmP ? "itm-p " : "") + cls(pe.chgOi) + '">' + sgn(pe.chgOi != null ? pe.chgOi / 1e5 : null, 2) + "</td>" +
-        '<td class="' + (itmP ? "itm-p" : "") + '">' + n2(pe.oi != null ? pe.oi / 1e5 : null) + "</td></tr>";
+        '<td class="' + (itmP ? "itm-p " : "") + cls(pe.chgOi) + '">' + sgn(pe.chgOi != null ? pe.chgOi / oiDiv : null, 2) + "</td>" +
+        '<td class="' + (itmP ? "itm-p" : "") + '">' + n2(pe.oi != null ? pe.oi / oiDiv : null) + "</td></tr>";
     }).join("");
 
     return '<section class="card"><div class="card-hd"><h2>' + esc(L.title) + " options</h2>" +
       '<span class="sub">spot ' + n2(L.spot) + " &middot; &plusmn;" + n0(L.span) + " pts</span>" +
       '<div class="right"><span class="kpi-m">' + e.nStrikes +
-        " strikes &middot; opens at the money</span></div></div>" +
+        " strikes &middot; OI in lakh contracts &middot; opens at the money</span></div></div>" +
       etabs +
       '<div class="tablewrap tall"><table class="dt chain"><thead><tr>' +
       '<th class="grp-c">Call OI</th><th class="grp-c">Chg OI</th><th class="grp-c">IV</th>' +
@@ -6321,7 +6322,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         '<div class="right"><span class="kpi-m">basis and annualised carry</span></div></div>' +
         '<div class="tablewrap"><table class="dt"><thead><tr>' +
         '<th class="lft">Expiry</th><th>Days</th><th>Price</th><th>Basis</th>' +
-        "<th>Basis %</th><th>Carry</th><th>OI</th><th>Volume</th>" +
+        "<th>Basis %</th><th>Carry</th><th>OI (shares)</th><th>Volume</th>" +
         '<th class="lft">State</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
         "</section>";
     }).join("") +
@@ -7600,7 +7601,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   var NFX_ALIAS = {
     overview: "today", strategy: "analysis", chain: "options", buildup: "options",
     watchlist: "options", technicals: "analysis", model: "record", accuracy: "record",
-    modelhist: "record", history: "record"
+    modelhist: "record", history: "record", stocks: "today"
   };
 
   /* Split rendered HTML into top-level <section> cards with their h2 title.
@@ -8151,7 +8152,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     "Call OI chg": "Weekly vs monthly OI", "Call price": "Weekly vs monthly OI", "Put price": "Weekly vs monthly OI",
     "Put OI chg": "Weekly vs monthly OI", "Put OI": "Weekly vs monthly OI", "Strike": "Weekly vs monthly OI",
     "Spread": "Strategy by expiry", "Distance": "How far can NIFTY go?", "Credit pts": "Strategy by expiry",
-    "Down": "How far can NIFTY go?", "Up": "How far can NIFTY go?", "Weekly": "Strategy by expiry"
+    "Down": "How far can NIFTY go?", "Up": "How far can NIFTY go?", "Weekly": "Strategy by expiry",
+    "OI (shares)": "Open interest (OI)"
   };
   function hzRegisterTerms() {
     var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
@@ -11160,7 +11162,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
           sgn(spot - d200, 0) + ")") + "." +
         "<br>Computed from " + h.length + " stored sessions. The count that " +
         "matters more is how many of the fifty constituents sit above their " +
-        "own &mdash; that is the breadth reading on the stocks tab.";
+        "own &mdash; that is the market breadth reading.";
     }),
 
     "RSI (14)": _fact("RSI (14)", function (m) {
@@ -11685,8 +11687,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       return bits.join(", and ") + "." +
         "<br>Delivery separates ownership changing hands from intraday " +
         "churn: the same turnover means different things at 70% delivery " +
-        "and at 25%. Per-name delivery is on the stocks tab, where it is " +
-        "read against each constituent's own weight.";
+        "and at 25%.";
     })
   };
 
