@@ -8177,7 +8177,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       (lg.length ? ": " + hzLegs(pk).replace(/<br>/g, " &middot; ") + ". Credit " + hzRs(pk.creditRs) +
         ", expected profit <b>" + hzRs(pk.evRs) + "</b> a lot after costs, kept its credit in " + hzP(pw) +
         " of history, max loss " + hzRs(pk.maxLossRs) + "."
-        : ": no spread on this expiry pays more than history says the risk costs, at today&rsquo;s prices.") +
+        : ": no spread on this expiry passes both tests at today&rsquo;s prices &mdash; a positive expected profit after costs " +
+          "and keeping its credit in at least " + n0(((HZN.rule || {}).minPwin || 0) * 100) + "% of history." +
+          ((cur.top || []).length ? " The spreads listed below pay on average but lose too often to recommend." : "")) +
       " OI lean: " + esc(cur.lean.direction) + ".</p></div>";
     var S = cur.strikes || [];
     var mx = Math.max.apply(null, S.map(function (s) { return Math.max(s[1], s[4]); }).concat([1]));
@@ -8208,7 +8210,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<p class="side-why"><b>Open interest by strike</b> &mdash; calls left, puts right; bars scale to the largest OI shown. ' +
       "Call wall, put wall and the at-the-money strike are highlighted. Prices are the bid/ask mid on live sessions, the close otherwise.</p>" +
       chainT +
-      (top.length ? '<p class="side-why"><b>Spreads that pay on this expiry</b>, best expected profit per rupee at risk first.</p>' +
+      (top.length ? '<p class="side-why"><b>Spreads with a positive expected profit on this expiry</b>, best per rupee at risk first. ' +
+        "Only those keeping their credit in " + n0(((HZN.rule || {}).minPwin || 0) * 100) + "%+ of history can be recommended.</p>" +
         hzTbl(["Spread", "Distance", "Credit pts", "Kept credit", "Expected profit", "Max loss"], top)
         : '<p class="side-why">No spread on this expiry has a positive expected profit after costs.</p>') +
       '<p class="side-why"><b>Odds of reaching each distance by ' + esc(cur.expiry) + "</b></p>" +
