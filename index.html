@@ -7658,7 +7658,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var s = nfxCards(nfxSafe(viewStrategy, m));
     var ready = s.some(function (c) { return nfxHas(c, "Expected range"); });
     var trade = ready
-      ? nfxPick(s, ["Expected range", "Buy or sell today", "Recommended structure", "Exit plan", "Gap scenarios"])
+      ? nfxPick(s, ["Expected range", "Buy or sell today", "Recommended structure"]) +
+        (typeof pbCard === "function" ? nfxSafe(pbCard, m) : "") +
+        nfxPick(s, ["Exit plan", "Gap scenarios"])
       : s.map(function (c) { return c.h; }).join("");
     return '<div class="nfx-view">' + verdict(m) + kpis(m) +
       nfxBand("The trade", "range, structure and exit plan for " + esc(m.cfg.expiry || "the current expiry")) +
