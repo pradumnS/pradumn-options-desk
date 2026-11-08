@@ -4157,6 +4157,240 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
   /* =================== end Energy positioning (claude-17) =================== */
 
+  /* ===================== If-then playbook (claude-17) =====================
+     Nifty Today tab: a scenario tree built by playbook.py into
+     snapshot/playbook.json. Where the market is, how far moves like this
+     have run since 2007, where the writers stand, and for each way the
+     next sessions can go: what to hold, add, roll or exit. */
+  var PB = null;
+  getJson("playbook.json").then(function (d) {
+    PB = d || null;
+    if (state.page === "india-index" && state.view === "today" && MODEL[state.idx]) render();
+  }).catch(function () { PB = null; });
+
+  (function pbStyles() {
+    if (document.getElementById("pb-css")) return;
+    var css =
+      ".pb-read{margin:0;padding:10px 14px 10px 32px;color:var(--ink-2);font-size:13px;line-height:1.6}" +
+      ".pb-read li{margin:0 0 3px}" +
+      ".pb-h{font-size:12px;color:var(--ink);font-weight:650;margin:12px 14px 4px;text-transform:uppercase;letter-spacing:.04em}" +
+      ".pb-base{margin:4px 14px 10px;padding:10px 12px;border:1px solid var(--line-soft);border-left:3px solid var(--calls);border-radius:var(--r);background:var(--surface-2);font-size:13px;line-height:1.55;color:var(--ink-2)}" +
+      ".pb-base b{color:var(--ink)}" +
+      ".pb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;padding:4px 14px 12px}" +
+      ".pb-sc{border:1px solid var(--line-soft);border-radius:var(--r);padding:10px 12px;font-size:12.5px;line-height:1.55;color:var(--ink-2);background:var(--surface-2)}" +
+      ".pb-sc h4{margin:0 0 6px;font-size:13px;color:var(--ink);font-weight:650}" +
+      ".pb-sc .pb-id{display:inline-block;min-width:20px;text-align:center;border-radius:999px;border:1px solid var(--line);margin-right:6px;font-size:11px;padding:0 6px}" +
+      ".pb-sc .pb-k{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:6px}" +
+      ".pb-sc ul{margin:2px 0 0;padding-left:18px}" +
+      ".pb-sc .pb-do{color:var(--ink)}" +
+      ".pb-sc .pb-odds{font-family:var(--font-num);font-size:12px;color:var(--ink-2)}" +
+      ".pb-up{border-top:3px solid var(--calls)}.pb-dn{border-top:3px solid var(--puts)}.pb-flat{border-top:3px solid var(--line)}" +
+      ".pb-rules{margin:0;padding:6px 14px 12px 32px;font-size:12.5px;color:var(--ink-2);line-height:1.55}" +
+      ".pb-note{padding:0 14px 12px;font-size:12px;color:var(--ink-3);line-height:1.5}" +
+      ".pbm-idea{margin:4px 0 8px;padding:8px 10px;border:1px solid var(--line-soft);border-radius:var(--r);background:var(--surface)}" +
+      ".pbm-idea b{color:var(--ink)} .pbm-idea p{margin:6px 0 0;font-size:12px}" +
+      ".pbm-idea.skip{opacity:.7}" +
+      ".pbm-leg{display:flex;gap:8px;align-items:baseline;font-family:var(--font-num);font-size:12.5px;margin-top:3px}" +
+      ".pbm-act{min-width:36px;font-weight:700;font-size:11px}.pbm-act.s{color:var(--puts)}.pbm-act.b{color:var(--calls)}" +
+      ".pbm-k{color:var(--ink);min-width:78px}.pbm-px{color:var(--ink-2)}" +
+      ".pbm-thin{font-size:10.5px;border:1px solid var(--line);border-radius:999px;padding:0 6px;color:var(--ink-3)}" +
+      ".pbm-nums{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px;font-size:11.5px;color:var(--ink-3)}" +
+      ".pbm-nums b{font-family:var(--font-num);font-weight:600}";
+    var el = document.createElement("style");
+    el.id = "pb-css";
+    el.textContent = css;
+    document.head.appendChild(el);
+  })();
+
+  function pbN(v) { return v == null || !isFinite(v) ? "&mdash;" : Math.round(v).toLocaleString("en-IN"); }
+  function pbP(v) { return v == null || !isFinite(v) ? "&mdash;" : (Math.round(v * 10) / 10) + "%"; }
+  function pbBias(b) {
+    return b === "up" ? "Lean up: moves like this have usually carried on"
+      : b === "down" ? "Lean down: falls like this have usually carried on"
+      : "No lean: range-bound plan";
+  }
+  function pbLevels(P) {
+    var L = P.levels || {}, T = (P.history || {}).table || [];
+    var byK = {};
+    T.forEach(function (r) { byK[r.k] = r; });
+    var rows = [];
+    (L.R || []).slice().reverse().forEach(function (l, i, a) {
+      rows.push({ name: "Ceiling " + (a.length - i), l: l, t: byK[l.k], up: true });
+    });
+    rows.push({ name: "Spot", spot: true });
+    (L.S || []).forEach(function (l, i) { rows.push({ name: "Floor " + (i + 1), l: l, t: byK[l.k], up: false }); });
+    var body = rows.map(function (r) {
+      if (r.spot) {
+        return '<tr style="background:var(--surface-2)"><td class="lft"><b>Spot</b></td><td><b>' + pbN(P.spot) +
+          "</b></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr>";
+      }
+      var t = r.t || {}, l = r.l || {};
+      var edge = (t.pEvent != null && t.pBase != null) ? t.pEvent - t.pBase : null;
+      var thin = l.liquid === false;
+      return '<tr' + (thin ? ' style="opacity:.55" title="Fails the liquidity floor the Strategy page uses"' : "") +
+        '><td class="lft">' + r.name + "</td><td>" + pbN(l.k) + (thin ? " (thin)" : "") + "</td>" +
+        '<td class="' + (r.up ? "pos" : "neg") + '">' + (t.dist > 0 ? "+" : "") + pbN(t.dist) + "</td>" +
+        "<td><b>" + pbP(t.pEvent) + "</b></td><td>" + pbP(t.pBase) + "</td>" +
+        "<td>" + (l.filled ? "no wall" : pbN(l.oi)) + "</td>" +
+        '<td class="' + cls(l.chg) + '">' + (l.filled || l.chg == null ? "&mdash;" : (l.chg > 0 ? "+" : "") + pbN(l.chg)) + "</td></tr>";
+      void edge;
+    }).join("");
+    return '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft">Level</th><th>Strike</th><th>Distance</th><th>After similar moves</th><th>Normally</th>' +
+      "<th>Writers OI</th><th>OI added</th></tr></thead><tbody>" + body + "</tbody></table></div>";
+  }
+  function pbScenario(s, bias) {
+    var tone = /Breaks out|Reaches|Bounces/.test(s.title) ? "pb-up" : /Pulls back|Breaks down|Falls/.test(s.title) ? "pb-dn" : "pb-flat";
+    return '<div class="pb-sc ' + tone + '"><h4><span class="pb-id">' + esc(s.id) + "</span>If it " +
+      esc(s.title.charAt(0).toLowerCase() + s.title.slice(1)) + "</h4>" +
+      '<span class="pb-k">Watch for</span><ul>' + (s.watch || []).map(function (w) { return "<li>" + esc(w) + "</li>"; }).join("") + "</ul>" +
+      '<span class="pb-k">What it means</span>' + esc(s.means || "") +
+      '<span class="pb-k">Then do this</span><span class="pb-do">' + esc(s.action || "") + "</span>" +
+      (s.odds ? '<span class="pb-k">History</span><span class="pb-odds">' + esc(s.odds) + "</span>" : "") +
+      "</div>";
+  }
+  /* Position matrix: every horizon x every scenario, every leg. */
+  var PB_H = "weekly";
+  document.addEventListener("click", function (ev) {
+    var t = ev.target && ev.target.closest ? ev.target.closest("[data-pbh]") : null;
+    if (!t) return;
+    PB_H = t.getAttribute("data-pbh");
+    var y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  });
+  function pbLeg(g) {
+    return '<div class="pbm-leg"><span class="pbm-act ' + (g.act === "SELL" ? "s" : "b") + '">' + g.act + "</span>" +
+      '<span class="pbm-k">' + pbN(g.k) + " " + esc(g.type) + "</span>" +
+      '<span class="pbm-px">@ ' + (g.px == null ? "&mdash;" : g.px.toFixed(1)) + (g.est ? "*" : "") + "</span>" +
+      (g.liquid === false ? '<span class="pbm-thin">thin</span>' : "") + "</div>";
+  }
+  function pbIdea(i) {
+    if (i.skip) return '<div class="pbm-idea skip"><b>' + esc(i.name) + "</b><p>" + esc(i.skip) + "</p></div>";
+    return '<div class="pbm-idea"><b>' + esc(i.name) + "</b>" + (i.legs || []).map(pbLeg).join("") +
+      '<div class="pbm-nums"><span>Net ' + esc(i.netType) + " <b>Rs " + pbN(i.netRs) + "</b></span>" +
+      "<span>Max profit <b>Rs " + pbN(i.maxProfitRs) + "</b></span>" +
+      "<span>Max loss <b>Rs " + pbN(i.maxLossRs) + "</b></span>" +
+      "<span>Breakeven <b>" + (i.breakevens || []).map(pbN).join(" / ") + "</b></span>" +
+      '<span class="pbm-lots">Lots <b>' + i.lots + "</b></span></div>" +
+      "<p>" + esc(i.why || "") + "</p></div>";
+  }
+  function pbMatrix(P) {
+    var M = P.matrix;
+    if (!M || !(M.horizons || []).length) return "";
+    var H = M.horizons.filter(function (h) { return h.key === PB_H; })[0] || M.horizons[0];
+    var tabs = M.horizons.map(function (h) {
+      return '<button class="nrg-tab" data-pbh="' + h.key + '" aria-pressed="' + (h.key === H.key) + '">' +
+        esc(h.label) + " &middot; " + esc(h.expiry) + "</button>";
+    }).join("");
+    var cards = (H.states || []).map(function (s) {
+      var tone = /stall|breakout/.test(s.id) ? "pb-up" : /hold|breakdown/.test(s.id) ? "pb-dn" : "pb-flat";
+      return '<div class="pb-sc ' + tone + '"><h4>' + esc(s.title) + "</h4>" +
+        '<span class="pb-k">Trigger</span>' + esc(s.watch) +
+        (s.carry ? '<span class="pb-k">Today\'s position</span>' + esc(s.carry.text) : "") +
+        '<span class="pb-k">Open</span>' + (s.ideas || []).map(pbIdea).join("") + "</div>";
+    }).join("");
+    return '<div class="pb-h">Position matrix: exact strikes for each horizon</div>' +
+      '<div class="nrg-tabs" style="padding:0 14px">' + tabs + "</div>" +
+      '<div class="pb-note">' + esc(H.label) + " expiry " + esc(H.expiry) + ", " + H.days + " days, ATM IV " + H.atmIv +
+        "%. Lots sized so the maximum loss stays near Rs " + pbN(M.budgetRs) + " per idea" +
+        (H.sizeNote ? "; " + esc(H.sizeNote) : "") + ". Prices marked * are estimates: each strike repriced at the " +
+        "trigger level with today's implied volatility and less time left. Without * they are the latest settled prices.</div>" +
+      '<div class="pb-grid">' + cards + "</div>";
+  }
+  function pbCard(m) {
+    var P = PB;
+    if (!P || !P.spot) return "";
+    if (m && m.cfg && m.cfg.key && m.cfg.key !== "NIFTY") return "";
+    var H = P.history || {}, V = P.vehicle || {}, B = P.base || {}, D = P.desk || {};
+    var r1 = D.range1 || [];
+    return '<section class="card"><div class="card-hd"><h2>If-then playbook</h2>' +
+      '<span class="sub">' + esc(V.expiry || "") + " &middot; " + (V.sessions || 0) + " sessions &middot; as of " + esc(P.asOf || "") + "</span>" +
+      '<div class="right"><span class="kpi-m">' + esc(pbBias(P.bias)) + "</span></div></div>" +
+      '<div class="pb-h">Today\'s read</div><ul class="pb-read">' +
+        (P.facts || []).map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" +
+      '<div class="pb-h">How far can it run? ' + (H.n || 0) + " past cases since " + esc((H.since || "").slice(0, 4)) + "</div>" +
+      '<div class="pb-note">Matched on ' + esc(H.cond || "") + ". Over the next " + (H.horizon || 0) +
+        " sessions the median highest close was <b>" + pbN(H.medMax) + "</b> (" + (H.medMaxPct > 0 ? "+" : "") + pbP(H.medMaxPct) +
+        ") and the median lowest <b>" + pbN(H.medMin) + "</b> (" + pbP(H.medMinPct) + "); it finished higher in <b>" + pbP(H.upEndPct) +
+        "</b> of cases. The desk's 68% range for the next session is " + pbN(r1[0]) + " to " + pbN(r1[1]) + ".</div>" +
+      pbLevels(P) +
+      '<div class="pb-h">Starting position</div><div class="pb-base">' +
+        (B.text || []).map(function (t) { return "<b>" + esc(t.charAt(0).toUpperCase() + t.slice(1)) + "</b>"; }).join("<br>") +
+        "<br>" + esc(B.why || "") + "</div>" +
+      '<div class="pb-h">Then, depending on what the market does</div>' +
+      '<div class="pb-grid">' + (P.scenarios || []).map(function (s) { return pbScenario(s, P.bias); }).join("") + "</div>" +
+      pbMatrix(P) +
+      '<div class="pb-h">Rules for every branch</div><ul class="pb-rules">' +
+        (P.rules || []).map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>" +
+      '<div class="pb-note">' + esc(P.limits || "") + " Close-based history: an intraday touch of a level is more common than these percentages. Analysis, not advice.</div>" +
+      "</section>";
+  }
+
+  /* Glossary for the playbook's labels. */
+  function pbHow(fn) {
+    return function () {
+      if (!PB || !PB.spot) return "The playbook snapshot (playbook.json) is not loaded, so there are no live figures to show.";
+      return fn(PB, PB.history || {}, PB.levels || {}, PB.base || {});
+    };
+  }
+  var PB_TERMS = {
+    "If-then playbook": {
+      plain: ["A plan for the next few sessions instead of a single trade: a starting position, then what to do if the market drifts, runs up to a ceiling, breaks through it, or falls back to a floor.",
+        "Each branch says what to watch for on the daily close, what it means, and which spread to add, roll or exit."],
+      deep: ["The ceilings and floors are the strikes where option writers hold the most open interest on the expiry the plan uses (calls above spot, puts below, within about 1.6 expected moves).",
+        "The odds come from every day since 2007 whose 7-session move resembled today's: how often NIFTY's close reached each level within the same number of sessions, against how often it did on an ordinary day. The plan leans with the trend only when that history says moves like this tended to continue."],
+      how: pbHow(function (P, H, L, B) {
+        return "Built on the <b>" + esc((P.vehicle || {}).expiry) + "</b> expiry, " + (P.vehicle || {}).sessions + " sessions away, from " +
+          H.n + " past cases. First ceiling <b>" + pbN(((L.R || [])[0] || {}).k) + "</b>, first floor <b>" + pbN(((L.S || [])[0] || {}).k) +
+          "</b>, spot <b>" + pbN(P.spot) + "</b>.";
+      })
+    },
+    "Playbook levels": {
+      plain: ["The ceilings (call-writer walls above spot) and floors (put-writer walls below), with how often NIFTY reached each one after moves like today's, and how often it does normally.",
+        "A level whose first percentage is well above the second is one this kind of move has tended to reach."],
+      deep: ["Writers OI is open interest in contracts on the plan's expiry at that strike; OI added is the change on the latest session. Rising call OI at a ceiling means writers are defending it; falling call OI as price approaches means they are buying back, which often precedes a breakout.",
+        "After similar moves = share of past cases whose daily close touched the level within the plan's horizon. Normally = the same count over every day since 2007. Both use closes, so intraday touches are more frequent."],
+      how: pbHow(function (P, H) {
+        var t = (H.table || [])[0] || {};
+        return "Furthest ceiling <b>" + pbN(t.k) + "</b>: reached in <b>" + pbP(t.pEvent) + "</b> of similar cases against <b>" +
+          pbP(t.pBase) + "</b> on an ordinary day.";
+      })
+    },
+    "Starting position": {
+      plain: ["The spread to put on now, before any of the branches has played out.",
+        "It is sized for the plan's expiry and sold beyond the nearest writer wall on the side the history favours."],
+      deep: ["In a lean-up plan it is a bull put spread under the first floor and no call is sold below the second ceiling, because moves like this have tended to run through the first one. In a lean-down plan it mirrors that with a bear call spread. With no lean it is an iron condor across both walls.",
+        "Credit and maximum loss are per lot at the latest settled prices on that expiry; the profit-take and stop rules below apply to it from the first session."],
+      how: pbHow(function (P, H, L, B) {
+        var g = (B.legs || [])[0] || {};
+        return "Short <b>" + pbN(g.short) + " " + esc(g.side || "") + "</b>, long <b>" + pbN(g.long) + "</b>: credit about <b>" +
+          pbN(g.credit) + "</b> points, Rs " + pbN(g.creditRs) + " a lot, maximum loss Rs " + pbN(g.maxLossRs) + ", breakeven " + pbN(g.breakeven) + ".";
+      })
+    }
+  };
+  var PB_ALIAS = {
+    "Level": "Playbook levels", "After similar moves": "Playbook levels", "Normally": "Playbook levels",
+    "Writers OI": "Playbook levels", "OI added": "Playbook levels", "Distance": "Playbook levels",
+    "Ceiling 1": "Playbook levels", "Ceiling 2": "Playbook levels", "Ceiling 3": "Playbook levels",
+    "Floor 1": "Playbook levels", "Floor 2": "Playbook levels", "Floor 3": "Playbook levels",
+    "Today's read": "If-then playbook", "Rules for every branch": "If-then playbook"
+  };
+  function pbRegisterTerms() {
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(PB_TERMS).forEach(function (k) {
+      var t = PB_TERMS[k];
+      if (!has(DEEP, k)) DEEP[k] = t.deep || t.plain;
+      if (!has(PLAIN, k)) PLAIN[k] = t.plain;
+      if (!has(TERMS, k)) TERMS[k] = { deep: k, how: t.how };
+    });
+    Object.keys(PB_ALIAS).forEach(function (k) {
+      if (!has(TERM_ALIAS, k) && !has(TERMS, k)) TERM_ALIAS[k] = PB_ALIAS[k];
+    });
+  }
+  /* =================== end If-then playbook (claude-17) =================== */
+
+
   /* ---------- market analysis (analysis.json) ----------
      One instrument at a time: what moved and by how much, what the
      configured drivers account for, positioning, what could happen next,
@@ -15543,6 +15777,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   if (typeof hzRegisterTerms === "function") hzRegisterTerms();       /* Every-expiry glossary */
   if (typeof mtlRegisterTerms === "function") mtlRegisterTerms();   /* Metal Index glossary, merged before first lookup */
   if (typeof nrgRegisterTerms === "function") nrgRegisterTerms();   /* Energy Index glossary (claude-17) */
+  if (typeof pbRegisterTerms === "function") pbRegisterTerms();   /* If-then playbook glossary (claude-17) */
   boot();
 })();
 </script>
