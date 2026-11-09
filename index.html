@@ -1648,6 +1648,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 .rg-chart { display: block; width: 100%; height: auto; padding: 8px 16px 0; box-sizing: border-box; }
 .rg-ax { font: 10px var(--font-num); fill: var(--ink-3); }
 .rg-pic li { margin-bottom: 8px; }
+.rg-read li { margin-bottom: 10px; }
+.rg-read a { color: var(--calls); text-decoration: none; }
+.rg-read a:hover { text-decoration: underline; }
 .rg-wrap .has-term { cursor: pointer; border-bottom: 1px dotted var(--ink-3); }
 .rg-wrap .dt td.lft, .rg-wrap .dt td.lft span { white-space: normal; min-width: 180px; }
 .rg-wrap .dt th, .rg-wrap .dt td { padding-left: 8px; padding-right: 8px; }
@@ -8715,6 +8718,85 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     window.scrollTo(0, y);
   });
 
+  /* If IV/RV is under the sell bar, then what? The desk's own replay first,
+     then what professional sellers do with capital they are not using. */
+  function rgCheapCard() {
+    var C = RG.cheap;
+    if (!C || !C.byRatio) return "";
+    var pts = function (v) { return v == null ? "&mdash;" : sgn(v, 0); };
+    var rows = C.byRatio.map(function (r) {
+      return [esc(r.bucket), n0(r.n), rgP(r.winPct), pts(r.avgPts), pts(r.worstPts)];
+    });
+    var SIG = { event: "A measured big event ahead", vol: "Volatility rising", gamma: "Heavy short gamma", none: "No reason (always buy)" };
+    var buys = Object.keys(C.buyBySignal || {}).map(function (k) {
+      var r = C.buyBySignal[k] || {};
+      return [SIG[k] || esc(k), n0(r.n), rgP(r.winPct), pts(r.avgPts), pts(r.worstPts)];
+    });
+    var ch = C.sellWhenCheap || {}, ri = C.sellWhenRich || {};
+    var plan = [
+      "<b>Do not flip to buying.</b> On this desk&rsquo;s own sessions, buying the straddle lost on average for every buy reason tested (table below). Cheap premium is not the same as a buy signal.",
+      "<b>Sell less, not nothing.</b> Selling on cheap days still kept the premium " + rgP(ch.winPct) + " of the time and averaged " + pts(ch.avgPts) +
+        " points, against " + rgP(ri.winPct) + " and " + pts(ri.avgPts) + " on rich days &mdash; but the worst loss was " + pts(ch.worstPts) +
+        " vs " + pts(ri.worstPts) + ". Professionals answer this with half size, strikes outside the 8-in-10 range above, and wings always on.",
+      "<b>Keep idle margin earning.</b> Desks never leave cash idle: it sits in T-bills, liquid funds or LIQUIDBEES (roughly the overnight rate, about 6% a year) and is pledged as margin collateral. In India at least half of F&amp;O margin must be cash or cash-equivalent; liquid funds and government securities count, so idle margin can still earn.",
+      "<b>Look where premium is rich instead.</b> A desk running many books moves to another expiry or underlying whose own implied-vs-realised test passes. On this page, check each expiry on the Every-expiry ladder: a weekly can be cheap while the monthly is not.",
+      "<b>Calendar spreads</b> (sell the near expiry, buy the next) earn when near-dated implied volatility is high relative to later expiries. Common on professional desks; <i>not yet tested on this desk&rsquo;s data</i>, so treat as a candidate, not a recommendation.",
+      "<b>Wait.</b> Rich and cheap alternate: " + n0(ri.n) + " of " + n0(C.sessions) + " stored sessions passed the sell test. Standing aside costs nothing but the premium you did not collect."
+    ];
+    return '<section class="card"><div class="card-hd"><h2>When premium is too cheap to sell</h2>' +
+      '<span class="sub">IV / realised below ' + n2(C.rich) + " &middot; desk replay " + esc(C.from || "") + " to " + esc(C.to || "") + "</span></div>" +
+      '<ul class="rg-list rg-pic">' + plan.map(function (p) { return "<li>" + p + "</li>"; }).join("") + "</ul>" +
+      '<p class="side-why"><b>Selling the at-the-money straddle, held to expiry, by how rich premium was that day</b> (points per session, before costs).</p>' +
+      '<div class="rg-wrap">' + hzTbl(["Implied / realised", "Sessions", "Kept premium", "Avg per session", "Worst"], rows) + "</div>" +
+      '<p class="side-why"><b>Buying the same straddle instead</b>, by the reason for buying.</p>' +
+      '<div class="rg-wrap">' + hzTbl(["Buy reason", "Sessions", "Kept premium", "Avg per session", "Worst"], buys) + "</div>" +
+      '<p class="side-why">Sessions sharing an expiry are not independent; ' + n0(ch.expiries) + " expiries sit behind the cheap-day figures, so read them as indicative.</p></section>";
+  }
+
+  var RG_READING = [
+    { t: "SEBI: 93% of individual F&amp;O traders lost money (FY22&ndash;FY24)", s: "SEBI study, Sep 2024 (press coverage)",
+      u: "https://www.business-standard.com/markets/capital-market-news/sebi-study-exposes-massive-losses-for-individual-f-o-traders-in-india-124092400948_1.html",
+      w: "Individuals lost about &#8377;1.8 lakh crore over three years; in FY24 proprietary traders made about &#8377;33,000 crore and FPIs about &#8377;28,000 crore, 96&ndash;97% of it through algorithms. Who sits on the other side of retail option buying." },
+    { t: "Variance Risk Premiums", s: "Carr &amp; Wu, Review of Financial Studies (2009)", u: "https://doi.org/10.1093/rfs/hhn038",
+      w: "The academic basis: implied variance has exceeded the variance that followed, on the index and most stocks. That gap is what option sellers are paid for." },
+    { t: "Delta-Hedged Gains and the Negative Market Volatility Risk Premium", s: "Bakshi &amp; Kapadia, Review of Financial Studies (2003)", u: "https://doi.org/10.1093/rfs/hhg002",
+      w: "Buying options and hedging the direction away has lost money on average: buyers pay a premium for volatility. The other side of the trade is the professional seller&rsquo;s income." },
+    { t: "Volatility Investing: Characteristics of a Well-Conceived Approach", s: "Acadian Asset Management",
+      u: "https://acadian-asset.com/viewpoints/volatility-investing-characteristics-of-a--well-conceived-approach",
+      w: "How institutions harvest the premium (variance swaps, delta-hedged options) and why naive short-volatility magnifies tail risk." },
+    { t: "Delta-gamma hedged option returns", s: "Journal of Risk (Doran)", u: "https://www.risk.net/node/2161025",
+      w: "Hedging both direction and gamma still left a positive return, evidence the premium is not just disguised directional risk." },
+    { t: "Study of SPX options-selling indexes (PUT, BXM, CNDR, BFLY)", s: "Cboe, 2016 (29.5 years of data)",
+      u: "https://ir.cboe.com/news/news-details/2016/Study-Analyzes-Performance-of-CBOE-SP-500-SPX-Options-Selling-Indexes-02-23-2016/default.aspx",
+      w: "Systematic put-writing returned about 10.1% a year, close to the S&amp;P 500, with lower volatility and drawdowns. The iron-condor index had fewer deep losing months than the index." },
+    { t: "Volatility management with the BFLY and CNDR indices", s: "Cboe Insights",
+      u: "https://www.cboe.com/insights/posts/benchmark-indices-series-volatility-management-with-cboes-bfly-and-cndr-indices/",
+      w: "Defined-risk structures (iron butterfly, iron condor) as a volatility-selling benchmark: what they gave up and what they protected." },
+    { t: "Mechanically managing strangles (profit targets)", s: "tastylive research, 2015",
+      u: "https://tastylive.com/shows/market-measures/episodes/mechanically-managing-strangles-08-20-2015",
+      w: "Closing short strangles at 50% of maximum profit gave the best profit per day in their backtests, versus holding to expiry." },
+    { t: "Why manage at 25%, not 50%, for short straddles", s: "tastylive research, 2016",
+      u: "https://www.tastylive.com/shows/options-jive/episodes/why-manage-at-25-not-50-for-short-straddles-09-06-2016",
+      w: "For at-the-money straddles, an earlier 25% target raised both profit and win rate in their test." },
+    { t: "Mitigating downside risk with 21 DTE", s: "tastylive, 2024",
+      u: "https://tastylive.com/shows/options-jive/episodes/mitigating-downside-risks-with-21-dte-04-24-2024",
+      w: "Exiting about 21 days before expiry cut large losses through 2008, 2018, 2020 and 2022: gamma risk is what kills sellers near expiry." },
+    { t: "Is selling options profitable?", s: "SpotGamma", u: "https://spotgamma.com/is-selling-options-profitable/",
+      w: "Positive on average, paid for occasional large losses; professionals pair it with tail hedges and position limits." },
+    { t: "Option Strategies (module)", s: "Zerodha Varsity", u: "https://zerodha.com/varsity/module/option-strategies/",
+      w: "Plain-language Indian walkthroughs of spreads, condors, calendars and ratio spreads with NIFTY examples." }
+  ];
+  function rgResearchCard() {
+    return '<section class="card"><div class="card-hd"><h2>Research: how option sellers make money</h2>' +
+      '<span class="sub">' + RG_READING.length + " papers and studies &middot; opens in a new tab</span></div>" +
+      '<ol class="rg-list rg-read">' + RG_READING.map(function (r) {
+        return '<li><a href="' + r.u + '" target="_blank" rel="noopener noreferrer"><b>' + r.t + "</b></a>" +
+          ' <span class="rg-dim">' + r.s + "</span><br>" + r.w + "</li>";
+      }).join("") + "</ol>" +
+      '<p class="side-why">What this desk takes from them: sell only when the premium is measurably rich, use defined-risk spreads, size each trade small, ' +
+      "take profits early and leave before expiry week gets violent, and stand aside before measured big events. The trade-management rules are from US backtests and are not yet tested on NIFTY.</p></section>";
+  }
+
   /* Every state row opens its own explanation: what it is, how it is
      computed, and its record -- registered when the study loads. */
   var RG_DEF = {
@@ -8783,7 +8865,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       nfxBand("Momentum &amp; regime", "overbought, oversold or sideways &mdash; and what history says happens next") +
       nfxSafe(rgNowCard, m) + nfxSafe(rgActiveCard, m) + nfxSafe(rgChartCard, m) +
       nfxBand("The evidence", "every state, " + esc(RG.from.slice(0, 4)) + " to today") +
-      nfxSafe(rgHistoryCard, m) + nfxSafe(rgSustainCard, m) + "</div>";
+      nfxSafe(rgHistoryCard, m) + nfxSafe(rgSustainCard, m) +
+      nfxBand("Research &amp; playbook", "how professional option sellers make money, and what to do when premium is cheap") +
+      nfxSafe(rgCheapCard, m) + nfxSafe(rgResearchCard, m) + "</div>";
   }
 
   function rgHow(fn) {
@@ -8842,6 +8926,26 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         return esc(s.label) + ": " + esc(x.feature) + " " + n2(x.longer) + " in spells longer than " + n0(x.cut) + " days vs " + n2(x.shorter) + " in shorter ones (t " + sgn(x.t, 1) + ").";
       })
     },
+    "When premium is too cheap to sell": {
+      plain: ["What to do on days options are not priced above the moves that usually follow: the desk&rsquo;s own replay of selling and of buying on those days, and what professional sellers do with capital they are not using.",
+        "Short version: do not switch to buying, sell smaller and further out or not at all, and keep idle margin earning."],
+      deep: ["Implied / realised is ATM implied volatility divided by the forecast of realised volatility used by the side rule; 1.10 is the sell bar.",
+        "Each stored session sells (or buys) the ATM straddle and holds it to expiry; points per session before costs. Sessions on the same expiry overlap, so the expiry count is the honest sample size."],
+      how: rgHow(function (G) {
+        var C = G.cheap || {}, ch = C.sellWhenCheap || {}, ri = C.sellWhenRich || {};
+        return "Selling when cheap: " + n0(ch.n) + " sessions, kept " + rgP(ch.winPct) + ", average " + sgn(ch.avgPts, 0) + " pts, worst " + sgn(ch.worstPts, 0) +
+          ". When rich: " + n0(ri.n) + " sessions, kept " + rgP(ri.winPct) + ", average " + sgn(ri.avgPts, 0) + " pts.";
+      })
+    },
+    "Research: how option sellers make money": {
+      plain: ["A reading list behind this desk&rsquo;s rules: the regulator&rsquo;s data on who wins in Indian F&amp;O, the academic evidence for the volatility premium, long-run results of systematic option selling, and practitioner research on managing trades.",
+        "Each line says what the source found and what the desk uses from it."],
+      deep: ["Academic papers (Carr and Wu; Bakshi and Kapadia) establish the premium; Cboe index studies show long-run results of rule-based selling; tastylive backtests cover profit targets and time exits on US index options.",
+        "US results are a starting point, not proof for NIFTY; the desk tests rules on its own stored chains before using them."],
+      how: rgHow(function () {
+        return RG_READING.length + " sources, from 2003 to 2024, including SEBI&rsquo;s FY22&ndash;FY24 study of about 1 crore traders.";
+      })
+    },
     "The clear picture": {
       plain: ["The study read out loud: whether direction can be called, where NIFTY has tended to settle by each expiry from days like today, and what would change the view.",
         "Strike levels quoted are the edges of the 8-in-10 range, rounded outward to the nearest 50."],
@@ -8892,7 +8996,11 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     "Above call wall": "What could happen by each expiry", "Down: days like today": "What could happen by each expiry",
     "Down: any day": "What could happen by each expiry", "Up: days like today": "What could happen by each expiry",
     "Up: any day": "What could happen by each expiry", "Band held": "What could happen by each expiry",
-    "Skill vs base rate": "What could happen by each expiry", "Outlook": "The clear picture"
+    "Skill vs base rate": "What could happen by each expiry", "Outlook": "The clear picture",
+    "Implied / realised": "When premium is too cheap to sell", "Kept premium": "When premium is too cheap to sell",
+    "Avg per session": "When premium is too cheap to sell", "Worst": "When premium is too cheap to sell",
+    "Buy reason": "When premium is too cheap to sell", "Sessions": "When premium is too cheap to sell",
+    "Research &amp; playbook": "Research: how option sellers make money", "Research & playbook": "Research: how option sellers make money"
   };
   function rgRegisterTerms() {
     var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
