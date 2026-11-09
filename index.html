@@ -15195,21 +15195,28 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
      so a new value appears the moment the poller writes one. The upstream
      limit is NSE's own ~60s cache, not this. */
   /* On the public site live.json arrives by a git push every 2 minutes
-     (live.py PUSH_EVERY) to a side branch read through raw GitHub
-     (publish.py LIVE_URL), so polling fast only re-reads the same file, and
-     "stale" has to allow for the push gap. */
+     (live.py PUSH_EVERY) to a side branch "live" that GitHub Pages does not
+     build. It is read through the GitHub contents API: its copy is at most
+     60s old. raw.githubusercontent.com caches for 5 minutes and ignores a
+     ?t= query (checked: alternate polls returned an older tick), so it is
+     only the fallback. The API allows 60 requests an hour per viewer, hence
+     the 90s poll. "Stale" allows for push gap + cache + poll. */
   var LIVE_PUBLIC = SNAPSHOT.indexOf("../") !== 0;
-  var LIVE_URL = "https://raw.githubusercontent.com/pradumnS/pradumn-options-desk/live/live.json";
-  var LIVE_EVERY = LIVE_PUBLIC ? 30000 : 2000;
+  var LIVE_API = "https://api.github.com/repos/pradumnS/pradumn-options-desk/contents/live.json?ref=live";
+  var LIVE_RAW = "https://raw.githubusercontent.com/pradumnS/pradumn-options-desk/live/live.json";
+  var LIVE_EVERY = LIVE_PUBLIC ? 90000 : 2000;
   var STALE_AFTER = LIVE_PUBLIC ? 420000 : 180000;   /* 7 / 3 min without a new tick = stale */
-  function getLive() {
-    if (!LIVE_PUBLIC) return getJson("live.json");
-    /* ?t= skips raw GitHub's five-minute cache. Falls back to the copy
-       baked into the last full publish if the branch is unreachable. */
-    return fetch(LIVE_URL + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
+  function liveFetch(url, hdr) {
+    return fetch(url, { cache: "no-store", headers: hdr || {} }).then(function (r) {
       if (!r.ok) throw new Error("live -> HTTP " + r.status);
       return r.json();
-    }).catch(function () { return getJson("live.json"); });
+    });
+  }
+  function getLive() {
+    if (!LIVE_PUBLIC) return getJson("live.json");
+    return liveFetch(LIVE_API, { Accept: "application/vnd.github.raw" })
+      .catch(function () { return liveFetch(LIVE_RAW); })
+      .catch(function () { return getJson("live.json"); });
   }
   var PREV_VALS = {};         /* for change flashing */
 
@@ -15244,6 +15251,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   function pollLive() {
     getLive().then(function (d) {
       if (!d || !d.ts) return;
+      /* A cached copy can be older than the tick already shown; never step
+         the strip backwards. */
+      if (LIVE && LIVE.ts && Date.parse(d.ts) < Date.parse(LIVE.ts)) return;
       var isNew = !LIVE || LIVE.ts !== d.ts;
       LIVE = d;
 
@@ -15340,7 +15350,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var extra = "";
     if (LIVE && LIVE.ts && st.cls !== "closed") {
       var secs = Math.max(0, Math.round(liveAgeMs() / 1000));
-      extra = ' <span class="age">' + secs + "s ago</span>" +
+      extra = ' <span class="age">' + (secs < 120 ? secs + "s" : Math.round(secs / 60) + " min") + " ago</span>" +
               " &middot; " + esc(LIVE.ts.slice(11, 19)) + " IST";
       if (LIVE.nseTimestamp) {
         extra += ' <span class="age" title="NSE refreshes this roughly once a minute">' +
