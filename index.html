@@ -15194,8 +15194,12 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   /* live.json is a local file, so reading it costs nothing -- poll it fast
      so a new value appears the moment the poller writes one. The upstream
      limit is NSE's own ~60s cache, not this. */
-  var LIVE_EVERY = 2000;
-  var STALE_AFTER = 180000;   /* 3 min without a new tick = stale */
+  /* On the public site live.json arrives by a git push every 5 minutes
+     (live.py PUSH_EVERY), so polling fast only re-reads the same file, and
+     "stale" has to allow for the push gap plus the Pages rebuild. */
+  var LIVE_PUBLIC = SNAPSHOT.indexOf("../") !== 0;
+  var LIVE_EVERY = LIVE_PUBLIC ? 30000 : 2000;
+  var STALE_AFTER = LIVE_PUBLIC ? 720000 : 180000;   /* 12 / 3 min without a new tick = stale */
   var PREV_VALS = {};         /* for change flashing */
 
   function liveAgeMs() {
@@ -15227,7 +15231,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   function pollLive() {
-    getJson("live.json").then(function (d) {
+    /* ?t= skips the CDN copy GitHub Pages keeps for 10 minutes. */
+    getJson("live.json?t=" + Date.now()).then(function (d) {
       if (!d || !d.ts) return;
       var isNew = !LIVE || LIVE.ts !== d.ts;
       LIVE = d;
