@@ -1639,6 +1639,16 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 .side-list li { margin-bottom: 4px; }
 /* ---------- Option chain by expiry (hz-*) ---------- */
 .hz-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px 4px; }
+.rg-head { margin: 10px 16px 4px; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.rg-dim { color: var(--ink-3); font-size: 11px; }
+.rg-fam { display: inline-block; min-width: 74px; color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; }
+.rg-on { color: var(--warn); font-size: 10.5px; margin-left: 4px; }
+.rg-list { margin: 6px 16px 12px; padding-left: 18px; line-height: 1.55; font-size: 13px; }
+.rg-list li { margin-bottom: 6px; }
+.rg-chart { display: block; width: 100%; height: auto; padding: 8px 16px 0; box-sizing: border-box; }
+.rg-ax { font: 10px var(--font-num); fill: var(--ink-3); }
+.rg-wrap .dt td.lft, .rg-wrap .dt td.lft span { white-space: normal; min-width: 180px; }
+.rg-wrap .dt th, .rg-wrap .dt td { padding-left: 8px; padding-right: 8px; }
 .hz-tab { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 12px; cursor: pointer;
   border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink-2); font: inherit; }
 .hz-tab b { font: 600 13px var(--font-num); color: var(--ink); }
@@ -1809,6 +1819,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     { key:"today",    label:"Today" },
     { key:"options",  label:"Options &amp; OI" },
     { key:"analysis", label:"Analysis" },
+    { key:"momentum", label:"Momentum" },
     { key:"record",   label:"Track record" }
   ];
 
@@ -8497,6 +8508,255 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     if (state.page === "india-index" && MODEL[state.idx]) render();
   }).catch(function () { HZN = null; });
 
+  /* ==========================================================
+     MOMENTUM (rg*): overbought, oversold, sideways. Every number
+     comes from regimes.py -> snapshot/regimes.json, which tests
+     each textbook state on NIFTY's daily history since 2007:
+     how long spells lasted, what followed, and whether that held
+     in both halves of the history.
+     ========================================================== */
+  var RG = null;
+  var RG_VERDICT = {
+    "reliable up": "Reliable: up", "reliable down": "Reliable: down", "leans up": "Leans up, unproven",
+    "leans down": "Leans down, unproven", "no edge": "No edge", "too few": "Too few"
+  };
+  function rgP(v) { return v == null ? "&mdash;" : n0(v) + "%"; }
+  function rgVerdict(v) {
+    var c = /^reliable/.test(v) ? (v === "reliable up" ? "var(--up)" : "var(--down)") : "var(--ink-3)";
+    return '<b style="color:' + c + '">' + (RG_VERDICT[v] || esc(v)) + "</b>";
+  }
+  function rgSize(f) {
+    var v = f.sizeVerdict;
+    var tip = ' title="average 10-session move ' + n1(f.move) + "% vs " + n1(f.baseMove) + '% normally"';
+    return v === "smaller moves" ? '<b style="color:var(--up)"' + tip + ">Smaller</b>"
+      : v === "bigger moves" ? '<b style="color:var(--down)"' + tip + ">Larger</b>"
+      : v === "too few" ? "Too few" : "Normal";
+  }
+  function rgUp(f) { return f && f.up != null ? rgP(f.up) + ' <span class="rg-dim">(' + rgP(f.baseUp) + ")</span>" : "&mdash;"; }
+
+  function rgNowCard() {
+    var R = RG.readings || {}, S = RG.story || {};
+    var tiles = '<div class="struct">' +
+      sc("RSI (14)", n1(R.rsi), R.rsi > 70 ? "overbought (&gt; 70)" : R.rsi < 30 ? "oversold (&lt; 30)" : "30&ndash;70 is neutral") +
+      sc("Stochastic", n1(R.stoch), R.stoch > 80 ? "top of its 14-day range" : R.stoch < 20 ? "bottom of its range" : "mid-range") +
+      sc("MACD histogram", sgn(R.macdHist, 0), R.macdHist > 0 ? "above its signal line" : "below its signal line") +
+      sc("Bollinger %B", n2(R.pctB), R.pctB > 1 ? "above the upper band" : R.pctB < 0 ? "below the lower band" : "inside the bands") +
+      sc("ADX", n1(R.adx), R.adx > 25 ? "trending" : R.adx < 20 ? "sideways" : "weak trend") +
+      sc("vs 50-day average", sgn(R.dist50, 1) + "%", "distance from trend") +
+      sc("vs 200-day average", sgn(R.dist200, 1) + "%", R.dist200 > 0 ? "long-term uptrend" : "long-term downtrend") +
+      sc("India VIX", n2(R.vix), "higher than " + rgP(R.vixPct) + " of the year") +
+      (R.pcr != null ? sc("PCR", n2(R.pcr), "put OI / call OI") : "") + "</div>";
+    var bottom = (S.bottom || []).map(function (b) { return "<p>" + esc(b) + "</p>"; }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Where NIFTY stands</h2><span class="sub">daily close ' +
+      esc(RG.asOf) + " &middot; tested on " + n0(RG.sessions) + " sessions since " + esc(RG.from) + "</span></div>" +
+      '<p class="rg-head">' + esc(S.headline || "") + "</p>" + tiles +
+      (bottom ? '<div class="caution">' + bottom + "</div>" : "") + "</section>";
+  }
+
+  function rgActiveCard() {
+    var A = (RG.states || []).filter(function (s) { return s.now; });
+    if (!A.length) {
+      return '<section class="card"><div class="card-hd"><h2>Active states: how long they last</h2></div>' +
+        '<p class="side-why">No overbought, oversold, sideways or volatility state is on today.</p></section>';
+    }
+    var rows = A.map(function (s) {
+      var n = s.now, d = s.duration || {}, m = n.more || {}, f = (s.forward || {})["10"] || {};
+      return [esc(s.label), String(n.age) + (n.onToday ? "" : " <span class=\"rg-dim\">(" + esc(n.asOf) + ")</span>"),
+        d.median != null ? n0(d.median) + " / " + n0(d.p75) + " days" : "&mdash;",
+        rgP(m["3"]) + " / " + rgP(m["5"]), rgUp(f), rgSize(f), rgVerdict(f.verdict)];
+    });
+    var lines = ((RG.story || {}).lines || []).map(function (l) { return "<li>" + esc(l.text) + "</li>"; }).join("");
+    return '<section class="card"><div class="card-hd"><h2>Active states: how long they last</h2>' +
+      '<span class="sub">on today &middot; odds from every past spell that reached the same age</span></div>' +
+      '<div class="rg-wrap">' + hzTbl(["State", "Day", "Median / 75% ended by", "Lasts 3+ / 5+ more",
+             "Up after 10 sessions", "Moves after", "Verdict"], rows) + "</div>" +
+      '<p class="side-why"><b>Up after 10 sessions</b> counts from the first day of each past spell; the normal rate for any day is in brackets. ' +
+      "<b>Moves after</b> compares the average 10-session move with an ordinary day&rsquo;s.</p>" +
+      nfxMore("Read each state in words", '<ul class="rg-list">' + lines + "</ul>") + "</section>";
+  }
+
+  function rgHistoryCard() {
+    var fams = ["Overbought", "Oversold", "Sideways", "Trend", "Volatility", "Positioning"];
+    var S = (RG.states || []).slice().sort(function (a, b) { return fams.indexOf(a.family) - fams.indexOf(b.family); });
+    var rows = S.map(function (s) {
+      var F = s.forward || {}, d = s.duration || {};
+      return ['<span class="rg-fam">' + esc(s.family) + "</span> " + esc(s.label) + (s.sample === "desk" ? " <span class=\"rg-dim\">(desk, since " + esc(s.since || "") + ")</span>" : "") +
+        (s.now ? ' <b class="rg-on">ON</b>' : ""),
+        n0(s.spells), d.median != null ? n0(d.median) + " / " + n0(d.p90) : "&mdash;",
+        ["5", "10", "21"].map(function (h) { return F[h] && F[h].up != null ? n0(F[h].up) : "&ndash;"; }).join(" &middot; ") + "%",
+        '<span class="rg-dim">' + ["5", "10", "21"].map(function (h) { return F[h] && F[h].baseUp != null ? n0(F[h].baseUp) : "&ndash;"; }).join(" &middot; ") + "%</span>",
+        rgSize(F["10"] || {}), rgVerdict((F["10"] || {}).verdict)];
+    });
+    return '<section class="card"><div class="card-hd"><h2>Every state since 2007</h2>' +
+      '<span class="sub">what followed each kind of spell, against an ordinary day</span></div>' +
+      '<div class="rg-wrap">' + hzTbl(["State", "Spells", "Median / 90% of spells", "Up after 5 / 10 / 21", "Normal day",
+             "Moves after", "Verdict"], rows) + "</div>" +
+      '<p class="side-why"><b>Reliable</b> needs ' + n0((RG.rule || {}).minEpisodes) + "+ spells, |t| &ge; " + n1((RG.rule || {}).tMin) +
+      " and the same sign in both halves of the history (before and after " + esc((RG.rule || {}).split || "") + "). " +
+      "Desk rows (PCR, volume) cover only the sessions the desk has stored and are compared with those same sessions.</p></section>";
+  }
+
+  function rgSustainCard() {
+    var rows = [];
+    (RG.states || []).forEach(function (s) {
+      (s.sustain || []).forEach(function (x, i) {
+        rows.push([i === 0 ? esc(s.label) + ' <span class="rg-dim">(split at ' + n0(x.cut) + " days)</span>" : "",
+          esc(x.feature), n2(x.longer), n2(x.shorter), sgn(x.t, 1)]);
+      });
+    });
+    if (!rows.length) return "";
+    return '<section class="card"><div class="card-hd"><h2>What kept spells going</h2>' +
+      '<span class="sub">conditions on day 1 that separated long spells from short ones</span></div>' +
+      hzTbl(["State", "Condition at entry", "Longer spells", "Shorter spells", "t"], rows) +
+      '<p class="side-why">Spells are split at their median length. A condition is listed only when the gap is at least a third of a standard deviation and |t| &ge; 2. ' +
+      "States with no listed condition had no entry reading that told long spells from short ones.</p></section>";
+  }
+
+  function rgChartCard() {
+    var Sr = RG.series || {}, d = Sr.d || [], c = Sr.c || [], r = Sr.rsi || [];
+    if (d.length < 10) return "";
+    var W = 640, H1 = 150, H2 = 80, gap = 14, pad = 4;
+    var cs = c.filter(function (v) { return v != null; });
+    var lo = Math.min.apply(null, cs), hi = Math.max.apply(null, cs);
+    var x = function (i) { return pad + i * (W - 2 * pad) / (d.length - 1); };
+    var y1 = function (v) { return pad + (hi - v) / ((hi - lo) || 1) * (H1 - 2 * pad); };
+    var y2 = function (v) { return H1 + gap + (100 - v) / 100 * H2; };
+    var path = function (a, y) {
+      var s = "", on = false;
+      a.forEach(function (v, i) {
+        if (v == null) { on = false; return; }
+        s += (on ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1);
+        on = true;
+      });
+      return s;
+    };
+    var band = '<rect x="0" y="' + y2(70).toFixed(1) + '" width="' + W + '" height="' + (y2(30) - y2(70)).toFixed(1) +
+      '" fill="var(--surface-2)"></rect>';
+    var guides = [70, 30].map(function (v) {
+      return '<line x1="0" x2="' + W + '" y1="' + y2(v).toFixed(1) + '" y2="' + y2(v).toFixed(1) +
+        '" stroke="var(--line)" stroke-dasharray="3 3"></line><text x="' + (W - 30) + '" y="' + (y2(v) - 3).toFixed(1) +
+        '" text-anchor="end" class="rg-ax">' + v + "</text>";
+    }).join("");
+    var svg = '<svg class="rg-chart" viewBox="0 0 ' + W + " " + (H1 + gap + H2 + 4) + '" role="img" aria-label="NIFTY close and RSI over six months">' +
+      band + guides +
+      '<path d="' + path(c, y1) + '" fill="none" stroke="var(--calls)" stroke-width="1.6"></path>' +
+      '<path d="' + path(r, y2) + '" fill="none" stroke="var(--maxpain)" stroke-width="1.4"></path>' +
+      '<text x="4" y="12" class="rg-ax">NIFTY ' + n0(hi) + "</text>" +
+      '<text x="4" y="' + (H1 - 4) + '" class="rg-ax">' + n0(lo) + "</text>" +
+      '<text x="4" y="' + (H1 + gap + 10) + '" class="rg-ax">RSI(14) ' + n1(r[r.length - 1]) + "</text></svg>";
+    return '<section class="card"><div class="card-hd"><h2>NIFTY and RSI, six months</h2>' +
+      '<span class="sub">' + esc(d[0]) + " to " + esc(d[d.length - 1]) + "</span></div>" + svg +
+      '<p class="side-why">Shaded: RSI between 30 and 70. Above the band is overbought, below it oversold.</p></section>';
+  }
+
+  function nfxMomentum(m) {
+    if (!RG || !RG.states) {
+      return '<div class="nfx-view"><section class="card"><div class="card-hd"><h2>Where NIFTY stands</h2></div>' +
+        '<p class="side-why">The momentum study (snapshot/regimes.json) has not loaded yet.</p></section></div>';
+    }
+    return '<div class="nfx-view">' +
+      nfxBand("Momentum &amp; regime", "overbought, oversold or sideways &mdash; and what history says happens next") +
+      nfxSafe(rgNowCard, m) + nfxSafe(rgActiveCard, m) + nfxSafe(rgChartCard, m) +
+      nfxBand("The evidence", "every state, " + esc(RG.from.slice(0, 4)) + " to today") +
+      nfxSafe(rgHistoryCard, m) + nfxSafe(rgSustainCard, m) + "</div>";
+  }
+
+  function rgHow(fn) {
+    return function () {
+      if (!RG || !RG.states) return "The momentum study has not loaded yet, so there are no figures for this session (0 states, 0 spells, 0 sessions).";
+      return fn(RG);
+    };
+  }
+  function rgFind(k) { return ((RG && RG.states) || []).filter(function (s) { return s.key === k; })[0] || {}; }
+  var RG_TERMS = {
+    "Where NIFTY stands": {
+      plain: ["Trend, momentum, trend strength and fear in one place, read from the daily chart.",
+        "The box underneath says what history makes of today&rsquo;s mix: a direction lean only when one has been reliable, and whether moves have tended to be larger or smaller."],
+      deep: ["RSI(14) uses Wilder&rsquo;s smoothing; above 70 is overbought, below 30 oversold. Stochastic(14,3) above 80 / below 20.",
+        "MACD is the 12-day minus the 26-day exponential average; the histogram is MACD minus its 9-day average. Bollinger %B places the close inside 20-day bands two standard deviations wide.",
+        "ADX(14) measures trend strength regardless of direction: below 20 is sideways, above 25 trending. The VIX percentile is today&rsquo;s India VIX against its own past 252 sessions."],
+      how: rgHow(function (G) {
+        var R = G.readings;
+        return "RSI " + n1(R.rsi) + ", stochastic " + n1(R.stoch) + ", ADX " + n1(R.adx) + ", " + sgn(R.dist50, 1) + "% vs the 50-day and " +
+          sgn(R.dist200, 1) + "% vs the 200-day average, India VIX " + n2(R.vix) + " (above " + n0(R.vixPct) + "% of the year), on " + esc(G.asOf) + ".";
+      })
+    },
+    "Active states: how long they last": {
+      plain: ["Each state that is on today, how many sessions it has run, and how long past spells of the same state lasted.",
+        "&ldquo;Lasts 3+ more&rdquo; is the share of past spells that, having reached today&rsquo;s age, carried on at least three more sessions."],
+      deep: ["A spell is a run of sessions in the state; a dip out of it for one or two sessions counts as the same spell.",
+        "Survival odds: of past spells that lasted at least today&rsquo;s age, the share that lasted that age plus k.",
+        "What followed is measured from the first day of each spell, keeping spells at least as far apart as the horizon so they do not overlap."],
+      how: rgHow(function () {
+        var s = rgFind("rsi_ob"), d = s.duration || {};
+        return "RSI above 70: " + n0(s.spells) + " past spells, median " + n0(d.median) + " sessions, 75% ended by " + n0(d.p75) +
+          ", 90% by " + n0(d.p90) + ", longest " + n0(d.max) + ".";
+      })
+    },
+    "Every state since 2007": {
+      plain: ["The scorecard: for every textbook overbought, oversold, sideways, trend and volatility state, what NIFTY did afterwards compared with an ordinary day.",
+        "Most popular signals turn out to say little about direction; several say a lot about how big the next move is."],
+      deep: ["Up after n sessions: the share of spells after which NIFTY was higher n sessions later; the bracket is the share for every day in the same history.",
+        "t compares the average return after spells with the average for all days. Reliable needs 15+ spells, |t| &ge; 2 and the same sign before and after 2017.",
+        "Moves after compares the average absolute 10-session move with an ordinary day&rsquo;s, under the same two-halves rule."],
+      how: rgHow(function (G) {
+        var s = rgFind("vix_high"), f = (s.forward || {})["10"] || {};
+        return "VIX in its top 20%: " + n0(f.n) + " spells, up after 10 sessions " + rgP(f.up) + " vs " + rgP(f.baseUp) + " normally, t " +
+          sgn(f.t, 1) + ", halves " + sgn(f.early, 2) + " / " + sgn(f.late, 2) + ". " + n0(G.sessions) + " sessions tested.";
+      })
+    },
+    "What kept spells going": {
+      plain: ["Spells of the same state differ: some fade in two days, some run for weeks.",
+        "This compares the readings on day 1 of long spells with those of short spells, to show what tends to keep a state alive."],
+      deep: ["Spells are split at their median length. For each day-1 reading the averages are compared; a condition is listed when the standardised gap is 0.35+ and |t| &ge; 2.",
+        "The MACD histogram is taken as a percentage of price so 2008 and 2026 levels compare."],
+      how: rgHow(function (G) {
+        var s = (G.states || []).filter(function (x) { return (x.sustain || []).length; })[0];
+        if (!s) return "No state had a day-1 reading that separated long from short spells (0 of " + G.states.length + " states, 2 halves, 15 spells minimum).";
+        var x = s.sustain[0];
+        return esc(s.label) + ": " + esc(x.feature) + " " + n2(x.longer) + " in spells longer than " + n0(x.cut) + " days vs " + n2(x.shorter) + " in shorter ones (t " + sgn(x.t, 1) + ").";
+      })
+    },
+    "NIFTY and RSI, six months": {
+      plain: ["The index and its RSI over the last six months, so you can see where the current spell started.",
+        "RSI above the shaded band is overbought, below it oversold."],
+      deep: ["RSI(14) with Wilder smoothing on daily closes. The shaded band is 30 to 70."],
+      how: rgHow(function (G) {
+        var R = G.readings;
+        return "RSI " + n1(R.rsi) + " on " + esc(G.asOf) + "; " + n0(((G.series || {}).d || []).length) + " sessions charted, NIFTY " + n0(G.spot) + ".";
+      })
+    }
+  };
+  var RG_ALIAS = {
+    "RSI (14)": "Where NIFTY stands", "Stochastic": "Where NIFTY stands", "MACD histogram": "Where NIFTY stands",
+    "Bollinger %B": "Where NIFTY stands", "ADX": "Where NIFTY stands", "vs 50-day average": "Where NIFTY stands",
+    "vs 200-day average": "Where NIFTY stands", "India VIX": "Where NIFTY stands",
+    "State": "Every state since 2007", "Day": "Active states: how long they last",
+    "Median / 75% ended by": "Active states: how long they last", "Lasts 3+ / 5+ more": "Active states: how long they last",
+    "Up after 5 / 10 / 21": "Every state since 2007", "Normal day": "Every state since 2007",
+    "Up after 10 sessions": "Every state since 2007", "Moves after": "Every state since 2007",
+    "Verdict": "Every state since 2007", "Spells": "Every state since 2007",
+    "Median / 90% of spells": "Every state since 2007", "Condition at entry": "What kept spells going",
+    "Longer spells": "What kept spells going", "Shorter spells": "What kept spells going", "t": "What kept spells going",
+    "Momentum &amp; regime": "Where NIFTY stands", "Momentum & regime": "Where NIFTY stands"
+  };
+  function rgRegisterTerms() {
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(RG_TERMS).forEach(function (k) {
+      var t = RG_TERMS[k];
+      if (!has(DEEP, k)) DEEP[k] = t.deep;
+      if (!has(PLAIN, k)) PLAIN[k] = t.plain;
+      if (!has(TERMS, k)) TERMS[k] = { deep: k, how: t.how };
+    });
+    Object.keys(RG_ALIAS).forEach(function (k) {
+      if (!has(TERM_ALIAS, k)) TERM_ALIAS[k] = RG_ALIAS[k];
+    });
+  }
+  getJson("regimes.json").then(function (d) {
+    RG = d || null;
+    if (state.page === "india-index" && state.view === "momentum" && MODEL[state.idx]) render();
+  }).catch(function () { RG = null; });
+
   /* Options: where the open interest sits, the chain, the expiry watchlist. */
   function nfxOptions(m) {
     var o = nfxCards(nfxSafe(viewOverview, m));
@@ -8543,7 +8803,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   var RENDER = {
-    today: nfxToday, options: nfxOptions, analysis: nfxAnalysis, record: nfxRecord,
+    today: nfxToday, options: nfxOptions, analysis: nfxAnalysis, record: nfxRecord, momentum: nfxMomentum,
     overview: viewOverview, strategy: viewStrategy,
     "market-overview": viewMarketOverview,
     "india-index": viewIndiaIndex,
@@ -15212,9 +15472,25 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       return r.json();
     });
   }
+  /* The API's 60 requests an hour are per IP, not per tab: two tabs or a
+     phone on the same Wi-Fi use it up mid-hour. After a 403/429 the API is
+     skipped until its X-RateLimit-Reset instead of failing every poll. */
+  var LIVE_API_UNTIL = 0;
+  function liveApi() {
+    if (Date.now() < LIVE_API_UNTIL) return Promise.reject(new Error("api rate-limited"));
+    return fetch(LIVE_API, { cache: "no-store", headers: { Accept: "application/vnd.github.raw" } })
+      .then(function (r) {
+        if (r.status === 403 || r.status === 429) {
+          var reset = Number(r.headers.get("X-RateLimit-Reset"));
+          LIVE_API_UNTIL = isFinite(reset) && reset > 0 ? reset * 1000 : Date.now() + 600000;
+        }
+        if (!r.ok) throw new Error("live -> HTTP " + r.status);
+        return r.json();
+      });
+  }
   function getLive() {
     if (!LIVE_PUBLIC) return getJson("live.json");
-    return liveFetch(LIVE_API, { Accept: "application/vnd.github.raw" })
+    return liveApi()
       .catch(function () { return liveFetch(LIVE_RAW); })
       .catch(function () { return getJson("live.json"); });
   }
@@ -15249,6 +15525,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   function pollLive() {
+    /* A hidden public tab spends the API budget for nothing; it catches up
+       on visibilitychange below. */
+    if (LIVE_PUBLIC && document.hidden) return;
     getLive().then(function (d) {
       if (!d || !d.ts) return;
       /* A cached copy can be older than the tick already shown; never step
@@ -15371,6 +15650,12 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     pollLive();
     if (LIVE_TIMER) clearInterval(LIVE_TIMER);
     LIVE_TIMER = setInterval(pollLive, LIVE_EVERY);
+    if (LIVE_PUBLIC && !startLive.vis) {
+      startLive.vis = true;
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) pollLive();
+      });
+    }
 
     /* Seconds-since-update ticks every second. It is the only way to tell a
        working feed from a dead one when the data itself moves once a
@@ -15800,6 +16085,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   initRail();
   if (typeof sideRegisterTerms === "function") sideRegisterTerms();   /* Buy-or-sell glossary */
   if (typeof hzRegisterTerms === "function") hzRegisterTerms();       /* Every-expiry glossary */
+  if (typeof rgRegisterTerms === "function") rgRegisterTerms();       /* Momentum tab glossary */
   if (typeof mtlRegisterTerms === "function") mtlRegisterTerms();   /* Metal Index glossary, merged before first lookup */
   if (typeof nrgRegisterTerms === "function") nrgRegisterTerms();   /* Energy Index glossary (claude-17) */
   if (typeof pbRegisterTerms === "function") pbRegisterTerms();   /* If-then playbook glossary (claude-17) */
