@@ -1806,7 +1806,14 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   var BRIEF = {};            /* brief.json -- the morning brief on the Overview */
 
   function getJson(name) {
-    return fetch(SNAPSHOT + name, { cache: "no-store" }).then(function (r) {
+    /* GitHub Pages keeps a 10-minute CDN copy of every file. Intraday the
+       site is rebuilt every 10 minutes (intraday.py), so without this a
+       reload could mix files from two different builds. One query value per
+       minute: every file of one load agrees, and the CDN still absorbs
+       repeat hits within the minute. Local files need none of this. */
+    var q = (SNAPSHOT.indexOf("../") !== 0 && name.indexOf("?") < 0)
+      ? "?t=" + Math.floor(Date.now() / 60000) : "";
+    return fetch(SNAPSHOT + name + q, { cache: "no-store" }).then(function (r) {
       if (!r.ok) throw new Error(name + " -> HTTP " + r.status);
       return r.json();
     });
@@ -15966,6 +15973,48 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return n;
   }
 
+  /* Intraday the site is rebuilt about every 10 minutes. The public page
+     checks for a newer build every 2 minutes and reloads itself, keeping the
+     scroll position and the open tab, so every section stays current
+     without anyone pressing refresh. Hidden tabs wait until they are seen. */
+  var BUILD_CHECK_EVERY = 120000;
+  function watchForNewBuild() {
+    if (SNAPSHOT.indexOf("../") === 0 || watchForNewBuild.on) return;
+    watchForNewBuild.on = true;
+    try {
+      var y = sessionStorage.getItem("deskScrollY");
+      var wl = sessionStorage.getItem("deskWl");
+      if (wl !== null) {
+        sessionStorage.removeItem("deskWl");
+        var w = JSON.parse(wl);
+        state.wl = w.wl; state.wlExpiry = w.e || 0;
+        render();
+      }
+      if (y !== null) {
+        sessionStorage.removeItem("deskScrollY");
+        setTimeout(function () { window.scrollTo(0, +y); }, 300);
+      }
+    } catch (e) { /* storage blocked: reload still works, from the top */ }
+    var pending = false;
+    function check() {
+      if (document.hidden || !MANIFEST || !MANIFEST.generatedAt) return;
+      fetch(SNAPSHOT + "manifest.json?n=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (man) {
+          if (!man || !man.generatedAt || man.generatedAt <= MANIFEST.generatedAt) return;
+          if (pending) return;
+          pending = true;
+          try {
+            sessionStorage.setItem("deskScrollY", String(window.scrollY));
+            sessionStorage.setItem("deskWl", JSON.stringify({ wl: state.wl, e: state.wlExpiry }));
+          } catch (e) { /* none */ }
+          location.reload();
+        }).catch(function () { /* offline: try again next time */ });
+    }
+    setInterval(check, BUILD_CHECK_EVERY);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+  }
+
   function freshness(m, man) {
     var want = expectedSession();
     var have = m.tradeDate || "";
@@ -15982,6 +16031,13 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     }
 
     var tag, state, msg;
+    if (man && man.provisional) {
+      return { tag: "INTRADAY", state: "ok",
+        msg: "Every section is built from today's open session as of " +
+             (man.builtIst || gen.slice(11, 16)) + " IST and rebuilt about every 10 minutes. " +
+             "Provisional: the settled close replaces it after the evening run.",
+        age: age };
+    }
     if (!have) {
       tag = "NO DATA"; state = "stale"; msg = "The snapshot has no trade date.";
     } else if (behind === 0) {
@@ -16062,6 +16118,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       var m = MODEL[state.idx];
       var fr = freshness(m, MANIFEST);
       setFresh(fr.tag, fr.msg, fr.state, fr.age);
+      watchForNewBuild();
     }).catch(function (err) {
       setFresh("NO DATA", "Could not read the snapshot (" + err.message +
         "). Run  ./desk.sh  then reload.", "stale", "");
