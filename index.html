@@ -1126,7 +1126,8 @@ th.sortable.on { color: var(--calls); }
 .vt-tip .vt-m { margin-top: 6px; padding-top: 5px; border-top: 1px solid var(--line);
   font-family: var(--font-ui); font-size: 11.5px; line-height: 1.4; color: var(--ink-2); }
 .vt-tip .vt-hint { margin-top: 5px; font-size: 9.5px; letter-spacing: .08em; color: var(--ink-3); text-transform: uppercase; }
-:where([data-tip], [data-pt], .tcell, .struct-c, .prob, .lvl, .kpi, .ohlc-cell, .bandrow,
+:where(.pill, .swatch, .mtl-sw, .step .dot, .mac-pin, .conf-fill, .bar-cap,
+  [data-tip], [data-pt], .tcell, .struct-c, .prob, .lvl, .kpi, .ohlc-cell, .bandrow,
   .barfill, .bartrack, .pbar, .relbar, .hz-bar, .mac-bar, .mac-gauge, .nrg-pbar,
   .mtl-corr-bar, .conf-track, .meter, .ck-tbl-bar, .bar-pl, .rangebar) { cursor: help; }
 .rung-tip .rt-k { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
@@ -15246,8 +15247,16 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
        stat tiles   label, value, note, and the glossary's plain meaning
        table bars   the row, the column, and the rest of the row */
   var VT_TILE = ".tcell, .struct-c, .prob, .lvl, .kpi, .ohlc-cell, .bandrow";
-  var VT_BAR = ".barfill, .bartrack, .pbar, .relbar, .hz-bar, .mac-bar, .mac-gauge, .nrg-pbar, " +
-    ".mtl-corr-bar, .conf-track, .meter, .ck-tbl-bar, .bar-pl, .rangebar";
+  var VT_BAR = ".barfill, .bartrack, .pbar, .relbar, .hz-bar, .mac-bar, .mac-gauge, .mac-pin, .mac-zero, .nrg-pbar, " +
+    ".mtl-corr-bar, .conf-track, .conf-fill, .meter, .ck-tbl-bar, .bar-pl, .rangebar, .bar-cap";
+  var VT_KEY = ".swatch, .mtl-sw";
+  /* The build-up tags read price change against open-interest change. */
+  var VT_PILL = {
+    lb: "Long build-up: price up and open interest up. New buyers are opening positions; the move has fresh money behind it.",
+    sb: "Short build-up: price down and open interest up. New sellers are writing positions; pressure is being added, not released.",
+    sc: "Short covering: price up and open interest down. Shorts are buying back; the rise is closing positions rather than new conviction.",
+    lu: "Long unwinding: price down and open interest down. Holders are exiting; the fall is longs leaving rather than new shorts."
+  };
   var VT = { el: null, last: null, html: null };
 
   function vtEl() {
@@ -15270,6 +15279,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var t = src.replace(/<[^>]+>/g, "");
     return t.length > 260 ? t.slice(0, 257).replace(/\s+\S*$/, "") + "&hellip;" : t;
   }
+  function vtExact(label) {
+    var n = termNorm(label || "");
+    return n && Object.prototype.hasOwnProperty.call(termIndex(), n) ? vtMeaning(label) : "";
+  }
   function vtBox(k, big, rows, note) {
     return (k ? '<div class="rt-k">' + k + "</div>" : "") +
       (big ? '<div class="rt-big">' + big + "</div>" : "") +
@@ -15290,28 +15303,104 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       [rest ? esc(rest) : "", mean].filter(Boolean).join("<br>"));
   }
   function vtBarTip(el) {
-    var td = el.closest("td");
-    if (td) {
-      var tr = td.parentNode, table = td.closest("table");
-      var heads = table ? table.querySelectorAll("thead th") : [];
-      var head = function (i) { return heads[i] ? vtText(heads[i]).replace(/[\u25b2\u25bc\u2191\u2193]/g, "").trim() : ""; };
-      var rows = [];
-      Array.prototype.forEach.call(tr.cells, function (c, i) {
-        if (i === 0 || c === td) return;
-        var v = vtText(c);
-        if (v && head(i) && rows.length < 6) rows.push([esc(head(i)), esc(v)]);
-      });
-      var val = vtText(td) || (el.style && el.style.width) || "";
-      return vtBox(esc(vtText(tr.cells[0])), esc((head(td.cellIndex) ? head(td.cellIndex) + ": " : "") + val),
-        rows, vtMeaning(head(td.cellIndex)));
+    var ctx = vtRowCtx(el);
+    if (ctx) {
+      var val = vtText(el.closest("td")) || (el.style && el.style.width) || "";
+      return vtBox(esc(ctx.row), esc((ctx.col ? ctx.col + ": " : "") + val), ctx.rows, vtMeaning(ctx.col));
     }
     var host = el.closest(VT_TILE);
     if (host) return vtTile(host);
-    var w = el.querySelector("i, span");
-    var pct = (w && w.style && (w.style.width || w.style.left)) || (el.style && el.style.width) || "";
-    var card = el.closest(".card");
-    var h2 = card ? vtText(card.querySelector("h2")) : "";
-    return pct ? vtBox(esc(h2), esc(pct) + " of the scale", null, vtMeaning(h2)) : null;
+    var w = el.querySelector("[style*='width'], [style*='left'], i, span");
+    var pct = (w && w.style && (w.style.width || w.style.left)) ||
+      (el.style && (el.style.width || el.style.left)) || "";
+    var own = vtText(el);
+    var h2 = vtCard(el), near = own.length >= 2 && own.length <= 220 ? own : vtNear(el);
+    if (!pct && !near) return null;
+    return vtBox(esc(h2), esc(near || (pct + " of the scale")),
+      pct && near ? [["Position on the scale", esc(pct)]] : null, vtMeaning(h2));
+  }
+  function vtCard(el) {
+    var c = el.closest(".card, section");
+    return c ? vtText(c.querySelector("h2, h3, h4")) : "";
+  }
+  /* The nearest wrapper that says what this mark is: a meter's caption, a
+     legend item's label, a step's name. Stops before it swallows a card. */
+  function vtNear(el) {
+    var n = el.parentNode;
+    for (var i = 0; i < 4 && n && n.nodeType === 1; i++, n = n.parentNode) {
+      if (n.matches && n.matches(".card, section, #content")) break;
+      var t = vtText(n);
+      if (t.length >= 2 && t.length <= 220) return t;
+    }
+    return "";
+  }
+  /* Column labels for a table whose header may span two rows (CALLS |
+     PUTS over OI, Chg OI...). Each column takes the label of the deepest
+     header cell covering it, and its group as a prefix. */
+  function vtHeads(table) {
+    var grid = [], group = [];
+    var trs = table.tHead ? table.tHead.rows : [];
+    Array.prototype.forEach.call(trs, function (tr, r) {
+      var col = 0;
+      Array.prototype.forEach.call(tr.cells, function (th) {
+        while (grid[col] && grid[col].until > r) col++;
+        var span = th.colSpan || 1, rs = th.rowSpan || 1;
+        var t = vtText(th).replace(/[\u25b2\u25bc\u2191\u2193]/g, "").trim();
+        for (var k = 0; k < span; k++) {
+          if (span > 1 && r < trs.length - 1) group[col + k] = t;
+          grid[col + k] = { t: t, until: r + rs };
+        }
+        col += span;
+      });
+    });
+    return grid.map(function (g, i) {
+      var t = g ? g.t : "";
+      return group[i] && group[i] !== t ? group[i].toLowerCase() + " " + t : t;
+    });
+  }
+  function vtRowCtx(el) {
+    var td = el.closest("td");
+    if (!td) return null;
+    var tr = td.parentNode, table = td.closest("table");
+    var H = table ? vtHeads(table) : [];
+    var ci = 0;
+    for (var c = tr.firstElementChild; c && c !== td; c = c.nextElementSibling) ci += c.colSpan || 1;
+    /* The row's name: the strike where there is one, else the first cell. */
+    var key = tr.querySelector(".strike-cell, td.strike, td.k") || tr.cells[0];
+    var rows = [], at = 0;
+    Array.prototype.forEach.call(tr.cells, function (cell) {
+      var i = at; at += cell.colSpan || 1;
+      if (cell === td || cell === key) return;
+      var v = vtText(cell);
+      if (v && H[i] && rows.length < 6) rows.push([esc(H[i]), esc(v)]);
+    });
+    var keyHead = H[Array.prototype.indexOf.call(tr.cells, key)] || "";
+    return { row: (keyHead && /strike/i.test(keyHead) ? "Strike " : "") + vtText(key), col: H[ci] || "", rows: rows };
+  }
+  function vtPill(el) {
+    var label = vtText(el), cls = (el.getAttribute("class") || "").split(/\s+/);
+    var mean = "";
+    cls.forEach(function (c) { if (VT_PILL[c]) mean = VT_PILL[c]; });
+    /* Only a meaning the pill was given: short status words ("Live",
+       "Needs history") alias onto unrelated glossary entries. */
+    mean = mean || vtMeaning(el.getAttribute("data-term") || "");
+    var ctx = vtRowCtx(el);
+    if (ctx) {
+      return vtBox(esc(ctx.row), esc((ctx.col ? ctx.col + ": " : "") + label), ctx.rows,
+        mean || vtExact(ctx.col));
+    }
+    var line = vtNear(el);
+    return vtBox(esc(vtCard(el)), esc(label), null,
+      [mean, line && line !== label ? esc(line) : ""].filter(Boolean).join("<br>"));
+  }
+  function vtKey(el) {
+    var label = vtNear(el) || vtCard(el);
+    return vtBox("Colour key &middot; " + esc(vtCard(el)), esc(label), null,
+      vtMeaning(label) || "This colour marks " + esc(label) + " in the chart.");
+  }
+  function vtDot(el) {
+    var cls = (el.getAttribute("class") || "").replace(/\bdot\b/, "").trim();
+    return vtBox(esc(vtCard(el)), esc(vtNear(el)), [["Status", esc(cls || "ok")]], null);
   }
   function vtResolve(t) {
     if (!t || !t.closest) return null;
@@ -15322,7 +15411,11 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       return own && own.closest(".ch-wrap") ? own.getAttribute("data-tip") : null;
     }
     var e = t.closest("[data-tip]");
-    if (e) return e.getAttribute("data-tip");
+    if (e) {
+      var tipCtx = e.closest("td") ? vtRowCtx(e) : null;
+      return tipCtx ? vtBox(esc(tipCtx.row), (tipCtx.col ? esc(tipCtx.col) + ": " : "") + e.getAttribute("data-tip"),
+        tipCtx.rows, null) : e.getAttribute("data-tip");
+    }
     e = t.closest("[data-pt]");
     if (e) {
       try {
@@ -15331,6 +15424,12 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
           '<div class="vt-hint">Click for the full detail</div>';
       } catch (x) { return null; }
     }
+    e = t.closest(".pill");
+    if (e) return vtPill(e);
+    e = t.closest(VT_KEY);
+    if (e) return vtKey(e);
+    e = t.closest(".step .dot, .stamp .dot");
+    if (e) return vtDot(e);
     e = t.closest(VT_BAR);
     if (e) return vtBarTip(e);
     e = t.closest(VT_TILE);
@@ -15382,6 +15481,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }, { passive: true });
   /* Capture on document: scroll does not bubble, and any scroller counts. */
   document.addEventListener("scroll", vtHide, { passive: true, capture: true });
+  /* For the coverage audit (tests/vt_audit): which marks have no readout. */
+  if (typeof window !== "undefined") window.__vtResolve = vtResolve;
   /* ================== end Visual tips (claude-17) ================== */
 
   function attachHovers() {
