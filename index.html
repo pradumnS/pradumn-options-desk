@@ -1119,6 +1119,16 @@ th.sortable.on { color: var(--calls); }
   pointer-events: none; z-index: 50; box-shadow: var(--shadow); display: none;
 }
 .rung-tip.live { display: block; }
+/* Visual tips (claude-17): the one readout every bar, tile and chart uses. */
+.vt-tip { white-space: normal; max-width: 300px; min-width: 150px; z-index: 60; }
+.vt-tip.below { transform: translate(-50%, 22px); }
+.vt-tip .rt-row span { color: var(--ink-3); }
+.vt-tip .vt-m { margin-top: 6px; padding-top: 5px; border-top: 1px solid var(--line);
+  font-family: var(--font); font-size: 11.5px; line-height: 1.4; color: var(--ink-2); }
+.vt-tip .vt-hint { margin-top: 5px; font-size: 9.5px; letter-spacing: .08em; color: var(--ink-3); text-transform: uppercase; }
+:where([data-tip], [data-pt], .tcell, .struct-c, .prob, .lvl, .kpi, .ohlc-cell, .bandrow,
+  .barfill, .bartrack, .pbar, .relbar, .hz-bar, .mac-bar, .mac-gauge, .nrg-pbar,
+  .mtl-corr-bar, .conf-track, .meter, .ck-tbl-bar, .bar-pl, .rangebar) { cursor: help; }
 .rung-tip .rt-k { font-size: 9.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
 .rung-tip .rt-big { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .rung-tip .rt-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 2px; }
@@ -3056,18 +3066,36 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     W.forEach(function (d, i) {
       var y0 = yN(0), y1 = yN(d.net);
       out += '<rect class="' + (d.net >= 0 ? "mtl-bar-up" : "mtl-bar-dn") + '" x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + Math.min(y0, y1).toFixed(1) +
-        '" width="' + bw.toFixed(1) + '" height="' + Math.max(0.5, Math.abs(y1 - y0)).toFixed(1) + '"><title>' + esc(mtlDate(d.d)) + ": net " + mtlS(d.net) +
-        " (\u0394 " + mtlS(d.dN) + ") \u00b7 price " + mtlPx(m, d.px) + "</title></rect>";
+        '" width="' + bw.toFixed(1) + '" height="' + Math.max(0.5, Math.abs(y1 - y0)).toFixed(1) + '"></rect>';
     });
     var path = "";
     W.forEach(function (d, i) { if (mtlOk(d.px)) path += (path ? "L" : "M") + x(i).toFixed(1) + "," + yP(d.px).toFixed(1); });
     out += '<path class="mtl-line-px" d="' + path + '"/>';
     W.forEach(function (d, i) {
-      if (ep[d.d] && mtlOk(d.px)) out += '<circle class="mtl-ep-dot" cx="' + x(i).toFixed(1) + '" cy="' + yP(d.px).toFixed(1) + '" r="3.5"><title>Turning point ' + esc(mtlDate(d.d)) + "</title></circle>";
+      if (ep[d.d] && mtlOk(d.px)) out += '<circle class="mtl-ep-dot" cx="' + x(i).toFixed(1) + '" cy="' + yP(d.px).toFixed(1) + '" r="3.5"></circle>';
     });
     out += '<line class="mtl-zero" x1="' + pl + '" x2="' + (w - pr) + '" y1="' + yN(0).toFixed(1) + '" y2="' + yN(0).toFixed(1) + '"/>';
     out += mtlXTicks(W, x, h);
-    return out + "</svg>";
+    /* The cursor reads the week under it: price, the funds' net position,
+       how it changed, and which way that leans. */
+    var pts = W.map(function (d, i) {
+      var p = i ? W[i - 1].px : null;
+      var ret = mtlOk(d.px) && mtlOk(p) && p ? (d.px / p - 1) * 100 : null;
+      var buy = d.dN >= 0;
+      return {
+        x: x(i), y: mtlOk(d.px) ? yP(d.px) : yN(d.net),
+        date: "Week to " + mtlDate(d.d) + (ep[d.d] ? " \u00b7 turning point" : ""),
+        big: "Net " + mtlS(d.net),
+        chg: d.dN != null ? mtlS(d.dN) + " this week" : null, chgUp: buy,
+        rows: [["Price", mtlPx(m, d.px)]]
+          .concat(ret != null ? [["Price change", (ret >= 0 ? "+" : "") + ret.toFixed(1) + "%"]] : [])
+          .concat(d.L != null ? [["Gross longs", mtlK(d.L)], ["Gross shorts", mtlK(d.S)]] : [])
+          .concat([["Reading", d.dN == null ? "\u2014" : (buy ? "funds added net length" : "funds cut net length") +
+            (ret == null ? "" : (buy === (ret >= 0) ? ", with price" : ", against price"))]]),
+        vol: null
+      };
+    });
+    return chartWrap(out + "</svg>", { pts: pts, color: "var(--calls)", vbWidth: w, vbTop: 0, vbHeight: h });
   }
 
   function mtlLegChart(m, W) {
@@ -3087,7 +3115,21 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       return '<path class="' + c + '" d="' + p + '"/>';
     }
     out += line("L", "mtl-line-l") + line("S", "mtl-line-s") + mtlXTicks(W, x, h);
-    return out + "</svg>";
+    var pts = W.map(function (d, i) {
+      var p = i ? W[i - 1] : null;
+      var dl = p ? d.L - p.L : null, ds = p ? d.S - p.S : null;
+      var why = dl == null ? "" : Math.abs(dl) >= Math.abs(ds)
+        ? (dl >= 0 ? "net moved mostly on new longs" : "net moved mostly on long liquidation")
+        : (ds >= 0 ? "net moved mostly on new shorts" : "net moved mostly on short covering");
+      return {
+        x: x(i), y: y(d.L), date: "Week to " + mtlDate(d.d),
+        big: "Longs " + mtlK(d.L) + " \u00b7 shorts " + mtlK(d.S),
+        rows: [["Net", mtlS(d.L - d.S)]]
+          .concat(dl != null ? [["Longs \u0394", mtlS(dl)], ["Shorts \u0394", mtlS(ds)], ["Reading", why]] : []),
+        vol: null
+      };
+    });
+    return chartWrap(out + "</svg>", { pts: pts, color: "var(--calls)", vbWidth: w, vbTop: 0, vbHeight: h });
   }
 
   function mtlXTicks(W, x, h) {
@@ -5990,11 +6032,29 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         return ((k - gLo) / gSpan * 330).toFixed(1) + "," + (86 - dn[i] / mx * 74).toFixed(1);
       });
       var spotX = ((m.cfg.spot - gLo) / gSpan * 330).toFixed(1);
+      /* Hover reads the strike under the cursor and the chance, under the
+         market's own pricing, of settling below or above it. */
+      var cum = [0], tot = 0;
+      for (var gi = 1; gi < g.length; gi++) {
+        tot += (dn[gi] + dn[gi - 1]) / 2 * (g[gi] - g[gi - 1]);
+        cum.push(tot);
+      }
+      var rndPts = g.map(function (k, i) {
+        var below = tot ? cum[i] / tot * 100 : null;
+        return {
+          x: (k - gLo) / gSpan * 330, y: 86 - dn[i] / mx * 74,
+          date: "Settle at " + n0(k) + " \u00b7 " + sgn(k - m.cfg.spot, 0) + " pts from spot",
+          big: below == null ? "\u2014" : n1(below) + "% below",
+          rows: below == null ? [] : [["Chance below", n1(below) + "%"], ["Chance above", n1(100 - below) + "%"],
+            ["Density", n1(dn[i] / mx * 100) + "% of peak"]],
+          vol: null
+        };
+      });
 
       out += '<section class="card"><div class="card-hd"><h2>Risk-neutral density</h2>' +
         '<span class="sub">the market&rsquo;s own distribution</span>' +
         '<div class="right"><span class="kpi-m">from ' + a.rnd.nStrikes + " strikes</span></div></div>" +
-        '<div class="chart-body"><svg viewBox="0 0 330 100" role="img" ' +
+        '<div class="chart-body">' + chartWrap('<svg viewBox="0 0 330 100" role="img" ' +
         'aria-label="Risk-neutral probability density for the settle, recovered from option prices.">' +
         /* The filled area is the hit target: clicking anywhere on the
            curve surrenders the moments and the levels behind it. */
@@ -6022,7 +6082,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
           '" y2="86" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"></line>' +
         '<text class="axis" x="2" y="97">' + n0(gLo) + "</text>" +
         '<text class="axis" x="300" y="97">' + n0(gHi) + "</text>" +
-        "</svg></div>" +
+        "</svg>", { pts: rndPts, color: "var(--calls)", vbWidth: 330, vbTop: 0, vbHeight: 100 }) + "</div>" +
         '<div class="probs">' +
         pr("Skew", sgn(a.rnd.skew, 3), a.rnd.skew < 0 ? "neg" : "pos",
            a.rnd.skew < 0 ? "left tail bid" : "right tail bid") +
@@ -8656,6 +8716,18 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<text x="4" y="12" class="rg-ax">NIFTY ' + n0(hi) + "</text>" +
       '<text x="4" y="' + (H1 - 4) + '" class="rg-ax">' + n0(lo) + "</text>" +
       '<text x="4" y="' + (H1 + gap + 10) + '" class="rg-ax">RSI(14) ' + n1(r[r.length - 1]) + "</text></svg>";
+    /* Each day under the cursor: the close, its RSI, and the zone. */
+    var rgPts = d.map(function (dd, i) {
+      var rv = r[i], cv = c[i];
+      return {
+        x: x(i), y: cv != null ? y1(cv) : (rv != null ? y2(rv) : H1 / 2),
+        date: esc(dd), big: cv != null ? "NIFTY " + n0(cv) : "\u2014",
+        rows: [["RSI (14)", rv != null ? n1(rv) : "\u2014"],
+               ["Zone", rv == null ? "\u2014" : rv > 70 ? "overbought (above 70)" : rv < 30 ? "oversold (below 30)" : "neutral (30 to 70)"]],
+        vol: null
+      };
+    });
+    svg = chartWrap(svg, { pts: rgPts, color: "var(--calls)", vbWidth: W, vbTop: 0, vbHeight: H1 + gap + H2 + 4 });
     return '<section class="card"><div class="card-hd"><h2>NIFTY and RSI, six months</h2>' +
       '<span class="sub">' + esc(d[0]) + " to " + esc(d[d.length - 1]) + "</span></div>" + svg +
       '<p class="side-why">Shaded: RSI between 30 and 70. Above the band is overbought, below it oversold.</p></section>';
@@ -15071,11 +15143,20 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     function move(ev) {
       var r = wrap.getBoundingClientRect();
       var x = Math.min(Math.max(ev.clientX - r.left, 0), r.width);
-      var i = Math.round((x / r.width) * (series.pts.length - 1));
-      i = Math.min(Math.max(i, 0), series.pts.length - 1);
-      var pt = series.pts[i];
-
-      var px = (i / (series.pts.length - 1)) * r.width;
+      var P = series.pts, i, pt, px;
+      /* Snap to the nearest point by its own x, so a chart with margins or
+         uneven spacing reads the bar under the cursor, not its neighbour. */
+      if (series.vbWidth && P[0].x != null) {
+        var vx = x / r.width * series.vbWidth, best = 0;
+        for (var j = 1; j < P.length; j++) {
+          if (Math.abs(P[j].x - vx) < Math.abs(P[best].x - vx)) best = j;
+        }
+        i = best; pt = P[i]; px = pt.x / series.vbWidth * r.width;
+      } else {
+        i = Math.round((x / r.width) * (P.length - 1));
+        i = Math.min(Math.max(i, 0), P.length - 1);
+        pt = P[i]; px = (i / (P.length - 1)) * r.width;
+      }
       var py = ((pt.y - series.vbTop) / series.vbHeight) * r.height;
 
       cross.style.left = px + "px";
@@ -15107,11 +15188,15 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     }
 
     wrap.addEventListener("mousemove", move);
+    /* Touch: a tap shows the reading under the finger. */
+    wrap.addEventListener("pointerdown", function (ev) { if (ev.pointerType !== "mouse") move(ev); });
     wrap.addEventListener("mouseleave", function () { wrap.classList.remove("live"); });
 
     wrap.classList.add("clickable-chart");
     wrap.setAttribute("tabindex", "0");
-    wrap.addEventListener("click", function () {
+    wrap.addEventListener("click", function (ev) {
+      /* A mark inside the chart that opens its own panel keeps its click. */
+      if (ev && ev.target && ev.target.closest && ev.target.closest("[data-pt]")) return;
       var pt = wrap.__pt || series.pts[series.pts.length - 1];
       if (!pt) return;
       showPoint(pt.iso ? sessionPoint(pt.iso, {
@@ -15150,10 +15235,159 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     el.addEventListener("mouseleave", function () { tip.classList.remove("live"); });
   }
 
+  /* ==================== Visual tips (claude-17) ====================
+     Every bar, tile, gauge and mark answers the cursor (or a tap): the
+     value, what it is, and what it means. Charts with a time axis use
+     chartWrap's crosshair; everything else is resolved here from what is
+     already on the page:
+       [data-tip]   an explicit readout
+       [data-pt]    a mark that opens a panel: its title, number and rows
+       title / <svg><title>  native tooltips, made instant
+       stat tiles   label, value, note, and the glossary's plain meaning
+       table bars   the row, the column, and the rest of the row */
+  var VT_TILE = ".tcell, .struct-c, .prob, .lvl, .kpi, .ohlc-cell, .bandrow";
+  var VT_BAR = ".barfill, .bartrack, .pbar, .relbar, .hz-bar, .mac-bar, .mac-gauge, .nrg-pbar, " +
+    ".mtl-corr-bar, .conf-track, .meter, .ck-tbl-bar, .bar-pl, .rangebar";
+  var VT = { el: null, last: null, html: null };
+
+  function vtEl() {
+    if (!VT.el) {
+      VT.el = document.createElement("div");
+      VT.el.className = "rung-tip vt-tip";
+      VT.el.id = "vtTip";
+      document.body.appendChild(VT.el);
+    }
+    return VT.el;
+  }
+  function vtText(el) { return el ? String(el.textContent || "").replace(/\s+/g, " ").trim() : ""; }
+  function vtMeaning(label) {
+    var key = label ? termKey(label) : null;
+    if (!key) return "";
+    var src = PLAIN[key] || DEEP[key] || TERMS[key];
+    if (src && !Array.isArray(src) && typeof src === "object") src = src.plain || src.how || src.deep;
+    if (Array.isArray(src)) src = src[0];
+    if (typeof src !== "string" || src === key) return "";
+    var t = src.replace(/<[^>]+>/g, "");
+    return t.length > 260 ? t.slice(0, 257).replace(/\s+\S*$/, "") + "&hellip;" : t;
+  }
+  function vtBox(k, big, rows, note) {
+    return (k ? '<div class="rt-k">' + k + "</div>" : "") +
+      (big ? '<div class="rt-big">' + big + "</div>" : "") +
+      (rows || []).map(function (r) {
+        return '<div class="rt-row"><span>' + r[0] + "</span><b>" + r[1] + "</b></div>";
+      }).join("") +
+      (note ? '<div class="vt-m">' + note + "</div>" : "");
+  }
+  function vtTile(el) {
+    var kids = Array.prototype.filter.call(el.children, function (c) { return vtText(c); });
+    if (!kids.length) return null;
+    var label = vtText(kids[0]).replace(/\s*\?$/, "");
+    var big = kids.length > 1 ? vtText(kids[1]) : "";
+    var rest = kids.slice(2).map(vtText).filter(Boolean).join(" \u00b7 ");
+    var mean = vtMeaning(label);
+    if (!big && !rest && !mean) return null;
+    return vtBox(esc(label), esc(big), null,
+      [rest ? esc(rest) : "", mean].filter(Boolean).join("<br>"));
+  }
+  function vtBarTip(el) {
+    var td = el.closest("td");
+    if (td) {
+      var tr = td.parentNode, table = td.closest("table");
+      var heads = table ? table.querySelectorAll("thead th") : [];
+      var head = function (i) { return heads[i] ? vtText(heads[i]).replace(/[\u25b2\u25bc\u2191\u2193]/g, "").trim() : ""; };
+      var rows = [];
+      Array.prototype.forEach.call(tr.cells, function (c, i) {
+        if (i === 0 || c === td) return;
+        var v = vtText(c);
+        if (v && head(i) && rows.length < 6) rows.push([esc(head(i)), esc(v)]);
+      });
+      var val = vtText(td) || (el.style && el.style.width) || "";
+      return vtBox(esc(vtText(tr.cells[0])), esc((head(td.cellIndex) ? head(td.cellIndex) + ": " : "") + val),
+        rows, vtMeaning(head(td.cellIndex)));
+    }
+    var host = el.closest(VT_TILE);
+    if (host) return vtTile(host);
+    var w = el.querySelector("i, span");
+    var pct = (w && w.style && (w.style.width || w.style.left)) || (el.style && el.style.width) || "";
+    var card = el.closest(".card");
+    var h2 = card ? vtText(card.querySelector("h2")) : "";
+    return pct ? vtBox(esc(h2), esc(pct) + " of the scale", null, vtMeaning(h2)) : null;
+  }
+  function vtResolve(t) {
+    if (!t || !t.closest) return null;
+    if (t.closest(".ch-wrap, .rb, [data-rung], #vtTip, #rungTip")) {
+      /* charts with their own readout -- except a mark inside one that
+         carries an explicit tip */
+      var own = t.closest("[data-tip]");
+      return own && own.closest(".ch-wrap") ? own.getAttribute("data-tip") : null;
+    }
+    var e = t.closest("[data-tip]");
+    if (e) return e.getAttribute("data-tip");
+    e = t.closest("[data-pt]");
+    if (e) {
+      try {
+        var d = JSON.parse(e.getAttribute("data-pt"));
+        return vtBox(esc(d.t || ""), d.big, d.rows, d.s ? esc(d.s) : "") +
+          '<div class="vt-hint">Click for the full detail</div>';
+      } catch (x) { return null; }
+    }
+    e = t.closest(VT_BAR);
+    if (e) return vtBarTip(e);
+    e = t.closest(VT_TILE);
+    if (e) return vtTile(e);
+    return null;
+  }
+  function vtShow(html, x, y) {
+    var t = vtEl();
+    if (html !== VT.html) { t.innerHTML = html; VT.html = html; }
+    t.classList.add("live");
+    var w = t.offsetWidth, h = t.offsetHeight;
+    t.style.left = Math.min(Math.max(x, w / 2 + 8), window.innerWidth - w / 2 - 8) + "px";
+    t.style.top = y + "px";
+    t.classList.toggle("below", y - h * 1.2 < 8);
+  }
+  function vtHide() {
+    if (VT.el) VT.el.classList.remove("live");
+    VT.last = null;
+  }
+  /* Native tooltips appear after a second and look like the OS, so most
+     people never see them. Their text moves into the same readout. */
+  function vtDecorate(root) {
+    Array.prototype.forEach.call(root.querySelectorAll("svg title"), function (t) {
+      var host = t.parentNode;
+      if (host && host.setAttribute && !host.hasAttribute("data-tip") && vtText(t)) {
+        host.setAttribute("data-tip", esc(vtText(t)));
+      }
+      if (host) host.removeChild(t);
+    });
+    Array.prototype.forEach.call(root.querySelectorAll("[title]"), function (el) {
+      if (el.classList.contains("has-term") || el.hasAttribute("data-tip")) return;
+      var v = el.getAttribute("title");
+      if (!v) return;
+      el.setAttribute("data-tip", esc(v));
+      el.removeAttribute("title");
+    });
+  }
+  document.addEventListener("pointermove", function (ev) {
+    if (ev.pointerType && ev.pointerType !== "mouse" && ev.pointerType !== "pen") return;
+    var t = ev.target;
+    var html = t === VT.last && VT.html ? VT.html : vtResolve(t);
+    VT.last = t;
+    if (html) vtShow(html, ev.clientX, ev.clientY); else vtHide();
+  }, { passive: true });
+  document.addEventListener("pointerdown", function (ev) {
+    if (ev.pointerType === "mouse") return;
+    var html = vtResolve(ev.target);
+    if (html) vtShow(html, ev.clientX, ev.clientY); else vtHide();
+  }, { passive: true });
+  window.addEventListener("scroll", vtHide, { passive: true });
+  /* ================== end Visual tips (claude-17) ================== */
+
   function attachHovers() {
     var root = document.getElementById("content");
     Array.prototype.forEach.call(root.querySelectorAll(".rb"), attachRangeHover);
     decorateTerms(root);
+    vtDecorate(root);
     Array.prototype.forEach.call(root.querySelectorAll(".ch-wrap"), attachChartHover);
     Array.prototype.forEach.call(root.querySelectorAll("[data-rung]"), attachRungHover);
   }
