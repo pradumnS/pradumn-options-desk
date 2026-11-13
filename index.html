@@ -1160,6 +1160,9 @@ table.strat td.verdict-cell { text-align: left; }
 .pill.risk { color: var(--down);  border-color: var(--down); }
 
 .struct { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); }
+/* Eight summary tiles: two even rows of four, two per row on phones. */
+.vp-sum { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 760px) { .vp-sum { grid-template-columns: repeat(2, 1fr); } }
 .struct-c { padding: 12px 14px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 4px; }
 .struct-k { font-family: var(--font-num); font-size: 9.5px; letter-spacing: .11em; color: var(--ink-3); text-transform: uppercase; }
 .struct-v { font-family: var(--font-num); font-size: 15px; font-variant-numeric: tabular-nums; color: var(--ink); }
@@ -1697,6 +1700,142 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 .nfx-more[open] { padding-bottom: 2px; }
 .nfx-more[open] > .card, .nfx-more[open] > section { margin: 0 8px 8px; }
 </style>
+<style id="ds-css">
+/* ============================================================
+   DESK DESIGN SYSTEM -- layout, type scale, density.
+   Colour tokens are untouched; everything here is spacing,
+   size and alignment, so every page reads as one product.
+   ============================================================ */
+:root {
+  /* Type scale: six sizes carry the whole desk. */
+  --fs-page:  22px;   /* page title */
+  --fs-card:  13.5px; /* card title */
+  --fs-body:  12.5px; /* prose and table text */
+  --fs-note:  11.5px; /* footnotes, cautions */
+  --fs-label: 9.5px;  /* uppercase mono labels */
+  --fs-value: 20px;   /* headline numbers */
+  /* Spacing scale (4px base). */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
+  --gap-card: 12px;
+  --pad-card: 14px;
+}
+body { font-variant-numeric: tabular-nums; }
+.content { gap: var(--gap-card); padding: var(--sp-4) var(--sp-6) 48px; }
+.two, .market-grid, .page-columns { gap: var(--gap-card); }
+.nfx-view > .card, .nfx-view > section, .nfx-view .two, .nfx-view > .kpis { margin-bottom: var(--gap-card); }
+
+/* Page title */
+.page-intro h1 { font-size: var(--fs-page); }
+.page-intro p { font-size: var(--fs-body); line-height: 1.5; max-width: 820px; }
+.page-meta { font-size: 10px; letter-spacing: .04em; }
+
+/* Card anatomy: title, one-line subtitle, right-hand unit or as-of. */
+.card-hd { padding: 10px var(--pad-card); gap: 4px 10px; min-height: 42px; }
+.card-hd h2, .market-card-hd h2 { font-size: var(--fs-card); font-weight: 650; letter-spacing: 0; line-height: 1.3; }
+.card-hd .sub { font-size: 10px; letter-spacing: .06em; line-height: 1.4; }
+.card-hd .right { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); }
+
+/* Section dividers inside a tab */
+.nfx-band { margin: 22px 0 10px; padding-bottom: 6px; }
+.nfx-band h3 { font-size: 10.5px; }
+.nfx-band span { font-size: var(--fs-note); }
+.nfx-more > summary { font-size: var(--fs-body); }
+
+/* Tables: right-aligned tabular numbers, rule lines, hover row. */
+table.dt th, table.dt td { padding: 6px 10px; }
+table.dt td { font-size: 11.5px; }
+table.dt thead th { font-size: var(--fs-label); }
+table.dt tbody tr:hover > td { background: var(--surface-2); }
+table.dt tbody tr:last-child > td { border-bottom: 0; }
+.tablewrap.tall thead th { box-shadow: 0 1px 0 var(--line); }
+
+/* Headline numbers */
+.kpis { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.kpi { padding: 12px 14px; gap: 4px; }
+.kpi-v { font-size: var(--fs-value); }
+.kpi-m { font-size: 10px; line-height: 1.4; }
+
+/* Prose blocks */
+.caution p, .side-why, .coverage-note { font-size: var(--fs-note); line-height: 1.55; }
+
+/* ---------- Decision header (dh-*) ----------
+   The first thing on every tab: the answer, its as-of time and
+   the few numbers it rests on. */
+.dh { display: grid; grid-template-columns: minmax(250px, 330px) minmax(0, 1fr); overflow: hidden; }
+.dh-main { padding: 14px 16px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.dh-eyebrow { font-family: var(--font-num); font-size: var(--fs-label); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.dh-call { font-family: var(--font-uWi); font-size: 24px; font-weight: 680; letter-spacing: -.02em; line-height: 1.1; }
+.dh-why { margin: 0; font-size: var(--fs-body); line-height: 1.5; color: var(--ink-2); }
+.dh-why b { color: var(--ink); }
+.dh-asof { font-family: var(--font-num); font-size: 10px; color: var(--ink-3); letter-spacing: .03em; margin-top: auto; }
+.dh .kpis { gap: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: stretch; }
+.dh .kpis > .kpi { border: 0; border-radius: 0; box-shadow: none; background: none;
+  border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft); }
+.dh .kpis > .kpi:nth-child(3n) { border-right: 0; }
+.dh .kpis > .kpi:nth-last-child(-n+3) { border-bottom: 0; }
+/* One-line answer, for tabs whose first card already carries the numbers. */
+.dh-line { display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap; padding: 11px 16px;
+  border-left: 3px solid var(--calls); }
+.dh-line .dh-eyebrow { flex: none; }
+.dh-line .dh-why { flex: 1 1 420px; font-size: 13px; }
+.dh-line .dh-asof { flex: none; margin-left: auto; margin-top: 0; }
+
+/* ---------- Navigation ---------- */
+.atab { font-size: var(--fs-body); padding: 10px 14px; }
+.atab[aria-selected="true"] { font-weight: 650; }
+
+/* ---------- Phone and narrow ---------- */
+@media (max-width: 860px) {
+  .shell, .shell[data-rail="collapsed"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; align-content: start; }
+  .rail, .shell[data-rail="collapsed"] .rail { padding: 6px 12px; gap: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .rail-top, .rail-tog { display: none; }
+  .shell[data-rail="collapsed"] #marketNavGroup .rail-item { padding: 7px 10px; justify-content: flex-start; }
+  .atabs { flex-wrap: nowrap; overflow-x: auto; padding: 0 12px; scrollbar-width: none; }
+  .atabs::-webkit-scrollbar { display: none; }
+  .atab { flex: none; white-space: nowrap; padding: 10px 11px; }
+  .topbar { padding: 0 12px; gap: 6px 10px; min-height: 40px; }
+  .topbar-right { gap: 8px; }
+  .content { padding: 12px 12px 40px; gap: 10px; }
+  .dh { grid-template-columns: 1fr; }
+  .dh-main { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+}
+@media (max-width: 560px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dh .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dh .kpis > .kpi { border-right: 1px solid var(--line-soft) !important; border-bottom: 1px solid var(--line-soft) !important; }
+  .dh .kpis > .kpi:nth-child(2n) { border-right: 0 !important; }
+  .kpi { padding: 10px 12px; }
+  .kpi-v { font-size: 17px; }
+  .dh-call { font-size: 21px; }
+  .card-hd { padding: 9px 12px; }
+  .page-intro h1 { font-size: 20px; }
+  .stamp .age[title] { display: none; }
+  .driver { grid-template-columns: 15px minmax(0, 1fr); }
+  .driver .v { grid-column: 2; }
+  .hz-tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .hz-tab { flex: none; }
+  /* Numbered rules: label above the text, so the text gets the full width. */
+  .check { grid-template-columns: 22px minmax(0, 1fr) !important; row-gap: 2px; }
+  .check .cv { grid-column: 2; }
+  /* The four-step reading guide is chrome; on a phone the brief starts with its answer. */
+  .brf-flow { display: none; }
+  .mock { padding: 6px 12px; gap: 4px 8px; font-size: 11px; }
+}
+/* Long explanatory cells wrap instead of pushing the table off the card. */
+table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px; font-family: var(--font-ui); font-size: 11.5px; line-height: 1.45; }
+.mac > * { min-width: 0; }
+/* Small-viewBox charts stay at a readable scale instead of stretching. */
+.chart-body > svg, .chart-body > .ch-wrap { max-width: 640px; margin-left: auto; margin-right: auto; }
+/* Method notes: one click away, so the numbers come first. */
+.ds-method { margin: 4px var(--pad-card) 10px; font-size: var(--fs-note); color: var(--ink-3); }
+.ds-method > summary { cursor: pointer; list-style: none; font-family: var(--font-num); font-size: 10px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding: 4px 0; }
+.ds-method > summary::-webkit-details-marker { display: none; }
+.ds-method > summary::before { content: "+ "; color: var(--calls); }
+.ds-method[open] > summary::before { content: "\2212 "; }
+.ds-method > summary:hover { color: var(--ink-2); }
+.ds-method p { margin: 4px 0 0; line-height: 1.55; color: var(--ink-2); max-width: 110ch; }
+</style>
 </head>
 <body>
 
@@ -1842,6 +1981,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     { key:"today",    label:"Today" },
     { key:"options",  label:"Options &amp; OI" },
     { key:"analysis", label:"Analysis" },
+    { key:"vol",      label:"Volatility &amp; Gamma" },
     { key:"momentum", label:"Momentum" },
     { key:"record",   label:"Track record" }
   ];
@@ -2297,7 +2437,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         '<span class="' + cls(chg) + '">' + sgn(chg, 2) + " &nbsp;" + sgn(chgP, 2) + "%</span>"],
       ["Day range", '<span style="font-size:15px">' + n0(c.low) + " &ndash; " + n0(c.high) + "</span>",
         "O " + n0(c.open) + " \u00b7 PC " + n2(c.prevClose)],
-      ["Put / call ratio", n2(m.pcr), "5d avg " + n2(m.pcr * 0.96) + " \u00b7 neutral 0.9\u20131.1"],
+      ["Put / call ratio", n2(m.pcr), "neutral band 0.9\u20131.1"],
       ['<span class="swatch" style="background:var(--maxpain)"></span> Max pain', n0(m.maxPain),
         "spot " + sgn(mpGap, 0) + " pts from strike"],
       ["India VIX", n2(c.vix), '<span class="' + cls(-c.vixChg) + '">' + sgn(c.vixChg, 2) + "%</span> \u00b7 20d band"],
@@ -2409,7 +2549,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return verdict(m) + kpis(m) +
       '<section class="card"><div class="card-hd"><h2>Open interest by strike</h2>' +
       '<span class="sub">' + esc(m.cfg.expiry) + " \u00b7 lakh contracts</span>" +
-      '<div class="right"><span class="sub">Click a strike for detail</span></div></div>' +
+      '<div class="right"><span class="sub">click a strike for its detail</span></div></div>' +
       '<div class="ladder-wrap tall"><div class="ladder"><div class="ladder-head">' +
       '<div class="l">&larr; Call OI (resistance)</div><div class="c">Strike</div>' +
       '<div class="r">Put OI (support) &rarr;</div></div>' + ladder(m) +
@@ -2419,9 +2559,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<span><span class="swatch" style="background:var(--maxpain)"></span> Max pain strike</span>' +
       "<span>Ringed bar = heaviest wall on that side</span></div></div></div></section>" +
       '<div class="two">' +
-      '<section class="card"><div class="card-hd"><h2>' + esc(m.cfg.label) + " &mdash; 15 sessions</h2>" +
-      '<span class="sub">daily close</span></div><div class="chart-body">' + sparkSvg(m) + "</div></section>" +
-      '<section class="card"><div class="card-hd"><h2>PCR trend</h2><span class="sub">15 sessions</span>' +
+      '<section class="card"><div class="card-hd"><h2>' + esc(m.cfg.label) + " &mdash; daily close</h2>" +
+      '<span class="sub">' + m.hist.length + ' sessions &middot; pts</span></div><div class="chart-body">' + sparkSvg(m) + "</div></section>" +
+      '<section class="card"><div class="card-hd"><h2>PCR trend</h2><span class="sub">' + m.hist.length + " sessions &middot; front expiry</span>" +
       '<div class="right"><span class="kpi-m">neutral band 0.9 &ndash; 1.1</span></div></div>' +
       '<div class="chart-body">' + pcrSvg(m) + "</div></section></div>" + pipeline(m);
   }
@@ -2442,8 +2582,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return '<section class="card market-card"><div class="market-card-hd"><h2>' + title +
       '</h2><span>' + tag + "</span></div>" +
       '<div class="market-card-body" data-count="' + assets.length + '">' + assets.join("") + "</div>" +
-      '<div class="market-card-ft"><small>' + footer + '</small><button class="page-link" type="button" data-page="' +
-      page + '">Open section &rarr;</button></div></section>';
+      '<div class="market-card-ft"><small>' + footer + "</small>" +
+      (state.page === page ? "" : '<button class="page-link" type="button" data-page="' + page + '">Open page &rarr;</button>') +
+      "</div></section>";
   }
 
   function assetFromInst(key, label) {
@@ -2707,7 +2848,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         '<div><div class="brf-h">Why</div><ul class="brf-why">' + why + "</ul></div>" +
         '<div class="brf-so"><b>So today:</b> ' + s.so + "</div></div>" +
         '<div class="brf-foot"><span class="brf-learn" data-term="' + esc(s.learn) + '" tabindex="0">Learn: ' + esc(s.learnLabel) + "</span>" +
-        '<span class="brf-open" data-page="' + esc(s.page) + '" tabindex="0">Open section &rarr;</span></div></article>';
+        '<span class="brf-open" data-page="' + esc(s.page) + '" tabindex="0">Open page &rarr;</span></div></article>';
     }).join("") + "</div>";
 
     var groups = [];
@@ -2748,16 +2889,15 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   function viewMarketOverview(m) {
     var niftyPct = m.cfg.prevClose ? (m.cfg.spot - m.cfg.prevClose) / m.cfg.prevClose * 100 : null;
     return pageIntro("Market overview",
-      "A balanced view of India equities, metals, energy and international macro drivers. Each quote keeps its own source date; unavailable feeds are called out instead of estimated.",
+      "NIFTY, metals, energy and global macro on one page: what moved, why, and what to do today. Each quote carries its own date; missing feeds are named, never estimated.",
       "NIFTY settlement " + esc(m.tradeDate || "\u2014")) +
       briefSection() +
-      '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and several metal, energy, FX and US-rate benchmarks are in the saved snapshot. Exact non-US sovereign curves, PMI releases, licensed news, broader spot-market positioning and Murban crude remain unavailable unless a source is explicitly shown below.</div>' +
       '<div class="market-grid">' +
       marketGroup("Nifty Index", "NIFTY 50", "india-index", [
         marketAsset("NIFTY 50", n2(m.cfg.spot),
           '<span class="' + cls(niftyPct) + '">' + sgn(niftyPct, 2) + "%</span> &middot; " +
             sgn(m.cfg.spot - m.cfg.prevClose, 2) + " pts &middot; " + esc(m.tradeDate || ""), false)
-      ], "India benchmark and options analytics") +
+      ], "India benchmark and option-seller analytics") +
       marketGroup("Metal Index", "GOLD \u00b7 SILVER \u00b7 COPPER \u00b7 ALUMINIUM", "metal-index", [
         assetFromInst("GOLD", "Gold"),
         assetFromInst("SILVER", "Silver"),
@@ -2776,7 +2916,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         internationalAsset("BTC-USD", "Bitcoin"),
         internationalAsset("ETH-USD", "Ethereum")
       ], "Cross-asset context and sourced research") +
-      "</div>";
+      "</div>" +
+      '<details class="nfx-more"><summary>Data status: what is connected and what is not</summary>' +
+      '<div class="coverage-note"><b>Data status.</b> NIFTY 50 and several metal, energy, FX and US-rate benchmarks are in the saved snapshot. Exact non-US sovereign curves, PMI releases, licensed news, broader spot-market positioning and Murban crude remain unavailable unless a source is explicitly shown below.</div></details>';
   }
 
   function viewIndiaIndex(m) {
@@ -2796,20 +2938,21 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   function viewMetalIndex() {
     var date = METOIL.asOf || "\u2014";
     return pageIntro("Metal Index",
-      "Gold, silver, copper and aluminium with current benchmark levels, multi-horizon moves, evidence and known feed limits. Benchmark closes and MCX contracts are distinct instruments.",
-      "Latest stored settlement \u00b7 " + esc(date)) +
+      "Gold and silver on MCX, copper and aluminium as global benchmarks: today&rsquo;s level, moves from a day to a year, and how funds are positioned. An MCX contract and a global benchmark are different instruments.",
+      "Latest settlement \u00b7 " + esc(date)) +
       marketGroup("Metals", "GOLD \u00b7 SILVER \u00b7 COPPER \u00b7 ALUMINIUM", "metal-index", [
         assetFromInst("GOLD", "Gold"),
         assetFromInst("SILVER", "Silver"),
         internationalAsset("HG=F", "Copper \u00b7 global"),
         internationalAsset("ALI=F", "Aluminium \u00b7 global")
-      ], "Gold and silver include MCX settlement analytics; copper and aluminium are global Yahoo benchmarks, not MCX contracts.") +
-      mtlDesk() +
-      '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
+      ], "Gold and silver are MCX settlements; copper and aluminium are global benchmarks (Yahoo Finance), not MCX contracts.") +
+      '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">how far each metal has moved, 1 day to 1 year &middot; % from stored daily closes</span></div>' +
       internationalMovesTable([["GC=F", "Gold \u00b7 USD/oz"], ["SI=F", "Silver \u00b7 USD/oz"],
         ["HG=F", "Copper \u00b7 USD/lb"], ["ALI=F", "Aluminium \u00b7 USD/t"]]) + "</section>" +
+      mtlDesk() +
       marketPositionEvidence(["GOLD", "SILVER"]) +
       marketInstrumentDetails(["GOLD", "SILVER"]) +
+      '<details class="nfx-more"><summary>Background: what drives metals, research notes and sources</summary>' +
       driverCard("Precious & industrial metal",
         "Mine output, recycling, ore grades, smelter capacity and inventories; separate primary from recycled supply.",
         "Solar PV, electronics, grids, EVs, construction and jewellery. Industrial use can diverge from investment demand.",
@@ -2829,7 +2972,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       sourceItem("World Bank Pink Sheet", "https://www.worldbank.org/en/research/commodity-markets", "Monthly benchmark price series for energy and metals.") +
       sourceItem("USGS", "https://www.usgs.gov/centers/national-minerals-information-center", "Mineral commodity summaries and mine-supply context.") +
       sourceItem("CFTC \u00b7 Disaggregated COT", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly futures positions by trader group; source of every managed-money figure on this page.") +
-      "</div></section>";
+      "</div></section></details>";
   }
 
   /* ==========================================================
@@ -4002,18 +4145,19 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   function viewEnergyIndex() {
     var date = METOIL.asOf || "\u2014";
     return pageIntro("Energy Index",
-      "Who is positioned in crude, products and gas, when they change, and what was true when they did. Positions are weekly CFTC and ICE reports; inventories are EIA weekly data. Built to learn how positioning decisions form, not to forecast.",
+      "Brent and WTI levels, and who holds crude, products and gas: weekly CFTC and ICE positions, EIA inventories, and what was true when funds changed course. For learning how positioning forms; not a forecast.",
       "Positions to " + esc(nrgD(ENERGY.asOf)) + " \u00b7 benchmark settlement " + esc(date)) +
       marketGroup("Crude benchmarks", "BRENT \u00b7 MURBAN \u00b7 WTI", "energy-index", [
         assetFromInst("BRENT", "Brent crude"),
         marketAsset("Murban crude", "Quote not connected", "Positioning proxy: ICE Dubai 1st line", true),
         assetFromInst("WTI", "WTI crude")
-      ], "Brent and WTI have stored benchmarks; no Murban quote or physical differential is connected.") +
-      nrgPositioning() +
-      '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">percent changes from stored daily closes</span></div>' +
+      ], "Brent and WTI are stored benchmarks; no Murban quote or physical differential is connected.") +
+      '<section class="card"><div class="card-hd"><h2>Global benchmark performance</h2><span class="sub">how far crude has moved, 1 day to 1 year &middot; % from stored daily closes</span></div>' +
       internationalMovesTable([["BZ=F", "Brent \u00b7 USD/bbl"], ["CL=F", "WTI \u00b7 USD/bbl"]]) + "</section>" +
+      nrgPositioning() +
       marketPositionEvidence(["CRUDE", "BRENT", "WTI"]) +
       marketInstrumentDetails(["CRUDE", "BRENT", "WTI"]) +
+      '<details class="nfx-more"><summary>Background: what drives crude, and sources</summary>' +
       driverCard("Crude market",
         "OPEC+ supply policy, producer outages, spare capacity, sanctions, exports, refinery runs and commercial inventories.",
         "Transport and aviation, petrochemicals, industrial activity and seasonal demand; China/India import demand is especially relevant.",
@@ -4027,7 +4171,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       sourceItem("OPEC \u00b7 Monthly Oil Market Report", "https://www.opec.org/opec_web/en/publications/338.htm", "Producer outlook, demand and supply estimates.") +
       sourceItem("Reuters \u00b7 Commodities", "https://www.reuters.com/markets/commodities/", "Fast market reporting; access and licensing may apply.") +
       sourceItem("J.P. Morgan \u00b7 Global Research", "https://www.jpmorgan.com/insights/global-research/commodities", "Institutional commodities outlook; research may require client access.") +
-      "</div></section>";
+      "</div></section></details>";
   }
   /* Energy glossary. Merged by nrgRegisterTerms() just before boot(), same
      pattern as the Metal tab: never overwrites an existing entry. Every
@@ -4371,7 +4515,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var H = P.history || {}, V = P.vehicle || {}, B = P.base || {}, D = P.desk || {};
     var r1 = D.range1 || [];
     return '<section class="card"><div class="card-hd"><h2>If-then playbook</h2>' +
-      '<span class="sub">' + esc(V.expiry || "") + " &middot; " + (V.sessions || 0) + " sessions &middot; as of " + esc(P.asOf || "") + "</span>" +
+      '<span class="sub">for the ' + esc(V.expiry || "") + " expiry &middot; " + (V.sessions || 0) + " sessions &middot; as of " + esc(P.asOf || "") + "</span>" +
       '<div class="right"><span class="kpi-m">' + esc(pbBias(P.bias)) + "</span></div></div>" +
       '<div class="pb-h">Today\'s read</div><ul class="pb-read">' +
         (P.facts || []).map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" +
@@ -4383,7 +4527,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       pbLevels(P) +
       '<div class="pb-h">Starting position</div><div class="pb-base">' +
         (B.text || []).map(function (t) { return "<b>" + esc(t.charAt(0).toUpperCase() + t.slice(1)) + "</b>"; }).join("<br>") +
-        "<br>" + esc(B.why || "") + "</div>" +
+        "<br>" + esc(String(B.why || "").replace(/\s*Note: the desk's volatility rule says stand aside today \(.*\)\. This plan overrides it only for the scenario branches; size down\./,
+          " The side rule says stand aside today (see Buy or sell today), so open this only at reduced size.")) + "</div>" +
       '<div class="pb-h">Then, depending on what the market does</div>' +
       '<div class="pb-grid">' + (P.scenarios || []).map(function (s) { return pbScenario(s, P.bias); }).join("") + "</div>" +
       pbMatrix(P) +
@@ -4455,6 +4600,766 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     });
   }
   /* =================== end If-then playbook (claude-17) =================== */
+
+  /* ================= Volatility & Gamma (vp*, desk-volpro) =================
+     Nifty "Volatility & Gamma" tab, built by volpro.py into
+     snapshot/volpro.json: writer gamma by strike and the gamma flip, the
+     IV term structure, smile and skew, IV rank, the realised-vol cone and
+     implied against realised moves. Every figure is computed upstream from
+     stored chains and closes; estimates are labelled as such. */
+  var VP = null, VP_X = "all", VP_S = null;
+  getJson("volpro.json").then(function (d) {
+    VP = d || null;
+    if (state.page === "india-index" && state.view === "vol" && MODEL[state.idx]) render();
+  }).catch(function () { VP = null; });
+
+  (function vpStyles() {
+    if (document.getElementById("vp-css")) return;
+    var css =
+      ".vp-svg{width:100%;height:auto;display:block}" +
+      ".vp-say{margin:0 14px 10px;padding:8px 12px;border-left:3px solid var(--calls);background:var(--surface-2);border-radius:var(--r);font-size:12.5px;line-height:1.55;color:var(--ink-2)}" +
+      ".vp-say b{color:var(--ink)}" +
+      ".vp-note{padding:0 14px 12px;font-size:12px;color:var(--ink-3);line-height:1.5}" +
+      ".vp-note b{color:var(--ink-2)}" +
+      ".vp-chart{padding:6px 14px 4px}" +
+      ".vp-legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:4px 14px 0;font-size:11.5px;color:var(--ink-2)}" +
+      ".vp-key i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}" +
+      ".vp-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:4px 14px 6px}" +
+      ".vp-assume{margin:0 14px 10px;padding:8px 12px;border:1px dashed var(--line);border-radius:var(--r);font-size:12px;line-height:1.5;color:var(--ink-3)}" +
+      ".vp-assume b{color:var(--ink-2)}" +
+      ".vp-tag{display:inline-block;font-size:10.5px;border:1px solid var(--line);border-radius:999px;padding:0 7px;color:var(--ink-3);margin-left:6px;vertical-align:middle}";
+    var el = document.createElement("style");
+    el.id = "vp-css";
+    el.textContent = css;
+    document.head.appendChild(el);
+  })();
+
+  document.addEventListener("click", function (ev) {
+    var t = ev.target && ev.target.closest ? ev.target.closest("[data-vpx], [data-vps]") : null;
+    if (!t) return;
+    if (t.hasAttribute("data-vpx")) VP_X = t.getAttribute("data-vpx");
+    else VP_S = t.getAttribute("data-vps");
+    var y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  });
+
+  var VP_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function vpN(v, d) {
+    if (v == null || !isFinite(v)) return "&mdash;";
+    return Number(v).toLocaleString("en-IN", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+  }
+  function vpS(v, d) {
+    if (v == null || !isFinite(v)) return "&mdash;";
+    return (v > 0 ? "+" : v < 0 ? "&minus;" : "") + vpN(Math.abs(v), d);
+  }
+  function vpP(v, d) { return v == null || !isFinite(v) ? "&mdash;" : vpN(v, d == null ? 1 : d) + "%"; }
+  function vpCr(v) {
+    if (v == null || !isFinite(v)) return "&mdash;";
+    return (v > 0 ? "+" : v < 0 ? "&minus;" : "") + "&#8377;" + vpN(Math.abs(v), Math.abs(v) < 10 ? 1 : 0) + " cr";
+  }
+  function vpD(iso) {
+    if (!iso) return "&mdash;";
+    var p = String(iso).split("-");
+    return +p[2] + " " + VP_MON[+p[1] - 1] + " " + p[0];
+  }
+  function vpDs(iso) {
+    if (!iso) return "&mdash;";
+    var p = String(iso).split("-");
+    return +p[2] + " " + VP_MON[+p[1] - 1] + " " + p[0].slice(2);
+  }
+  function vpSay(t) { return '<div class="vp-say"><b>What this tells a seller:</b> ' + t + "</div>"; }
+  function vpCard(title, sub, body) {
+    return '<section class="card"><div class="card-hd"><h2>' + title + '</h2><span class="sub">' + sub +
+      "</span></div>" + body + "</section>";
+  }
+  function vpLegend(defs) {
+    if (defs.length < 2) return "";
+    return '<div class="vp-legend">' + defs.map(function (s) {
+      return '<span class="vp-key"><i style="background:' + s.color + '"></i>' + s.label + "</span>";
+    }).join("") + "</div>";
+  }
+
+  /* Line chart on a numeric x axis. defs: [{label, color, vals, dash, pointsOnly, dot(i)}];
+     o: {w, h, fmtY, fmtX(x, i), title(i), rows(i), zero, marks:[{x, label}], hl:[{y, label}], aria}. */
+  function vpXY(xs, defs, o) {
+    var W = o.w || 600, H = o.h || 220, L = 64, R = 12, T = 14, B = H - 20, n = xs.length;
+    if (n < 2) return '<div class="caution"><p>Not enough stored points to chart.</p></div>';
+    var vals = [];
+    defs.forEach(function (s) { s.vals.forEach(function (v) { if (v != null && isFinite(v)) vals.push(v); }); });
+    (o.hl || []).forEach(function (h) { if (h.y != null) vals.push(h.y); });
+    if (!vals.length) return '<div class="caution"><p>No values to chart.</p></div>';
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    if (o.zero) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+    var pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+    if (o.min0 && lo < 0 && Math.min.apply(null, vals) >= 0) lo = 0;
+    var x0 = xs[0], x1 = xs[n - 1];
+    var X = function (x) { return L + (x - x0) / ((x1 - x0) || 1) * (W - L - R); };
+    var Y = function (v) { return B - (v - lo) / (hi - lo) * (B - T); };
+    var f = o.fmtY || function (v) { return vpN(v, 1); };
+    var fx = o.fmtX || function (x) { return vpN(x, 0); };
+    var svg = '<svg class="vp-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(o.aria || "chart") + '">';
+    [0, 0.5, 1].forEach(function (q) {
+      var v = lo + (hi - lo) * (1 - q), y = T + (B - T) * q;
+      svg += '<line class="gridline" x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '"></line>' +
+        '<text class="axis" x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="end">' + f(v) + "</text>";
+    });
+    if (o.zero && lo < 0 && hi > 0) {
+      svg += '<line x1="' + L + '" y1="' + Y(0).toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y(0).toFixed(1) +
+        '" stroke="var(--ink-3)" stroke-width="1"></line>';
+    }
+    (o.hl || []).forEach(function (h) {
+      if (h.y == null) return;
+      svg += '<line x1="' + L + '" y1="' + Y(h.y).toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y(h.y).toFixed(1) +
+        '" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="4 3"></line>' +
+        '<text class="axis" x="' + (W - R) + '" y="' + (Y(h.y) - 3).toFixed(1) + '" text-anchor="end">' + h.label + "</text>";
+    });
+    (o.marks || []).forEach(function (mk) {
+      if (mk.x == null || mk.x < x0 || mk.x > x1) return;
+      var x = X(mk.x).toFixed(1);
+      svg += '<line x1="' + x + '" y1="' + T + '" x2="' + x + '" y2="' + B + '" stroke="' + (mk.color || "var(--ink-2)") +
+        '" stroke-width="1.2" stroke-dasharray="4 3"></line>' +
+        '<text class="axis" x="' + x + '" y="' + (T - 3) + '" text-anchor="middle">' + mk.label + "</text>";
+    });
+    defs.forEach(function (s, si) {
+      if (!s.pointsOnly) {
+        var seg = [], segs = [];
+        s.vals.forEach(function (v, i) {
+          if (v == null || !isFinite(v)) { if (seg.length) segs.push(seg); seg = []; return; }
+          seg.push(X(xs[i]).toFixed(1) + "," + Y(v).toFixed(1));
+        });
+        if (seg.length) segs.push(seg);
+        segs.forEach(function (sg) {
+          if (sg.length === 1) {
+            var p = sg[0].split(",");
+            svg += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3" fill="' + s.color + '"></circle>';
+            return;
+          }
+          svg += '<polyline fill="none" stroke="' + s.color + '" stroke-width="' + (si === 0 ? 2 : 1.6) + '"' +
+            (s.dash ? ' stroke-dasharray="5 4"' : "") +
+            ' stroke-linejoin="round" stroke-linecap="round" points="' + sg.join(" ") + '"></polyline>';
+        });
+      }
+      if (s.pointsOnly || s.markers) {
+        s.vals.forEach(function (v, i) {
+          if (v == null || !isFinite(v)) return;
+          svg += '<circle cx="' + X(xs[i]).toFixed(1) + '" cy="' + Y(v).toFixed(1) + '" r="' + (s.r || 2) +
+            '" fill="' + (s.dot ? s.dot(i) : s.color) + '"></circle>';
+        });
+      }
+    });
+    var ticks = o.ticks || 5;
+    for (var t = 0; t < ticks; t++) {
+      var i = Math.round(t * (n - 1) / (ticks - 1));
+      var anchor = t === 0 ? "start" : t === ticks - 1 ? "end" : "middle";
+      svg += '<text class="axis" x="' + X(xs[i]).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="' + anchor + '">' + fx(xs[i], i) + "</text>";
+    }
+    svg += "</svg>";
+    var main = defs[0];
+    var pts = xs.map(function (x, i) {
+      var v = main.vals[i];
+      return {
+        x: X(x), y: v != null && isFinite(v) ? Y(v) : (T + B) / 2,
+        date: o.title ? o.title(i) : fx(x, i), big: v != null ? (o.big ? o.big(i) : f(v)) : "&mdash;",
+        chg: o.chg ? o.chg(i) : null, chgUp: o.chgUp ? o.chgUp(i) : null,
+        rows: (defs.length > 1 ? defs.slice(1).map(function (s) {
+          return [s.label, s.vals[i] != null ? f(s.vals[i]) : "&mdash;"];
+        }) : []).concat(o.rows ? o.rows(i) : []),
+        vol: null
+      };
+    });
+    return vpLegend(defs) + '<div class="vp-chart">' +
+      chartWrap(svg, { pts: pts, color: main.color, vbWidth: W, vbTop: 0, vbHeight: H }) + "</div>";
+  }
+
+  /* Net writer gamma by strike: bars up (writers long gamma) and down (short). */
+  function vpStrikeBars(rows, spot, flip) {
+    var W = 900, H = 240, L = 58, R = 12, T = 16, B = H - 20;
+    rows = rows.filter(function (r) { return Math.abs(r[0] - spot) <= spot * 0.05; });
+    var n = rows.length;
+    if (n < 2) return '<div class="caution"><p>Not enough strikes to chart.</p></div>';
+    var k0 = rows[0][0], k1 = rows[n - 1][0];
+    var X = function (k) { return L + (k - k0) / ((k1 - k0) || 1) * (W - L - R); };
+    var m = Math.max.apply(null, rows.map(function (r) { return Math.abs(r[3] || 0); }).concat([1e-9]));
+    var mid = (T + B) / 2;
+    var Y = function (v) { return mid - v / m * (B - T) / 2; };
+    var bw = Math.max(1.5, Math.min(12, (W - L - R) / n * 0.7));
+    var svg = '<svg class="vp-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Net writer gamma by strike">' +
+      '<line class="gridline" x1="' + L + '" y1="' + T + '" x2="' + (W - R) + '" y2="' + T + '"></line>' +
+      '<line class="gridline" x1="' + L + '" y1="' + B + '" x2="' + (W - R) + '" y2="' + B + '"></line>' +
+      '<line x1="' + L + '" y1="' + mid + '" x2="' + (W - R) + '" y2="' + mid + '" stroke="var(--ink-3)" stroke-width="1"></line>' +
+      '<text class="axis" x="' + (L - 4) + '" y="' + (T + 3) + '" text-anchor="end">' + vpCr(m) + "</text>" +
+      '<text class="axis" x="' + (L - 4) + '" y="' + (B + 3) + '" text-anchor="end">' + vpCr(-m) + "</text>" +
+      '<text class="axis" x="' + (L - 4) + '" y="' + (mid + 3) + '" text-anchor="end">0</text>';
+    rows.forEach(function (r) {
+      var v = r[3] || 0, y = Y(v), top = Math.min(y, mid), h = Math.max(0.8, Math.abs(y - mid));
+      svg += '<rect x="' + (X(r[0]) - bw / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bw.toFixed(1) +
+        '" height="' + h.toFixed(1) + '" rx="1.5" fill="' + (v >= 0 ? "var(--calls)" : "var(--puts)") + '"></rect>';
+    });
+    [[spot, "Spot " + vpN(spot), "var(--ink)"], [flip, flip != null ? "Flip " + vpN(flip) : "", "var(--maxpain)"]].forEach(function (mk) {
+      if (mk[0] == null || mk[0] < k0 || mk[0] > k1) return;
+      var x = X(mk[0]).toFixed(1);
+      svg += '<line x1="' + x + '" y1="' + T + '" x2="' + x + '" y2="' + B + '" stroke="' + mk[2] +
+        '" stroke-width="1.2" stroke-dasharray="4 3"></line>' +
+        '<text class="axis" x="' + x + '" y="' + (T - 4) + '" text-anchor="middle">' + mk[1] + "</text>";
+    });
+    var step = Math.max(1, Math.round(n / 9));
+    rows.forEach(function (r, i) {
+      if (i % step) return;
+      svg += '<text class="axis" x="' + X(r[0]).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + vpN(r[0]) + "</text>";
+    });
+    svg += "</svg>";
+    var pts = rows.map(function (r) {
+      return {
+        x: X(r[0]), y: Y(r[3] || 0), date: "Strike " + vpN(r[0]) + " &middot; " + vpS(r[0] - spot) + " pts from spot",
+        big: vpCr(r[3]) + " net writer gamma",
+        chg: (r[3] || 0) >= 0 ? "writers long gamma: hedging leans against the move" : "writers short gamma: hedging chases the move",
+        chgUp: (r[3] || 0) >= 0,
+        rows: [["Call OI", vpN(r[4], 2) + " L contracts"], ["Put OI", vpN(r[5], 2) + " L contracts"],
+               ["Call gamma (all OI)", vpCr(r[1])], ["Put gamma (all OI)", vpCr(r[2])]],
+        vol: null
+      };
+    });
+    return '<div class="vp-chart">' + chartWrap(svg, { pts: pts, color: "var(--calls)", vbWidth: W, vbTop: 0, vbHeight: H }) + "</div>";
+  }
+
+  /* ---------------------------- the cards ---------------------------- */
+  function vpSummary() {
+    var G = VP.gex || {}, R = VP.rank || {}, C = VP.cone || {}, M = VP.moves || {};
+    var c5 = (C.rows || []).filter(function (r) { return r.h === 5; })[0] || {};
+    var iv = R.iv || {}, vx = R.vix || {};
+    return '<section class="card"><div class="card-hd"><h2>Volatility desk summary</h2><span class="sub">NIFTY &middot; spot ' +
+      vpN(VP.spot, 2) + " &middot; as of " + vpD(VP.asOf) + "</span></div>" +
+      '<div class="struct vp-sum">' +
+      sc("Gamma flip", G.flip != null ? vpN(G.flip) : "none", G.flip != null ? vpS(G.flip - VP.spot) + " pts from spot" : "no sign change within 7%") +
+      sc("Net writer gamma", vpCr(G.netCr), (G.netCr || 0) >= 0 ? "long gamma at spot: pinning" : "short gamma at spot: moves extend") +
+      sc("Pin strike", G.pin ? vpN(G.pin.k) : "&mdash;", "most gamma within 5% (all expiries)") +
+      sc("Front IV rank", vpP(iv.rank, 0), "ATM " + vpP(iv.cur, 2) + "; percentile " + vpP(iv.pct, 0)) +
+      sc("India VIX percentile", vpP(vx.pct1y, 0), "1 year; " + vpP(vx.pctAll, 0) + " since " + (vx.from || "").slice(0, 4)) +
+      sc("Premium vs realised", esc(c5.verdict || "&mdash;"), "5-session implied at the " + vpN(c5.ivPct, 0) + "th pct of realised") +
+      sc("Straddle hit rate", vpP(M.hit, 0), "moves inside the ATM straddle, " + vpN(M.n) + " cases") +
+      sc("Seller edge", vpS(M.edge, 1) + " pts", "average straddle minus payoff at expiry") +
+      "</div></section>";
+  }
+
+  function vpGexCard() {
+    var G = VP.gex;
+    if (!G) return vpCard("Writer gamma by strike", "not available", '<div class="caution"><p>No priced chain for the latest session.</p></div>');
+    var exps = G.expiries || [];
+    var sel = VP_X === "all" ? null : exps.filter(function (e) { return e.expiry === VP_X; })[0];
+    var tabs = '<div class="vp-tabs"><button class="nrg-tab" data-vpx="all" aria-pressed="' + (!sel) + '">All expiries</button>' +
+      exps.map(function (e) {
+        return '<button class="nrg-tab" data-vpx="' + esc(e.expiry) + '" aria-pressed="' + (sel === e) + '">' + esc(e.expiry) + "</button>";
+      }).join("") + "</div>";
+    var rows = sel ? sel.strikes : G.strikes;
+    var flip = sel ? sel.flip : G.flip;
+    var pos = sel ? sel.maxPos : G.maxPos, neg = sel ? sel.maxNeg : G.maxNeg;
+    return vpCard("Writer gamma by strike", G.unit + " &middot; " + (sel ? esc(sel.expiry) : "all tracked expiries") + " &middot; as of " + vpD(VP.asOf),
+      tabs + vpStrikeBars(rows, VP.spot, flip) +
+      '<div class="vp-legend"><span class="vp-key"><i style="background:var(--calls)"></i>writers long gamma (dampens moves)</span>' +
+      '<span class="vp-key"><i style="background:var(--puts)"></i>writers short gamma (amplifies moves)</span></div>' +
+      '<div class="vp-note">Largest long-gamma strike <b>' + (pos ? vpN(pos.k) + " (" + vpCr(pos.cr) + ")" : "none") +
+      "</b>; largest short-gamma strike <b>" + (neg ? vpN(neg.k) + " (" + vpCr(neg.cr) + ")" : "none") +
+      "</b>. Bars within 5% of spot. Gamma from Black-Scholes at each strike's own implied vol, times open interest in shares, times spot squared, times 1%.</div>" +
+      '<div class="vp-assume"><b>Sign convention (an assumption, not an observation):</b> ' + esc(G.assumption || "") +
+      " The US-style dealer convention (dealers long calls, short puts) would put the flip at <b>" + (G.flipStd != null ? vpN(G.flipStd) : "none") + "</b>.</div>" +
+      vpSay(esc(G.read || "")));
+  }
+
+  function vpProfileCard() {
+    var G = VP.gex;
+    if (!G || !(G.profile || []).length) return "";
+    var P = G.profile;
+    var xs = P.map(function (r) { return r[0]; });
+    var chart = vpXY(xs, [{ label: "Net writer gamma", color: "var(--calls)", vals: P.map(function (r) { return r[1]; }) }], {
+      w: 900, h: 220, zero: true, fmtY: vpCr, aria: "Net writer gamma as spot is repriced",
+      marks: [{ x: VP.spot, label: "Spot" }, { x: G.flip, label: "Flip", color: "var(--maxpain)" }],
+      title: function (i) { return "If NIFTY were at " + vpN(xs[i]) + " (" + vpS((xs[i] / VP.spot - 1) * 100, 1) + "%)"; },
+      chg: function (i) { return P[i][1] >= 0 ? "writers long gamma" : "writers short gamma"; },
+      chgUp: function (i) { return P[i][1] >= 0; },
+      rows: function (i) { return [["US-style convention", vpCr(P[i][2])], ["Gross gamma (all OI)", vpCr(P[i][3])]]; }
+    });
+    return vpCard("Gamma profile as spot moves", "net writer gamma, " + G.unit + " &middot; each strike keeps today's IV &middot; as of " + vpD(VP.asOf),
+      chart + '<div class="vp-note">Every tracked expiry repriced at each spot on a 25-point grid, time and implied vols held at today&#39;s values (an estimate: in a real move IV and OI change too).</div>' +
+      vpSay(G.flip != null ? "Above " + vpN(G.flip) + " writers turn " + ((G.profile[G.profile.length - 1][1] || 0) < 0 ? "short" : "long") +
+        " gamma; below it they are " + ((G.profile[0][1] || 0) < 0 ? "short" : "long") +
+        " gamma. A short strike on the short-gamma side of the flip is where a move can feed on itself; size it smaller or keep it further out." :
+        "No flip nearby: the writers' gamma has one sign across a 7% move, so their hedging pushes the same way wherever spot goes."));
+  }
+
+  function vpExpTable() {
+    var G = VP.gex;
+    if (!G) return "";
+    var body = '<tr style="background:var(--surface-2)"><td class="lft">All expiries</td><td>&mdash;</td><td>&mdash;</td><td><b>' + vpCr(G.netCr) +
+      "</b></td><td>" + vpCr(G.grossCr) + "</td><td>" + (G.flip != null ? vpN(G.flip) : "none") + "</td><td>" +
+      (G.maxPos ? vpN(G.maxPos.k) : "&mdash;") + "</td><td>" + (G.maxNeg ? vpN(G.maxNeg.k) : "&mdash;") + "</td><td>" +
+      (G.pin ? vpN(G.pin.k) : "&mdash;") + "</td></tr>" +
+      (G.expiries || []).map(function (e) {
+        return '<tr><td class="lft">' + esc(e.expiry) + "</td><td>" + vpN(e.days, 1) + "</td><td>" + vpP(e.atmIv, 2) + '</td><td class="' +
+          ((e.netCr || 0) >= 0 ? "pos" : "neg") + '">' + vpCr(e.netCr) + "</td><td>" + vpCr(e.grossCr) + "</td><td>" +
+          (e.flip != null ? vpN(e.flip) : "none") + "</td><td>" + (e.maxPos ? vpN(e.maxPos.k) : "&mdash;") + "</td><td>" +
+          (e.maxNeg ? vpN(e.maxNeg.k) : "&mdash;") + "</td><td>" + (e.pin ? vpN(e.pin.k) : "&mdash;") + "</td></tr>";
+      }).join("");
+    var front = (G.expiries || [])[0] || {};
+    return vpCard("Gamma by expiry", G.unit + " at today's spot &middot; as of " + vpD(VP.asOf),
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Expiry</th><th>Days</th><th>ATM IV</th>' +
+      "<th>Net at spot</th><th>Gross at spot</th><th>Flip</th><th>Largest long gamma</th><th>Largest short gamma</th><th>Pin strike</th></tr></thead><tbody>" +
+      body + "</tbody></table></div>" +
+      vpSay("Gamma is concentrated in the nearest expiry (" + esc(front.expiry || "") + ", " + vpN(front.days, 1) +
+        " days): its gross gamma is " + vpCr(front.grossCr) + " per 1% move, so that contract's pin strike (" + (front.pin ? vpN(front.pin.k) : "&mdash;") +
+        ") matters most into expiry. Gross = all open interest, as if every contract were hedged; net = the writers' share under the assumption above."));
+  }
+
+  function vpTermCard() {
+    var T = VP.term || {}, rows = T.rows || [];
+    if (!rows.length) return "";
+    var xs = rows.map(function (r) { return r.days; });
+    var chart = vpXY(xs, [
+      { label: "ATM IV today", color: "var(--calls)", vals: rows.map(function (r) { return r.atmIv; }), markers: true, r: 3 },
+      { label: "5 sessions ago (" + vpDs(T.prevDate) + ")", color: "var(--ink-3)", dash: true, vals: rows.map(function (r) { return r.atmIvPrev; }) }
+    ], {
+      w: 600, h: 200, fmtY: function (v) { return vpN(v, 1) + "%"; }, fmtX: function (x) { return vpN(x, 0) + "d"; },
+      ticks: Math.min(rows.length, 6), aria: "ATM implied vol by expiry",
+      title: function (i) { return esc(rows[i].expiry) + " &middot; " + vpN(rows[i].days, 1) + " days"; },
+      rows: function (i) { return [["25d RR", vpS(rows[i].rr25, 2) + " vol pts"], ["25d BF", vpS(rows[i].bf25, 2) + " vol pts"], ["Expected move", "&plusmn;" + vpN(rows[i].move) + " pts"]]; }
+    });
+    var body = rows.map(function (r) {
+      var ch = r.atmIvPrev != null ? r.atmIv - r.atmIvPrev : null;
+      return '<tr><td class="lft">' + esc(r.expiry) + "</td><td>" + vpN(r.days, 1) + "</td><td><b>" + vpP(r.atmIv, 2) + "</b></td><td>" +
+        vpP(r.atmIvPrev, 2) + '</td><td class="' + (ch == null ? "" : ch >= 0 ? "pos" : "neg") + '">' + (ch == null ? "&mdash;" : vpS(ch, 2)) +
+        "</td><td>" + vpS(r.rr25, 2) + "</td><td>" + vpS(r.bf25, 2) + "</td><td>&plusmn;" + vpN(r.move) + "</td></tr>";
+    }).join("");
+    var a = rows[0], z = rows[rows.length - 1];
+    var shape = a.atmIv > z.atmIv ? "inverted (front above back): the market is paying for near-term risk; sell it only with defined risk" :
+      "upward sloping (back above front): normal calm; front-week premium decays fastest and is the seller's natural trade";
+    return vpCard("IV term structure", "ATM implied vol, % a year &middot; today vs " + vpD(T.prevDate) + " &middot; as of " + vpD(VP.asOf),
+      chart + '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Expiry</th><th>Days</th><th>ATM IV</th><th>5 sessions ago</th>' +
+      "<th>Change</th><th>25d RR</th><th>25d BF</th><th>Expected move</th></tr></thead><tbody>" + body + "</tbody></table></div>" +
+      '<div class="vp-note">25d RR = IV of the 25-delta call minus the 25-delta put (negative = puts dearer). 25d BF = their average minus ATM (positive = wings dearer). In vol points. Expected move = forward x ATM IV x root(time), one standard deviation.</div>' +
+      vpSay("The curve is " + shape + "."));
+  }
+
+  function vpSmileCard() {
+    var S = (VP.term || {}).smiles || [];
+    if (!S.length) return "";
+    var sel = S.filter(function (s) { return s.expiry === VP_S; })[0] || S[0];
+    var tabs = '<div class="vp-tabs">' + S.map(function (s) {
+      return '<button class="nrg-tab" data-vps="' + esc(s.expiry) + '" aria-pressed="' + (s === sel) + '">' + esc(s.expiry) + "</button>";
+    }).join("") + "</div>";
+    var P = sel.pts || [];
+    var row = ((VP.term || {}).rows || []).filter(function (r) { return r.expiry === sel.expiry; })[0] || {};
+    var mk = function (k) { return k != null && row.fwd ? Math.log(k / row.fwd) * 100 : null; };
+    var chart = P.length < 2 ? '<div class="caution"><p>Too few priced strikes for this expiry.</p></div>' :
+      vpXY(P.map(function (p) { return p[0]; }), [{ label: "IV", color: "var(--calls)", vals: P.map(function (p) { return p[1]; }), markers: true, r: 2 }], {
+        w: 600, h: 200, fmtY: function (v) { return vpN(v, 1) + "%"; }, fmtX: function (x) { return vpS(x, 1) + "%"; },
+        aria: "Implied vol by moneyness",
+        marks: [{ x: 0, label: "ATM" }, { x: mk(row.k25p), label: "25d put" }, { x: mk(row.k25c), label: "25d call" }],
+        title: function (i) { return "Strike " + vpN(P[i][2]) + " &middot; " + vpS(P[i][0], 2) + "% from the forward"; },
+        rows: function (i) { return [["Call delta", vpN(P[i][3], 2)], ["Side priced", P[i][2] >= row.fwd ? "call" : "put"]]; }
+      });
+    var left = P.length ? P[0][1] : null, right = P.length ? P[P.length - 1][1] : null;
+    return vpCard("Volatility smile", "IV % by log-moneyness ln(K/F) &middot; " + esc(sel.expiry) + " &middot; as of " + vpD(VP.asOf),
+      tabs + chart + vpSay("Downside strikes trade at " + vpP(left, 1) + " against " + vpP(row.atmIv, 1) + " ATM and " + vpP(right, 1) +
+        " on the upside wing. " + ((row.rr25 || 0) < 0 ? "Puts carry the richer premium per unit of risk, so the put side pays more to sell, and also gaps harder." :
+        "Calls are as dear as puts or dearer: unusual for an index; the market is paying for upside, so short calls collect relatively more.")));
+  }
+
+  function vpSkewHist() {
+    var H = VP.history || [];
+    if (H.length < 2) return "";
+    var xs = H.map(function (h, i) { return i; });
+    var fx = function (x) { return vpDs(H[x].d); };
+    var ivc = vpXY(xs, [
+      { label: "Front ATM IV", color: "var(--calls)", vals: H.map(function (h) { return h.iv; }) },
+      { label: "30-day ATM IV", color: "var(--maxpain)", vals: H.map(function (h) { return h.iv30; }) },
+      { label: "India VIX", color: "var(--ink-3)", dash: true, vals: H.map(function (h) { return h.vix; }) }
+    ], {
+      w: 600, h: 200, fmtY: function (v) { return vpN(v, 1) + "%"; }, fmtX: fx, aria: "Front ATM IV history",
+      title: function (i) { return vpD(H[i].d) + " &middot; front " + esc(H[i].exp) + " (" + vpN(H[i].days, 1) + "d)"; },
+      rows: function (i) { return [["Spot", vpN(H[i].spot, 2)]]; }
+    });
+    var rr = vpXY(xs, [
+      { label: "25d risk reversal", color: "var(--puts)", vals: H.map(function (h) { return h.rr; }) },
+      { label: "25d butterfly", color: "var(--calls)", dash: true, vals: H.map(function (h) { return h.bf; }) }
+    ], {
+      w: 600, h: 200, zero: true, fmtY: function (v) { return vpS(v, 1); }, fmtX: fx, aria: "Front 25-delta risk reversal history",
+      title: function (i) { return vpD(H[i].d) + " &middot; front " + esc(H[i].exp); },
+      rows: function (i) { return [["Front ATM IV", vpP(H[i].iv, 2)]]; }
+    });
+    var last = H[H.length - 1];
+    var rrs = H.map(function (h) { return h.rr; }).filter(function (v) { return v != null; });
+    var below = rrs.filter(function (v) { return v < last.rr; }).length;
+    return '<div class="two">' +
+      vpCard("Skew history", "front expiry ATM IV, % a year &middot; " + H.length + " stored sessions &middot; as of " + vpD(VP.asOf),
+        ivc + vpSay("Front IV is " + vpP(last.iv, 2) + " against VIX " + vpP(last.vix, 2) + ". Front IV swings with the weekly cycle (it is the nearest contract at least 2 days out); the 30-day line is the steadier read.")) +
+      vpCard("Risk reversal history", "front expiry 25d RR and BF, vol points &middot; as of " + vpD(VP.asOf),
+        rr + vpSay("Today's risk reversal " + vpS(last.rr, 2) + " is above " + vpN(rrs.length ? below / rrs.length * 100 : null, 0) +
+          "% of stored sessions. Deeply negative = the market is bidding for crash protection: put premium is rich but so is the risk it prices.")) +
+      "</div>";
+  }
+
+  function vpRankCard() {
+    var R = VP.rank || {}, iv = R.iv || {}, i30 = R.iv30 || {}, vx = R.vix || {}, S = R.vixSeries || [];
+    var tiles = '<div class="struct">' +
+      sc("Front IV rank", vpP(iv.rank, 0), "range " + vpP(iv.min, 1) + " to " + vpP(iv.max, 1) + " over " + vpN(iv.n) + " sessions") +
+      sc("Front IV percentile", vpP(iv.pct, 0), "share of stored sessions below today's " + vpP(iv.cur, 2)) +
+      sc("30-day IV rank", vpP(i30.rank, 0), "percentile " + vpP(i30.pct, 0) + "; today " + vpP(i30.cur, 2)) +
+      sc("India VIX percentile", vpP(vx.pct1y, 0), "1 year (rank " + vpP(vx.rank1y, 0) + ", range " + vpN(vx.min1y, 1) + " to " + vpN(vx.max1y, 1) + ")") +
+      sc("India VIX rank", vpP(vx.rankAll, 0), "since " + (vx.from || "").slice(0, 4) + ": percentile " + vpP(vx.pctAll, 0) + ", median " + vpN(vx.median, 1)) +
+      "</div>";
+    var chart = S.length < 2 ? "" : vpXY(S.map(function (s, i) { return i; }), [{ label: "India VIX", color: "var(--calls)", vals: S.map(function (s) { return s[1]; }) }], {
+      w: 900, h: 200, fmtY: function (v) { return vpN(v, 0); }, fmtX: function (x) { return S[x][0].slice(0, 4); }, ticks: 7,
+      aria: "India VIX since 2008", hl: [{ y: vx.cur, label: "today " + vpN(vx.cur, 2) }, { y: vx.median, label: "median " + vpN(vx.median, 1) }],
+      title: function (i) { return "Week of " + vpD(S[i][0]); },
+      rows: function (i) { return [["vs today", vpS(S[i][1] - vx.cur, 2)]]; }
+    });
+    var verdict = (iv.pct || 0) >= 70 ? "Implied vol is high against its own year: a seller is paid more than usual for the same strikes." :
+      (iv.pct || 0) <= 30 ? "Implied vol is low against its own year: premium is thin, so sell further out or smaller, or wait." :
+      "Implied vol sits mid-range: premium is ordinary, neither a reason to press nor to stand aside.";
+    return vpCard("IV rank and percentile", "rank = (today - low) / (high - low); percentile = share of days below today &middot; as of " + vpD(VP.asOf),
+      tiles + chart + '<div class="vp-note">India VIX weekly samples since ' + esc(vx.from || "") + " (" + vpN(vx.n) + " daily closes). Front ATM IV from " +
+      vpN(iv.n) + " stored sessions since " + vpD(iv.from) + ". Rank is pulled by single spikes; percentile is the steadier read.</div>" +
+      vpSay(verdict + " Front IV percentile " + vpP(iv.pct, 0) + ", VIX 1-year percentile " + vpP(vx.pct1y, 0) + "."));
+  }
+
+  function vpConeCard() {
+    var C = VP.cone;
+    if (!C || !(C.rows || []).length) return "";
+    var rows = C.rows, n = rows.length;
+    var W = 900, H = 250, L = 46, R = 12, T = 14, B = H - 22;
+    var cap = Math.max.apply(null, rows.map(function (r) { return Math.max(r.p75 * 1.5, r.cur || 0, r.iv || 0); })) * 1.05;
+    var lo = 0;
+    var X = function (i) { return L + 20 + i / (n - 1) * (W - L - R - 40); };
+    var Y = function (v) { return B - (Math.min(v, cap) - lo) / (cap - lo) * (B - T); };
+    var poly = function (a, b) {
+      return rows.map(function (r, i) { return X(i).toFixed(1) + "," + Y(r[a]).toFixed(1); }).concat(
+        rows.slice().reverse().map(function (r, j) { return X(n - 1 - j).toFixed(1) + "," + Y(r[b]).toFixed(1); })).join(" ");
+    };
+    var line = function (k) { return rows.map(function (r, i) { return X(i).toFixed(1) + "," + Y(r[k]).toFixed(1); }).join(" "); };
+    var svg = '<svg class="vp-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Realised volatility cone">';
+    [0, 0.5, 1].forEach(function (q) {
+      var v = cap * (1 - q), y = T + (B - T) * q;
+      svg += '<line class="gridline" x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '"></line>' +
+        '<text class="axis" x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="end">' + vpN(v, 0) + "%</text>";
+    });
+    svg += '<polygon points="' + poly("max", "min") + '" fill="var(--calls-dim)" opacity="0.55"></polygon>' +
+      '<polygon points="' + poly("p75", "p25") + '" fill="var(--calls-dim)"></polygon>' +
+      '<polyline fill="none" stroke="var(--calls)" stroke-width="2" points="' + line("p50") + '"></polyline>' +
+      '<polyline fill="none" stroke="var(--ink-2)" stroke-width="1.6" stroke-dasharray="5 4" points="' + line("cur") + '"></polyline>';
+    rows.forEach(function (r, i) {
+      if (r.iv != null) {
+        svg += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.iv).toFixed(1) + '" r="5" fill="var(--puts)" stroke="var(--surface)" stroke-width="2"></circle>';
+      }
+      svg += '<text class="axis" x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + r.h + " sessions</text>";
+    });
+    svg += "</svg>";
+    var pts = rows.map(function (r, i) {
+      return {
+        x: X(i), y: Y(r.iv != null ? r.iv : r.p50), date: r.h + "-session realised vol since " + C.from.slice(0, 4),
+        big: r.iv != null ? "Implied " + vpP(r.iv, 2) + " &middot; " + vpN(r.ivPct, 0) + "th pct" : "no implied",
+        chg: r.verdict, chgUp: r.ivPct != null && r.ivPct >= 50,
+        rows: [["Max", vpP(r.max, 1)], ["75th", vpP(r.p75, 1)], ["Median", vpP(r.p50, 1)], ["25th", vpP(r.p25, 1)], ["Min", vpP(r.min, 1)],
+               ["Realised now", vpP(r.cur, 1)], ["Implied from", r.ivExp ? esc(r.ivExp) + " (" + r.ivSessions + " sessions)" : "&mdash;"]],
+        vol: null
+      };
+    });
+    var body = rows.map(function (r) {
+      return '<tr><td class="lft">' + r.h + "</td><td>" + vpP(r.min, 1) + "</td><td>" + vpP(r.p25, 1) + "</td><td>" + vpP(r.p50, 1) + "</td><td>" +
+        vpP(r.p75, 1) + "</td><td>" + vpP(r.max, 1) + "</td><td>" + vpP(r.cur, 1) + "</td><td><b>" + vpP(r.iv, 2) + "</b></td><td>" +
+        vpN(r.ivPct, 0) + "</td><td>" + esc(r.verdict) + "</td></tr>";
+    }).join("");
+    return vpCard("Volatility cone", "realised vol, % a year (sqrt 252), " + vpN(C.n) + " NIFTY closes " + vpD(C.from) + " to " + vpD(C.to) + " &middot; as of " + vpD(VP.asOf),
+      '<div class="vp-legend"><span class="vp-key"><i style="background:var(--calls-dim)"></i>min-max and 25th-75th realised</span>' +
+      '<span class="vp-key"><i style="background:var(--calls)"></i>median realised</span>' +
+      '<span class="vp-key"><i style="background:var(--ink-2)"></i>realised now</span>' +
+      '<span class="vp-key"><i style="background:var(--puts)"></i>implied (ATM IV, nearest expiry)</span></div>' +
+      '<div class="vp-chart">' + chartWrap(svg, { pts: pts, color: "var(--puts)", vbWidth: W, vbTop: 0, vbHeight: H }) + "</div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Horizon (sessions)</th><th>Min</th><th>25th</th><th>Median</th><th>75th</th><th>Max</th>' +
+      "<th>Realised now</th><th>Implied</th><th>Implied percentile</th><th>Verdict</th></tr></thead><tbody>" + body + "</tbody></table></div>" +
+      '<div class="vp-note">Implied = ATM IV of the tracked expiry whose session count is nearest the horizon (calendar-day IV against trading-day realised: a common, slightly flattering comparison for the seller). Band tops above ' + vpN(cap, 0) + "% are clipped; hover for the true maximum.</div>" +
+      vpSay(esc(C.read || "")));
+  }
+
+  function vpMovesCard() {
+    var M = VP.moves;
+    if (!M || !(M.rows || []).length) return "";
+    var rows = M.rows;
+    var xs = rows.map(function (r, i) { return i; });
+    var chart = vpXY(xs, [
+      { label: "Implied move (ATM straddle)", color: "var(--calls)", vals: rows.map(function (r) { return r.straddle; }) },
+      { label: "Actual |close at expiry - strike|", color: "var(--ink-3)", pointsOnly: true, r: 2.2,
+        dot: function (i) { return rows[i].inside ? "var(--calls)" : "var(--puts)"; }, vals: rows.map(function (r) { return r.payoff; }) }
+    ], {
+      w: 900, h: 220, min0: true, fmtY: function (v) { return vpN(v, 0); }, fmtX: function (x) { return vpDs(rows[x].d); }, ticks: 7,
+      aria: "Implied against realised move",
+      title: function (i) { return vpD(rows[i].d) + " &middot; " + esc(rows[i].exp) + " (" + rows[i].sessions + " sessions)"; },
+      big: function (i) { return vpN(rows[i].straddle, 1) + " pts implied"; },
+      chg: function (i) { return rows[i].inside ? "stayed inside: seller kept " + vpN(rows[i].edge, 0) + " pts" : "broke out: seller lost " + vpN(-rows[i].edge, 0) + " pts"; },
+      chgUp: function (i) { return rows[i].inside; },
+      rows: function (i) { return [["Spot then", vpN(rows[i].spot, 2)], ["ATM strike", vpN(rows[i].k)], ["Close at expiry", vpN(rows[i].settle, 2)], ["Spot move", vpN(rows[i].move, 0) + " pts"]]; }
+    });
+    var tb = (M.buckets || []).map(function (b) {
+      return '<tr><td class="lft">' + esc(b.b) + "</td><td>" + vpN(b.n) + "</td><td>" + vpP(b.hit, 0) + '</td><td class="' + ((b.edge || 0) >= 0 ? "pos" : "neg") + '">' + vpS(b.edge, 1) + "</td></tr>";
+    }).join("");
+    var tiles = '<div class="struct">' +
+      sc("Straddle hit rate", vpP(M.hit, 1), vpN(M.n) + " session-expiry pairs, " + vpD(M.from) + " to " + vpD(M.to)) +
+      sc("Seller edge", vpS(M.edge, 1) + " pts", "straddle minus payoff, averaged") +
+      sc("Last 20 hit rate", vpP(M.hit20, 0), "edge " + vpS(M.edge20, 1) + " pts") +
+      sc("Realised to implied", vpN(M.medRatio, 2) + "x", "median |spot move| / straddle") + "</div>";
+    return vpCard("Implied vs realised move", "points &middot; front expiry (at least 2 days out) on every stored session &middot; as of " + vpD(VP.asOf),
+      tiles + chart +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Sessions to expiry</th><th>Cases</th><th>Stayed inside</th><th>Average edge</th></tr></thead><tbody>' +
+      tb + "</tbody></table></div>" +
+      '<div class="vp-note">Straddle = call + put at the strike nearest the forward, last traded prices. Payoff = |NIFTY close on expiry - strike| (close used as a proxy for the settlement price). Overlapping windows: consecutive sessions share an expiry, so cases are not independent. Before costs and slippage.</div>' +
+      vpSay("Selling the ATM straddle on stored sessions kept the premium " + vpP(M.hit, 0) + " of the time with an average " + vpS(M.edge, 1) +
+        " points per straddle: " + ((M.edge || 0) > 0 ? "a positive but thin edge; size so a breakout week does not erase it." :
+        "no edge at the money after the big moves; the money for a seller is further out, in defined-risk spreads.")));
+  }
+
+  /* Scenario simulator: the playbook's weekly base position repriced
+     client-side (Black-Scholes on the forward, r = 0) over spot x days,
+     at an implied-vol shift chosen with the buttons. */
+  var VP_IV = 0;
+  document.addEventListener("click", function (ev) {
+    var t = ev.target && ev.target.closest ? ev.target.closest("[data-vpiv]") : null;
+    if (!t) return;
+    VP_IV = +t.getAttribute("data-vpiv");
+    var y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  });
+  function vpCdf(x) {
+    var a = Math.abs(x) / Math.SQRT2, k = 1 / (1 + 0.3275911 * a);
+    var e = 1 - (((((1.061405429 * k - 1.453152027) * k) + 1.421413741) * k - 0.284496736) * k + 0.254829592) * k * Math.exp(-a * a);
+    return x >= 0 ? 0.5 * (1 + e) : 0.5 * (1 - e);
+  }
+  function vpBs(F, K, sig, t, call) {
+    if (t <= 1e-6 || sig <= 0) return Math.max(0, call ? F - K : K - F);
+    var v = sig * Math.sqrt(t), d1 = (Math.log(F / K) + 0.5 * v * v) / v, d2 = d1 - v;
+    var c = F * vpCdf(d1) - K * vpCdf(d2);
+    return call ? c : c - F + K;
+  }
+  function vpSimCard() {
+    var P = (typeof PB !== "undefined") ? PB : null;
+    var legsIn = P && P.base && P.base.legs;
+    if (!legsIn || !legsIn.length) {
+      return vpCard("Scenario simulator", "playbook position not loaded", '<div class="caution"><p>The playbook snapshot (playbook.json) has no base position, so there is nothing to simulate.</p></div>');
+    }
+    var exp = (P.vehicle || {}).expiry;
+    var row = ((VP.term || {}).rows || []).filter(function (r) { return r.expiry === exp; })[0];
+    if (!row) return vpCard("Scenario simulator", "expiry not priced", '<div class="caution"><p>The playbook expiry ' + esc(exp || "") + " is not in the volatility snapshot.</p></div>");
+    var sm = (((VP.term || {}).smiles || []).filter(function (s) { return s.expiry === exp; })[0] || {}).pts || [];
+    var ks = sm.map(function (p) { return p[2]; }), ivs = sm.map(function (p) { return p[1] / 100; });
+    var ivAt = function (k) {
+      if (!ks.length) return row.atmIv / 100;
+      if (k <= ks[0]) return ivs[0];
+      if (k >= ks[ks.length - 1]) return ivs[ivs.length - 1];
+      for (var i = 1; i < ks.length; i++) {
+        if (k <= ks[i]) return ivs[i - 1] + (ivs[i] - ivs[i - 1]) * (k - ks[i - 1]) / (ks[i] - ks[i - 1]);
+      }
+      return row.atmIv / 100;
+    };
+    var lot = VP.lot || P.lot || 65, S0 = VP.spot, basis = (row.fwd || S0) - S0, D = row.days;
+    var legs = [];
+    legsIn.forEach(function (g) {
+      var call = g.side === "CE";
+      legs.push({ q: -1, k: g.short, call: call, mkt: g.shortPx });
+      legs.push({ q: 1, k: g.long, call: call, mkt: g.longPx });
+    });
+    var value = function (S, el, dv) {
+      var t = Math.max(D - el, 0) / 365;
+      return legs.reduce(function (a, l) { return a + l.q * vpBs(S + basis, l.k, Math.max(ivAt(l.k) + dv, 0.01), t, l.call); }, 0);
+    };
+    var v0 = value(S0, 0, 0);
+    var credit = -legs.reduce(function (a, l) { return a + l.q * (l.mkt || 0); }, 0);
+    var dv = VP_IV / 100;
+    var mid = Math.round(D / 2);
+    var cols = [[0, "Value today"], [1, "After 1 day"], [mid, "Halfway"], [D, "On expiry"]];
+    var moves = [-4, -3, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 3, 4];
+    var all = [];
+    var body = moves.map(function (pc) {
+      var S = S0 * (1 + pc / 100);
+      var cells = cols.map(function (c) {
+        var pl = (value(S, c[0], c[0] >= D ? 0 : dv) - v0) * lot;
+        all.push(pl);
+        return { pl: pl, c: c };
+      });
+      return { S: S, pc: pc, cells: cells };
+    });
+    var mx = Math.max.apply(null, all.map(Math.abs).concat([1]));
+    var html = body.map(function (r) {
+      return "<tr" + (r.pc === 0 ? ' style="background:var(--surface-2)"' : "") + '><td class="lft">' + vpN(r.S) + "</td><td>" + vpS(r.pc, 1) + "%</td>" +
+        r.cells.map(function (x) {
+          var a = Math.min(1, Math.abs(x.pl) / mx) * 0.55 + 0.08;
+          var bg = x.pl >= 0 ? "rgba(96,165,250," + a.toFixed(2) + ")" : "rgba(244,162,97," + a.toFixed(2) + ")";
+          var tip = vtBox("NIFTY " + vpN(r.S) + " (" + vpS(r.pc, 1) + "%) &middot; " + x.c[1], "&#8377;" + vpS(x.pl, 0) + " per lot",
+            [["IV shift", (x.c[0] >= D ? "n/a at expiry" : vpS(VP_IV, 0) + " vol pts")], ["Days left", vpN(Math.max(D - x.c[0], 0), 1)],
+             ["Credit (market)", "&#8377;" + vpN(credit * lot)]], null);
+          return '<td data-tip="' + esc(tip) + '" style="background:' + bg + '"><b>' + vpS(x.pl, 0) + "</b></td>";
+        }).join("") + "</tr>";
+    }).join("");
+    /* Greeks per lot, today, at the chosen IV shift. */
+    var h = S0 * 0.001;
+    var pv = function (S, el, d) { return value(S, el, dv + (d || 0)) * lot; };
+    var delta = (pv(S0 + h, 0) - pv(S0 - h, 0)) / (2 * h);
+    var gamma = (pv(S0 + h, 0) - 2 * pv(S0, 0) + pv(S0 - h, 0)) / (h * h);
+    var theta = pv(S0, 1) - pv(S0, 0);
+    var vega = pv(S0, 0, 0.01) - pv(S0, 0);
+    var tabs = '<div class="vp-tabs">' + [-4, -2, 0, 2, 4].map(function (s) {
+      return '<button class="nrg-tab" data-vpiv="' + s + '" aria-pressed="' + (s === VP_IV) + '">IV ' + (s > 0 ? "+" : s < 0 ? "&minus;" : "") + Math.abs(s) + " pts</button>";
+    }).join("") + "</div>";
+    var legTxt = legsIn.map(function (g) {
+      return "sell " + vpN(g.short) + " " + esc(g.side) + " / buy " + vpN(g.long) + " " + esc(g.side);
+    }).join("; ");
+    return vpCard("Scenario simulator", "P&amp;L in rupees per lot of the playbook base position &middot; " + esc(exp) + " &middot; as of " + vpD(VP.asOf),
+      '<div class="vp-note">Position: <b>' + legTxt + "</b> (from the playbook). Market credit &#8377;" + vpN(credit * lot) +
+      " a lot. Halfway = " + mid + " calendar days on; at expiry = intrinsic value. Each strike keeps its own implied vol from today's smile plus the chosen shift. Estimates: Black-Scholes on the forward, r = 0, no costs.</div>" +
+      tabs + '<div class="struct">' +
+      sc("Position delta", vpS(delta, 1), "rupees per NIFTY point, per lot") +
+      sc("Position gamma", vpS(gamma, 3), "change in delta per point") +
+      sc("Position theta", "&#8377;" + vpS(theta, 0), "per calendar day, spot unchanged") +
+      sc("Position vega", "&#8377;" + vpS(vega, 0), "per +1 vol point") + "</div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">NIFTY at</th><th>Spot move</th>' +
+      cols.map(function (c) { return "<th>" + c[1] + "</th>"; }).join("") + "</tr></thead><tbody>" + html + "</tbody></table></div>" +
+      vpSay("Read across a row for time decay and down a column for how far spot can travel before the position loses. Theta " +
+        (theta >= 0 ? "earns" : "costs") + " about &#8377;" + vpN(Math.abs(theta)) + " a day per lot; a 1-point rise in IV moves it by &#8377;" + vpS(vega, 0) + "."));
+  }
+
+  function nfxVol(m) {
+    if (m && m.cfg && m.cfg.key && m.cfg.key !== "NIFTY") {
+      return '<div class="nfx-view"><section class="card"><div class="caution"><p>The volatility and gamma desk is built for NIFTY only.</p></div></section></div>';
+    }
+    if (!VP || !VP.asOf) {
+      return '<div class="nfx-view"><section class="card"><div class="caution"><p>The volatility snapshot (volpro.json) is not loaded yet. It is written by volpro.py during export_snapshot.</p></div></section></div>';
+    }
+    return '<div class="nfx-view">' + nfxSafe(vpSummary, m) +
+      nfxBand("Dealer and writer gamma", "where hedging flows pin price and where they push it") +
+      nfxSafe(vpGexCard, m) + nfxSafe(vpProfileCard, m) + nfxSafe(vpExpTable, m) +
+      nfxBand("Implied volatility", "term structure, smile and skew") +
+      '<div class="two">' + nfxSafe(vpTermCard, m) + nfxSafe(vpSmileCard, m) + "</div>" + nfxSafe(vpSkewHist, m) +
+      nfxBand("Is premium rich?", "implied against its own history and against what NIFTY actually moved") +
+      nfxSafe(vpRankCard, m) + nfxSafe(vpConeCard, m) + nfxSafe(vpMovesCard, m) +
+      nfxBand("Scenario simulator", "the playbook's weekly position under spot, time and IV shocks") + nfxSafe(vpSimCard, m) +
+      '<div class="vp-note">' + esc(VP.method || "") + " Built " + esc(VP.generatedAt || "") + " from " + vpN(VP.sessions) + " stored sessions. Analysis, not advice.</div>" +
+      "</div>";
+  }
+
+  /* Glossary for the tab's labels. */
+  function vpHow(fn) {
+    return function () {
+      if (!VP || !VP.asOf) return "The volatility snapshot (volpro.json) is not loaded, so there are no live figures to show.";
+      return fn(VP);
+    };
+  }
+  var VP_TERMS = {
+    "Volatility desk summary": {
+      plain: ["The eight numbers a NIFTY option seller checks before selling premium: where dealer hedging pins or pushes price, whether implied vol is high or low against history, and whether straddles have been paying.",
+        "Each tile opens the card below it that explains the number."],
+      how: vpHow(function (V) { return "Spot <b>" + vpN(V.spot, 2) + "</b> on " + vpD(V.asOf) + ", from " + vpN(V.sessions) + " stored sessions."; })
+    },
+    "Writer gamma by strike": {
+      plain: ["How much the option writers' hedge has to change, in rupees, if NIFTY moves 1%, strike by strike.",
+        "Bars above zero: writers are long gamma there, so their hedging sells rallies and buys dips and price tends to stick. Bars below zero: writers are short gamma, so their hedging chases the move and price can run."],
+      deep: ["Gamma per option is Black-Scholes at the strike's own implied vol (backed out from prices, forward from put-call parity). Exposure = open interest in shares x gamma x spot squared x 1%, in rupees crore.",
+        "Who is long and who is short is not published per strike. The desk takes NSE's participant-wise open interest: the Client bucket (retail, HNIs, corporates) is the main buyer, and writers are assumed to hold the mirror of its net call and net put position, spread evenly across strikes. That is an assumption, printed on the card with the day's numbers."],
+      how: vpHow(function (V) {
+        var G = V.gex || {};
+        return "Writers net " + vpS((G.wCall || 0) * 100, 1) + "% of call OI and " + vpS((G.wPut || 0) * 100, 1) + "% of put OI (participant data " +
+          esc(G.wDate || "n/a") + "). Net at spot <b>" + vpCr(G.netCr) + "</b> per 1%, flip <b>" + (G.flip != null ? vpN(G.flip) : "none") + "</b>.";
+      })
+    },
+    "Gamma profile as spot moves": {
+      plain: ["The writers' total gamma if NIFTY were somewhere else today: where the line crosses zero is the gamma flip.",
+        "On the long-gamma side moves tend to be absorbed; on the short-gamma side they tend to extend."],
+      deep: ["Every tracked expiry is repriced on a 25-point grid of spot levels within 7% of today, each strike keeping today's implied vol and time. It is a snapshot: in a real move OI and IV change."],
+      how: vpHow(function (V) { var G = V.gex || {}; return "Flip <b>" + (G.flip != null ? vpN(G.flip) : "none") + "</b>; US-style convention flip " + (G.flipStd != null ? vpN(G.flipStd) : "none") + "."; })
+    },
+    "Gamma flip": {
+      plain: ["The NIFTY level where the option writers switch from long gamma (dampening moves) to short gamma (amplifying them), under the desk's sign assumption."],
+      deep: ["Found as the zero crossing, nearest spot, of total net writer gamma when spot is repriced over a grid. Linear interpolation between grid points."],
+      how: vpHow(function (V) { var G = V.gex || {}; return "Zero crossing of net writer gamma at <b>" + (G.flip != null ? vpN(G.flip) : "none") + "</b> against spot " + vpN(V.spot, 2) +
+        " on " + vpD(V.asOf) + "; US-style convention " + (G.flipStd != null ? vpN(G.flipStd) : "none") + "."; })
+    },
+    "Gamma by expiry": {
+      plain: ["The same gamma numbers split by expiry: which contract carries the hedging pressure.",
+        "Net = the writers' share under the stated assumption. Gross = all open interest, as if every contract were hedged."],
+      how: vpHow(function (V) { var e = ((V.gex || {}).expiries || [])[0] || {}; return "Front " + esc(e.expiry || "") + ": gross <b>" + vpCr(e.grossCr) + "</b> per 1%."; })
+    },
+    "IV term structure": {
+      plain: ["At-the-money implied volatility for each tracked expiry, today and five stored sessions ago.",
+        "Front above back (inverted) means the market fears the next few days; back above front is the normal, calm shape."],
+      deep: ["ATM IV is interpolated at the forward from out-of-the-money strike IVs. 25d RR and BF use each strike's own IV and its Black-Scholes delta."],
+      how: vpHow(function (V) { var r = ((V.term || {}).rows || [])[0] || {}; return "Front " + esc(r.expiry || "") + " ATM IV <b>" + vpP(r.atmIv, 2) + "</b> (" + vpN(r.days, 1) + " days), 25d RR " + vpS(r.rr25, 2) +
+        ", 25d BF " + vpS(r.bf25, 2) + " vol points, compared with " + vpD((V.term || {}).prevDate) + "."; })
+    },
+    "Volatility smile": {
+      plain: ["Implied vol strike by strike for one expiry, against distance from the forward. Index smiles usually slope down to the right: puts are dearer than calls."],
+      how: vpHow(function (V) { return vpN(((V.term || {}).smiles || []).length) + " expiries priced on " + vpD(V.asOf) + ": IV backed out from each out-of-the-money strike's last traded price."; })
+    },
+    "Skew history": {
+      plain: ["The front expiry's ATM implied vol on every stored session, with the steadier 30-day ATM IV and India VIX for reference."],
+      deep: ["Front = the nearest expiry at least 2 calendar days out, so expiry-day collapse does not show as a vol crash. 30-day ATM IV interpolates total variance between the expiries either side of 30 days."],
+      how: vpHow(function (V) { var h = (V.history || []).slice(-1)[0] || {}; return vpN((V.history || []).length) + " stored sessions; latest front ATM IV <b>" + vpP(h.iv, 2) + "</b>, 30-day " + vpP(h.iv30, 2) + ", VIX " + vpP(h.vix, 2) + "."; })
+    },
+    "Risk reversal history": {
+      plain: ["The front expiry's 25-delta risk reversal (call IV minus put IV) and butterfly (wings minus ATM) on every stored session.",
+        "A falling risk reversal means puts are getting dearer: the market is paying up for protection."],
+      how: vpHow(function (V) { var h = (V.history || []).slice(-1)[0] || {}; return "Latest RR <b>" + vpS(h.rr, 2) + "</b>, BF " + vpS(h.bf, 2) + " vol points."; })
+    },
+    "IV rank and percentile": {
+      plain: ["Whether implied vol is high or low against its own history. Rank places today between the low and the high; percentile counts the days below today.",
+        "Sellers are paid most when both are high."],
+      deep: ["Front ATM IV uses the stored chains (about a year and a quarter). India VIX uses daily closes since 2008: Yahoo history with every stored NSE close taking precedence."],
+      how: vpHow(function (V) { var r = (V.rank || {}).iv || {}; return "Front IV rank <b>" + vpP(r.rank, 0) + "</b>, percentile " + vpP(r.pct, 0) + "."; })
+    },
+    "Volatility cone": {
+      plain: ["How volatile NIFTY has actually been over 5 to 63 sessions since 2007 (lowest, typical, highest), with today's implied vol placed on it.",
+        "Implied near the top of the cone = premium is rich; near the bottom = cheap."],
+      deep: ["Realised vol = sample standard deviation of daily log returns over every overlapping window, x root 252. Implied is calendar-day ATM IV of the expiry nearest each horizon."],
+      how: vpHow(function (V) { return esc((V.cone || {}).read || ""); })
+    },
+    "Scenario simulator": {
+      plain: ["The playbook's starting position (its weekly credit spreads) repriced for NIFTY up or down by up to 4%, after one day, halfway to expiry and at expiry, with implied vol shifted by the buttons.",
+        "Blue cells make money, orange cells lose it; numbers are rupees per lot. The Greeks above the grid are today's sensitivities of the whole position."],
+      deep: ["Black-Scholes on the forward with r = 0, each strike at its own implied vol from today's smile plus the chosen shift. P&L is measured from the model value today, so the centre cell of the first column is zero by construction. At expiry the legs are worth their intrinsic value. No costs, no slippage, no early management."],
+      how: vpHow(function (V) { var b = ((typeof PB !== "undefined" && PB) ? PB.base : null) || {}; return "Base position from playbook.json: <b>" + esc((b.text || []).join("; ") || "not loaded") + "</b>; lot " + vpN(V.lot) + "."; })
+    },
+    "Implied vs realised move": {
+      plain: ["On every stored session: what the ATM straddle said NIFTY would move by the front expiry, against what it did.",
+        "Hit rate = how often the move stayed inside the straddle (the seller kept money); edge = premium minus payoff, in points."],
+      how: vpHow(function (V) { var M = V.moves || {}; return "Hit rate <b>" + vpP(M.hit, 1) + "</b>, average edge " + vpS(M.edge, 1) + " points over " + vpN(M.n) + " cases."; })
+    }
+  };
+  var VP_ALIAS = {
+    "Net writer gamma": "Writer gamma by strike", "Pin strike": "Gamma by expiry", "All expiries": "Gamma by expiry",
+    "Net at spot": "Gamma by expiry", "Gross at spot": "Gamma by expiry", "Flip": "Gamma flip",
+    "Largest long gamma": "Gamma by expiry", "Largest short gamma": "Gamma by expiry",
+    "Front IV rank": "IV rank and percentile", "Front IV percentile": "IV rank and percentile",
+    "30-day IV rank": "IV rank and percentile", "India VIX percentile": "IV rank and percentile", "India VIX rank": "IV rank and percentile",
+    "Premium vs realised": "Volatility cone", "Horizon (sessions)": "Volatility cone", "25th": "Volatility cone", "75th": "Volatility cone",
+    "Realised now": "Volatility cone", "Implied": "Volatility cone", "Implied percentile": "Volatility cone",
+    "Straddle hit rate": "Implied vs realised move", "Seller edge": "Implied vs realised move", "Last 20 hit rate": "Implied vs realised move",
+    "Realised to implied": "Implied vs realised move", "Sessions to expiry": "Implied vs realised move", "Cases": "Implied vs realised move",
+    "Stayed inside": "Implied vs realised move", "Average edge": "Implied vs realised move",
+    "NIFTY at": "Scenario simulator", "Spot move": "Scenario simulator", "Value today": "Scenario simulator", "After 1 day": "Scenario simulator",
+    "Halfway": "Scenario simulator", "On expiry": "Scenario simulator", "Position delta": "Scenario simulator",
+    "Position gamma": "Scenario simulator", "Position theta": "Scenario simulator", "Position vega": "Scenario simulator",
+    "5 sessions ago": "IV term structure", "Days": "IV term structure", "Change": "IV term structure",
+    "Min": "Volatility cone", "Max": "Volatility cone", "25d RR": "IV term structure", "25d BF": "IV term structure", "Expected move": "IV term structure"
+  };
+  function vpRegisterTerms() {
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(VP_TERMS).forEach(function (k) {
+      var t = VP_TERMS[k];
+      if (!has(DEEP, k)) DEEP[k] = t.deep || t.plain;
+      if (!has(PLAIN, k)) PLAIN[k] = t.plain;
+      if (!has(TERMS, k)) TERMS[k] = { deep: k, how: t.how };
+    });
+    Object.keys(VP_ALIAS).forEach(function (k) {
+      if (!has(TERM_ALIAS, k) && !has(TERMS, k)) TERM_ALIAS[k] = VP_ALIAS[k];
+    });
+  }
+  /* =============== end Volatility & Gamma (vp*, desk-volpro) =============== */
 
 
   /* ---------- market analysis (analysis.json) ----------
@@ -4604,17 +5509,17 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         '<td class="lft">No verified release value/date in this snapshot</td></tr>';
     }).join("");
     return pageIntro("International",
-      "Global rates, FX, business activity, digital assets and evidence behind cross-asset moves. A market level is separated from its interpretation; observation dates and missing feeds stay visible.",
+      "Rates, FX and crypto: how far each moved, why, and what could move it next. Every figure shows its as-of date; feeds that are not connected say so.",
       "Snapshot through " + esc((INTERNATIONAL && INTERNATIONAL.asOf) || "date unavailable")) +
-      '<div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, selected US yield-index series and BTC/ETH use saved Yahoo Finance observations and history; the US curve and weekly positions use official Treasury and CFTC reports. Central-bank dates come from the Fed, BoJ, ECB and RBI pages and are cross-checked against ForexFactory and your own calendar. Headlines come from Google News and Bing News (thousands of publishers) plus FXStreet, ForexLive and Investing.com, each shown with its publisher, time and a reputation tier. India, euro-area, Japan and China curves and PMI values are still not connected. Every input below shows its as-of date; anything past its freshness limit is flagged stale.</div>' +
-      analysisSection() +
       '<section class="card"><div class="card-hd"><h2>Cross-asset levels &amp; changes</h2>' +
-      '<span class="sub">FX and crypto in percent; yields in basis points</span></div>' +
+      '<span class="sub">how far each market moved &middot; FX and crypto in %, yields in basis points</span></div>' +
       internationalMovesTable([["INR=X", "USD/INR"], ["EURUSD=X", "EUR/USD"],
         ["JPY=X", "USD/JPY"], ["CNY=X", "USD/CNY"], ["DX-Y.NYB", "US Dollar Index"],
         ["BTC-USD", "Bitcoin"], ["ETH-USD", "Ethereum"],
         ["^IRX", "US 13-week bill yield"], ["^TNX", "US 10-year yield index"],
         ["^TYX", "US 30-year yield index"]]) + "</section>" +
+      '<details class="nfx-more"><summary>Where these numbers come from, and how fresh they must be</summary><div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, selected US yield-index series and BTC/ETH use saved Yahoo Finance observations and history; the US curve and weekly positions use official Treasury and CFTC reports. Central-bank dates come from the Fed, BoJ, ECB and RBI pages and are cross-checked against ForexFactory and your own calendar. Headlines come from Google News and Bing News (thousands of publishers) plus FXStreet, ForexLive and Investing.com, each shown with its publisher, time and a reputation tier. India, euro-area, Japan and China curves and PMI values are still not connected. Every input below shows its as-of date; anything past its freshness limit is flagged stale.</div></details>' +
+      analysisSection() +
       '<section class="card"><div class="card-hd"><h2>Sovereign yield curve</h2>' +
       '<span class="sub">Requested benchmark maturities \u00b7 yield levels, not bond prices</span></div>' +
       '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Market</th>' +
@@ -4623,15 +5528,17 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<div class="mo-sub">United States \u00b7 official par-yield changes</div>' +
       internationalYieldMovesTable() +
       '<div class="caution"><p><b>Coverage limit.</b> US tenors use the U.S. Treasury daily par-yield curve and show its observation date. India, euro-area, Japan and China curves remain unconnected; blank cells do not imply zero movement.</p></div></section>' +
-      '<section class="card"><div class="card-hd"><h2>Purchasing Managers\u2019 Index</h2>' +
-      '<span class="sub">manufacturing and services \u00b7 latest released value/date required</span></div>' +
-      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Region</th>' +
-      "<th>Latest PMI</th><th class=\"lft\">Release / source status</th></tr></thead><tbody>" +
-      pmiRows + "</tbody></table></div></section>" +
+
       '<section class="card"><div class="card-hd"><h2>Positioning, hedging &amp; build-up</h2>' +
       '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports \u00b7 contracts, not intent</span></div>' +
       internationalPositionsTable() +
       '<div class="caution"><p><b>Coverage and interpretation.</b> CFTC reports are weekly Tuesday snapshots, usually published Friday. Weekly net changes are contract-count changes in the named trader category, not proof of hedging, covering or a directional view. The contracts shown cover selected CME/NYMEX markets; they are not spot USD/INR, USD/CNY or exchange-wide crypto positions. Missing rows mean no selected report observation is available.</p></div></section>' +
+      '<details class="nfx-more"><summary>Background: PMI status, research notes and sources</summary>' +
+      '<section class="card"><div class="card-hd"><h2>Purchasing Managers\u2019 Index</h2>' +
+      '<span class="sub">manufacturing and services \u00b7 not connected yet</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Region</th>' +
+      "<th>Latest PMI</th><th class=\"lft\">Release / source status</th></tr></thead><tbody>" +
+      pmiRows + "</tbody></table></div></section>" +
       '<section class="card"><div class="card-hd"><h2>Cross-asset research notes</h2><span class="sub">curated references \u00b7 item dates shown</span></div>' +
       '<div class="research-feed">' +
       '<article class="research-item"><div class="research-source">World Bank \u00b7 3 Nov 2026</div><div><h3>Energy strengthened while metals weakened in October</h3>' +
@@ -4655,7 +5562,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       sourceItem("Reuters \u00b7 Markets", "https://www.reuters.com/markets/", "Fast global reporting; integration requires a permitted feed/license.") +
       sourceItem("WSJ \u00b7 Markets", "https://www.wsj.com/market-data", "Market coverage and data; subscription and redistribution terms apply.") +
       sourceItem("J.P. Morgan \u00b7 Global Research", "https://www.jpmorgan.com/insights/global-research", "Institutional macro/commodities research; client access may be required.") +
-      "</div></section>";
+      "</div></section></details>";
   }
 
   /* The chain and the build-up were two tabs reading the same rows. Only
@@ -4692,7 +5599,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       '<section class="card"><div class="card-hd"><h2>Option chain &amp; OI</h2>' +
       '<span class="sub">' + esc(m.cfg.label) + " \u00b7 " + esc(m.cfg.expiry) + "</span>" +
       '<div class="right"><span class="kpi-m">OI and volume in lakh &middot; ' +
-      "shaded = in-the-money &middot; click a row to drill in</span></div></div>" +
+      "shaded = in the money &middot; click a row for detail</span></div></div>" +
       '<div class="tablewrap tall"><table class="dt chain"><thead>' +
       '<tr class="grp-hd"><th class="grp-c lft" colspan="7">CALLS</th>' +
       '<th>&nbsp;</th><th class="grp-p lft" colspan="7">PUTS</th></tr>' +
@@ -5683,14 +6590,13 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
       structCard =
         '<section class="card"><div class="card-hd"><h2>Recommended structure</h2>' +
-        '<span class="sub">' + (sideNow === "aside" ? "stand aside &middot; " : "") + name + "</span>" +
+        '<span class="sub">' + name + "</span>" +
         '<div class="right"><span class="kpi-m">' + esc(c.label) + " &middot; " + esc(c.expiry) + "</span></div></div>" +
-        (sideNow === "aside" ? '<div class="caution"><p><b>The rule says stand aside today.</b> ' +
-          esc((sideNote(m).side || {}).why || "") + " The structure below is what selling would look like " +
-          "if you trade anyway &mdash; trade it smaller than a sell day.</p></div>" : "") +
+        (sideNow === "aside" ? '<div class="caution"><p><b>Reference only: the side rule says stand aside.</b> ' +
+          "This is the trade if you sell anyway; size it below a normal sell day.</p></div>" : "") +
         (lowVol ? '<div class="caution"><p><b>India VIX ' + n2(c.vix) + " is low.</b> Naked premium here is thin " +
           "relative to gap risk, so this is proposed as <b>defined risk</b> with protective wings, and at reduced size. " +
-          "Selling naked into low IV is the single most common way option sellers blow up.</p></div>" : "") +
+          "Selling naked into low IV is the most common way option sellers blow up.</p></div>" : "") +
         '<div class="legs">' + legs.map(function (l) {
           return '<div class="leg-row"><span class="leg-act ' + (l.qty < 0 ? "sell" : "buy") + '">' +
             (l.qty < 0 ? "Sell" : "Buy") + "</span>" +
@@ -5710,7 +6616,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       var tp = netCredit * 0.5, sl = netCredit * 2;
       exitCard =
         '<section class="card"><div class="card-hd"><h2>Exit plan</h2>' +
-        '<span class="sub">decide now, not in the drawdown</span></div><div class="checks">' +
+        '<span class="sub">when to take profit, cut, roll or shrink &middot; set before entry</span></div><div class="checks">' +
         ck("1", "Profit target", "Buy back when combined premium falls to <b>" + n2(tp) +
           "</b> (50% of credit &mdash; &#8377;" + n0(creditRs * 0.5) + " captured). Most of the theta is earned early; " +
           "holding to expiry for the last 50% adds days of gap exposure for little gain.") +
@@ -5755,11 +6661,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
       gapCard =
         '<section class="card"><div class="card-hd"><h2>Gap scenarios</h2>' +
-        '<span class="sub">P&amp;L at expiry by move in spot</span>' +
-        '<div class="right"><span class="kpi-m">the number that matters for a seller</span></div></div>' +
-        '<div class="caution"><p>These are <b>expiry</b> payoffs. An <b>immediate</b> gap is worse than shown &mdash; ' +
-        "the position still carries time value and IV expands on the move, so mark-to-market loss can exceed " +
-        "the expiry figure before it converges back.</p></div>" +
+        '<span class="sub">what the position makes or loses if NIFTY gaps</span>' +
+        '<div class="right"><span class="kpi-m">Rs per lot, held to expiry</span></div></div>' +
+        '<div class="caution"><p>Expiry payoffs. An <b>immediate</b> gap costs more than shown: time value and a jump in IV ' +
+        "push the mark-to-market loss past these figures until expiry.</p></div>" +
         '<div class="tablewrap"><table class="dt gap"><thead><tr>' +
         '<th class="lft">Gap</th><th>Spot</th><th>P&amp;L</th><th class="lft">&nbsp;</th>' +
         "</tr></thead><tbody>" + gRows + "</tbody></table></div></section>";
@@ -5962,8 +6867,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     if (v) {
       var rich = v.ratio > 1.10, poor = v.ratio < 0.95;
       out += '<section class="card"><div class="card-hd"><h2>Is the seller being paid?</h2>' +
-        '<span class="sub">implied vs forecast realised</span>' +
-        '<div class="right"><span class="kpi-m">the one number that decides whether to sell at all</span></div></div>' +
+        '<span class="sub">implied vs forecast realised &middot; ' + esc(m.tradeDate || "") + " close</span>" +
+        '<div class="right"><span class="kpi-m">selling needs IV / RV of 1.10 or more</span></div></div>' +
         '<div class="probs">' +
         pr("ATM implied", n2(v.iv) + "%", "neu", "what the market charges") +
         pr("Forecast realised", n2(v.rv) + "%", "neu",
@@ -5975,13 +6880,11 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         "</div>" +
         '<div class="caution"><p>' +
         (poor
-          ? "<b>Implied is running below forecast realised.</b> Selling premium here is not " +
-            "being compensated for the risk carried. That is a reason to stand aside, not to " +
-            "size down."
+          ? "<b>Implied is below forecast realised.</b> Selling here is not paid for the risk " +
+            "carried: a reason to stand aside, not to size down."
           : rich
-          ? "<b>Implied exceeds forecast realised.</b> This is the variance risk premium and it " +
-            "is the reason selling pays &mdash; but it is compensation for the tail, not free " +
-            "money, and it inverts precisely when the tail arrives."
+          ? "<b>Implied exceeds forecast realised.</b> This is the variance risk premium, the reason " +
+            "selling pays. It is payment for the tail, and it inverts when the tail arrives."
           : "<b>Implied and realised are close.</b> No meaningful edge either way at this level.") +
         "</p></div></section>";
     }
@@ -6262,7 +7165,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var scorecard =
       '<section class="card"><div class="card-hd"><h2>Scorecard</h2>' +
       '<span class="sub">' + A.n + " predictions &middot; " + (A.n_legs || 0) + " legs scored</span>" +
-      '<div class="right"><span class="kpi-m">lower Brier better &middot; BSS &gt; 0 beats base rate</span></div></div>' +
+      '<div class="right"><span class="kpi-m">lower Brier is better &middot; skill above 0 beats the base rate</span></div></div>' +
       '<div class="probs">' +
         pr("Brier score", A.brier != null ? n2(A.brier) : "&mdash;",
            A.brier != null && A.brier < 0.18 ? "pos" : "neg", "mean squared error of stated POP") +
@@ -6298,7 +7201,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
     var reliability =
       '<section class="card"><div class="card-hd"><h2>Reliability</h2>' +
-      '<span class="sub">said vs happened</span>' +
+      '<span class="sub">stated probability against how often it happened</span>' +
       '<div class="right"><span class="kpi-m">on the line = honest &middot; below = overconfident</span></div></div>' +
       '<div class="chart-body"><svg viewBox="0 0 330 195" role="img" ' +
       'aria-label="Reliability diagram comparing stated probability against observed frequency.">' +
@@ -7971,23 +8874,55 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     return '<div class="nfx-band"><h3>' + title + "</h3><span>" + sub + "</span></div>";
   }
 
+  /* Decision headers: one answer per tab, above everything else. A tab
+     registers a function here; render() prepends its output. */
+  var DESK_HEAD = {};
+  function dsMethod(label, html) {
+    return '<details class="ds-method"><summary>' + (label || "Method") + "</summary><p>" + html + "</p></details>";
+  }
+  function dhLine(eyebrow, why, asof) {
+    return '<section class="card dh-line"><span class="dh-eyebrow">' + eyebrow + "</span>" +
+      '<p class="dh-why">' + why + "</p>" +
+      (asof ? '<span class="dh-asof">' + asof + "</span>" : "") + "</section>";
+  }
+
   /* Today: the read, the numbers, the trade, the next few days. */
   function nfxToday(m) {
     var s = nfxCards(nfxSafe(viewStrategy, m));
     var ready = s.some(function (c) { return nfxHas(c, "Expected range"); });
     var trade = ready
-      ? nfxPick(s, ["Expected range", "Buy or sell today", "Recommended structure"]) +
-        (typeof pbCard === "function" ? nfxSafe(pbCard, m) : "") +
-        nfxPick(s, ["Exit plan", "Gap scenarios"])
+      ? nfxPick(s, ["Expected range", "Buy or sell today", "Recommended structure", "Exit plan", "Gap scenarios"])
       : s.map(function (c) { return c.h; }).join("");
-    return '<div class="nfx-view">' + verdict(m) + kpis(m) +
-      nfxBand("The trade", "range, structure and exit plan for " + esc(m.cfg.expiry || "the current expiry")) +
+    var pb = typeof pbCard === "function" ? nfxSafe(pbCard, m) : "";
+    /* The decision header (DESK_HEAD.today) carries the side call and the
+       six numbers; the OI read that used to open the tab sits one click down.
+       "What this section can and cannot do" repeated the Buy-or-sell card
+       word for word, so it is no longer rendered here. */
+    return '<div class="nfx-view">' +
+      nfxMore("OI positioning read and the four inputs behind it", verdict(m)) +
+      nfxBand("The trade", "how far NIFTY can move by " + esc(m.cfg.expiry || "expiry") +
+        ", which side to take, what to sell and when to get out") +
       trade + nfxMore("Does the side rule work? The backtest", nfxPick(s, ["Does the side rule work?"])) +
+      (pb ? nfxBand("If-then plan", "what to hold, add or close as the market moves, with exact strikes") + pb : "") +
       nfxSafe(nfxHorizons, m) +
       nfxEventsNear(m) +
-      nfxMore("What this section can and cannot do", nfxPick(s, ["What this section can and cannot do"])) +
       "</div>";
   }
+
+  /* Today's decision header: the side call, why, and the six numbers. */
+  function nfxTodayHead(m) {
+    var NT = sideNote(m), SD = NT.side || {}, c = m.cfg;
+    var dte = m.dte != null ? " &middot; " + m.dte + (m.dte === 1 ? " day" : " days") + " left" : "";
+    var call = SD.side ? sideWord(SD.side) : "No side call yet";
+    return '<section class="card dh"><div class="dh-main">' +
+      '<div class="dh-eyebrow">Today&rsquo;s call &middot; ' + esc(c.expiry || "") + " expiry" + dte + "</div>" +
+      '<div class="dh-call" style="color:' + (SD.side ? sideColor(SD.side) : "var(--ink-3)") + '">' + call + "</div>" +
+      (SD.why ? '<p class="dh-why">' + esc(SD.why) + "</p>" : "") +
+      '<div class="dh-asof">' + (NT.data_date ? "Call made on the " + esc(NT.data_date) + " close &middot; " : "") +
+        "prices from the " + esc(m.tradeDate || "") + " close</div>" +
+      "</div>" + kpis(m) + "</section>";
+  }
+  DESK_HEAD.today = nfxTodayHead;
 
   function nfxEventsNear(m) {
     var E = (((TECHFUND || {})[m.cfg.key] || {}).note || {}).events;
@@ -8038,7 +8973,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     }).join("");
     var rows = [
       ["Implied / forecast", n2(I.ratio) + "&times;",
-        "selling needs &ge; " + n2(R.rich) + "&times; &middot; implied " + n1(I.iv) + "% against a forecast " + n1(I.rvForecast) + "%"],
+        "selling needs &ge; " + n2(R.rich) + "&times; &middot; implied " + n1(I.iv) + "% against a forecast " + n1(I.rvForecast) + "%" +
+          (NT.data_date ? ", on the " + esc(NT.data_date) + " close (Analysis shows the latest close)" : "")],
       ["Measured events", String(I.measuredEvents || 0),
         (I.calendarHigh || 0) + " marked &lsquo;high&rsquo; before expiry; only types that have moved NIFTY " +
         n2(R.eventMinX) + "&times; a normal day, over " + (R.eventMinN || 0) + "+ cases, count"],
@@ -8050,9 +8986,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       return '<tr><td class="lft"><span>' + r[0] + "</span></td><td>" + r[1] + '</td><td class="lft">' + r[2] + "</td></tr>";
     }).join("");
     return '<section class="card side-card"><div class="card-hd"><h2>Buy or sell today</h2>' +
-      '<span class="sub">decided on ' + esc(NT.data_date || "") + " data &middot; " + esc(NT.expiry || "") + " expiry</span></div>" +
-      '<div class="side-v" style="color:' + sideColor(SD.side) + '">' + sideWord(SD.side) + "</div>" +
-      '<p class="side-why">' + esc(SD.why) + "</p>" +
+      '<span class="sub">the inputs behind today&rsquo;s call &middot; ' + esc(NT.data_date || "") + " close &middot; " + esc(NT.expiry || "") + " expiry</span>" +
+      '<div class="right"><b style="color:' + sideColor(SD.side) + '">' + sideWord(SD.side) + "</b></div></div>" +
       (ST ? '<p class="side-why">ATM straddle <b>' + n0(ST.strike) + "</b> costs <b>" + n1(ST.cost) +
         " pts</b> (&#8377;" + n0(ST.cost_rs) + " a lot). The seller wins if NIFTY settles between <b>" +
         n0(ST.breakevens[0]) + "</b> and <b>" + n0(ST.breakevens[1]) + "</b>; the buyer wins outside it.</p>" : "") +
@@ -8293,13 +9228,13 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         hzP(pw), hzRs(p.maxLossRs)];
     });
     return '<section class="card"><div class="card-hd"><h2>Strategy by expiry</h2>' +
-      '<span class="sub">NIFTY ' + n0(L.spot) + " &middot; " + esc(L.d) + " &middot; lot " + L.lot + "</span></div>" +
-      '<p class="side-why">For every expiry the desk prices each credit spread at what you would actually get ' +
+      '<span class="sub">which credit spread pays best on each expiry &middot; NIFTY ' + n0(L.spot) + " on " + esc(L.d) + " &middot; lot " + L.lot + "</span></div>" +
+      dsMethod("How spreads are priced and scored", "For every expiry the desk prices each credit spread at what you would actually get " +
       "(sell at the bid, buy at the ask), then scores it on " + n0(L.historyN) + " sessions of NIFTY history since " +
       esc(L.historyFrom || "") + ", scaled to today&rsquo;s " + n1(L.sigma * 100) + "% volatility and checked against raw history; " +
       "the worse of the two counts. A spread is recommended only if its expected profit after &#8377;" + n0(R.costRs) +
       " costs is positive and it kept its credit in at least " + n0((R.minPwin || 0) * 100) + "% of cases. " +
-      "Lean comes from OI signals that have predicted the settle; none has yet, so every lean is neutral.</p>" +
+      "Lean comes from OI signals that have predicted the settle; none has yet, so every lean is neutral.") +
       hzTbl(["Horizon", "Expiry", "Sessions left", "OI lean", "Pick", "Strikes", "Credit", "Expected profit", "Kept credit", "Max loss"], rows) +
       "</section>";
   }
@@ -8316,9 +9251,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     });
     return '<section class="card"><div class="card-hd"><h2>Weekly vs monthly OI</h2>' +
       '<span class="sub">where the money sits in each expiry, and where it was added today</span></div>' +
-      '<p class="side-why">The monthly contract carries the large, slower positions; weeklies carry the fast money. ' +
+      dsMethod("How to read it", "The monthly contract carries the large, slower positions; weeklies carry the fast money. " +
       "Walls are the strikes with the most open interest; &ldquo;building at&rdquo; lists the three strikes with the largest OI added today. " +
-      "Straddle is the at-the-money call plus put: the move the market prices to that expiry.</p>" +
+      "Straddle is the at-the-money call plus put: the move the market prices to that expiry.") +
       hzTbl(["Horizon", "PCR", "Put wall", "Call wall", "Max pain", "Straddle", "Puts added", "Calls added", "Puts building at", "Calls building at"], rows) +
       "</section>";
   }
@@ -8520,9 +9455,9 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       (lg.length ? ": " + hzLegs(pk).replace(/<br>/g, " &middot; ") + ". Credit " + hzRs(pk.creditRs) +
         ", expected profit <b>" + hzRs(pk.evRs) + "</b> a lot after costs, kept its credit in " + hzP(pw) +
         " of history, max loss " + hzRs(pk.maxLossRs) + "."
-        : ": no spread on this expiry passes both tests at today&rsquo;s prices &mdash; a positive expected profit after costs " +
-          "and keeping its credit in at least " + n0(((HZN.rule || {}).minPwin || 0) * 100) + "% of history." +
-          ((cur.top || []).length ? " The spreads listed below pay on average but lose too often to recommend." : "")) +
+        : ": no spread recommended. A pick must pass two tests at today&rsquo;s prices: a positive expected profit after costs, " +
+          "and its credit kept in at least " + n0(((HZN.rule || {}).minPwin || 0) * 100) + "% of history." +
+          ((cur.top || []).length ? " The spreads listed below pass the first test only: they pay on average but lose too often." : "")) +
       " OI lean: " + esc(cur.lean.direction) + ".</p></div>";
     var S = cur.strikes || [];
     var mx = Math.max.apply(null, S.map(function (s) { return Math.max(s[1], s[4]); }).concat([1]));
@@ -8548,13 +9483,13 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     });
     var odds = (cur.odds || []).map(function (o) { return [n0(o.pts) + " pts", hzP(o.pBelow), hzP(o.pAbove)]; });
     return '<section class="card"><div class="card-hd"><h2>Option chain by expiry</h2>' +
-      '<span class="sub">click an expiry &middot; NIFTY ' + n0(L.spot) + " on " + esc(L.d) + "</span></div>" +
+      '<span class="sub">OI, walls and the spread pick for each expiry &middot; NIFTY ' + n0(L.spot) + " on " + esc(L.d) + "</span></div>" +
       tabs + kp + rec +
-      '<p class="side-why"><b>Open interest by strike</b> &mdash; calls left, puts right; bars scale to the largest OI shown. ' +
-      "Open interest in contracts. Call wall, put wall and the at-the-money strike are highlighted. Prices are the bid/ask mid on live sessions, the close otherwise.</p>" +
+      '<p class="side-why"><b>Open interest by strike</b>, in contracts: calls left, puts right, bars scaled to the largest OI. ' +
+      "Walls and the at-the-money strike are highlighted. Prices: bid/ask mid while the market is open, the close otherwise.</p>" +
       chainT +
-      (top.length ? '<p class="side-why"><b>Spreads with a positive expected profit on this expiry</b>, best per rupee at risk first. ' +
-        "Only those keeping their credit in " + n0(((HZN.rule || {}).minPwin || 0) * 100) + "%+ of history can be recommended.</p>" +
+      (top.length ? '<p class="side-why"><b>Spreads that pay on average on this expiry</b>, best per rupee at risk first. ' +
+        "Listed for reference; only those that also kept their credit in " + n0(((HZN.rule || {}).minPwin || 0) * 100) + "%+ of history are recommended.</p>" +
         hzTbl(["Spread", "Distance", "Credit pts", "Kept credit", "Expected profit", "Max loss"], top)
         : '<p class="side-why">No spread on this expiry has a positive expected profit after costs.</p>') +
       '<p class="side-why"><b>Odds of reaching each distance by ' + esc(cur.expiry) + "</b></p>" +
@@ -8571,8 +9506,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
   function nfxHorizons() {
     if (!HZN || !HZN.ladder) return "";
-    return nfxBand("Every expiry", "this week to next month: positioning, odds and the best-paying spread") +
-      hzStrategyCard() + hzExpiryCard() + hzOiCard() + hzOddsCard() +
+    return nfxBand("Every expiry", "this week to next month: the best-paying spread and how far NIFTY can go") +
+      hzStrategyCard() + hzOddsCard() +
       nfxMore("Do OI signals call direction? The test", hzSignalCard()) +
       nfxMore("Has this ladder made money? The replay", hzReplayCard());
   }
@@ -8620,7 +9555,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       sc("India VIX", n2(R.vix), "higher than " + rgP(R.vixPct) + " of the year") +
       (R.pcr != null ? sc("PCR", n2(R.pcr), "put OI / call OI") : "") + "</div>";
     var bottom = (S.bottom || []).map(function (b) { return "<p>" + esc(b) + "</p>"; }).join("");
-    return '<section class="card"><div class="card-hd"><h2>Where NIFTY stands</h2><span class="sub">daily close ' +
+    return '<section class="card"><div class="card-hd"><h2>Where NIFTY stands</h2><span class="sub">' +
+      (RG.intraday ? "intraday reading " : "daily close ") +
       esc(RG.asOf) + " &middot; tested on " + n0(RG.sessions) + " sessions since " + esc(RG.from) + "</span></div>" +
       '<p class="rg-head">' + esc(S.headline || "") + "</p>" + tiles +
       (bottom ? '<div class="caution">' + bottom + "</div>" : "") + "</section>";
@@ -8742,10 +9678,10 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     var P = (RG.story || {}).picture || [];
     if (!P.length) return "";
     return '<section class="card"><div class="card-hd"><h2>The clear picture</h2>' +
-      '<span class="sub">what the data says from here, expiry by expiry</span></div>' +
+      '<span class="sub">each expiry in one sentence: likely settle, 8-in-10 range, odds beyond each wall</span></div>' +
       '<ul class="rg-list rg-pic">' + P.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul></section>";
   }
-  function rgOutlookCard() {
+  function rgOutlookCard(m) {
     var O = RG.outlook || {}, R = O.rows || [];
     if (!R.length) return "";
     var cur = R.filter(function (r) { return r.expiry === rgState.exp; })[0] || R[0];
@@ -8779,7 +9715,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
         t.cover80Analog != null ? rgP(t.cover80Analog) : "&mdash;", t.skill != null ? sgn(t.skill, 1) + "%" : "&mdash;"];
     });
     return '<section class="card"><div class="card-hd"><h2>What could happen by each expiry</h2>' +
-      '<span class="sub">click an expiry &middot; NIFTY ' + n0(spot) + " on " + esc(O.asOf) + (RG.intraday ? " (intraday)" : "") +
+      '<span class="sub">matched on NIFTY ' + n0(spot) + (RG.intraday ? ", an intraday print" : "") + " on " + esc(O.asOf) +
+      (RG.intraday && m && m.cfg && m.cfg.spot ? " (close " + n0(m.cfg.spot) + ")" : "") +
       " &middot; the " + n0(O.k) + " past days most like today</span></div>" + tabs + kp +
       '<div class="caution"><p>' + esc(cur.read || "") + "</p></div>" +
       '<p class="side-why"><b>Chance of a move this big by ' + esc(cur.expiry) + "</b>, settle versus today, days like today against any day.</p>" +
@@ -8939,16 +9876,42 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
       return '<div class="nfx-view"><section class="card"><div class="card-hd"><h2>Where NIFTY stands</h2></div>' +
         '<p class="side-why">The momentum study (snapshot/regimes.json) has not loaded yet.</p></section></div>';
     }
+    /* The clear picture restates the outlook card's numbers as sentences,
+       one per expiry; the header carries its first line, the rest is one
+       click away. */
     return '<div class="nfx-view">' +
-      nfxBand("Outlook", "this week, next week, this month and next month &mdash; read from the data") +
-      nfxSafe(rgPictureCard, m) + nfxSafe(rgOutlookCard, m) +
-      nfxBand("Momentum &amp; regime", "overbought, oversold or sideways &mdash; and what history says happens next") +
+      nfxBand("Outlook", "where NIFTY is likely to settle by each expiry, from the past days most like today") +
+      nfxSafe(rgOutlookCard, m) +
+      nfxMore("Every expiry in one sentence each (the clear picture)", nfxSafe(rgPictureCard, m)) +
+      nfxBand("Momentum &amp; regime", "overbought, oversold or sideways, and what followed in the past") +
       nfxSafe(rgNowCard, m) + nfxSafe(rgActiveCard, m) + nfxSafe(rgChartCard, m) +
       nfxBand("The evidence", "every state, " + esc(RG.from.slice(0, 4)) + " to today") +
       nfxSafe(rgHistoryCard, m) + nfxSafe(rgSustainCard, m) +
-      nfxBand("Research &amp; playbook", "how professional option sellers make money, and what to do when premium is cheap") +
+      nfxBand("Research &amp; playbook", "what to do when premium is too cheap to sell, and the research behind it") +
       nfxSafe(rgCheapCard, m) + nfxSafe(rgResearchCard, m) + "</div>";
   }
+
+  function nfxMomentumHead(m) {
+    var P = ((RG || {}).story || {}).picture || [], O = (RG || {}).outlook || {};
+    if (!P.length) return "";
+    return dhLine("Direction &middot; momentum", esc(String(P[0]).replace(/^Direction:\s*/, "")),
+      O.spot != null ? "NIFTY " + n0(O.spot) + (RG.intraday ? " intraday" : " close") + " &middot; " + esc(O.asOf || "") : "");
+  }
+  DESK_HEAD.momentum = nfxMomentumHead;
+
+  function nfxRecordHead(m) {
+    var A = ACCURACY[state.idx] || {};
+    if (!A.ready) return "";
+    var sk = A.brier_skill, c1 = A.cov_1sd || {};
+    var skill = sk == null ? "" : sk > 0.005 ? "better than always guessing the base rate"
+      : sk < -0.005 ? "worse than always guessing the base rate" : "no better than always guessing the base rate yet";
+    return dhLine("Are the stated odds honest?",
+      (A.ece != null ? "Stated probabilities were off by <b>" + n1(A.ece * 100) + "%</b> on average; " : "") +
+      "Brier skill <b>" + (sk != null ? (sk >= 0 ? "+" : "") + n2(sk) : "&mdash;") + "</b>, " + skill + "." +
+      (c1.coverage != null ? " The 1&sigma; range held <b>" + n1(c1.coverage * 100) + "%</b> of sessions against 68.3% expected." : ""),
+      A.n + " predictions graded");
+  }
+  DESK_HEAD.record = nfxRecordHead;
 
   function rgHow(fn) {
     return function () {
@@ -9104,17 +10067,40 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   function nfxOptions(m) {
     var o = nfxCards(nfxSafe(viewOverview, m));
     var ch = nfxCards(nfxSafe(viewChain, m));
-    var hz = (HZN && HZN.ladder) ? nfxBand("Every expiry", "weekly, next week, this month, next month: click an expiry") +
-      nfxSafe(hzExpiryCard, m) + nfxSafe(hzOiCard, m) +
-      nfxBand("Front expiry", "the contract the rest of this tab is about") : "";
+    var hz = (HZN && HZN.ladder) ? nfxBand("Every expiry", "pick an expiry: its OI walls, the spread worth selling and the odds") +
+      nfxSafe(hzExpiryCard, m) + nfxSafe(hzOiCard, m) : "";
+    /* One chain on screen. The front-expiry full chain (IV, volume, build-up
+       per strike) repeated the table above, so it opens on request. */
     return '<div class="nfx-view">' + hz +
+      nfxBand("Front expiry", esc(m.cfg.expiry || "") + ": where OI sits by strike, and how price and PCR got here") +
       nfxPick(o, ["Open interest by strike"]) +
-      '<div class="two">' + nfxPick(o, ["15 sessions", "PCR trend"]) + "</div>" +
-      nfxExcept(ch, ["How to read this table"]) +
+      '<div class="two">' + nfxPick(o, ["daily close", "PCR trend"]) + "</div>" +
+      nfxMore("Full option chain for " + esc(m.cfg.expiry || "the front expiry") +
+        ": price, IV, volume and build-up at every strike", nfxExcept(ch, ["How to read this table"])) +
       nfxMore("How to read the chain and the Action column", nfxPick(ch, ["How to read this table"])) +
-      nfxBand("Watchlist", "every expiry, index futures and cross-market lists") +
-      nfxSafe(viewWatchlist, m) + "</div>";
+      nfxMore("Watchlist: every expiry, index futures and cross-market lists", nfxSafe(viewWatchlist, m)) + "</div>";
   }
+
+  function nfxOptionsHead(m) {
+    var lean = m.pcr < 0.9 ? "calls outweigh puts" : m.pcr > 1.1 ? "puts outweigh calls" : "balanced";
+    return dhLine("OI walls &middot; " + esc(m.cfg.expiry || ""),
+      "Puts are stacked at <b>" + n0(m.putWall) + "</b>, calls at <b>" + n0(m.callWall) + "</b>. Max pain <b>" +
+      n0(m.maxPain) + "</b>; PCR <b>" + n2(m.pcr) + "</b> (" + lean + "). NIFTY " + n0(m.cfg.spot) + ".",
+      "OI from the " + esc(m.tradeDate || "") + " close");
+  }
+  DESK_HEAD.options = nfxOptionsHead;
+
+  function nfxAnalysisHead(m) {
+    var v = (m.an || {}).vrp;
+    if (!v || v.ratio == null) return "";
+    var word = v.ratio > 1.10 ? "rich: sellers are being paid" : v.ratio < 0.95 ? "thin: sellers are not being paid"
+      : "roughly fair: no edge either way";
+    return dhLine("Is premium worth selling?",
+      "ATM implied <b>" + n1(v.iv) + "%</b> against a forecast realised <b>" + n1(v.rv) + "%</b>: IV/RV <b>" +
+      n2(v.ratio) + "</b>, premium is " + word + ". The side rule sells only at 1.10 or above.",
+      "on the " + esc(m.tradeDate || "") + " close &middot; to the " + esc(m.cfg.expiry || "") + " expiry");
+  }
+  DESK_HEAD.analysis = nfxAnalysisHead;
 
   /* Analysis: global context, volatility and probability, technicals. */
   function nfxAnalysis(m) {
@@ -9139,14 +10125,16 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
 
   /* Track record: how the calls have scored, and the stored sessions. */
   function nfxRecord(m) {
-    return '<div class="nfx-view">' + nfxSafe(viewModelData, m) +
-      nfxBand("Session history", "every stored session, newest first") +
+    var md = nfxCards(nfxSafe(viewModelData, m)), how = ["Model stack", "Scoring rules in use"];
+    return '<div class="nfx-view">' + nfxExcept(md, how) +
+      nfxMore("How the numbers are made: model stack and scoring rules", nfxPick(md, how)) +
+      nfxBand("Session history", "every stored session, newest first: close, OI, PCR and the call made") +
       nfxSafe(viewHistory, m) +
       nfxMore("Data pipeline status", nfxSafe(pipeline, m)) + "</div>";
   }
 
   var RENDER = {
-    today: nfxToday, options: nfxOptions, analysis: nfxAnalysis, record: nfxRecord, momentum: nfxMomentum,
+    today: nfxToday, options: nfxOptions, analysis: nfxAnalysis, vol: nfxVol, record: nfxRecord, momentum: nfxMomentum,
     overview: viewOverview, strategy: viewStrategy,
     "market-overview": viewMarketOverview,
     "india-index": viewIndiaIndex,
@@ -15537,7 +16525,8 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
     if (state.page === "india-index" && !RENDER[state.view]) state.view = "today";
     navWriteHash();
     var renderer = state.page === "india-index" ? RENDER[state.view] : RENDER[state.page];
-    document.getElementById("content").innerHTML = renderer(m);
+    var head = state.page === "india-index" ? DESK_HEAD[state.view] : null;
+    document.getElementById("content").innerHTML = (head ? nfxSafe(head, m) : "") + renderer(m);
     attachHovers();
     centreOnAtm();
   }
@@ -16109,7 +17098,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   }
 
   function liveState() {
-    if (!LIVE) return { cls: "closed", text: "EOD" };
+    if (!LIVE) return { cls: "closed", text: "Closed" };
 
     /* A live file left over from an earlier session is not "stale data from
        today" -- it is a session we never captured. Comparing its trade date
@@ -16117,12 +17106,17 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
        "stale 2880m" and implying the feed is merely lagging. */
     var m = MODEL[state.idx];
     if (m && LIVE.tradeDate && m.tradeDate && LIVE.tradeDate < m.tradeDate) {
-      return { cls: "closed", text: "EOD" };
+      return { cls: "closed", text: "Closed" };
     }
 
     var age = liveAgeMs();
     var st = LIVE.state;
     if (st === "open" || st === "pre-open" || st === "closing") {
+      /* The settled close has landed for this session: the live feed is
+         finished, not stale. One freshness source -- the banner -- speaks. */
+      if (age > STALE_AFTER && m && LIVE.tradeDate && m.tradeDate && LIVE.tradeDate <= m.tradeDate) {
+        return { cls: "closed", text: "Closed" };
+      }
       return age > STALE_AFTER
         ? { cls: "stale", text: "stale " + Math.round(age / 60000) + "m" }
         : { cls: "", text: st === "open" ? "Live" : st };
@@ -16247,7 +17241,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
                  (c.pcr != null ? " &middot; PCR " + n2(c.pcr) : "");
       }
     } else {
-      extra = " EOD " + esc(m.tradeDate);
+      extra = " settled " + esc(m.tradeDate);
     }
     document.getElementById("stamp").innerHTML = badge + extra;
   }
@@ -16745,6 +17739,7 @@ body { font-size: 13.5px; line-height: 1.55; transition: background-color .25s e
   if (typeof mtlRegisterTerms === "function") mtlRegisterTerms();   /* Metal Index glossary, merged before first lookup */
   if (typeof nrgRegisterTerms === "function") nrgRegisterTerms();   /* Energy Index glossary (claude-17) */
   if (typeof pbRegisterTerms === "function") pbRegisterTerms();   /* If-then playbook glossary (claude-17) */
+  if (typeof vpRegisterTerms === "function") vpRegisterTerms();   /* Volatility & Gamma glossary (desk-volpro) */
   boot();
 })();
 </script>
