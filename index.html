@@ -930,7 +930,9 @@ th.has-term, .k.has-term, .qk.has-term, .tcell-k.has-term,
 .stack-k.has-term, .grp-c.has-term, .grp-p.has-term, .pill.has-term,
 .tagx.has-term, .sub-k.has-term, .conf-val.has-term,
 .verdict-call.has-term, .verdict-eyebrow.has-term, .lvl-k.has-term, .kpi-k.has-term, .ck.has-term,
-.dt.legend td.has-term {
+.dt.legend td.has-term, .step-k.has-term, .mh-k.has-term, .rg-k.has-term, summary.has-term,
+.struct-k.has-term, .prob-k.has-term, .dh-k.has-term, h3.has-term,
+.legend > span.has-term, .mtl-legend > span.has-term, .nrg-legend > span.has-term {
   cursor: pointer; text-decoration: underline dotted var(--ink-3) 1px;
   text-underline-offset: 3px;
 }
@@ -938,7 +940,8 @@ th.has-term, .k.has-term, .qk.has-term, .tcell-k.has-term,
 .stack-k.has-term:hover, .pill.has-term:hover, .tagx.has-term:hover,
 .conf-val.has-term:hover, .verdict-call.has-term:hover,
 th.has-term:hover, .lvl-k.has-term:hover, .kpi-k.has-term:hover,
-.ck.has-term:hover, .dt.legend td.has-term:hover {
+.ck.has-term:hover, .dt.legend td.has-term:hover, h3.has-term:hover,
+.struct-k.has-term:hover, .legend > span.has-term:hover {
   color: var(--calls); text-decoration-color: var(--calls);
 }
 th.has-term:focus-visible, .lvl-k.has-term:focus-visible {
@@ -961,6 +964,37 @@ th.has-term:focus-visible, .lvl-k.has-term:focus-visible {
   display: block; font-family: var(--font-num); font-size: 9px;
   letter-spacing: .12em; text-transform: uppercase;
   color: var(--calls); margin-bottom: 2px;
+}
+
+/* ---------- simple-language layer of a term card (simple_terms.json) ---------- */
+.pt-simple .pt-sec { font-size: 13px; line-height: 1.7; color: var(--ink); margin-top: 11px; }
+.pt-simple .pt-sec:first-child { margin-top: 8px; }
+.pt-simple .pt-ex { background: var(--calls-dim); border-radius: 6px; padding: 8px 10px; color: var(--ink); }
+.pt-simple .pt-today { border-top: 1px solid var(--line); padding-top: 10px; color: var(--ink-2); font-size: 12px; line-height: 1.6; }
+.pt-detail { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
+.pt-detail > summary {
+  cursor: pointer; list-style: none; font-family: var(--font-num); font-size: 10px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+}
+.pt-detail > summary::-webkit-details-marker { display: none; }
+.pt-detail > summary::after { content: " \25be"; }
+.pt-detail[open] > summary::after { content: " \25b4"; }
+.pt-detail > summary:hover { color: var(--calls); }
+.pt-detail > summary:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
+
+/* ---------- Learn mode: every glossary label says it can be clicked ---------- */
+#learnBtn[aria-pressed="true"] { border-color: var(--calls); color: var(--calls); }
+html[data-learn="1"] .term-mark {
+  width: 14px; height: 14px; font-size: 9px; font-weight: 700;
+  border-color: var(--calls); color: var(--calls); background: var(--calls-dim);
+}
+html[data-learn="1"] .has-term { text-decoration-color: var(--calls); }
+html[data-learn="1"] .has-term:not(summary):not(:has(.term-mark))::after {
+  content: "?"; display: inline-flex; align-items: center; justify-content: center;
+  width: 13px; height: 13px; margin-left: 4px; border-radius: 50%;
+  border: 1px solid var(--calls); color: var(--calls); background: var(--calls-dim);
+  font-size: 9px; font-weight: 700; line-height: 1; vertical-align: middle;
+  text-decoration: none; font-family: var(--font-num); text-transform: none; letter-spacing: 0;
 }
 
 /* ---------- clickable chart points ---------- */
@@ -1919,6 +1953,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       <div class="idx-tabs" id="idxTabs" role="tablist" aria-label="Index"></div>
       <div class="topbar-right">
         <div class="stamp" id="stamp"><span class="dot"></span> &mdash;</div>
+        <button class="tgl" id="learnBtn" type="button" aria-pressed="false">Learn mode</button>
         <button class="tgl" id="themeBtn" type="button">Theme</button>
       </div>
     </div>
@@ -1993,6 +2028,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   var STOCKS = {};           /* stocks.json  -- index constituents */
   var ANALYSIS = {};         /* analysis.json -- why markets moved, sources */
   var BRIEF = {};            /* brief.json -- the morning brief on the Overview */
+  var SIMPLE = { terms: {}, alias: {} };  /* simple_terms.json -- simple-language layer of every card */
+  var LEARN_MODE = false;    /* Learn mode: glossary marks stand out, hover shows the simple line */
 
   function getJson(name) {
     /* GitHub Pages keeps a 10-minute CDN copy of every file. Intraday the
@@ -7480,7 +7517,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Costs per trade": {
       plain: ["Everything a trade pays to the broker, the exchange, the government and the market maker, on the way in and on the way out.",
         "On a cheap far-out-of-the-money spread the costs can be larger than the edge, which is why EV is shown after them."],
-      deep: ["Brokerage Rs 20 an order, STT 0.1% of premium on sells, NSE transaction charge 0.03503%, SEBI Rs 10 a crore, stamp duty 0.003% on buys, GST 18% on brokerage + transaction + SEBI, plus half the bid-ask on each leg each way (3% of price where there is no book). Closing is charged at the opening premium: an upper bound."],
+      deep: ["Brokerage Rs 20 an order, STT on sold premium at the rate in force on the trade date (0.15% from 1 Apr 2026, 0.1% before), NSE transaction charge 0.03553% including the IPFT levy, SEBI Rs 10 a crore, stamp duty 0.003% on buys, GST 18% on brokerage + transaction + SEBI, plus half the bid-ask on each leg each way (3% of price where there is no book). Closing is charged at the opening premium: an upper bound."],
       how: slHow(function (S) { var b = slBest(); return "Best row (" + (b.legs || []).length + " legs, " + 2 * (b.legs || []).length + " orders): <b>" + slRsU(b.costRs) + "</b> a lot against a credit of " + slRsU(b.creditRs) +
         "; lot " + S.lot + ", brokerage &#8377;" + vpN(S.costs.brokerage) + " an order."; })
     },
@@ -9713,7 +9750,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       how: irHow(function (I) { return esc(I.expiry.weekday) + "; next weekly " + irD(I.expiry.nextWeekly) + ", monthly " + irD(I.expiry.nextMonthly) + "."; })
     },
     "Settlement price": {
-      plain: ["The index level an expiring contract is cash-settled at. Until 6-Dec-2026 it is the closing index value; from 7-Dec-2026 SEBI's 15-Oct-2026 circular sets it from the constituents' VWAP over the last 30 minutes of continuous trading (15:00-15:30).",
+      plain: ["The index level an expiring contract is cash-settled at. Until 2-Aug-2026 it was the closing index value, and from 3-Aug-2026 to 6-Dec-2026 it is the closing-auction close; from 7-Dec-2026 SEBI's 15-Oct-2026 circular sets it from the constituents' VWAP over the last 30 minutes of continuous trading (15:00-15:30).",
         "An average is harder to move at the last minute, so a short strike near spot at 15:00 settles nearer where the half hour traded than where the final tick printed."],
       how: irHow(function (I) { return "Next expiry " + irD(I.settlement.nextExpiry) + ": " + esc(I.settlement.text) + "."; })
     },
@@ -19025,7 +19062,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       slip: lrNum(r.slipPts) ? r.slipPts : 0.5, tp: lrNum(r.profitTake) ? r.profitTake : 0.5,
       stop: lrNum(r.stopMult) ? r.stopMult : 1.5, budget: lrNum(r.riskBudgetRs) ? r.riskBudgetRs : 20000,
       minCredit: lrNum(r.minCreditFrac) ? r.minCreditFrac : 0.15, lotNow: lrNum(r.lotNow) ? r.lotNow : 65,
-      costs: r.costs || { brokerage: 20, stt_sell: 0.001, stt_exercise: 0.00125, exchange: 0.0003503,
+      costs: r.costs || { brokerage: 20, stt_sell: 0.0015, stt_exercise: 0.0015, exchange: 0.0003553,
                           sebi: 0.000001, stamp_buy: 0.00003, gst: 0.18 }
     };
   }
@@ -22211,7 +22248,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     _termIndex = null;
   }
   function rgTermCell(s, extra) {
-    return '<span class="has-term" data-term="' + esc(s.label) + '" tabindex="0" role="button" title="What this means">' +
+    return '<span class="has-term rg-k" data-term="' + esc(s.label) + '" tabindex="0" role="button" title="What this means">' +
       esc(s.label) + "</span>" + (extra || "");
   }
 
@@ -28254,6 +28291,107 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     };
   };
 
+  /* ---------- Simple-language layer (simple_terms.json, simple_terms.py) ----------
+     Every card can open with words a beginner follows. Looked up by the
+     resolved glossary key, then by the label as written, then by an
+     alias, then by the card the key points at; all through termNorm, so
+     an entity and its character are the same name. */
+  var _simpleIx = null;
+  function simpleSeed(d) {
+    var ok = d && typeof d === "object" && d.terms && typeof d.terms === "object";
+    SIMPLE = ok ? { terms: d.terms, alias: (d.alias && typeof d.alias === "object") ? d.alias : {} }
+                : { terms: {}, alias: {} };
+    _simpleIx = null;
+  }
+  function simpleIndex() {
+    if (_simpleIx) return _simpleIx;
+    var ix = {}, T = SIMPLE.terms || {}, A = SIMPLE.alias || {};
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    Object.keys(T).forEach(function (k) {
+      var n = termNorm(k);
+      if (n && !has(ix, n)) ix[n] = k;
+    });
+    Object.keys(A).forEach(function (a) {
+      var n = termNorm(a);
+      if (n && !has(ix, n) && has(T, A[a])) ix[n] = A[a];
+    });
+    _simpleIx = ix;
+    return ix;
+  }
+  function simpleFor(label, key, deepKey) {
+    var T = SIMPLE.terms || {};
+    var cands = [key, label, deepKey], ix = null;
+    for (var i = 0; i < cands.length; i++) {
+      var c = cands[i];
+      if (c == null || c === "") continue;
+      var hit = null;
+      if (Object.prototype.hasOwnProperty.call(T, c)) hit = T[c];
+      else {
+        if (!ix) ix = simpleIndex();
+        var n = termNorm(c);
+        if (n && Object.prototype.hasOwnProperty.call(ix, n)) hit = T[ix[n]];
+      }
+      /* A malformed record is no record: the card keeps its own text. */
+      if (hit && typeof hit === "object" && typeof hit.simple === "string" && hit.simple) return hit;
+    }
+    /* A state or replay row carries the desk's own decoration around the
+       name: "Overbought RSI(14) above 70 ON", "MACD above its signal line
+       (split at 12 days)", "2022 LME nickel squeeze (best)", "Track record:
+       ZINC". The card belongs to the bare name, so try it once more. */
+    var bare = simpleBare(label);
+    return bare && bare !== label ? simpleFor(bare) : null;
+  }
+  var SIMPLE_BARE = [
+    [/^track record: .+$/i, "Commodity track record"],
+    [/\s*\(split at \d+ days?\)$/i, ""],
+    [/\s*\(best\)$/i, ""],
+    [/^(overbought|oversold|sideways|trending|trend|volatility|sentiment) (?=\S+ \S)/i, ""],
+    [/\s+ON$/, ""]
+  ];
+  function simpleBare(label) {
+    if (label == null) return null;
+    var s = String(label).replace(/\s+/g, " ").trim(), prev;
+    do {
+      prev = s;
+      for (var i = 0; i < SIMPLE_BARE.length; i++) {
+        var r = SIMPLE_BARE[i];
+        if (r[1] && r[0].test(s)) return r[1];
+        s = s.replace(r[0], r[1]).trim();
+      }
+    } while (s !== prev && s);
+    return s || null;
+  }
+  function simpleOf(label) {
+    if (!label) return null;
+    var key = termKey(label) || label, t = TERMS[key];
+    return simpleFor(label, key, t ? t.deep : null);
+  }
+  /* For the clarity audit (scratchpad clarity.js): which visible labels open no simple card. */
+  if (typeof window !== "undefined") window.__simpleOf = simpleOf;
+  /* The simple sections, in the order a beginner asks them. Writer text is
+     plain text, so it is escaped; how() is the page's own HTML. */
+  function simpleHtml(s, today) {
+    var tx = function (v) { return typeof v === "string" && v.trim() ? esc(v.trim()) : ""; };
+    var sec = function (k, v, cls) {
+      return v ? '<div class="pt-sec' + (cls ? " " + cls : "") + '"><span class="pt-sk">' + k +
+        "</span>" + v + "</div>" : "";
+    };
+    var imp = tx(s.impact).split(" If it goes down").join("<br>If it goes down");
+    return '<div class="pt-simple">' +
+      sec("In simple words", tx(s.simple)) +
+      sec("Everyday example", tx(s.example), "pt-ex") +
+      sec("When you see this number", tx(s.readIt)) +
+      sec("What happens when it changes", imp) +
+      sec("What it means for you", tx(s.forYou)) +
+      sec("Good or bad", tx(s.goodBad)) +
+      sec("On the page today", today || "", "pt-today") +
+      "</div>";
+  }
+  function detailHtml(inner, open) {
+    return inner ? '<details class="pt-detail"' + (open ? " open" : "") +
+      "><summary>More detail</summary>" + inner + "</details>" : "";
+  }
+
   function showTerm(label, value, m, ctx) {
     /* A decision the desk made about one row is justified from that row.
        A concept -- what a lot size is -- has no instance to justify, so it
@@ -28271,7 +28409,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
        pointer is resolved through the same fold as everything else,
        because some are written with entities and some with characters. */
     var d = deepEntry(t ? t.deep : key);
-    if (!t && !d.length) return;
+    var simple = simpleFor(label, key, t ? t.deep : null);
+    if (!t && !d.length && !simple) return;
     var how = "";
     try { how = t.how ? t.how(m) : ""; } catch (e) { how = ""; }
 
@@ -28289,7 +28428,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       rows.push(["Impact", '<span class="pt-arrow">&rarr;</span> ' +
                  (plain[1] || d[1])]);
     }
-    if (how) rows.push(["Why?", how]);
+    /* With a simple layer the working moves up as "On the page today". */
+    if (how && !simple) rows.push(["Why?", how]);
 
     var levels = wantLevels ? ckLevelBlock(m) : "";
     if (levels) rows.push(["Key levels", levels]);
@@ -28308,15 +28448,17 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<div class="pt-s">on this desk, right now</div></div>' +
       '<button class="tgl" type="button" data-ptclose="1">Close</button></div>' +
       (value ? '<div class="pt-big">' + value + "</div>" : "") +
-      rows.filter(function (kv) { return kv[1]; }).map(function (kv) {
-        return '<div class="pt-sec"><span class="pt-sk">' + kv[0] +
-               "</span>" + kv[1] + "</div>";
-      }).join("") +
-      (more.length
-        ? '<details class="pt-more"><summary>The detail behind it</summary>' +
-          more.map(function (p) { return "<p>" + p + "</p>"; }).join("") +
-          "</details>"
-        : "") +
+      (simple ? simpleHtml(simple, how) : "") +
+      detailHtml(
+        rows.filter(function (kv) { return kv[1]; }).map(function (kv) {
+          return '<div class="pt-sec"><span class="pt-sk">' + kv[0] +
+                 "</span>" + kv[1] + "</div>";
+        }).join("") +
+        (more.length
+          ? '<details class="pt-more"><summary>The detail behind it</summary>' +
+            more.map(function (p) { return "<p>" + p + "</p>"; }).join("") +
+            "</details>"
+          : ""), !simple) +
       (typeof lcPractiseHtml === "function" ? lcPractiseHtml(key, deepKey) : "");
     el.hidden = false;
   }
@@ -28331,18 +28473,21 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return v ? '<div class="pt-sec"><span class="pt-sk">' + k + "</span>" +
         v + "</div>" : "";
     };
+    var simple = simpleOf(label);
     el.innerHTML =
       '<div class="pt-hd"><div><div class="pt-t">' + pv.title + "</div>" +
       '<div class="pt-s">' + (m.cfg.label || "") + " &middot; " +
       esc(m.cfg.expiry || "") + " &middot; spot " + n2(m.cfg.spot) + "</div></div>" +
       '<button class="tgl" type="button" data-ptclose="1">Close</button></div>' +
-      sec("What it means &mdash; here", pv.means) +
-      sec("Impact", '<span class="pt-arrow">&rarr;</span> ' + pv.impact) +
-      sec("Why this one &mdash; the proof", pv.proof) +
-      (pv.caveat
-        ? '<details class="pt-more"><summary>What this rule cannot tell you' +
-          "</summary><p>" + pv.caveat + "</p></details>"
-        : "");
+      (simple ? simpleHtml(simple, pv.means) : "") +
+      detailHtml(
+        (simple ? "" : sec("What it means &mdash; here", pv.means)) +
+        sec("Impact", '<span class="pt-arrow">&rarr;</span> ' + pv.impact) +
+        sec("Why this one &mdash; the proof", pv.proof) +
+        (pv.caveat
+          ? '<details class="pt-more"><summary>What this rule cannot tell you' +
+            "</summary><p>" + pv.caveat + "</p></details>"
+          : ""), !simple);
     decorateTerms(el);
     el.hidden = false;
   }
@@ -28414,7 +28559,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "th", ".lvl-k", ".kpi-k", ".ck", ".k", ".qk", ".tcell-k", ".stack-k",
     ".grp-c", ".grp-p", ".pill", ".tagx", ".sub-k", ".step-k", ".mh-k",
     ".pt-rk", ".si-k", ".lg-k", ".ohlc-k", ".bandrow-k",
-    "h2", "td:first-child",
+    ".struct-k", ".prob-k", ".dh-k", ".legend > span", ".mtl-legend > span", ".nrg-legend > span",
+    "h2", "h3", "td:first-child",
     ".dt.legend td:first-child"
   ].join(", ");
 
@@ -28437,7 +28583,14 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       if (kids[i].nodeType === 3) out += kids[i].nodeValue;
     }
     out = out.replace(/\s+/g, " ").trim();
-    return out || (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (out) return out;
+    /* "<b>Gold</b><span>COMEX</span>": the bold part is the name, the rest
+       is a note beside it, so the label is "Gold", not "GoldCOMEX". */
+    var first = el.firstElementChild;
+    if (first && (first.tagName === "B" || first.tagName === "STRONG") && first.textContent.trim()) {
+      return first.textContent.replace(/\s+/g, " ").trim();
+    }
+    return (el.textContent || "").replace(/\s+/g, " ").trim();
   }
 
   function decorateTerms(root) {
@@ -28464,9 +28617,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
             el.hasAttribute("data-stock")) {
           return;
         }
+        /* A heading or key inside a button or link already does something
+           when clicked (a tab, a drawer); one inside a labelled card is
+           already explained by the card. */
+        if (el.parentElement && el.parentElement.closest("button, a, [data-term]")) return;
         var label = ownText(el);
-        if (!label || label.length > 40) return;
-        var key = termKey(label);
+        if (!label || label.length > 64) return;
+        var key = termKey(label) || (simpleFor(label) ? label : null);
         if (!key) return;
         el.setAttribute("data-term", label);
         el.classList.add("has-term");
@@ -28750,6 +28907,14 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
   function vtResolve(t) {
     if (!t || !t.closest) return null;
+    if (LEARN_MODE) {
+      var lt = t.closest("[data-term]");
+      var ls = lt ? simpleOf(lt.getAttribute("data-term")) : null;
+      if (ls && ls.simple) {
+        return vtBox(esc(deent(lt.getAttribute("data-term"))), "", null, esc(ls.simple)) +
+          '<div class="vt-hint">Click for the full explanation</div>';
+      }
+    }
     if (t.closest(".ch-wrap, .rb, [data-rung], #vtTip, #rungTip")) {
       /* charts with their own readout -- except a mark inside one that
          carries an explicit tip */
@@ -30939,7 +31104,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return '<section class="card"><div class="card-hd"><h2>Trade journal</h2><span class="sub">' + T.length + " entr" + (T.length === 1 ? "y" : "ies") + " &middot; kept only in this browser</span>" + dcExp("Trade journals have no controlled evidence in trading; recorded self-monitoring works in other goals (138 RCTs).") +
       '<div class="right"><button type="button" class="ps-btn" data-dcexport="1">Export journal</button><label class="ps-btn">Import<input type="file" accept="application/json,.json" data-dcimport="1" hidden></label></div></div>' +
       (DC_MSG ? '<p class="dc-msg">' + DC_MSG + "</p>" : "") +
-      (rows ? '<div class="tablewrap"><table class="dt ps-wrap"><thead><tr><th class="lft">Status</th><th class="lft">Position</th><th>Opened</th><th>Edge</th><th>Confidence</th><th>Emotion</th><th>Gate</th><th>Exit</th><th>Net P&amp;L</th><th>Per plan</th><th>Stop to close</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" :
+      (rows ? '<div class="tablewrap"><table class="dt ps-wrap"><thead><tr><th class="lft">Status</th><th class="lft">Position</th><th>Opened</th><th>Edge</th><th>Your confidence</th><th>Emotion</th><th>Gate</th><th>Exit</th><th>Net P&amp;L</th><th>Per plan</th><th>Stop to close</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" :
         '<p class="ps-msg">No journal entries yet. Every position added on My positions or from the Strategy lab builder passes the pre-trade gate and opens an entry here.</p>') +
       '<p class="ps-priv">Private: the journal, your limits and every override stay in this browser&rsquo;s localStorage and are never sent to the desk, the snapshot or any server. Export downloads a JSON file to your own machine; import reads one back.' +
       (DC_STORE_OK ? "" : " <b>Storage is blocked here, so entries last only until this page reloads: export before leaving.</b>") + "</p>" +
@@ -31382,7 +31547,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Opened": { plain: ["When the position passed the gate, on this browser's clock."], how: dcMetHow(function (M) { return "Newest " + (M.T.length ? dcWhen(Math.max.apply(null, M.T.map(function (t) { return t.opened; }))) : "none"); }) },
     "Edge": { plain: ["The edge you named for the trade: VRP rich, event premium, range and walls, or other.", "A trade with no named edge is a guess."],
       how: dcMetHow(function (M) { var c = {}; M.T.forEach(function (t) { c[t.edge || "none"] = (c[t.edge || "none"] || 0) + 1; }); return Object.keys(c).map(function (k) { return k + " " + c[k]; }).join(", ") || "0 named"; }) },
-    "Confidence": { plain: ["Your stated probability, at entry, that the trade ends in profit.", "It feeds the calibration score."],
+    /* Named apart from the desk-wide "Confidence" (how much of the desk's
+       evidence agrees), which would otherwise answer for this column. */
+    "Your confidence": { plain: ["Your stated probability, at entry, that the trade ends in profit.", "It feeds the calibration score."],
       how: dcMetHow(function (M) { return "Average " + (M.avgConf == null ? "n/a" : n0(M.avgConf) + "%") + " over " + M.calN + " scored trades"; }) },
     "Emotion": { plain: ["How you felt at entry, and how strongly (1-5).", "Strong emotion is flagged at the gate."],
       how: dcMetHow(function (M) { return M.T.filter(function (t) { return t.intensity >= 4; }).length + " entries at intensity 4 or 5"; }) },
@@ -31413,7 +31580,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     },
     "Looks today": { plain: ["How many times My positions was opened today in this browser."], how: dcHow(function () { var e = dcEvents(); var v = e.views, ks = Object.keys(v), tot = ks.reduce(function (a, k) { return a + (+v[k] || 0); }, 0); return (v[dcDay(dcNow())] || 0) + " looks today; " + tot + " over " + ks.length + " logged day(s), " + (ks.length ? nf(tot / ks.length, 1) : "0.0") + " a day."; }) },
     "Unscheduled looks": { plain: ["Times you opened live P&L outside a scheduled check."], how: dcHow(function () { var e = dcEvents(); var v = e.peeks, ks = Object.keys(v), tot = ks.reduce(function (a, k) { return a + (+v[k] || 0); }, 0); return (v[dcDay(dcNow())] || 0) + " unscheduled looks today; " + tot + " over " + ks.length + " logged day(s) with a 15-minute default window."; }) },
-    "Mode": { plain: ["Whether scheduled-check mode is on."], how: dcHow(function () { var S = dcSettings(); return "Scheduled checks are " + (S.check.on ? "on" : "off") + "; " + dcCheckTimes(S).length + " check time(s) set (" + esc(S.check.times) + "), window " + S.check.win + " minutes."; }) },
+    "Mode": { plain: ["Whether scheduled-check mode is on. When on, live P&L stays hidden except at your chosen check times or when a take-profit or stop alert fires; exit rules are watched the whole time.", "Turn it on if you catch yourself closing good trades early because of small swings; turn it off to see every tick again."], how: dcHow(function () { var S = dcSettings(); return "Scheduled checks are " + (S.check.on ? "on" : "off") + "; " + dcCheckTimes(S).length + " check time(s) set (" + esc(S.check.times) + "), window " + S.check.win + " minutes."; }) },
     "Evidence behind this tab": {
       plain: ["Every source the discipline features rest on, with a grade for how strong it is.", "Features without controlled evidence in trading are labelled experimental."],
       how: dcHow(function () { var ks = Object.keys(DC_SRC), g = function (r) { return ks.filter(function (k) { return r.test(DC_SRC[k][2]); }).length; }; return ks.length + " sources: " + g(/^A/) + " graded A, " + g(/^B/) + " graded B, " + g(/^C/) + " graded C and " + g(/^D/) + " graded D."; })
@@ -32490,11 +32657,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return t;
   }
   function lpCosts(P) {
-    var c = (typeof BT !== "undefined" && BT && BT.rules && BT.rules.costs) || { brokerage: 20, stt_sell: 0.001, exchange: 0.0003503, sebi: 0.000001, stamp_buy: 0.00003, gst: 0.18 };
+    var c = (typeof BT !== "undefined" && BT && BT.rules && BT.rules.costs) || { brokerage: 20, stt_sell: 0.0015, exchange: 0.0003553, sebi: 0.000001, stamp_buy: 0.00003, gst: 0.18 };
     var tot = 0;
     P.legs.forEach(function (x) {
       var u = Math.abs(x.q), inT = x.l.px * u, outT = Math.max(0, x.mark) * u, sellT = x.q < 0 ? inT : outT, buyT = x.q < 0 ? outT : inT;
-      var brk = 2 * lpNum(c.brokerage, 20), exch = (inT + outT) * lpNum(c.exchange, 0.0003503), sebi = (inT + outT) * lpNum(c.sebi, 0.000001);
+      var brk = 2 * lpNum(c.brokerage, 20), exch = (inT + outT) * lpNum(c.exchange, 0.0003553), sebi = (inT + outT) * lpNum(c.sebi, 0.000001);
       tot += brk + exch + sebi + sellT * lpNum(c.stt_sell, 0.001) + buyT * lpNum(c.stamp_buy, 0.00003) + (brk + exch + sebi) * lpNum(c.gst, 0.18);
     });
     return tot;
@@ -34089,6 +34256,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         ANALYSIS = a || {};
         if (["international", "energy-index", "metal-index"].indexOf(state.page) >= 0) render();
       }).catch(function () { ANALYSIS = {}; });
+      getJson("simple_terms.json").then(function (d) {
+        simpleSeed(d);
+        var c = document.getElementById("content");
+        if (c) decorateTerms(c);
+      }).catch(function () { /* the cards keep their existing text */ });
       getJson("brief.json").then(function (b) {
         BRIEF = b || {};
         if (state.page === "market-overview") render();
@@ -34373,6 +34545,32 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   });
 
   document.getElementById("railTog").addEventListener("click", toggleRail);
+
+  /* Learn mode: off by default, remembered in this browser only. */
+  var LEARN_KEY = "deskLearnMode";
+  function setLearn(on, save) {
+    LEARN_MODE = !!on;
+    document.documentElement.setAttribute("data-learn", LEARN_MODE ? "1" : "0");
+    var b = document.getElementById("learnBtn");
+    if (b) {
+      b.setAttribute("aria-pressed", LEARN_MODE ? "true" : "false");
+      b.setAttribute("data-tip", LEARN_MODE
+        ? "Learn mode is on: every term shows a ? mark and hovering it explains it in one line. Click to turn off."
+        : "Learn mode: mark every term and explain it in one line on hover.");
+    }
+    if (save) {
+      try { if (window.localStorage) window.localStorage.setItem(LEARN_KEY, LEARN_MODE ? "1" : "0"); }
+      catch (e) { /* private window: this visit only */ }
+    }
+  }
+  (function () {
+    var on = false;
+    try { on = !!(window.localStorage && window.localStorage.getItem(LEARN_KEY) === "1"); }
+    catch (e) { on = false; }
+    setLearn(on, false);
+  })();
+  var learnBtn = document.getElementById("learnBtn");
+  if (learnBtn) learnBtn.addEventListener("click", function () { setLearn(!LEARN_MODE, true); });
 
   document.getElementById("themeBtn").addEventListener("click", function () {
     var root = document.documentElement, cur = root.getAttribute("data-theme");
