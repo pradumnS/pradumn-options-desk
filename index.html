@@ -4817,7 +4817,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   function cmToday(I) {
     var SD = cmO(I.side);
-    return cmSafe(cmHead, I) + cmSafe(cmRange, I) + cmSafe(cmTrend, I) + cmSafe(cmCrack, I) + cmSafe(cmPlaybook, I) + cmSafe(cmExit, I) +
+    return cmSafe(cmHead, I) + cmSafe(cmRange, I) + cmSafe(cmLadder, I) + cmSafe(cmCurve, I) + cmSafe(cmTrend, I) + cmSafe(cmCrack, I) + cmSafe(cmPlaybook, I) + cmSafe(cmExit, I) +
       cmSafe(cmEvents, I) + cmSafe(cmSpecs, I) +
       '<section class="card">' + dsMethod("How the call is made",
         "The NIFTY desk&rsquo;s rule, unchanged: sell premium only when implied vol is at least " + cmX(cmO(SD.rule).rich) +
@@ -4828,6 +4828,81 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         "on this desk&rsquo;s own history; no commodity has that record yet. Where MCX lists only futures (aluminium, lead, nickel) or nothing at all " +
         "(platinum, palladium, iron ore, Brent, heating oil, gasoline, gasoil), there is no Indian option, so the call is always to stand aside and the page gives the trend and range read; " +
         "a US fund&rsquo;s implied vol, where one exists, is shown as context only.") + "</section>";
+  }
+
+  /* Every option expiry ahead, month by month (gold and silver include the
+     monthly series between their bi-monthly futures), each with its range. */
+  function cmLadder(I) {
+    var L = cmA(I.ladder).filter(function (e) { return e && cmStr(e.opt); });
+    if (!L.length) return "";
+    var T = "Commodity option expiries";
+    var rows = L.map(function (e) {
+      var kind = cmStr(e.kind) === "bi-monthly" ? "bi-monthly" : "monthly";
+      return "<tr" + (e.primary ? ' class="atm"' : "") + ">" + cmL("td", cmD(e.opt), T, "lft") +
+        "<td>" + esc(kind) + "</td><td>" + cmD(e.fut) + "</td><td>" + (cmNum(e.days) != null ? e.days : "&mdash;") +
+        " / " + (cmNum(e.sessions) != null ? e.sessions : "&mdash;") + "</td>" +
+        '<td data-tip="' + esc("1 sigma (68%) by " + cmD(e.opt) + ": " + cmFx(e.lo1, I) + " to " + cmFx(e.hi1, I)) + '">' + cmFx(e.lo1, I) + " &ndash; " + cmFx(e.hi1, I) + "</td>" +
+        '<td data-tip="' + esc("2 sigma (95%) by " + cmD(e.opt) + ": " + cmFx(e.lo2, I) + " to " + cmFx(e.hi2, I)) + '">' + cmFx(e.lo2, I) + " &ndash; " + cmFx(e.hi2, I) + "</td>" +
+        "<td>&plusmn;" + cmPc(e.movePct, 1) + "</td></tr>";
+    }).join("");
+    return cmCard(cmH2("Option expiries", T), "next " + L.length + " MCX option series &middot; same vol for each, scaled by time",
+      '<div class="tablewrap"><table class="dt"><thead><tr>' + cmL("th", "Option expiry", T, "lft") + cmL("th", "Series", T) +
+      cmL("th", "Underlying future", T) + cmL("th", "Days / sessions", T) + cmL("th", "1 sigma range", T) + cmL("th", "2 sigma range", T) +
+      cmL("th", "Move", T) + "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<div class="cm-note">The highlighted row is the expiry the call and the plan use (the first with enough sessions left). ' +
+      "Gold and silver futures are bi-monthly, but MCX also lists monthly options on the next future in the months between; both are listed. " +
+      "Exchange holidays are not modelled, so a date can move by a day.</div>");
+  }
+
+  /* MCX futures settlements for every live contract, and the world curve to a year. */
+  function cmCurve(I) {
+    var C = cmO(I.curve), M = cmA(C.mcx), W = cmA(C.world), P = cmO(C.points);
+    if (!M.length && !W.length) return "";
+    var T = "Commodity futures curve";
+    var p6 = cmO(P["6m"]), p12 = cmO(P["12m"]);
+    var tiles = '<div class="struct">' +
+      cmTile("Curve shape", esc(cmStr(C.shape) || "&mdash;"), "world futures, front to back", T) +
+      cmTile("6-month future", p6.px != null ? cmFx(p6.px, I, 2) : "&mdash;", p6.month ? esc(p6.month) + ", " + cmSg(p6.vsFrontPct, 2) + "% vs front" : "no contract near 6 months", T) +
+      cmTile("1-year future", p12.px != null ? cmFx(p12.px, I, 2) : "&mdash;", p12.month ? esc(p12.month) + ", " + cmSg(p12.vsFrontPct, 2) + "% vs front" : "no contract near a year", T) +
+      cmTile("Carry a year", p12.carryAnnPct != null ? cmSg(p12.carryAnnPct, 2) + "%" : (p6.carryAnnPct != null ? cmSg(p6.carryAnnPct, 2) + "%" : "&mdash;"),
+        "annualised, back month over front", T) + "</div>";
+    var tbl = function (list, label, unit, isWorld) {
+      if (!list.length) return "";
+      return '<div class="tablewrap"><table class="dt"><thead><tr>' + cmL("th", label, T, "lft") + cmL("th", "Futures price", T) +
+        cmL("th", "Days left", T) + cmL("th", "vs front", T) + cmL("th", "Carry a year", T) + "</tr></thead><tbody>" +
+        list.map(function (x) {
+          var nm = isWorld ? esc(cmStr(x.month)) + (x.sym ? " (" + esc(cmStr(x.sym)) + ")" : "") : cmD(x.expiry);
+          return "<tr>" + cmL("td", nm, T, "lft") + "<td>" + (isWorld ? "$" + cmFx(x.px, I, 2) : cmFx(x.px, I)) + "</td><td>" + (cmNum(x.days) != null ? x.days : "&mdash;") +
+            "</td><td>" + (x.vsFrontPct != null ? cmSg(x.vsFrontPct, 2) + "%" : "front") + "</td><td>" +
+            (x.carryAnnPct != null ? cmSg(x.carryAnnPct, 2) + "%" : "&mdash;") + "</td></tr>";
+        }).join("") + "</tbody></table></div>";
+    };
+    /* the world curve, price against days to the contract month */
+    var chart = "";
+    if (W.length >= 2) {
+      var w = 600, h = 150, pl = 8, pr = 8, pt = 14, pb = 22;
+      var dmax = Math.max.apply(null, W.map(function (x) { return x.days; }));
+      var lo = Math.min.apply(null, W.map(function (x) { return x.px; })), hi = Math.max.apply(null, W.map(function (x) { return x.px; }));
+      var pad = (hi - lo) * 0.15 || hi * 0.01;
+      lo -= pad; hi += pad;
+      var X = function (d) { return pl + d / dmax * (w - pl - pr); };
+      var Y = function (v) { return pt + (hi - v) / ((hi - lo) || 1) * (h - pt - pb); };
+      var path = W.map(function (x, i) { return (i ? "L" : "M") + X(x.days).toFixed(1) + " " + Y(x.px).toFixed(1); }).join(" ");
+      var dots = W.map(function (x) { return '<circle cx="' + X(x.days).toFixed(1) + '" cy="' + Y(x.px).toFixed(1) + '" r="3.2" fill="var(--calls)"></circle>'; }).join("");
+      var svg = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="World futures curve">' +
+        '<path d="' + path + '" fill="none" stroke="var(--calls)" stroke-width="2"></path>' + dots +
+        '<text x="' + pl + '" y="' + (h - 6) + '" class="axis">front</text><text x="' + (w - pr) + '" y="' + (h - 6) + '" class="axis" text-anchor="end">' + dmax + " days</text></svg>";
+      chart = chartWrap(svg, { pts: W.map(function (x) {
+        return { x: X(x.days), y: Y(x.px), date: cmStr(x.month) + " contract", big: "$" + cmFx(x.px, I, 2),
+          rows: [["Days", String(x.days)], ["vs front", x.vsFrontPct != null ? cmSg(x.vsFrontPct, 2) + "%" : "front"],
+                 ["Carry a year", x.carryAnnPct != null ? cmSg(x.carryAnnPct, 2) + "%" : "&mdash;"]], vol: null };
+      }), color: "var(--calls)", vbWidth: w, vbTop: 0, vbHeight: h });
+    }
+    return cmCard(cmH2("Futures curve", T), "MCX contracts in rupees &middot; world curve in dollars to a year",
+      tiles + chart + tbl(M, "MCX contract", "Rs", false) + tbl(W, "World contract month", "$", true) +
+      '<div class="cm-note">Contango (later months dearer) is the normal carry of storage and interest; backwardation (later months cheaper) ' +
+      "usually means tight supply now. The 6-month and 1-year points are the world contracts nearest those dates. " +
+      esc(cmStr(C.worldSource) || "") + (C.worldOn ? ", read " + esc(cmStr(C.worldOn).slice(0, 10)) : "") + ".</div>");
   }
 
   /* ----------------------------------------------------------- Volatility */
@@ -5210,6 +5285,29 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   /* Terms that need an implied vol borrow the nearest instrument that has one. */
   function cmWithIv(I) { return cmO(I.implied).has === true ? I : (cmInst(cmO(I).group === "energy" ? "CRUDEOIL" : "GOLD") || I); }
   var CM_TERMS = {
+    "Commodity option expiries": {
+      plain: ["Every MCX option expiry coming up for this commodity, month by month, with how far the price could move by each one.",
+        "Gold and silver futures expire every other month, but MCX lists monthly options in between on the next future, so the ladder has no gaps."],
+      deep: ["Each range is today's price times exp(+/- k x vol x sqrt(sessions / 252)), with k = 1 for 68% and 2 for 95%: the same vol, scaled by the time to each expiry."],
+      how: cmHow(function (I) {
+        var L = cmA(I.ladder);
+        if (!L.length) return esc(cmStr(I.label)) + " has no listed MCX option expiries on this desk (0 series).";
+        var f = L[0], b = L[L.length - 1];
+        return esc(cmStr(I.label)) + ": <b>" + L.length + "</b> option expiries, from " + cmD(f.opt) + " (&plusmn;" + cmPc(f.movePct, 1) + ") to " +
+          cmD(b.opt) + " (&plusmn;" + cmPc(b.movePct, 1) + ").";
+      })
+    },
+    "Commodity futures curve": {
+      plain: ["The prices of this commodity's futures for later months: every MCX contract trading, and the world curve out to about a year.",
+        "If later months cost more the curve is in contango; if less, backwardation. The 6-month and 1-year points show where the market prices it ahead."],
+      deep: ["Carry a year = (back price / front price)^(365 / days apart) - 1. In contango it roughly covers storage, insurance and interest; backwardation means the market pays for metal or oil now."],
+      how: cmHow(function (I) {
+        var C = cmO(I.curve), P = cmO(C.points), a = cmO(P["6m"]), b = cmO(P["12m"]);
+        return esc(cmStr(I.label)) + ": curve " + (esc(cmStr(C.shape)) || "&mdash;") + "; " + cmA(C.mcx).length + " MCX contract(s), " + cmA(C.world).length +
+          " world month(s); 6-month " + (a.px != null ? "$" + cmFx(a.px, I, 2) + " (" + cmSg(a.vsFrontPct, 2) + "%)" : "n/a") +
+          ", 1-year " + (b.px != null ? "$" + cmFx(b.px, I, 2) + " (" + cmSg(b.vsFrontPct, 2) + "%)" : "n/a") + ".";
+      })
+    },
     "Commodity side call": {
       plain: ["Whether to sell option premium on this MCX commodity today, or stand aside: the NIFTY desk's rule, applied to the commodity.",
         "Selling needs implied vol at least 1.10x the forecast of realised vol and no event that has measurably moved this market before expiry."],
@@ -5505,6 +5603,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     })
   };
   var CM_ALIAS = {
+    "Option expiries": "Commodity option expiries", "Option expiry": "Commodity option expiries", "Series": "Commodity option expiries",
+    "Underlying future": "Commodity option expiries", "Days / sessions": "Commodity option expiries", "1 sigma range": "Commodity option expiries",
+    "2 sigma range": "Commodity option expiries", "Move": "Commodity option expiries",
+    "Futures curve": "Commodity futures curve", "Curve shape": "Commodity futures curve", "6-month future": "Commodity futures curve",
+    "1-year future": "Commodity futures curve", "Carry a year": "Commodity futures curve", "MCX contract": "Commodity futures curve",
+    "World contract month": "Commodity futures curve", "vs front": "Commodity futures curve",
+    "Futures price": "Commodity futures curve", "Days left": "Commodity futures curve",
     "Today's call": "Commodity side call", "Implied / forecast": "Commodity side call",
     "MCX futures": "Commodity MCX price", "MCX price": "Commodity MCX price",
     "Implied vol in rupees": "Commodity implied vol", "OVX": "Commodity implied vol", "GVZ": "Commodity implied vol",
