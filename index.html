@@ -3121,7 +3121,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   /* ---- 1. this week, decoded ----------------------------------------- */
   function mtlDecodeCard(m) {
     if (!m) return "";
-    var L = m.latest, nm = m.label, c = mtlCrowdLabel(L.cot);
+    var L = m.latest, nm = m.label ? esc(m.label) : "this metal", c = mtlCrowdLabel(L.cot);
     var prevNet = L.net - (L.dN || 0);
     var flipped = prevNet !== 0 && L.net !== 0 && (prevNet > 0) !== (L.net > 0);
     var buyer = (L.dN || 0) > 0;
@@ -3695,6 +3695,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
      loaders stay independent. Re-renders only if the Metal tab is open. */
   getJson("metals.json").then(function (d) {
     MTL = d || {};
+    /* a metal without its name is a partial export: name it by its key or drop it */
+    if (Array.isArray(MTL.metals)) MTL.metals = MTL.metals.filter(function (m) {
+      if (!m || typeof m !== "object") return false;
+      if (typeof m.label !== "string" || !m.label) m.label = typeof m.key === "string" && m.key ? m.key : null;
+      return !!m.label;
+    });
     if (state.page === "metal-index" && MODEL[state.idx]) render();
   }).catch(function () { MTL = {}; });
 
@@ -4504,7 +4510,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function pbLeg(g) {
     return '<div class="pbm-leg"><span class="pbm-act ' + (g.act === "SELL" ? "s" : "b") + '">' + g.act + "</span>" +
       '<span class="pbm-k">' + pbN(g.k) + " " + esc(g.type) + "</span>" +
-      '<span class="pbm-px">@ ' + (g.px == null ? "&mdash;" : g.px.toFixed(1)) + (g.est ? "*" : "") + "</span>" +
+      '<span class="pbm-px">@ ' + (g.px == null || !isFinite(g.px) ? "&mdash;" : (+g.px).toFixed(1)) + (g.est ? "*" : "") + "</span>" +
       (g.liquid === false ? '<span class="pbm-thin">thin</span>' : "") + "</div>";
   }
   function pbIdea(i) {
@@ -4514,7 +4520,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "<span>Max profit <b>Rs " + pbN(i.maxProfitRs) + "</b></span>" +
       "<span>Max loss <b>Rs " + pbN(i.maxLossRs) + "</b></span>" +
       "<span>Breakeven <b>" + (i.breakevens || []).map(pbN).join(" / ") + "</b></span>" +
-      '<span class="pbm-lots">Lots <b>' + i.lots + "</b></span></div>" +
+      '<span class="pbm-lots">Lots <b>' + pbN(i.lots) + "</b></span></div>" +
       "<p>" + esc(i.why || "") + "</p></div>";
   }
   function pbMatrix(P) {
@@ -5031,7 +5037,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
 
   function vpRankCard() {
-    var R = VP.rank || {}, iv = R.iv || {}, i30 = R.iv30 || {}, vx = R.vix || {}, S = R.vixSeries || [];
+    var R = VP.rank || {}, iv = R.iv || {}, i30 = R.iv30 || {}, vx = R.vix || {};
+    var S = (R.vixSeries || []).filter(function (s) { return Array.isArray(s) && typeof s[0] === "string"; });
     var tiles = '<div class="struct">' +
       sc("Front IV rank", vpP(iv.rank, 0), "range " + vpP(iv.min, 1) + " to " + vpP(iv.max, 1) + " over " + vpN(iv.n) + " sessions") +
       sc("Front IV percentile", vpP(iv.pct, 0), "share of stored sessions below today's " + vpP(iv.cur, 2)) +
@@ -5057,7 +5064,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function vpConeCard() {
     var C = VP.cone;
     if (!C || !(C.rows || []).length) return "";
-    var rows = C.rows, n = rows.length;
+    /* a row draws only with its whole band; a partial row would put NaN in the polygons */
+    var rows = C.rows.filter(function (r) {
+      return r && ["min", "p25", "p50", "p75", "max"].every(function (k) { return typeof r[k] === "number" && isFinite(r[k]); });
+    }), n = rows.length;
+    if (n < 2) return "";
     var W = 900, H = 250, L = 46, R = 12, T = 14, B = H - 22;
     var cap = Math.max.apply(null, rows.map(function (r) { return Math.max(r.p75 * 1.5, r.cur || 0, r.iv || 0); })) * 1.05;
     var lo = 0;
@@ -5067,7 +5078,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return rows.map(function (r, i) { return X(i).toFixed(1) + "," + Y(r[a]).toFixed(1); }).concat(
         rows.slice().reverse().map(function (r, j) { return X(n - 1 - j).toFixed(1) + "," + Y(r[b]).toFixed(1); })).join(" ");
     };
-    var line = function (k) { return rows.map(function (r, i) { return X(i).toFixed(1) + "," + Y(r[k]).toFixed(1); }).join(" "); };
+    var line = function (k) {
+      return rows.map(function (r, i) { return r[k] != null && isFinite(r[k]) ? X(i).toFixed(1) + "," + Y(r[k]).toFixed(1) : ""; })
+        .filter(Boolean).join(" ");
+    };
     var svg = '<svg class="vp-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Realised volatility cone">';
     [0, 0.5, 1].forEach(function (q) {
       var v = cap * (1 - q), y = T + (B - T) * q;
@@ -5079,24 +5093,24 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<polyline fill="none" stroke="var(--calls)" stroke-width="2" points="' + line("p50") + '"></polyline>' +
       '<polyline fill="none" stroke="var(--ink-2)" stroke-width="1.6" stroke-dasharray="5 4" points="' + line("cur") + '"></polyline>';
     rows.forEach(function (r, i) {
-      if (r.iv != null) {
+      if (r.iv != null && isFinite(r.iv)) {
         svg += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.iv).toFixed(1) + '" r="5" fill="var(--puts)" stroke="var(--surface)" stroke-width="2"></circle>';
       }
-      svg += '<text class="axis" x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + r.h + " sessions</text>";
+      svg += '<text class="axis" x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + vpN(r.h) + " sessions</text>";
     });
     svg += "</svg>";
     var pts = rows.map(function (r, i) {
       return {
-        x: X(i), y: Y(r.iv != null ? r.iv : r.p50), date: r.h + "-session realised vol since " + C.from.slice(0, 4),
+        x: X(i), y: Y(r.iv != null && isFinite(r.iv) ? r.iv : r.p50), date: vpN(r.h) + "-session realised vol since " + String(C.from || "").slice(0, 4),
         big: r.iv != null ? "Implied " + vpP(r.iv, 2) + " &middot; " + vpN(r.ivPct, 0) + "th pct" : "no implied",
         chg: r.verdict, chgUp: r.ivPct != null && r.ivPct >= 50,
         rows: [["Max", vpP(r.max, 1)], ["75th", vpP(r.p75, 1)], ["Median", vpP(r.p50, 1)], ["25th", vpP(r.p25, 1)], ["Min", vpP(r.min, 1)],
-               ["Realised now", vpP(r.cur, 1)], ["Implied from", r.ivExp ? esc(r.ivExp) + " (" + r.ivSessions + " sessions)" : "&mdash;"]],
+               ["Realised now", vpP(r.cur, 1)], ["Implied from", r.ivExp ? esc(r.ivExp) + " (" + vpN(r.ivSessions) + " sessions)" : "&mdash;"]],
         vol: null
       };
     });
     var body = rows.map(function (r) {
-      return '<tr><td class="lft">' + r.h + "</td><td>" + vpP(r.min, 1) + "</td><td>" + vpP(r.p25, 1) + "</td><td>" + vpP(r.p50, 1) + "</td><td>" +
+      return '<tr><td class="lft">' + vpN(r.h) + "</td><td>" + vpP(r.min, 1) + "</td><td>" + vpP(r.p25, 1) + "</td><td>" + vpP(r.p50, 1) + "</td><td>" +
         vpP(r.p75, 1) + "</td><td>" + vpP(r.max, 1) + "</td><td>" + vpP(r.cur, 1) + "</td><td><b>" + vpP(r.iv, 2) + "</b></td><td>" +
         vpN(r.ivPct, 0) + "</td><td>" + esc(r.verdict) + "</td></tr>";
     }).join("");
@@ -5591,8 +5605,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   /* ---------- builder state (localStorage, this browser only) ---------- */
   function slFromRow(r) {
     if (!r) return { src: "Nothing loaded", legs: [] };
-    return { src: (r.rank ? "Scanner row " + r.rank + ": " : "Scanner reference row: ") + r.expiry + " " +
-               String(SL_STRUCT[r.struct] || "").toLowerCase() + " " + r.name,
+    return { src: (r.rank ? "Scanner row " + r.rank + ": " : "Scanner reference row: ") + (r.expiry || "") + " " +
+               String(SL_STRUCT[r.struct] || "").toLowerCase() + " " + (r.name || ""),
              legs: r.legs.map(function (g) { return { act: g.act, exp: r.expiry, k: g.k, type: g.type, lots: 1 }; }) };
   }
   function slFromPlaybook() {
@@ -5696,7 +5710,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       ["Theta / vega a lot", slRs(r.theta) + " a day / " + slRs(r.vega) + " per vol pt"],
       ["Breached in history", vpP(r.histTouch, 1) + " on a close, " + vpP(r.histEnd, 1) + " at the end (" + vpN(r.histN) + " cases)"]
     ];
-    return vtBox(esc(slEs(r.expiry) + " " + String(SL_STRUCT[r.struct] || "").toLowerCase() + " " + r.name),
+    return vtBox(esc(slEs(r.expiry) + " " + String(SL_STRUCT[r.struct] || "").toLowerCase() + " " + (r.name || "")),
       "EV " + slRs(r.ev) + " a lot after costs", rows, (r.flags || []).map(esc).join("<br>"));
   }
   function slTable(list, strangle) {
@@ -5713,7 +5727,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
           '</td><td class="' + cls + '">' + slPct((r.evPerRisk || 0) * 100) + "</td><td>" + vpP(r.touch, 0) + "</td><td>" + load + "</td></tr>";
       }
       return '<tr class="sl-row' + (r.top ? " sl-top" : "") + '" data-tip="' + esc(slTip(r)) + '"><td>' + r.rank + "</td><td>" + load + "</td><td>" + esc(slEs(r.expiry)) +
-        '</td><td class="lft">' + SL_STRUCT[r.struct] + '</td><td class="lft sl-strikes">' + slStrikes(r) + "</td><td>" + vpN(r.credit, 1) +
+        '</td><td class="lft">' + (SL_STRUCT[r.struct] || "&mdash;") + '</td><td class="lft sl-strikes">' + slStrikes(r) + "</td><td>" + vpN(r.credit, 1) +
         "</td><td>" + slRsU(r.maxLossRs) + "</td><td>" + vpP(r.pop, 0) + '</td><td class="' + cls + '">' + slRs(r.ev) +
         '</td><td class="' + cls + '">' + slPct((r.evPerRisk || 0) * 100) + "</td><td>" + vpP(r.touch, 0) + "</td><td>" + vpP(r.histTouch, 0) +
         "</td><td>" + slRs(r.theta) + '</td><td class="lft">' + slFlagTags(r) + "</td></tr>";
@@ -5727,8 +5741,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var b = (SL.rows || [])[0], sd = SL.side || {};
     var front = (SL.expiries || [])[0] || {};
     var c = SL.counts || {}, tot = { put_spread: 0, call_spread: 0, condor: 0 };
-    Object.keys(c).forEach(function (e) { Object.keys(tot).forEach(function (k) { tot[k] += c[e][k] || 0; }); });
-    return vpCard("Strategy lab summary", "NIFTY " + vpN(SL.spot, 2) + " &middot; lot " + SL.lot + " &middot; chains from the " + vpD(SL.asOf) + " close",
+    Object.keys(c).forEach(function (e) { Object.keys(tot).forEach(function (k) { tot[k] += (c[e] || {})[k] || 0; }); });
+    return vpCard("Strategy lab summary", "NIFTY " + vpN(SL.spot, 2) + " &middot; lot " + vpN(SL.lot) + " &middot; chains from the " + vpD(SL.asOf) + " close",
       '<div class="struct">' +
       sc("Side rule", sideWord(sd.side), "implied / forecast " + vpN(sd.ratio, 2) + "x on the " + vpD(sd.date) + " close") +
       sc("Best EV per lot", b ? slRs(b.ev) : "&mdash;", b ? slEs(b.expiry) + " " + String(SL_STRUCT[b.struct] || "").toLowerCase() + ", after costs" : "nothing ranked") +
@@ -5742,7 +5756,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
   function slRankCard() {
     var list = slFiltered();
-    var exps = (SL.expiries || []).map(function (e) { return e.expiry; });
+    var RU = SL.rules || {}, RW = RU.widths || [], RL_ = RU.liq || {};
+    var exps = (SL.expiries || []).map(function (e) { return e && e.expiry; }).filter(function (e) { return typeof e === "string" && e; });
     var f = '<div class="sl-filters">' +
       '<div class="sl-fgrp"><span class="sl-flab">Expiry</span>' + slBtn("data-slx", "all", "All", SL_F.x === "all") +
         exps.map(function (e) { return slBtn("data-slx", e, slEs(e), SL_F.x === e); }).join("") + "</div>" +
@@ -5756,22 +5771,22 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var body = list.length ? slTable(list, false)
       : '<div class="caution sl-ref"><p>No kept row matches these filters. Loosen the minimum POP or the maximum loss.</p></div>';
     return vpCard("Ranked trades", "best EV per rupee at risk first &middot; " + vpN(list.length) + " of " + vpN((SL.rows || []).length) +
-      " kept rows shown (top " + SL.rules.topN + " overall plus the best " + SL.rules.topPer + " of each expiry and structure)" +
+      " kept rows shown (top " + vpN(RU.topN) + " overall plus the best " + vpN(RU.topPer) + " of each expiry and structure)" +
       (SL.reference ? " &middot; ranked for reference" : ""),
       f + body +
       '<div class="vp-note">Hover a row for every number behind it; <b>Load</b> puts it in the builder below. EV per risk = EV after costs / (max loss + costs). ' +
       "POP and touch come from the smile&rsquo;s risk-neutral density; EV from the desk&rsquo;s history distribution, the worse of vol-scaled and raw. " +
       "History breach = share of NIFTY closes since " + esc((SL.historyFrom || "").slice(0, 4)) + " on which a strike as many sigma away was closed beyond within the same number of sessions.</div>" +
-      dsMethod("How the scanner ranks", esc(SL.method || "") + " Short strikes " + SL.rules.zMin + " to " + SL.rules.zMax + " sigma out of the money, widths " +
-        SL.rules.widths[0] + " to " + SL.rules.widths[1] + " points; condors pair the best " + SL.rules.condorPool + " put and call spreads of each expiry. Every leg passes the liquidity floors " +
-        "(OI at least " + vpN(SL.rules.liq.oiFrac * 100) + "% of the deepest strike, volume at least " + vpN(SL.rules.liq.volFrac * 100) + "% of the busiest, with absolute floors). " +
-        "A measured event inside the trade&rsquo;s life widens the desk distribution; a short put whose IV sits " + SL.rules.richWing + " vol points or more over ATM is flagged as a rich put wing.") +
+      dsMethod("How the scanner ranks", esc(SL.method || "") + " Short strikes " + vpN(RU.zMin, 1) + " to " + vpN(RU.zMax, 1) + " sigma out of the money, widths " +
+        vpN(RW[0]) + " to " + vpN(RW[1]) + " points; condors pair the best " + vpN(RU.condorPool) + " put and call spreads of each expiry. Every leg passes the liquidity floors " +
+        "(OI at least " + vpN(RL_.oiFrac * 100) + "% of the deepest strike, volume at least " + vpN(RL_.volFrac * 100) + "% of the busiest, with absolute floors). " +
+        "A measured event inside the trade&rsquo;s life widens the desk distribution; a short put whose IV sits " + vpN(RU.richWing) + " vol points or more over ATM is flagged as a rich put wing.") +
       dsMethod("Costs", esc(SL.costs.text || "")));
   }
   function slStrangleCard() {
     var list = SL.strangles || [];
     if (!list.length) return "";
-    return vpCard("Short strangles", "reference only &middot; unlimited risk &middot; never ranked &middot; best " + SL.rules.topPer + " per expiry by EV per margin",
+    return vpCard("Short strangles", "reference only &middot; unlimited risk &middot; never ranked &middot; best " + vpN((SL.rules || {}).topPer) + " per expiry by EV per margin",
       '<div class="caution sl-ref"><p><b>Unlimited risk.</b> A short strangle has no long wing: the loss beyond a breakeven grows point for point. Shown only to compare what the wings cost; margin proxy = ' +
       vpN(SL.costs.marginPct * 100) + "% of spot x lot.</p></div>" + slTable(list, true));
   }
@@ -5798,7 +5813,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
 
   function slLegsTable(B, A) {
-    var exps = (SL.expiries || []).map(function (e) { return e.expiry; });
+    var exps = (SL.expiries || []).map(function (e) { return e && e.expiry; }).filter(function (e) { return typeof e === "string" && e; });
     var opt = function (v, cur, label) { return '<option value="' + esc(String(v)) + '"' + (String(v) === String(cur) ? " selected" : "") + ">" + (label || esc(String(v))) + "</option>"; };
     var rows = B.legs.map(function (l, i) {
       var E = slExp(l.exp), q = slQuote(l);
@@ -5869,6 +5884,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     }
     var all = ye.concat(yt).concat([0]);
     var y0 = Math.min.apply(null, all), y1 = Math.max.apply(null, all), pad = (y1 - y0) * 0.08 || 1;
+    if (!isFinite(y0) || !isFinite(y1) || !isFinite(lo) || !isFinite(hi) || !(hi > lo) || !isFinite(SL.spot)) {
+      /* a partial scanner export (no lot, spot or forward) leaves nothing to draw */
+      return vpCard("Payoff", "not available", '<div class="caution sl-ref"><p>The payoff cannot be drawn: this snapshot lacks the lot size, spot or forward it needs.</p></div>');
+    }
     y0 -= pad; y1 += pad;
     var X = function (x) { return L + (x - lo) / (hi - lo) * (W - L - R); };
     var Y = function (v) { return Bm - (v - y0) / (y1 - y0) * (Bm - T); };
@@ -6254,13 +6273,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   function grTable() {
     var rows = (GR.studies || []).map(function (s) {
-      return '<tr><td class="lft">' + GR_LABEL[s.key] + '</td><td class="lft gr-claim">' + esc(s.claim || "") + "</td>" +
+      return '<tr><td class="lft">' + (GR_LABEL[s.key] || "&mdash;") + '</td><td class="lft gr-claim">' + esc(s.claim || "") + "</td>" +
         "<td>" + grN(s.n) + "</td><td>" + grHit(s) + "</td><td>" + grBase(s) + "</td>" +
         '<td class="' + ((s.effect || 0) > 0 ? "pos" : (s.effect || 0) < 0 ? "neg" : "") + '">' + grEff(s) + "</td>" +
         "<td>" + grPv(s.p) + "</td><td>" + grVerdict(s.verdict) + '</td><td class="lft">' + grBarPair(s) + "</td></tr>";
     }).join("");
     var base = (GR.studies || []).map(function (s) {
-      return "<b>" + GR_LABEL[s.key] + "</b>: baseline = " + esc(s.baseLabel || "") + "; test = " + esc(s.test || "") + ".";
+      return GR_LABEL[s.key] ? "<b>" + GR_LABEL[s.key] + "</b>: baseline = " + esc(s.baseLabel || "") + "; test = " + esc(s.test || "") + "." : "";
     }).join(" ");
     return '<section class="card"><div class="card-hd"><h2>Signal scorecard</h2><span class="sub">' +
       "each signal against its baseline &middot; independent cases only &middot; retrospective</span></div>" +
@@ -6548,7 +6567,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function fpTag(v) { return v ? '<span class="fp-tag ' + v + '">' + v + "</span>" : "&mdash;"; }
   function fpG(g) {
     var P = (FP && FP.participants) || {};
-    return (P.groups || []).filter(function (r) { return r.g === g; })[0] || {};
+    return fpGroups(P).filter(function (r) { return r.g === g; })[0] || {};
+  }
+  /* the participant rows the page can name (FII, Pro, Client, DII); a row
+     without its group is a partial export, not a fifth participant */
+  function fpGroups(P) {
+    return ((P && P.groups) || []).filter(function (r) { return r && typeof r === "object" && FP_GD[r.g]; });
   }
   function fpWriters(kind) {
     var w = (((FP || {}).participants || {}).writers || {})[kind] || [];
@@ -6629,7 +6653,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (!P) return "";
     var td = function (l, sh) { return "<td>" + vpN(l) + " / " + vpN(sh) + "</td>"; };
     var tc = function (v) { return '<td class="' + (v == null ? "" : v >= 0 ? "pos" : "neg") + '">' + vpS(v, 0) + "</td>"; };
-    var body = (P.groups || []).map(function (r) {
+    var body = fpGroups(P).map(function (r) {
       return '<tr><td class="lft" data-term="Participant-wise open interest"><span class="fp-dot" data-tip="' +
         esc(r.g + ": " + FP_GD[r.g]) + '" style="background:' + FP_GC[r.g] + '"></span>' + esc(r.g) + "</td>" +
         td(r.futL, r.futS) + "<td><b>" + vpS(r.futNet, 0) + "</b></td>" + tc(r.futNetChg) +
@@ -6654,7 +6678,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (!f) return "";
     var chart;
     if (FP_L) {
-      var L = f.longSeries || [];
+      var L = (f.longSeries || []).filter(function (x) { return Array.isArray(x) && typeof x[0] === "string"; });
       chart = vpXY(L.map(function (x, i) { return i; }), [{ label: "FII long share", color: FP_GC.FII, vals: L.map(function (x) { return x[1] * 100; }) }], {
         w: 600, h: 200, fmtY: function (v) { return vpN(v, 0) + "%"; }, fmtX: function (x) { return vpDs(L[x][0]); }, aria: "FII long share since 2021",
         hl: [{ y: f.medLong * 100, label: "median " + fpPct(f.medLong) }],
@@ -6663,12 +6687,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       });
     } else {
       var S = fpSeries();
-      var sh = S.map(function (e) { var r = e.FII; return r[0] + r[1] ? r[0] / (r[0] + r[1]) * 100 : null; });
+      var sh = S.map(function (e) { var r = (e && e.FII) || []; return r[0] + r[1] ? r[0] / (r[0] + r[1]) * 100 : null; });
       chart = vpXY(S.map(function (e, i) { return i; }), [{ label: "FII long share", color: FP_GC.FII, vals: sh }], {
         w: 600, h: 200, fmtY: function (v) { return vpN(v, 0) + "%"; }, fmtX: function (x) { return vpDs(S[x].d); }, aria: "FII long share by session",
         hl: [{ y: 50, label: "50% balanced" }],
         title: function (i) { return vpD(S[i].d); },
-        rows: function (i) { var r = S[i].FII; return [["Long", vpN(r[0])], ["Short", vpN(r[1])], ["Net", vpS(r[0] - r[1], 0)]]; }
+        rows: function (i) { var r = (S[i] && S[i].FII) || []; return [["Long", vpN(r[0])], ["Short", vpN(r[1])], ["Net", vpS(r[0] - r[1], 0)]]; }
       });
     }
     var tiles = '<div class="struct">' +
@@ -6709,7 +6733,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
 
   function fpBars(kind) {
-    var rows = (FP.participants.groups || []);
+    var rows = fpGroups(FP.participants);
     var k = kind + "Net";
     var mx = Math.max.apply(null, rows.map(function (r) { return Math.abs(r[k] || 0); }).concat([1]));
     var col = kind === "call" ? "var(--calls)" : "var(--puts)";
@@ -6741,7 +6765,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         big: function (i) { return "FII " + vpS(fpNet(S[i], "FII", kind), 0); }
       });
     };
-    var body = (P.groups || []).map(function (r) {
+    var body = fpGroups(P).map(function (r) {
       return '<tr><td class="lft" data-term="Who is short options"><span class="fp-dot" data-tip="' + esc(r.g + ": " + FP_GD[r.g]) +
         '" style="background:' + FP_GC[r.g] + '"></span>' + esc(r.g) + "</td><td><b>" + vpS(r.callNet, 0) + "</b></td><td>" + vpS(r.callNetChg5, 0) +
         "</td><td>" + vpS(r.callNetChg20, 0) + "</td><td><b>" + vpS(r.putNet, 0) + "</b></td><td>" + vpS(r.putNetChg5, 0) + "</td><td>" +
@@ -7645,11 +7669,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   /* Grouped histogram: one bar per rule per bin, every bar answers the cursor. */
   function stHist(title, sub, edges, key, fmtEdge, unit, say) {
     var keys = stShown(), H = (ST.hist || {}).rules || {};
-    keys = keys.filter(function (k) { return H[k]; });
-    if (!keys.length) return "";
+    keys = keys.filter(function (k) { return H[k] && Array.isArray(H[k][key]); });
+    if (!keys.length || !Array.isArray(edges) || edges.length < 2) return "";
     var nb = edges.length - 1, W = 900, Ht = 250, L = 46, R = 10, T = 12, B = Ht - 36;
     var mx = 0;
-    keys.forEach(function (k) { H[k][key].forEach(function (v) { mx = Math.max(mx, v); }); });
+    keys.forEach(function (k) { H[k][key].forEach(function (v) { if (v != null && isFinite(v)) mx = Math.max(mx, v); }); });
     mx = mx * 1.08 || 1;
     var bw = (W - L - R) / nb, gw = bw * 0.82 / keys.length;
     var Y = function (v) { return B - v / mx * (B - T); };
@@ -7663,7 +7687,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     for (var i = 0; i < nb; i++) {
       var x0 = L + i * bw + bw * 0.09, rows = [];
       keys.forEach(function (k, j) {
-        var v = H[k][key][i], y = Y(v);
+        var v = H[k][key][i], y = Y(v != null && isFinite(v) ? v : 0);   /* a missing bin draws empty */
         var tip = esc(stShort(k)) + ": " + stN(v, 2) + "% of " + unit + " in " + fmtEdge(edges[i]) + " to " + fmtEdge(edges[i + 1]);
         svg += '<rect x="' + (x0 + j * gw).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(gw - 1, 1).toFixed(1) + '" height="' +
           Math.max(B - y, 0.5).toFixed(1) + '" fill="' + ST_C[j % ST_C.length] + '" data-tip="' + tip + '"></rect>';
@@ -8081,6 +8105,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var out = t.length > 3 ? t.slice(0, -3).replace(/([0-9])(?=([0-9][0-9])+$)/g, "$1,") + "," + t.slice(-3) : t;
     return "&#8377;" + (neg ? "-" : "") + out;
   }
+  /* a plain figure, a dash when the exporter left it out */
+  function irV(x, d) { return x == null || x === "" || !isFinite(x) ? "&mdash;" : d == null ? String(+x) : (+x).toFixed(d); }
   function irSrc(label, url, verified, note) {
     var a = url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + "</a>" : esc(label);
     return a + (verified ? "" : ' <span class="ir-asm">assumption</span>') + (note ? " (" + esc(note) + ")" : "");
@@ -8166,20 +8192,23 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (X && X.early && X.held) {
       var e = X.early, h = X.held;
       var line = function (lab, a, b) { return "<tr><td>" + lab + "</td><td>" + a + "</td><td>" + b + "</td></tr>"; };
-      var p = function (o, k) { return irRs(o.parts[k]); };
+      var p = function (o, k) { return irRs((o.parts || {})[k]); };
+      var es = function (o) { var q = o.parts || {}; return q.exchange == null && q.sebi == null ? null : (q.exchange || 0) + (q.sebi || 0); };
       exTbl = '<div class="ir-sub">Worked example: one lot of today&rsquo;s playbook condor</div>' +
-        '<div class="ir-say"><b>' + esc(X.name || "Iron condor") + "</b>, expiry " + esc(X.expiry) + ", lot " + X.lot + ": " +
-        X.legs.map(function (g) { return (g.act === "SELL" ? "S " : "B ") + g.k + " " + g.type + " @ " + (+g.px).toFixed(2); }).join(" / ") +
-        ". Credit " + (+X.creditPts).toFixed(2) + " pts = <b>" + irRs(e.creditRs) + "</b>. Closed early it costs <b>" + e.pctCredit +
-        "%</b> of the credit; held to expiry <b>" + h.pctCredit + "%</b>. " + esc(X.assumptions) + "</div>" +
+        '<div class="ir-say"><b>' + esc(X.name || "Iron condor") + "</b>, expiry " + esc(X.expiry || "") + ", lot " + irV(X.lot) + ": " +
+        (Array.isArray(X.legs) ? X.legs : []).filter(function (g) { return g && typeof g === "object"; }).map(function (g) {
+          return (g.act === "SELL" ? "S " : "B ") + irV(g.k) + " " + esc(g.type || "") + " @ " + irV(g.px, 2);
+        }).join(" / ") +
+        ". Credit " + irV(X.creditPts, 2) + " pts = <b>" + irRs(e.creditRs) + "</b>. Closed early it costs <b>" + irV(e.pctCredit) +
+        "%</b> of the credit; held to expiry <b>" + irV(h.pctCredit) + "%</b>. " + esc(X.assumptions || "") + "</div>" +
         '<div class="tbl-wrap"><table class="dt ir-tbl"><thead><tr><th>Cost item</th><th>Entered, closed early</th><th>Held to expiry</th></tr></thead><tbody>' +
-        line("Orders", e.orders, h.orders) + line("Brokerage", p(e, "brokerage"), p(h, "brokerage")) +
+        line("Orders", irV(e.orders), irV(h.orders)) + line("Brokerage", p(e, "brokerage"), p(h, "brokerage")) +
         line("STT", p(e, "stt"), p(h, "stt")) +
-        line("Exchange and SEBI", irRs(e.parts.exchange + e.parts.sebi), irRs(h.parts.exchange + h.parts.sebi)) +
+        line("Exchange and SEBI", irRs(es(e)), irRs(es(h))) +
         line("Stamp duty", p(e, "stamp"), p(h, "stamp")) + line("GST", p(e, "gst"), p(h, "gst")) +
         line("Slippage", p(e, "slippage"), p(h, "slippage")) +
         line("Total cost", "<b>" + irRs(e.totalRs) + "</b>", "<b>" + irRs(h.totalRs) + "</b>") +
-        line("Share of credit", e.pctCredit + "%", h.pctCredit + "%") +
+        line("Share of credit", irV(e.pctCredit) + (e.pctCredit != null ? "%" : ""), irV(h.pctCredit) + (h.pctCredit != null ? "%" : "")) +
         "</tbody></table></div>";
     }
     return '<section class="card ir-card"><div class="card-hd"><h2>Rules in force</h2>' +
@@ -8327,6 +8356,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     document.head.appendChild(el);
   })();
 
+  /* the year of an ISO date, a dash when the exporter left it out */
+  function rlYr(d) { return typeof d === "string" && d.length >= 4 ? esc(d.slice(0, 4)) : "&mdash;"; }
   var RL_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function rlN(v, d) {
     if (v == null || !isFinite(v)) return "&mdash;";
@@ -8487,7 +8518,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return '<tr><td class="lft" data-tip="' + esc(r.text) + '">Candidate ' + esc(r.name) + '</td><td class="' + rlCls(a.expectancy) + '" data-tip="' + esc(rlN(a.n) + " trades, 2008-2019") + '">' + rlRs(a.expectancy, true) +
         '</td><td class="' + rlCls(a.sharpe) + '">' + rlF(a.sharpe) + "</td><td>" + rlN(b.n) + "</td><td>" + rlP(b.winPct) + '</td><td class="' + rlCls(b.expectancy) + '"><b>' + rlRs(b.expectancy, true) +
         '</b></td><td class="' + rlCls(b.sharpe) + '"><b>' + rlF(b.sharpe) + '</b></td><td class="' + rlCls(b.cagr) + '">' + rlP(b.cagr, 1, true) + "</td><td>" + rlP(b.maxDdPct != null ? -b.maxDdPct : null, 1) +
-        '</td><td class="neg">' + rlRs(b.tail5, true) + '</td><td class="' + rlCls(r.wfSharpe) + '" data-tip="' + esc("Sharpe by 2-year test window: " + (r.wf || []).map(function (w) { return w.test[0].slice(0, 4) + " " + w.sharpe; }).join(", ")) + '">' +
+        '</td><td class="neg">' + rlRs(b.tail5, true) + '</td><td class="' + rlCls(r.wfSharpe) + '" data-tip="' + esc("Sharpe by 2-year test window: " + (r.wf || []).filter(function (w) { return w && Array.isArray(w.test); }).map(function (w) { return String(w.test[0] || "").slice(0, 4) + " " + (w.sharpe == null ? "n/a" : w.sharpe); }).join(", ")) + '">' +
         rlF(r.wfSharpe) + "</td><td>" + rlN(r.wfPos) + " of " + rlN(r.wfWindows) + "</td></tr>";
     }).join("");
     var buckets = ["under 12", "12 to 16", "16 to 20", "20 to 30", "30 and up"];
@@ -8720,7 +8751,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "</div>";
     var rows = (W.windows || []).map(function (w) {
       var t = w.testStats || {}, c = w.curStats || {};
-      return '<tr><td class="lft" data-tip="' + esc(w.text) + '">Window ' + w.test[0].slice(0, 4) + "-" + w.test[1].slice(0, 4) + "</td><td>" + w.train[0].slice(0, 4) + "-" + w.train[1].slice(0, 4) +
+      return '<tr><td class="lft" data-tip="' + esc(w.text) + '">Window ' + rlYr((w.test || [])[0]) + "-" + rlYr((w.test || [])[1]) + "</td><td>" + rlYr((w.train || [])[0]) + "-" + rlYr((w.train || [])[1]) +
         '</td><td class="lft" data-tip="' + esc(w.text) + '">' + esc(w.text.split(";")[0]) + "</td><td>" + rlF(w.trainObj) + '</td><td class="' + rlCls(w.testSharpe) + '"><b>' + rlF(w.testSharpe) +
         '</b></td><td class="' + rlCls(w.curSharpe) + '">' + rlF(w.curSharpe) + '</td><td class="' + rlCls(t.expectancy) + '">' + rlRs(t.expectancy, true) +
         '</td><td class="' + rlCls(c.expectancy) + '">' + rlRs(c.expectancy, true) + "</td><td>" + rlN(t.n) + "</td></tr>";
@@ -9975,7 +10006,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     });
 
     var stored = m.sessionsStored || 0;
-    s.push(["ok", "Option chain", "OK", m.nStrikes + " strikes \u00b7 expiry " + esc(m.cfg.expiry)]);
+    s.push(["ok", "Option chain", "OK", n0(m.nStrikes) + " strikes \u00b7 expiry " + esc(m.cfg.expiry)]);
     s.push([stored >= 100 ? "ok" : "warnd", "History depth", stored + " / 100",
             stored >= 100 ? "window full" : "building toward window"]);
     s.push(["ok", "Store", (((MANIFEST.dbBytes || 0) / 1048576).toFixed(1)) + " MB",
@@ -10555,15 +10586,17 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         ["realisedForecast", "Realised forecast", "HAR-RV projection"]
       ];
       var lo = Infinity, hi = -Infinity;
+      /* a band counts only with both ends as numbers (a partial export can null one) */
+      var bandOk = function (b) { return !!b && typeof b[0] === "number" && typeof b[1] === "number" && isFinite(b[0]) && isFinite(b[1]); };
       order.forEach(function (o) {
         var b = a.bands[o[0]];
-        if (b) { lo = Math.min(lo, b[0]); hi = Math.max(hi, b[1]); }
+        if (bandOk(b)) { lo = Math.min(lo, b[0]); hi = Math.max(hi, b[1]); }
       });
       var span = hi - lo || 1;
 
       var rows = order.map(function (o) {
         var b = a.bands[o[0]];
-        if (!b) return "";
+        if (!bandOk(b)) return "";
         var left = (b[0] - lo) / span * 100, w = (b[1] - b[0]) / span * 100;
         return '<div class="bandrow"><div class="bandrow-k">' + o[1] +
           '<i>' + o[2] + "</i></div>" +
@@ -10574,7 +10607,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       }).join("");
 
       out += '<section class="card"><div class="card-hd"><h2>One-sigma range, five ways</h2>' +
-        '<span class="sub">' + a.sessionsToExpiry + " session(s) to expiry</span>" +
+        '<span class="sub">' + (a.sessionsToExpiry != null && isFinite(a.sessionsToExpiry) ? a.sessionsToExpiry : "&mdash;") + " session(s) to expiry</span>" +
         '<div class="right"><span class="kpi-m">agreement is the signal</span></div></div>' +
         '<div class="bandlist">' + rows + "</div>" +
         '<div class="caution"><p>These are independent methods, not one calculation shown five ' +
@@ -10613,14 +10646,14 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
       out += '<section class="card"><div class="card-hd"><h2>Risk-neutral density</h2>' +
         '<span class="sub">the market&rsquo;s own distribution</span>' +
-        '<div class="right"><span class="kpi-m">from ' + a.rnd.nStrikes + " strikes</span></div></div>" +
+        '<div class="right"><span class="kpi-m">from ' + n0(a.rnd.nStrikes) + " strikes</span></div></div>" +
         '<div class="chart-body">' + chartWrap('<svg viewBox="0 0 330 100" role="img" ' +
         'aria-label="Risk-neutral probability density for the settle, recovered from option prices.">' +
         /* The filled area is the hit target: clicking anywhere on the
            curve surrenders the moments and the levels behind it. */
         '<polygon fill="var(--calls-dim)" data-pt="' + esc(JSON.stringify({
             t: "Risk-neutral density",
-            s: "the market's own distribution, from " + a.rnd.nStrikes + " strikes",
+            s: "the market's own distribution, from " + n0(a.rnd.nStrikes) + " strikes",
             big: n0(a.rnd.median),
             rows: [["Median", n0(a.rnd.median)], ["Mean", n0(a.rnd.mean)],
                    ["Std deviation", n0(a.rnd.sd)],
@@ -10662,7 +10695,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var cells = "";
       if (f) {
         cells += sc("Implied forward", n0(f.forward),
-                    "put-call parity, " + f.n_strikes + " strikes");
+                    "put-call parity, " + n0(f.n_strikes) + " strikes");
         cells += sc("Basis", sgn(f.basis, 1) + " pts", sgn(f.basis_pct, 3) + "%");
         cells += sc("Annualised carry",
                     f.carry_annual_pct == null ? "&mdash;" : n2(f.carry_annual_pct) + "%",
@@ -10695,7 +10728,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
     /* ---------- regime ---------- */
     if (a.varianceRatio) {
-      var vq = Object.keys(a.varianceRatio).sort(function (x, y) { return +x - +y; });
+      var vq = Object.keys(a.varianceRatio).filter(function (q) { return a.varianceRatio[q] && typeof a.varianceRatio[q] === "object"; })
+        .sort(function (x, y) { return +x - +y; });
       var vrows = vq.map(function (q) {
         var r = a.varianceRatio[q];
         return "<tr><td class=\"lft\">" + q + "d</td>" +
@@ -10820,7 +10854,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
     var scorecard =
       '<section class="card"><div class="card-hd"><h2>Scorecard</h2>' +
-      '<span class="sub">' + A.n + " predictions &middot; " + (A.n_legs || 0) + " legs scored</span>" +
+      '<span class="sub">' + n0(A.n) + " predictions &middot; " + (A.n_legs || 0) + " legs scored</span>" +
       '<div class="right"><span class="kpi-m">lower Brier is better &middot; skill above 0 beats the base rate</span></div></div>' +
       '<div class="probs">' +
         pr("Brier score", A.brier != null ? n2(A.brier) : "&mdash;",
@@ -10847,12 +10881,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
           rows: [["Stated", n1(b.conf * 100) + "%"],
                  ["Happened", n1(b.obs * 100) + "%"],
                  ["Gap", sgn(gap, 1) + "pp"],
-                 ["Forecasts in bucket", b.n]],
+                 ["Forecasts in bucket", n0(b.n)]],
           note: gap < -2 ? "Below the line: the desk was <b>overconfident</b> here."
               : gap > 2 ? "Above the line: the desk was <b>underconfident</b> here."
               : "On the line: honest at this confidence level."
         })) + '"><title>said ' + n1(b.conf * 100) +
-        "%, happened " + n1(b.obs * 100) + "% (n=" + b.n + ")</title></circle>";
+        "%, happened " + n1(b.obs * 100) + "% (n=" + n0(b.n) + ")</title></circle>";
     }).join("");
 
     var reliability =
@@ -14801,7 +14835,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   /* ---------- data ---------- */
   function lrLoadIndex() {
-    if (LR_IDX || LR_IDX_LOADING) return;
+    /* one attempt per page load: a failed load repaints the section, and the
+       repaint must not fetch again (a 404 would loop; "reload" is the retry) */
+    if (LR_IDX || LR_IDX_LOADING || LR_IDX_ERR) return;
     LR_IDX_LOADING = true;
     getJson("replay_index.json").then(function (d) {
       LR_IDX = d && Array.isArray(d.days) ? d : null;
@@ -16544,7 +16580,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   /* The read, in prose, from the same numbers the tables show. */
   function moReadText(inst) {
-    var p = inst.price, v = inst.vol, cur = inst.currency, w = p.world || {};
+    var p = inst.price || {}, v = inst.vol || {}, cur = inst.currency, w = p.world || {};
     var h1 = (inst.horizons || [])[0] || {}, hm = (inst.horizons || [])[2] || {};
     var b = hm.base || {};
     var s = "<b>" + esc(inst.label) + "</b> settled at <b>" + moMoney(p.last, cur) + "</b> " +
@@ -16562,10 +16598,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       s += "Next week's 1&sigma; range is <b>" + moRange(h1.lo1, h1.hi1, cur) + "</b>" +
         (h1.elo != null ? "; history's own band for a five-session move is " + moRange(h1.elo, h1.ehi, cur) : "") + ". ";
     }
-    var L = inst.lean;
-    s += "The lean is <b>" + (L.label === "none" ? "none" : L.label) + "</b> (" + sgn(L.score, 1) +
-      " of &plusmn;" + n1(L.max) + (L["for"].length ? "; for: " + esc(L["for"].join(", ")) : "") +
-      (L.against.length ? "; against: " + esc(L.against.join(", ")) : "") + ")";
+    var L = inst.lean || {}, lf = Array.isArray(L["for"]) ? L["for"] : [], la = Array.isArray(L.against) ? L.against : [];
+    s += L.label == null || L.label === "not available" ? "The lean is not available" :
+      "The lean is <b>" + (L.label === "none" ? "none" : esc(L.label)) + "</b> (" + sgn(L.score, 1) +
+      " of &plusmn;" + n1(L.max) + (lf.length ? "; for: " + esc(lf.join(", ")) : "") +
+      (la.length ? "; against: " + esc(la.join(", ")) : "") + ")";
     if (b.pUp != null) {
       s += ". When the trailing " + b.look + "-session move sat in this quintile, the next " +
         hm.sessions + " sessions were up <b>" + n0(b.pUp) + "%</b> of the time across ~" + b.neff +
@@ -16582,7 +16619,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         "<td>" + moMoney(b.l, cur) + "</td>" +
         '<td style="color:var(--ink)">' + moMoney(b.c, cur) + "</td>" +
         '<td class="' + cls(b.chgPct) + '">' + (b.chgPct != null ? sgn(b.chgPct, 2) + "%" : "\u2014") + "</td>" +
-        '<td class="lft" style="color:var(--ink-3)">' + (b.contract ? moDay(b.contract) : esc(inst.price.world.symbol || "")) + "</td></tr>";
+        '<td class="lft" style="color:var(--ink-3)">' + (b.contract ? moDay(b.contract) : esc((inst.price.world || {}).symbol || "")) + "</td></tr>";
     }).join("");
     return '<div class="tablewrap tall"><table class="dt"><thead><tr>' +
       '<th class="lft">Date</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Chg</th>' +
@@ -16590,13 +16627,14 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
 
   function moInstBlock(inst) {
-    var p = inst.price, cur = inst.currency;
+    /* a partial export can drop any of these objects: read them as empty */
+    var p = inst.price || {}, cur = inst.currency, vol = inst.vol || {};
     var charted = !!(CHARTS && CHARTS[inst.strip]);
     var rolls = (inst.rolls || []).slice(-3).map(moDay).join(", ");
     return '<section class="card mo-inst"><div class="card-hd"><h2>' + esc(inst.label) + "</h2>" +
-      '<span class="sub">' + (p.contract ? "MCX " + moDay(p.contract) + " contract" : esc(p.world.symbol) + " front month") +
+      '<span class="sub">' + (p.contract ? "MCX " + moDay(p.contract) + " contract" : (p.world && p.world.symbol ? esc(p.world.symbol) + " front month" : "front month")) +
         " &middot; settled " + moDate(p.asOf) + "</span>" +
-      '<div class="right">' + moLeanPill(inst.lean.label) +
+      '<div class="right">' + moLeanPill((inst.lean || {}).label) +
         (charted ? '<button class="tgl" type="button" data-chart="' + esc(inst.strip) + '">Candles</button>' : "") +
       "</div></div>" +
       '<div class="levels">' +
@@ -16606,7 +16644,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         (p.world && p.world.premiumPct != null
           ? '<div class="lvl"><div class="lvl-k">MCX premium</div><div class="lvl-v">' + sgn(p.world.premiumPct, 1) + "%</div></div>"
           : '<div class="lvl"><div class="lvl-k">Prev close</div><div class="lvl-v">' + moMoney(p.prevClose, cur) + "</div></div>") +
-        '<div class="lvl"><div class="lvl-k">Sigma used</div><div class="lvl-v">' + n1(inst.vol.sigmaUsed) + "%</div></div>" +
+        '<div class="lvl"><div class="lvl-k">Sigma used</div><div class="lvl-v">' + (vol.sigmaUsed != null && isFinite(vol.sigmaUsed) ? n1(vol.sigmaUsed) + "%" : "&mdash;") + "</div></div>" +
         (p.oi != null
           ? '<div class="lvl"><div class="lvl-k">Open interest</div><div class="lvl-v">' + n0(p.oi) +
             ' <span class="kpi-m ' + cls(p.oi - (p.oiPrev || p.oi)) + '">' + (p.oiPrev ? sgn((p.oi - p.oiPrev) / p.oiPrev * 100, 1) + "%" : "") + "</span></div></div>"
@@ -16617,7 +16655,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<div class="mo-cone">' + moConeSvg(inst) + "</div>" +
       '<div class="mo-sub">Where it can go</div>' + moHorizonTable(inst) +
       '<div class="mo-sub">The evidence</div>' + moEvidenceTable(inst) +
-      '<details class="mo-hist"><summary>Session history &middot; last 30 of ' + (inst.vol.bars || 0) + " stored" +
+      '<details class="mo-hist"><summary>Session history &middot; last 30 of ' + (vol.bars || 0) + " stored" +
         (rolls ? " &middot; rolled " + rolls : "") + "</summary>" + moHistTable(inst) + "</details>" +
       "</section>";
   }
@@ -16625,7 +16663,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function moTiles(D) {
     var L = D.instruments || [];
     return '<section class="kpis mo-tiles">' + L.map(function (i) {
-      var p = i.price, cur = i.currency;
+      var p = i.price || {}, cur = i.currency;
       var charted = !!(CHARTS && CHARTS[i.strip]);
       return '<div class="card kpi' + (charted ? '" data-chart="' + esc(i.strip) : "") + '" title="' +
         (charted ? "Open the candlestick chart" : "") + '"><div class="kpi-k">' + esc(i.label) +
@@ -16749,7 +16787,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function moSrcMcx(inst) {
     return inst.mcx
       ? "Source: MCX " + moDay(inst.price.contract) + " contract, exchange daily settlement republished by Moneycontrol; contracts chained and roll-adjusted by the desk."
-      : "Source: " + inst.price.world.symbol + " front month daily bars, Yahoo Finance.";
+      : "Source: " + ((inst.price.world || {}).symbol || "world") + " front month daily bars, Yahoo Finance.";
   }
   function moEventsBefore(D, iso, n) {
     return (D.events || []).filter(function (e) { return !iso || e.date <= iso; }).slice(0, n || 4);
@@ -16926,7 +16964,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
               rows: [["Change", moPctTxt(p.chgPct)], ["Week", rt.w1 ? moPctTxt(rt.w1.pct) : null], ["Month", rt.m1 ? moPctTxt(rt.m1.pct) : null],
                      ["One-month 1\u03c3", moRange(hm.lo1, hm.hi1, "USD")], ["One-month history 16\u201384%", moRange(hm.elo, hm.ehi, "USD")],
                      ["Lean", i.lean.label + " (" + sgn(i.lean.score, 1) + ")"]],
-              note: "Source: " + p.world.symbol + " front-month daily bars, Yahoo Finance." });
+              note: "Source: " + ((p.world || {}).symbol || "world") + " front-month daily bars, Yahoo Finance." });
         }).join("") + "</div>" : "") +
       "</div></section>";
   }
@@ -17361,13 +17399,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var rows = L.rungs.map(function (r) {
       var p = r.pick || {}, lg = p.legs || [];
       var pw = lg.length ? Math.min.apply(null, lg.map(function (l) { return l.pWin; })) : null;
-      return [hzShort(r.expiry) + " &middot; " + esc(r.label), esc(r.expiry), r.sessions, esc(r.lean.direction),
+      return [hzShort(r.expiry) + " &middot; " + esc(r.label), esc(r.expiry), n0(r.sessions), esc((r.lean || {}).direction),
         "<b>" + (HZN_KIND[p.kind] || esc(p.kind)) + "</b>", hzLegs(p),
         hzRs(p.creditRs), '<b class="' + cls(p.evRs || 0) + '">' + hzRs(p.evRs) + "</b>",
         hzP(pw), hzRs(p.maxLossRs)];
     });
     return '<section class="card"><div class="card-hd"><h2>Strategy by expiry</h2>' +
-      '<span class="sub">which credit spread pays best on each expiry &middot; NIFTY ' + n0(L.spot) + " on " + esc(L.d) + " &middot; lot " + L.lot + "</span></div>" +
+      '<span class="sub">which credit spread pays best on each expiry &middot; NIFTY ' + n0(L.spot) + " on " + esc(L.d) + " &middot; lot " + n0(L.lot) + "</span></div>" +
       dsMethod("How spreads are priced and scored", "For every expiry the desk prices each credit spread at what you would actually get " +
       "(sell at the bid, buy at the ask), then scores it on " + n0(L.historyN) + " sessions of NIFTY history since " +
       esc(L.historyFrom || "") + ", scaled to today&rsquo;s " + n1(L.sigma * 100) + "% volatility and checked against raw history; " +
@@ -17424,8 +17462,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       Object.keys(HZN_SIG).forEach(function (k) {
         var v = x[k];
         if (!v || !v.n) return;
-        rows.push([HZN_B[b] + " &middot; " + HZN_SIG[k], v.n, v.expiries, hzP(v.hit), sgn(v.avgSignedPct, 2) + "%",
-          v.bull + " / " + v.bear, v.proven ? "proven" : "not proven"]);
+        rows.push([HZN_B[b] + " &middot; " + HZN_SIG[k], n0(v.n), n0(v.expiries), hzP(v.hit),
+          v.avgSignedPct != null && isFinite(v.avgSignedPct) ? sgn(v.avgSignedPct, 2) + "%" : "&mdash;",
+          n0(v.bull) + " / " + n0(v.bear), v.proven ? "proven" : "not proven"]);
       });
     });
     return '<section class="card"><div class="card-hd"><h2>Do OI signals call direction?</h2>' +
@@ -17445,7 +17484,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var lab = { week: "This week", week2: "Next week", week3: "Week after", monthly: "This month", next_month: "Next month" };
     var rows = order.filter(function (b) { return P[b]; }).map(function (b) {
       var x = P[b];
-      return [lab[b], x.n, x.expiries, n0(x.winPct) + "%", hzRs(x.avgRs), hzRs(x.predictedAvgRs), hzRs(x.worstRs)];
+      return [lab[b], n0(x.n), n0(x.expiries), x.winPct != null && isFinite(x.winPct) ? n0(x.winPct) + "%" : "&mdash;", hzRs(x.avgRs), hzRs(x.predictedAvgRs), hzRs(x.worstRs)];
     });
     return '<section class="card"><div class="card-hd"><h2>Has this ladder made money?</h2>' +
       '<span class="sub">every stored session replayed &middot; built ' + esc(HZN.replayBuilt || "") + "</span></div>" +
@@ -17576,12 +17615,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var on = r.expiry === cur.expiry;
       return '<button type="button" role="tab" class="hz-tab' + (on ? " on" : "") + '" aria-selected="' + on +
         '" data-hzx="' + esc(r.expiry) + '"><b>' + hzShort(r.expiry) + "</b><span>" + esc(r.kind) +
-        " &middot; " + r.sessions + "d</span></button>";
+        " &middot; " + n0(r.sessions) + "d</span></button>";
     }).join("") + "</div>";
     var p = cur.positioning || {}, pk = cur.pick || {}, lg = pk.legs || [];
     var lk = function (v) { return v == null ? "&mdash;" : sgn(v / LAKH, 1) + "L"; };
     var kp = '<div class="struct">' +
-      sc("Sessions left", String(cur.sessions), "to " + esc(cur.expiry)) +
+      sc("Sessions left", n0(cur.sessions), "to " + esc(cur.expiry)) +
       sc("PCR", n2(p.pcr), "put OI / call OI") +
       sc("Put wall", n0(p.putWall), "most put OI") +
       sc("Call wall", n0(p.callWall), "most call OI") +
@@ -17830,11 +17869,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var on = r.expiry === cur.expiry;
       return '<button type="button" role="tab" class="hz-tab' + (on ? " on" : "") + '" aria-selected="' + on +
         '" data-rgx="' + esc(r.expiry) + '"><b>' + hzShort(r.expiry) + "</b><span>" + esc(r.label) +
-        " &middot; " + r.sessions + "d</span></button>";
+        " &middot; " + n0(r.sessions) + "d</span></button>";
     }).join("") + "</div>";
     var q = cur.q || {}, qb = cur.qBase || {}, w = cur.walls || {}, T = cur.test || {};
     var kp = '<div class="struct">' +
-      sc("Sessions left", String(cur.sessions), "to " + esc(cur.expiry)) +
+      sc("Sessions left", n0(cur.sessions), "to " + esc(cur.expiry)) +
       sc("Up chance", rgP(cur.up), "any day: " + rgP(cur.upBase)) +
       sc("Likely settle", rgLvl(spot + q["25"]) + " &ndash; " + rgLvl(spot + q["75"]), "middle half of outcomes") +
       sc("8 in 10 settle", rgLvl(spot + q["10"]) + " &ndash; " + rgLvl(spot + q["90"]),
@@ -17847,10 +17886,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return [k + " pts", rgP(b.down), rgP(b.downBase), rgP(b.up), rgP(b.upBase)];
     });
     var all = R.map(function (r) {
-      var t = r.test || {};
-      return [esc(r.label) + " " + hzShort(r.expiry), String(r.sessions), rgP(r.up) + ' <span class="rg-dim">(' + rgP(r.upBase) + ")</span>",
-        rgLvl(spot + r.q["25"]) + " &ndash; " + rgLvl(spot + r.q["75"]),
-        rgLvl(spot + r.q["10"]) + " &ndash; " + rgLvl(spot + r.q["90"]),
+      var t = r.test || {}, rq = r.q || {};
+      return [esc(r.label) + " " + hzShort(r.expiry), n0(r.sessions), rgP(r.up) + ' <span class="rg-dim">(' + rgP(r.upBase) + ")</span>",
+        rgLvl(spot + rq["25"]) + " &ndash; " + rgLvl(spot + rq["75"]),
+        rgLvl(spot + rq["10"]) + " &ndash; " + rgLvl(spot + rq["90"]),
         t.cover80Analog != null ? rgP(t.cover80Analog) : "&mdash;", t.skill != null ? sgn(t.skill, 1) + "%" : "&mdash;"];
     });
     return '<section class="card"><div class="card-hd"><h2>What could happen by each expiry</h2>' +
@@ -18049,7 +18088,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "Brier skill <b>" + (sk != null ? (sk >= 0 ? "+" : "") + n2(sk) : "&mdash;") + "</b>, " + skill + "." +
       (c1.coverage != null ? " The 1&sigma; range held <b>" + n1(c1.coverage * 100) + "%</b> of sessions against 68.3% expected." : "") +
       (typeof btHeadLine === "function" && m && m.cfg && m.cfg.key === "NIFTY" ? btHeadLine() : ""),
-      A.n + " predictions graded");
+      n0(A.n) + " predictions graded");
   }
   DESK_HEAD.record = nfxRecordHead;
 
@@ -20328,7 +20367,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       how: function (m) {
         var r = (m.an || {}).rnd || {};
         return "Standard deviation of the recovered density, <b>" +
-          n0(r.sd) + "</b> points, from " + r.nStrikes + " strikes.";
+          n0(r.sd) + "</b> points, from " + n0(r.nStrikes) + " strikes.";
       }
     },
     "Combined POP": {
@@ -25765,27 +25804,29 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function dcNow() { return Date.now(); }
 
   /* Journal: one record per position (a named group of legs). */
+  /* a stored text field: strings and numbers only (an object would print as [object Object]) */
+  function dcStr(v, n) { return typeof v === "string" || (typeof v === "number" && isFinite(v)) ? String(v).slice(0, n) : ""; }
   function dcClean(t) {
-    if (!t || typeof t !== "object" || !t.id || !t.group) return null;
+    if (!t || typeof t !== "object" || !dcStr(t.id, 40) || !dcStr(t.group, 40)) return null;
     var c = t.closed && typeof t.closed === "object" ? t.closed : null;
     var g = t.gate && typeof t.gate === "object" ? t.gate : {};
     return {
-      id: String(t.id).slice(0, 40), group: String(t.group).slice(0, 40), opened: dcNum(t.opened, 0) || 0,
+      id: dcStr(t.id, 40), group: dcStr(t.group, 40), opened: dcNum(t.opened, 0) || 0,
       legs: Array.isArray(t.legs) ? t.legs.filter(function (l) { return l && typeof l === "object"; }).slice(0, 12) : [],
       credit: dcNum(t.credit), maxLoss: dcNum(t.maxLoss), dte: dcNum(t.dte, 0),
-      edge: DC_EDGES[t.edge] ? t.edge : "", edgeNote: String(t.edgeNote || "").slice(0, 120),
+      edge: DC_EDGES[t.edge] ? t.edge : "", edgeNote: dcStr(t.edgeNote, 120),
       conf: dcNum(t.conf, 0, 100), emotion: DC_EMO.indexOf(t.emotion) >= 0 ? t.emotion : "",
-      intensity: dcNum(t.intensity, 1, 5), loseBig: String(t.loseBig || "").slice(0, 160),
+      intensity: dcNum(t.intensity, 1, 5), loseBig: dcStr(t.loseBig, 160),
       plan: t.plan && typeof t.plan === "object" ? t.plan : {},
-      gate: { mode: String(g.mode || "gated"), passed: g.passed === true ? true : g.passed === false ? false : null,
-        hard: Array.isArray(g.hard) ? g.hard.map(String).slice(0, 10) : [], soft: Array.isArray(g.soft) ? g.soft.map(String).slice(0, 10) : [],
-        override: g.override ? String(g.override).slice(0, 300) : "", side: String(g.side || ""), checks: dcNum(g.checks, 0) || 0 },
-      rulesHash: String(t.rulesHash || ""),
+      gate: { mode: (dcStr(g.mode, 20) || "gated"), passed: g.passed === true ? true : g.passed === false ? false : null,
+        hard: Array.isArray(g.hard) ? g.hard.map(function (x) { return dcStr(x, 400); }).filter(Boolean).slice(0, 10) : [], soft: Array.isArray(g.soft) ? g.soft.map(function (x) { return dcStr(x, 400); }).filter(Boolean).slice(0, 10) : [],
+        override: dcStr(g.override, 300), side: dcStr(g.side, 20), checks: dcNum(g.checks, 0) || 0 },
+      rulesHash: dcStr(t.rulesHash, 64),
       closed: c ? { at: dcNum(c.at, 0) || 0, reason: DC_REASONS[c.reason] || c.reason === "removed" ? c.reason : "discretionary",
         pnl: dcNum(c.pnl), costs: dcNum(c.costs, 0) || 0, emotion: DC_EMO.indexOf(c.emotion) >= 0 ? c.emotion : "",
         intensity: dcNum(c.intensity, 1, 5), again: c.again === "y" || c.again === "n" ? c.again : "",
         perPlan: c.perPlan === true ? true : c.perPlan === false ? false : null, stopSeen: dcNum(c.stopSeen, 0),
-        stopMin: dcNum(c.stopMin, 0), note: String(c.note || "").slice(0, 200) } : null
+        stopMin: dcNum(c.stopMin, 0), note: dcStr(c.note, 200) } : null
     };
   }
   function dcTrades() {
@@ -26550,7 +26591,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "<b>Edge absent for " + (s.run || 0) + " session" + (s.run === 1 ? "" : "s") + ": waiting is the trade.</b> " + (s.lastSell ? "The filter last said sell on " + dcIso(s.lastSell) + "." : "");
     var p3 = st.p ? st.p["3"] : null;
     var tiles = '<div class="struct">' +
-      sc("Filter pass rate", (r20.pass != null ? r20.pass + " of " + r20.n : "&ndash;"), "last 20 sessions (" + dcPct(r20.pct) + "); " + (r60.pass != null ? r60.pass + " of " + r60.n + " over 60 (" + dcPct(r60.pct) + ")" : "")) +
+      sc("Filter pass rate", (r20.pass != null ? n0(r20.pass) + " of " + n0(r20.n) : "&ndash;"), "last 20 sessions (" + dcPct(r20.pct) + "); " + (r60.pass != null ? n0(r60.pass) + " of " + n0(r60.n) + " over 60 (" + dcPct(r60.pct) + ")" : "")) +
       sc("Pass-day result", dcRs(ps.mean), "a trade, n = " + (ps.n || 0) + ", 90% range " + dcRs(ps.lo90) + " to " + dcRs(ps.hi90)) +
       sc("Fail-day result", dcRs(fl.mean), "a trade, n = " + (fl.n || 0) + ", 90% range " + dcRs(fl.lo90) + " to " + dcRs(fl.hi90)) +
       sc("Cost of impatience", im.rs == null ? "&ndash;" : psRs(im.rs), (im.n || 0) + " backtest trades on no-edge sessions, 1 lot") +
@@ -29850,6 +29891,18 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       STOCKS = stk || {};
       TECHFUND = tf || {};
       METOIL = both[7] || {};
+      /* an instrument without its price block has nothing to show: drop it
+         (every reader then sees it as not built); lean and vol read as empty */
+      if (Array.isArray(METOIL.instruments)) {
+        METOIL.instruments = METOIL.instruments.filter(function (i) { return i && i.price && typeof i.price === "object"; });
+        METOIL.instruments.forEach(function (i) {
+          if (!i.lean || typeof i.lean !== "object") i.lean = {};
+          if (typeof i.lean.label !== "string") i.lean.label = "not available";
+          if (!Array.isArray(i.lean["for"])) i.lean["for"] = [];
+          if (!Array.isArray(i.lean.against)) i.lean.against = [];
+          if (!i.vol || typeof i.vol !== "object") i.vol = {};
+        });
+      }
       INTERNATIONAL = both[8] || {};
       /* The MCX and crude series ride into the same chart store as the
          indices, so the strip cells for GOLD, SILVER, CRUDE, BRENT and
