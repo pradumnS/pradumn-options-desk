@@ -5140,7 +5140,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       cmTile("Inside 1 sigma", cmPc(A.inside, 0), "of " + A.n + " windows; a fair implied gives 68%", "Commodity implied vs realised") +
       cmTile("Implied above realised", cmPc(A.ivAbove, 0), "share of windows the seller was paid", "Commodity implied vs realised") +
       cmTile("Average premium", cmSg(A.vrpMean, 1) + " pts", "implied minus the realised that followed; median " + cmSg(A.vrpMedian, 1), "Commodity implied vs realised") +
-      cmTile("Median move / implied", cmX(A.ratioMedian, 2), "below 1: moves were smaller than priced", "Commodity implied vs realised") + "</div>";
+      cmTile("Median move / implied", cmX(A.ratioMedian, 2), "about 0.67 if fairly priced; below that, moves were smaller than priced", "Commodity implied vs realised") + "</div>";
     var tbl = function (label, S) {
       S = cmO(S);
       if (cmNum(S.n) == null) return "";
@@ -5224,7 +5224,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return cmCard(cmH2("Positioning for " + lab, "Commodity positioning link"), "CFTC managed money, " + esc(cmStr(mm.exchange)) + " &middot; as of " + cmD(L.date),
         '<div class="struct">' + t("Managed money net", n0(L.net), "contracts; this week " + cmSg(L.dN, 0)) +
         t("Share of open interest", cmPc(L.netPctOi, 1), "net long as a share of all contracts") +
-        t("z (3 years)", cmSg(L.z, 2), "against its own last three years") + t("This week", esc(cmStr(L.action) || "&mdash;"), esc(cmStr(L.actionLong))) + "</div>" +
+        t("Weekly change z", cmSg(L.z, 2), "this week's change against a typical week; 2+ either way is unusual") + t("This week", esc(cmStr(L.action) || "&mdash;"), esc(cmStr(L.actionLong))) + "</div>" +
         '<div class="cm-note">The full study below opens on ' + lab + ".</div>");
     }
     var E = typeof ENERGY !== "undefined" ? cmO(ENERGY) : {};
@@ -5234,7 +5234,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return cmCard(cmH2("Positioning for " + lab, "Commodity positioning link"), esc(cmStr(mk.label)) + " &middot; " + esc(cmStr(mk.venue)) + " &middot; as of " + cmD(mk.asOf),
       '<div class="struct">' + t("Managed money net", n0(MMc.net), "contracts; this week " + cmSg(MMc.dNet, 0)) +
       t("Share of open interest", cmPc(L2.pctOI, 1), "net long as a share of all contracts") +
-      t("z (3 years)", cmSg(L2.z, 2), "against its own last three years") + t("Open interest", n0(L2.oi), "contracts, all traders") + "</div>" +
+      t("Weekly change z", cmSg(L2.z, 2), "this week's change against a typical week; 2+ either way is unusual") + t("Open interest", n0(L2.oi), "contracts, all traders") + "</div>" +
       '<div class="cm-note">The full study below opens on ' + esc(cmStr(mk.label)) + ".</div>");
   }
   function cmPositioning(group, key) {
@@ -5715,7 +5715,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "World benchmark": "Indian contract", "MCX options": "Indian contract", "Price": "Commodity levels", "Level": "Commodity levels",
     "Crack now": "Crack spread", "5-year median": "Crack spread", "21-session change": "Crack spread", "1-year percentile": "Crack spread",
     "Managed money net": "Commodity positioning link", "Share of open interest": "Commodity positioning link",
-    "z (3 years)": "Commodity positioning link", "This week": "Commodity positioning link", "Managed money long": "Commodity positioning link",
+    "z (3 years)": "Commodity positioning link", "Weekly change z": "Commodity positioning link", "This week": "Commodity positioning link", "Managed money long": "Commodity positioning link",
     "Managed money short": "Commodity positioning link"
   };
   function cmRegisterTerms() {
@@ -6557,6 +6557,22 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "</div>";
   }
 
+  /* India VIX and the front IV have no fixed good level; their cards show
+     NIFTY's own history (VIX since 2008, the front IV since it was stored). */
+  simpleLiveRegister("India VIX", function () {
+    var x = ((VP || {}).rank || {}).vix || {};
+    if (typeof x.cur !== "number") return "";
+    return simpleRangeHtml({ name: "India VIX", unit: "", lo: x.minAll, hi: x.maxAll, mid: x.median,
+      lo1y: x.min1y, hi1y: x.max1y, now: x.cur, since: String(x.from || "").slice(0, 4),
+      note: "Below about 12 is calm and cheap; 12 to 20 is normal; above 20 is fearful and pays more, but moves are bigger too. The record 85 was March 2020." });
+  });
+  simpleLiveRegister("Implied volatility (IV)", function () {
+    var x = ((VP || {}).rank || {}).iv || {};
+    if (typeof x.cur !== "number" || typeof x.min !== "number" || typeof x.max !== "number") return "";
+    return simpleRangeHtml({ name: "NIFTY front-expiry IV", unit: "%", lo: x.min, hi: x.max, now: x.cur,
+      since: String(x.from || "").slice(0, 7),
+      note: "Only " + x.n + " stored sessions, so this is a short history. High against it means rich premium; the sell decision still needs implied to beat the forecast." });
+  });
   function vpRankCard() {
     var R = VP.rank || {}, iv = R.iv || {}, i30 = R.iv30 || {}, vx = R.vix || {};
     var S = (R.vixSeries || []).filter(function (s) { return Array.isArray(s) && typeof s[0] === "string"; });
@@ -28451,8 +28467,14 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<div class="sg-ends"><span>' + f(o.lo) + "</span><span>" + f(o.hi) + "</span></div></div>" +
       (o.note ? '<div class="sg-m">' + o.note + "</div>" : "") + "</div>";
   }
+  /* "-Rs 437", "\u2212\u20b9437", "+1.2\u03c3": the sign may sit before a currency
+     mark, so the mark is dropped before the number is read. */
+  function simpleNorm(v) {
+    return deent(String(v == null ? "" : v).replace(/<[^>]*>/g, " "))
+      .replace(/\u2212/g, "-").replace(/\u20b9/g, "Rs").replace(/\u03c3/g, "sigma");
+  }
   function simpleNum(v) {
-    var t = deent(String(v == null ? "" : v).replace(/<[^>]*>/g, " ")).replace(/\u2212/g, "-");
+    var t = simpleNorm(v).replace(/([-+])\s*(Rs\.?|\$)\s*/g, "$1");
     var m = t.match(/[-+]?\d[\d,]*(\.\d+)?/);
     if (!m) return null;
     var n = parseFloat(m[0].replace(/,/g, ""));
@@ -28468,7 +28490,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var Z = Array.isArray(sc.zones) ? sc.zones : [];
     var lo = +sc.lo, hi = +sc.hi;
     if (Z.length && isFinite(lo) && isFinite(hi) && hi > lo) {
-      var vt = deent(String(value || "").replace(/<[^>]*>/g, " "));
+      var vt = simpleNorm(value);
       var unitOk = !sc.unit || vt.indexOf(sc.unit) >= 0;
       var now = value != null && value !== "" && unitOk ? simpleNum(value) : null;
       var pos = function (x) { return Math.min(Math.max((x - lo) / (hi - lo), 0), 1) * 100; };
