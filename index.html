@@ -4256,8 +4256,38 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     { key: "momentum", label: "Momentum" },
     { key: "record", label: "Track record" }
   ];
-  var CM_KEYS = { metal: ["GOLD", "SILVER", "COPPER"], energy: ["CRUDEOIL", "NATURALGAS"] };
-  var CM_LABEL = { GOLD: "Gold", SILVER: "Silver", COPPER: "Copper", CRUDEOIL: "Crude oil", NATURALGAS: "Natural gas" };
+  /* Every internationally traded metal and energy contract, grouped the way
+     the picker shows them. india: "options" (MCX lists options: the full
+     desk), "futures" (MCX futures only: reads, no option plan), "none" (no
+     Indian contract: the world benchmark in dollars, context only). */
+  var CM_SUB = {
+    metal: [["Precious", ["GOLD", "SILVER", "PLATINUM", "PALLADIUM"]], ["Base", ["COPPER", "ALUMINIUM", "ZINC", "LEAD", "NICKEL"]],
+            ["Iron ore", ["IRONORE"]]],
+    energy: [["Crude", ["CRUDEOIL", "BRENT"]], ["Products", ["HEATINGOIL", "GASOLINE", "GASOIL"]], ["Gas", ["NATURALGAS"]]]
+  };
+  var CM_KEYS = { metal: [], energy: [] };
+  Object.keys(CM_SUB).forEach(function (g) { CM_SUB[g].forEach(function (s) { CM_KEYS[g] = CM_KEYS[g].concat(s[1]); }); });
+  var CM_LABEL = { GOLD: "Gold", SILVER: "Silver", COPPER: "Copper", CRUDEOIL: "Crude oil", NATURALGAS: "Natural gas",
+    PLATINUM: "Platinum", PALLADIUM: "Palladium", ALUMINIUM: "Aluminium", ZINC: "Zinc", LEAD: "Lead", NICKEL: "Nickel",
+    IRONORE: "Iron ore", BRENT: "Brent", HEATINGOIL: "Heating oil (ULSD)", GASOLINE: "Gasoline (RBOB)", GASOIL: "Gasoil" };
+  var CM_INDIA = { GOLD: "options", SILVER: "options", COPPER: "options", CRUDEOIL: "options", NATURALGAS: "options", ZINC: "options",
+    ALUMINIUM: "futures", LEAD: "futures", NICKEL: "futures",
+    PLATINUM: "none", PALLADIUM: "none", IRONORE: "none", BRENT: "none", HEATINGOIL: "none", GASOLINE: "none", GASOIL: "none" };
+  /* The positioning study's own market for each instrument (metals.json /
+     energy.json); null where no free positioning report covers it. */
+  var CM_POS = { GOLD: "gold", SILVER: "silver", COPPER: "copper", PLATINUM: "platinum", PALLADIUM: "palladium", ALUMINIUM: "aluminium",
+    ZINC: null, LEAD: null, NICKEL: null, IRONORE: null,
+    CRUDEOIL: "WTI", BRENT: "BRENT", HEATINGOIL: "ULSD", GASOLINE: "RBOB", GASOIL: "GASOIL", NATURALGAS: "NATGAS" };
+  function cmIndia(I) { var k = cmStr(cmO(I).india); return k || CM_INDIA[cmStr(cmO(I).key)] || "options"; }
+  function cmSpot(I) { var P = cmO(cmO(I).price); return cmNum(P.spot) != null ? P.spot : cmNum(P.mcx); }
+  function cmSeries(I) { return cmIndia(I) === "none" ? "dollar series" : "rupee series"; }
+  /* Point the positioning study at the instrument's own market. */
+  function cmPosFollow(key) {
+    var p = CM_POS[key];
+    if (!p) return;
+    if (/^[a-z]+$/.test(p)) { if (p !== "aluminium" && typeof mtlState !== "undefined") mtlState.metal = p; }
+    else if (typeof NRG_SEL !== "undefined") NRG_SEL = p;
+  }
   var CM_STATE = { metal: { tab: "today", inst: "GOLD", h: null }, energy: { tab: "today", inst: "CRUDEOIL", h: null } };
   var CM_LAST = "metal";
   (function cmFromHash() {
@@ -4270,6 +4300,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       S.tab = sub;
       var k = ex.toUpperCase();
       if (CM_KEYS[g].indexOf(k) >= 0) S.inst = k;
+      else if (g === "metal" && sub === "positioning") {
+        /* #metal-index/positioning/<metal> names the study's metal */
+        Object.keys(CM_POS).forEach(function (c) { if (CM_POS[c] === ex.toLowerCase() && CM_KEYS.metal.indexOf(c) >= 0) S.inst = c; });
+      }
     } else if (g === "metal" && sub) {
       /* An old #metal-index/<metal> link opens the positioning study it named. */
       S.tab = "positioning";
@@ -4346,6 +4380,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       ".cm-tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--calls);font-weight:650}" +
       ".cm-pick{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;align-items:center}" +
       ".cm-pick .cm-ctx{font-size:12px;color:var(--ink-3);margin-left:6px}" +
+      ".cm-pg{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;padding-right:10px;margin-right:4px;border-right:1px solid var(--line)}" +
+      ".cm-pg:last-of-type{border-right:0}" +
+      ".cm-pgl{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin-right:2px}" +
+      ".cm-pick .nrg-tab.cm-fut{border-style:dotted}.cm-pick .nrg-tab.cm-ctxonly{border-style:dashed}" +
+      ".cm-pkey{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin:-6px 0 12px}" +
+      ".cm-pkey span{padding:1px 6px;border:1px solid var(--line);border-radius:4px}.cm-pkey .cm-fut{border-style:dotted}.cm-pkey .cm-ctxonly{border-style:dashed}" +
       ".dh .cm-kp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}" +
       ".dt td.cm-wrap{white-space:normal;min-width:260px;line-height:1.5}" +
       "@media (max-width:760px){.dh .cm-kp{grid-template-columns:repeat(2,minmax(0,1fr))}}" +
@@ -4383,7 +4423,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var g = t.getAttribute("data-cmg") || cmGroup(), S = CM_STATE[g];
     if (!S) return;
     if (t.hasAttribute("data-cmtab")) S.tab = t.getAttribute("data-cmtab");
-    if (t.hasAttribute("data-cminst")) { S.inst = t.getAttribute("data-cminst"); S.h = null; }
+    if (t.hasAttribute("data-cminst")) { S.inst = t.getAttribute("data-cminst"); S.h = null; cmPosFollow(S.inst); }
     if (t.hasAttribute("data-cmh")) S.h = t.getAttribute("data-cmh");
     var y = window.scrollY;
     render();
@@ -4406,9 +4446,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var I = cmInst(S.inst);
     var metal = group === "metal";
     var intro = pageIntro(metal ? "Metal Index" : "Energy Index",
-      metal ? "Gold, silver and copper on MCX: which side of the option market to be on, how far each can move by the next option expiry, and the if-then plan with exact strikes. Positioning keeps the CFTC managed-money study."
-            : "Crude oil and natural gas on MCX, with Brent as context: which side of the option market to be on, how far each can move by the next option expiry, and the if-then plan with exact strikes. Positioning keeps the CFTC, ICE and EIA study.",
-      "MCX settlement " + esc(cmStr(cmO(cmO(I).price).mcxAsOf) || cmStr(cmO(CM).asOf) || "&mdash;"));
+      metal ? "Every internationally traded metal: precious (gold, silver, platinum, palladium), base (copper, aluminium, zinc, lead, nickel) and iron ore. Where MCX lists options, which side of the option market to be on and the if-then plan with exact strikes; where it lists only futures, or nothing, the trend and range read and why there is no option trade. Positioning keeps the CFTC managed-money study."
+            : "Every internationally traded energy contract: crude (WTI on MCX, Brent), products (heating oil, gasoline, gasoil) and natural gas. Where MCX lists options, which side of the option market to be on and the if-then plan with exact strikes; elsewhere the trend and range read and why there is no Indian option. Positioning keeps the CFTC, ICE and EIA study.",
+      (cmIndia(I) === "none" ? "World settlement " + esc(cmStr(cmO(cmO(I).price).spotAsOf) || "&mdash;") :
+        "MCX settlement " + esc(cmStr(cmO(cmO(I).price).mcxAsOf) || cmStr(cmO(CM).asOf) || "&mdash;")));
     var tabs = '<div class="cm-tabs" role="tablist" aria-label="' + (metal ? "Metal" : "Energy") + ' desk view">' +
       CM_TABS.map(function (t) {
         return '<button class="cm-tab" role="tab" data-cmg="' + group + '" data-cmtab="' + t.key + '" aria-selected="' +
@@ -4423,19 +4464,36 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
           (cmNum(C.spread) != null ? " &middot; Brent&ndash;WTI " + cmFx(C.spread, null, 2) : "") + " &middot; " + cmD(C.asOf) + "</span>";
       }
     }
-    var pick = '<div class="cm-pick">' + keys.map(function (k) {
-      return '<button class="nrg-tab" data-cmg="' + group + '" data-cminst="' + k + '" aria-pressed="' + (k === S.inst) + '">' +
-        esc(CM_LABEL[k]) + "</button>";
-    }).join("") + ctx + "</div>";
+    var pick = '<div class="cm-pick">' + CM_SUB[group].map(function (sg) {
+      return '<span class="cm-pg" role="group" aria-label="' + esc(sg[0]) + '"><span class="cm-pgl">' + esc(sg[0]) + "</span>" +
+        sg[1].map(function (k) {
+          var ind = CM_INDIA[k], mark = ind === "options" ? "" : ind === "futures" ? " cm-fut" : " cm-ctxonly";
+          return '<button class="nrg-tab' + mark + '" data-cmg="' + group + '" data-cminst="' + k + '" aria-pressed="' + (k === S.inst) + '" data-tip="' +
+            esc(CM_LABEL[k] + ": " + (ind === "options" ? "MCX futures and options" : ind === "futures" ? "MCX futures only, no options" : "no Indian contract, world benchmark")) + '">' +
+            esc(CM_LABEL[k]) + "</button>";
+        }).join("") + "</span>";
+    }).join("") + ctx + "</div>" +
+      '<div class="cm-pkey"><span>plain: MCX options</span><span class="cm-fut">dotted: MCX futures only</span><span class="cm-ctxonly">dashed: no Indian contract</span></div>';
     var body;
     if (S.tab === "positioning") body = cmPositioning(group, S.inst);
     else if (!I) body = cmMissing(S.inst);
+    else if (I.noSeries === true) body = cmNoSeries(I, group);
     else if (cmStr(I.error)) body = '<section class="card"><div class="caution"><p><b>' + esc(CM_LABEL[S.inst]) + ":</b> " + esc(cmStr(I.error)) + "</p></div></section>";
     else if (S.tab === "today") body = cmToday(I);
     else if (S.tab === "vol") body = cmVol(I);
     else if (S.tab === "momentum") body = cmMomentum(I);
     else body = cmRecord(I, S.inst);
     return intro + tabs + pick + body;
+  }
+  /* An instrument with no free price history (ICE gasoil): say so, and point
+     at the nearest benchmark that has one. */
+  function cmNoSeries(I, group) {
+    var alt = group === "energy" ? "HEATINGOIL" : null;
+    return dhLine(esc(cmStr(I.label) || "Instrument") + " &middot; no price history", esc(cmStr(I.error)), "") +
+      cmCard(cmH2("No free price series", "Commodity world benchmark"), esc(cmStr(I.worldName)),
+        '<div class="cm-note">Today, Volatility, Momentum and Track record all need a daily price history, so they are empty here. ' +
+        "The Positioning tab carries this market&rsquo;s weekly Commitments of Traders report." +
+        (alt ? ' <button class="nrg-tab" data-cmg="' + group + '" data-cminst="' + alt + '" aria-pressed="false">Open ' + esc(CM_LABEL[alt]) + "</button>" : "") + "</div>");
   }
   function cmMissing(key) {
     return '<section class="card"><div class="caution"><p><b>The commodity desk file (commdesk.json) has no ' + esc(CM_LABEL[key] || key) +
@@ -4445,32 +4503,41 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   /* ---------------------------------------------------------------- Today */
   function cmHead(I) {
     var SD = cmO(I.side), IN = cmO(SD.inputs), P = cmO(I.price), V = cmO(I.implied), R = cmO(I.realised), RG = cmO(I.range);
-    var side = cmStr(SD.side);
+    var side = cmStr(SD.side), india = cmIndia(I);
     var exp = cmStr(SD.expiry), sess = cmNum(RG.sessions);
+    var hzd = cmStr(SD.horizon) || cmStr(RG.expiry);
     var tiles = [
-      cmTile("MCX futures", cmFx(P.mcx, I), '<span class="' + cls(cmNum(P.mcxChgPct) || 0) + '">' + cmSg(P.mcxChgPct, 2) + "%</span> &middot; " + esc(cmStr(I.unit)), "Commodity MCX price"),
+      india === "none" ?
+        cmTile("World futures", cmFx(cmSpot(I), I), '<span class="' + cls(cmNum(P.worldChgPct) || 0) + '">' + cmSg(P.worldChgPct, 2) + "%</span> &middot; " + esc(cmStr(I.unit)), "Commodity world benchmark") :
+        cmTile("MCX futures", cmFx(P.mcx, I), '<span class="' + cls(cmNum(P.mcxChgPct) || 0) + '">' + cmSg(P.mcxChgPct, 2) + "%</span> &middot; " + esc(cmStr(I.unit)), "Commodity MCX price"),
       cmTile("Implied vol", V.has === true ? cmPc(V.curInr, 1) : "none",
         V.has === true ? esc(cmStr(V.sym).replace("^", "")) + " " + cmPc(V.cur, 1) + " in dollars" : "no free implied index", "Commodity implied vol"),
-      cmTile("Forecast realised vol", cmPc(R.forecast, 1), "HAR-RV, rupee series", "Commodity HAR forecast"),
+      cmTile("Forecast realised vol", cmPc(R.forecast, 1), "HAR-RV, " + cmSeries(I), "Commodity HAR forecast"),
       cmTile("Implied / forecast", cmX(IN.ratio), "sell needs " + cmX(cmO(SD.rule).rich), "Commodity side call"),
       cmTile("IV rank (1y)", V.has === true && cmNum(V.rank1y) != null ? cmPc(V.rank1y, 0) : "&mdash;",
         V.has === true && cmNum(V.pct1y) != null ? "percentile " + cmPc(V.pct1y, 0) : "no implied history", "Commodity IV rank"),
       cmTile("Expected move", cmNum(RG.em) != null ? "&plusmn;" + cmFx(RG.em, I) : "&mdash;",
         "1 sigma to " + cmD(RG.expiry, false) + " (" + cmPc(RG.movePct, 1) + ")", "Commodity expected range")
     ];
+    var brow = india === "options" ? "MCX " + esc(cmStr(I.label)) + " options expiring " + cmD(exp) :
+      india === "futures" ? "MCX " + esc(cmStr(I.label)) + " futures (no options listed) expiring " + cmD(hzd) :
+      esc(cmStr(I.label)) + ", world benchmark (no Indian contract) &middot; one month to " + cmD(hzd);
+    var asof = india === "none" ? esc(cmStr(I.world)) + " " + cmFx(P.world, I) + " " + esc(cmStr(I.worldUnit)) + " on " + cmD(P.worldAsOf) +
+        " &middot; USD/INR " + cmFx(P.fx, null, 2) :
+      "MCX settlement " + cmD(P.mcxAsOf) + " &middot; " + esc(cmStr(I.world)) + " " + cmFx(P.world, null, 2) + " " +
+        esc(cmStr(I.worldUnit)) + " on " + cmD(P.worldAsOf) + " &middot; USD/INR " + cmFx(P.fx, null, 2);
     return '<section class="card dh"><div class="dh-main">' +
-      '<div class="dh-eyebrow">Today&rsquo;s call &middot; MCX ' + esc(cmStr(I.label)) + " options expiring " + cmD(exp) +
+      '<div class="dh-eyebrow">Today&rsquo;s call &middot; ' + brow +
         (sess != null ? " &middot; " + sess + (sess === 1 ? " session" : " sessions") + " left" : "") + "</div>" +
       '<div class="dh-call" style="color:' + cmSideColor(side) + '">' + (side ? cmSideWord(side) : "No side call") + "</div>" +
       (cmStr(SD.why) ? '<p class="dh-why">' + esc(cmStr(SD.why)) + "</p>" : "") +
-      '<div class="dh-asof">MCX settlement ' + cmD(P.mcxAsOf) + " &middot; " + esc(cmStr(I.world)) + " " + cmFx(P.world, null, 2) + " " +
-        esc(cmStr(I.worldUnit)) + " on " + cmD(P.worldAsOf) + " &middot; USD/INR " + cmFx(P.fx, null, 2) + "</div>" +
+      '<div class="dh-asof">' + asof + "</div>" +
       '</div><div class="struct cm-kp">' + tiles.join("") + "</div></section>";
   }
 
   function cmRangeSvg(I) {
     var RG = cmO(I.range), P = cmO(I.price), E = cmO(RG.empirical);
-    var lo2 = cmNum(RG.lo2), hi2 = cmNum(RG.hi2), lo1 = cmNum(RG.lo1), hi1 = cmNum(RG.hi1), spot = cmNum(P.mcx);
+    var lo2 = cmNum(RG.lo2), hi2 = cmNum(RG.hi2), lo1 = cmNum(RG.lo1), hi1 = cmNum(RG.hi1), spot = cmSpot(I);
     if (lo2 == null || hi2 == null || lo1 == null || hi1 == null || spot == null || !(hi2 > lo2)) return "";
     var a = Math.min(lo2, cmNum(E.lo2) == null ? lo2 : E.lo2), b = Math.max(hi2, cmNum(E.hi2) == null ? hi2 : E.hi2);
     var W = 1000, X = function (v) { return 10 + (v - a) / (b - a || 1) * (W - 20); };
@@ -4485,7 +4552,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         tip("<b>History 16-84%</b><br>" + cmFx(E.lo, I) + " to " + cmFx(E.hi, I) + "<br>" + (cmNum(E.n) || 0) + " past windows of the same length") + "></rect>";
     }
     s += '<line x1="' + X(spot).toFixed(1) + '" y1="10" x2="' + X(spot).toFixed(1) + '" y2="52" stroke="var(--ink)" stroke-width="2"' +
-        tip("<b>MCX now</b><br>" + cmFx(spot, I)) + "></line>" +
+        tip("<b>" + (cmIndia(I) === "none" ? "World price now" : "MCX now") + "</b><br>" + cmFx(spot, I)) + "></line>" +
       '<text class="axis" x="' + X(lo2).toFixed(1) + '" y="62">' + cmFx(lo2, I) + "</text>" +
       '<text class="axis" x="' + Math.max(X(hi2) - 60, 0).toFixed(1) + '" y="62">' + cmFx(hi2, I) + "</text>" +
       '<text class="axis" x="' + Math.max(X(spot) - 24, 0).toFixed(1) + '" y="9">' + cmFx(spot, I) + "</text></svg>";
@@ -4495,8 +4562,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
 
   function cmRange(I) {
-    var RG = cmO(I.range), P = cmO(I.price), E = cmO(RG.empirical), spot = cmNum(P.mcx);
+    var RG = cmO(I.range), P = cmO(I.price), E = cmO(RG.empirical), spot = cmSpot(I), india = cmIndia(I);
     if (cmNum(RG.lo1) == null) return "";
+    var hzw = RG.horizon === "future" ? " futures expiry" : RG.horizon === "month" ? " (one month)" : " option expiry";
     function row(label, term, lo, hi) {
       if (cmNum(lo) == null || cmNum(hi) == null) return "";
       return "<tr>" + cmL("td", label, term, "lft") + "<td>" + cmFx(lo, I) + "</td><td>" + cmFx(hi, I) + "</td><td>" +
@@ -4507,12 +4575,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       row("History 16-84%", "Commodity expected range", E.lo, E.hi) +
       row("Forecast 1 sigma", "Commodity HAR forecast", RG.forecastLo1, RG.forecastHi1);
     return cmCard(cmH2("Expected range to expiry", "Commodity expected range"),
-      "MCX " + esc(cmStr(I.label)) + " by the " + cmD(RG.expiry) + " option expiry &middot; " + (cmNum(RG.sessions) || 0) + " sessions &middot; vol " + cmPc(RG.sigma, 1),
+      (india === "none" ? esc(cmStr(I.world)) + " " : "MCX ") + esc(cmStr(I.label)) + " by the " + cmD(RG.expiry) + hzw + " &middot; " + (cmNum(RG.sessions) || 0) + " sessions &middot; vol " + cmPc(RG.sigma, 1),
       cmRangeSvg(I) +
       '<div class="tablewrap"><table class="dt"><thead><tr>' + cmL("th", "Band", "Commodity expected range", "lft") +
         cmL("th", "Low", "Commodity expected range") + cmL("th", "High", "Commodity expected range") + cmL("th", "Move", "Commodity expected range") +
         "</tr></thead><tbody>" + body + "</tbody></table></div>" +
-      '<div class="cm-note">Vol used: ' + esc(cmStr(RG.source)) + ". Lognormal bands around today&rsquo;s MCX settlement; the history band is what the rupee series actually did over every past window of the same length.</div>");
+      '<div class="cm-note">Vol used: ' + esc(cmStr(RG.source)) + ". Lognormal bands around today&rsquo;s " + (india === "none" ? "world" : "MCX") +
+        " settlement; the history band is what the " + cmSeries(I) + " actually did over every past window of the same length.</div>");
   }
 
   function cmTrend(I) {
@@ -4535,7 +4604,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function cmPriceChart(I) {
     var pts0 = cmA(I.chart).filter(function (r) { return Array.isArray(r) && cmNum(r[1]) != null; });
     if (pts0.length < 20) return "";
-    var pb = cmPrimary(I) || {}, L = cmO(pb.levels), R1 = cmNum(cmA(L.R)[0]), S1 = cmNum(cmA(L.S)[0]);
+    var pb = cmPrimary(I) || cmO(I.reads), L = cmO(pb.levels), R1 = cmNum(cmA(L.R)[0]), S1 = cmNum(cmA(L.S)[0]);
     var vals = pts0.map(function (r) { return r[1]; });
     if (R1 != null) vals.push(R1);
     if (S1 != null) vals.push(S1);
@@ -4546,7 +4615,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     pts0.forEach(function (r, i) {
       var x = i / (n - 1) * W, y = Y(r[1]);
       coords.push(x.toFixed(1) + "," + y.toFixed(1));
-      pts.push({ x: x, y: y, date: cmD(r[0]), big: cmFx(r[1], I), rows: [["Rupee series", "world x USD/INR x today's basis"]] });
+      pts.push({ x: x, y: y, date: cmD(r[0]), big: cmFx(r[1], I), rows: [[cmIndia(I) === "none" ? "Dollar series" : "Rupee series",
+        cmIndia(I) === "none" ? "the world future as published" : "world x USD/INR x today's basis"]] });
     });
     var lv = "";
     if (R1 != null) lv += '<line x1="0" x2="' + W + '" y1="' + Y(R1).toFixed(1) + '" y2="' + Y(R1).toFixed(1) + '" stroke="var(--up)" stroke-dasharray="4 4"></line>';
@@ -4555,7 +4625,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<text class="axis" x="0" y="9">' + cmFx(hi, I) + '</text><text class="axis" x="0" y="' + (H - 4) + '">' + cmFx(lo, I) + "</text>" + lv +
       '<polyline fill="none" stroke="var(--calls)" stroke-width="1.8" points="' + coords.join(" ") + '"></polyline></svg>';
     return '<div class="cm-ch">' + chartWrap(svg, { pts: pts, color: "var(--calls)", vbWidth: W, vbTop: 0, vbHeight: H }) + "</div>" +
-      '<div class="cm-leg"><span><i style="background:var(--calls)"></i>' + esc(cmStr(I.label)) + ", last year, at today&rsquo;s MCX basis</span>" +
+      '<div class="cm-leg"><span><i style="background:var(--calls)"></i>' + esc(cmStr(I.label)) + ", last year, " +
+        (cmIndia(I) === "none" ? "in " + esc(cmStr(I.worldUnit)) : "at today&rsquo;s MCX basis") + "</span>" +
       (R1 != null ? '<span><i style="background:var(--up)"></i>resistance 1 ' + cmFx(R1, I) + "</span>" : "") +
       (S1 != null ? '<span><i style="background:var(--down)"></i>support 1 ' + cmFx(S1, I) + "</span>" : "") + "</div>";
   }
@@ -4585,9 +4656,45 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "<p>" + esc(cmStr(x.why)) + "</p>" + (cmStr(x.note) ? '<p class="cm-skipnote">' + esc(cmStr(x.note)) + "</p>" : "") + "</div>";
   }
 
+  /* No Indian option: the same if-then tree, as reads with no trade. */
+  function cmReads(I) {
+    var RD = cmO(I.reads), L = cmO(RD.levels), src = cmO(L.src), spot = cmSpot(I), india = cmIndia(I);
+    if (!cmA(L.R).length && !cmA(L.S).length) return "";
+    var stp = cmNum(RD.step) || cmStep(I);
+    var lrow = function (name, k, from) {
+      return "<tr>" + cmL("td", name, "Commodity levels", "lft") + "<td>" + cmFx(k, I) + "</td><td>" +
+        (spot && cmNum(k) != null ? cmSg((k - spot) / spot * 100, 1) + "%" : "&mdash;") + "</td><td class=\"cm-wrap\">" + esc(from) + "</td></tr>";
+    };
+    var R = cmA(L.R), Sx = cmA(L.S), rows = "";
+    for (var i = R.length - 1; i >= 0; i--) rows += lrow("Resistance " + (i + 1), R[i], i === 0 ? cmStr(src.r1) : i === 1 ? "one expected move" : "1.5 expected moves");
+    rows += "<tr>" + cmL("td", india === "none" ? "World price" : "MCX price", india === "none" ? "Commodity world benchmark" : "Commodity MCX price", "lft") +
+      "<td><b>" + cmFx(spot, I) + "</b></td><td>&mdash;</td><td>settlement</td></tr>";
+    for (var j = 0; j < Sx.length; j++) rows += lrow("Support " + (j + 1), Sx[j], j === 0 ? cmStr(src.s1) : j === 1 ? "one expected move" : "1.5 expected moves");
+    var cards = cmA(RD.states).map(function (s) {
+      s = cmO(s);
+      var tone = /stall|breakout/.test(cmStr(s.id)) ? "pb-up" : /pullback|breakdown/.test(cmStr(s.id)) ? "pb-dn" : "pb-flat";
+      return '<div class="pb-sc ' + tone + '"><h4>' + esc(cmStr(s.title)) + "</h4>" +
+        '<span class="pb-k">Trigger</span>' + esc(cmStr(s.watch)) + '<span class="pb-k">Read</span>' + esc(cmStr(s.read)) + "</div>";
+    }).join("");
+    var lm = cmO(RD.lotMove);
+    return cmCard(cmH2("If-then plan", "Commodity reads"),
+      (india === "futures" ? "MCX " + esc(cmStr(I.label)) + " futures &middot; no option listed" : esc(cmStr(I.label)) + " &middot; no Indian contract") +
+        " &middot; levels on a " + cmFx(stp, I) + " grid &middot; reads, not trades",
+      '<div class="pb-note">' + esc(cmStr(RD.why)) + " Expected move to the horizon &plusmn;" + cmFx(RD.em, I) + " " + esc(cmStr(I.unit)) + "." +
+        (cmStr(lm.text) ? " " + esc(cmStr(lm.text)) : "") + "</div>" +
+      '<div class="pb-h">Levels</div><div class="tablewrap"><table class="dt"><thead><tr>' + cmL("th", "Level", "Commodity levels", "lft") +
+        cmL("th", "Price", "Commodity levels") + cmL("th", "Distance", "Commodity levels") + cmL("th", "From", "Commodity levels") +
+        "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<div class="pb-h">Then, depending on what the market does</div><div class="pb-grid">' + cards + "</div>" +
+      dsMethod("Why there is no trade here", "The NIFTY desk&rsquo;s plan needs an option to sell or buy. " +
+        (india === "futures" ? "MCX lists " + esc(cmStr(I.label)) + " futures but no options, so the plan stops at the reads; a futures position has no capped loss and is not what this desk trades." :
+          "No " + esc(cmStr(I.label)) + " contract trades in India, so the plan is a read on the world benchmark in its own unit.") +
+        " Levels are the 20-session high and low where they are within reach, else half an expected move, then one and one-and-a-half expected moves."));
+  }
+
   function cmPlaybook(I) {
     var PB = cmO(I.playbook), HS = cmA(PB.horizons);
-    if (!HS.length) return "";
+    if (!HS.length) return cmIndia(I) !== "options" ? cmReads(I) : "";
     var g = cmGroup(), S = CM_STATE[g];
     var H = null;
     HS.forEach(function (h) { if (cmO(h).key === S.h) H = cmO(h); });
@@ -4644,7 +4751,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   function cmExit(I) {
     var H = cmPrimary(I);
-    if (!H) return "";
+    if (!H || cmIndia(I) !== "options") return "";
     var X = cmO(H.exit), lines = cmA(X.lines);
     var base = cmO(H.base);
     var intro = cmA(base.legs).length ? "For the starting position on the " + cmD(H.optExpiry) + " options." :
@@ -4666,27 +4773,39 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         e = cmO(e);
         return "<tr>" + cmL("td", cmD(e.date), "Commodity events", "lft") + '<td class="lft">' + esc(cmStr(e.label)) + "</td><td>" +
           (cmNum(e.x) != null ? cmX(e.x, 2) + (e.measured ? " <b>measured</b>" : "") : "not measured") + "</td><td>" + (cmNum(e.n) == null ? "&mdash;" : e.n) + "</td></tr>";
-      }).join("") + "</tbody></table></div>" : '<div class="cm-note">No high-severity or measured release falls before the ' + cmD(cmO(I.side).expiry) + " expiry.</div>";
-    return cmCard(cmH2("Events before expiry", "Commodity events"), "a release counts once it has measurably moved this market",
+      }).join("") + "</tbody></table></div>" : '<div class="cm-note">No high-severity or measured release falls before ' +
+        cmD(cmStr(cmO(I.side).expiry) || cmStr(cmO(I.side).horizon)) + ".</div>";
+    return cmCard(cmH2("Events before expiry", "Commodity events"), "a release counts once it has measurably moved this market" +
+        (cmIndia(I) === "options" ? "" : " &middot; to the " + cmD(cmO(I.side).horizon) + " horizon"),
       body + '<div class="cm-note">' + esc(cmStr(E.note)) + " Weekly inventory reports are part of every expiry and already in realised vol, so they are not a reason to stand aside.</div>");
   }
 
   function cmSpecs(I) {
-    var key = cmStr(I.key);
+    var key = cmStr(I.key), india = cmIndia(I);
+    if (india === "none") {
+      var S0 = cmO(I.specs);
+      var r0 = function (k, v) { return "<tr>" + cmL("td", k, "Indian contract", "lft") + '<td class="lft cm-wrap">' + v + "</td></tr>"; };
+      return cmCard(cmH2("Indian contract", "Indian contract"), "none listed",
+        '<div class="tablewrap"><table class="dt"><tbody>' +
+        r0("MCX futures", "none") + r0("MCX options", "none") +
+        r0("World benchmark", esc(cmStr(I.world)) + " &middot; " + esc(cmStr(I.worldName))) +
+        r0("Checked against", esc(cmStr(S0.source))) + "</tbody></table></div>");
+    }
     if (typeof cdSpecsCard === "function") {
       var ext = cmSafe(cdSpecsCard, key);
       if (ext) return ext;
     }
     var S = cmO(I.specs), M = cmO(S.mini);
-    var ex = cmA(I.expiries).map(function (e) { e = cmO(e); return cmD(e.opt) + " (future " + cmD(e.fut, false) + ")"; }).join(", ");
+    var ex = cmA(I.expiries).map(function (e) { e = cmO(e); return cmStr(e.opt) ? cmD(e.opt) + " (future " + cmD(e.fut, false) + ")" : "future " + cmD(e.fut); }).join(", ");
     var row = function (k, v) { return "<tr>" + cmL("td", k, "MCX option contract", "lft") + '<td class="lft cm-wrap">' + v + "</td></tr>"; };
     return cmCard(cmH2("Contract specifications", "MCX option contract"),
       S.verified === true ? "checked against secondary sources" : "<b>not fully verified</b>",
       '<div class="tablewrap"><table class="dt"><tbody>' +
       row("Lot size", esc(cmStr(S.lot))) +
       row("Rupees per point", cmRs(S.multiplier) + " a lot for a 1-point move in the " + esc(cmStr(I.unit)) + " price") +
+      (india === "futures" ? row("Strike interval", "no option listed") + row("Option expiry", "no option listed") :
       row("Strike interval", cmFx(S.strikeStep, I)) +
-      row("Option expiry", (cmNum(S.optLag) || 0) + " business days before the future; ITM options devolve into futures") +
+      row("Option expiry", (cmNum(S.optLag) || 0) + " business days before the future; ITM options devolve into futures")) +
       row("Next expiries", ex || "&mdash;") +
       row("Mini contract", cmStr(M.symbol) ? esc(cmStr(M.symbol)) + ", " + esc(cmStr(M.lot)) + (cmStr(M.note) ? ". " + esc(cmStr(M.note)) : "") : "none") +
       row("Checked against", esc(cmStr(S.source)) + (cmStr(S.origin) ? " (" + esc(cmStr(S.origin)) + ")" : "")) +
@@ -4695,18 +4814,42 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   function cmToday(I) {
     var SD = cmO(I.side);
-    return cmSafe(cmHead, I) + cmSafe(cmRange, I) + cmSafe(cmTrend, I) + cmSafe(cmPlaybook, I) + cmSafe(cmExit, I) +
+    return cmSafe(cmHead, I) + cmSafe(cmRange, I) + cmSafe(cmTrend, I) + cmSafe(cmCrack, I) + cmSafe(cmPlaybook, I) + cmSafe(cmExit, I) +
       cmSafe(cmEvents, I) + cmSafe(cmSpecs, I) +
       '<section class="card">' + dsMethod("How the call is made",
         "The NIFTY desk&rsquo;s rule, unchanged: sell premium only when implied vol is at least " + cmX(cmO(SD.rule).rich) +
         " the HAR-RV forecast of realised vol and no event that has measurably moved this market (at least " + (cmNum(cmO(SD.rule).eventMinN) || 0) +
         " past cases, median move at least " + cmX(cmO(SD.rule).eventMinX) + " an ordinary day) falls before the option expiry. " +
         "Implied comes from CBOE&rsquo;s OVX (crude, USO options) and GVZ (gold, GLD options), carried into rupees with the measured USD/INR vol and correlation. " +
-        "Silver, copper and natural gas have no free implied index, so the desk does not sell their premium. Buying needs a reason that has paid buyers " +
-        "on this desk&rsquo;s own history; no commodity has that record yet.") + "</section>";
+        "Silver, copper, zinc and natural gas have no free implied index, so the desk does not sell their premium. Buying needs a reason that has paid buyers " +
+        "on this desk&rsquo;s own history; no commodity has that record yet. Where MCX lists only futures (aluminium, lead, nickel) or nothing at all " +
+        "(platinum, palladium, iron ore, Brent, heating oil, gasoline, gasoil), there is no Indian option, so the call is always to stand aside and the page gives the trend and range read; " +
+        "a US fund&rsquo;s implied vol, where one exists, is shown as context only.") + "</section>";
   }
 
   /* ----------------------------------------------------------- Volatility */
+  function cmCrack(I) {
+    var C = cmO(cmO(I.price).crack);
+    if (cmNum(C.last) == null) return "";
+    var ser = cmA(C.series).filter(function (r) { return Array.isArray(r) && cmNum(r[1]) != null; });
+    var usd = function (v, d) { v = cmNum(v); return v == null ? "&mdash;" : (v < 0 ? "&minus;$" : "$") + Math.abs(v).toFixed(d == null ? 2 : d); };
+    var pc = cmNum(C.pct1y);
+    var read = esc(cmStr(I.label)) + " is worth " + usd(C.last) + " a barrel more than the WTI it is refined from, the " + cmPc(pc, 0) +
+      " percentile of the last year (range " + usd(C.min1y) + " to " + usd(C.max1y) + "; five-year median " + usd(C.median5y) + "). " +
+      (pc != null && pc >= 80 ? "A margin this wide pays refiners to run hard, which adds product supply; it also says product demand or outages are pulling ahead of crude." :
+        pc != null && pc <= 20 ? "A margin this thin squeezes refiners, who cut runs; product supply tightens with a lag." :
+        "The margin sits inside its usual range.");
+    return cmCard(cmH2("Crack spread", "Crack spread"), esc(cmStr(I.label)) + " x 42 gallons minus WTI, USD a barrel &middot; " + cmD(C.asOf),
+      '<div class="struct">' +
+      cmTile("Crack now", usd(C.last), "per barrel of product", "Crack spread") +
+      cmTile("1-year percentile", cmPc(pc, 0), "range " + usd(C.min1y, 0) + " to " + usd(C.max1y, 0), "Crack spread") +
+      cmTile("5-year median", usd(C.median5y), "the usual margin", "Crack spread") +
+      cmTile("21-session change", cmNum(C.chg21) == null ? "&mdash;" : (C.chg21 >= 0 ? "+" : "&minus;") + "$" + Math.abs(C.chg21).toFixed(2), "the last month", "Crack spread") + "</div>" +
+      '<div class="cm-note">' + read + "</div>" +
+      cmLineChart(I, [{ name: "crack, USD a barrel", color: "var(--calls)", vals: ser }],
+        { label: "Crack spread, last two years, weekly", fmt: usd, marks: [{ name: "five-year median", v: C.median5y, color: "var(--ink-3)" }] }));
+  }
+
   function cmLineChart(I, series, opts) {
     /* series: [{name, color, vals: [[iso, v], ...]}], shared x by index of the first. */
     var base = cmA(series[0] && series[0].vals);
@@ -4717,6 +4860,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     (opts.marks || []).forEach(function (m) { if (cmNum(m.v) != null) all.push(m.v); });
     var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all), rg = hi - lo || 1;
     var Y = function (v) { return 10 + (hi - v) / rg * (H - 28); };
+    var F = typeof opts.fmt === "function" ? opts.fmt : function (v, d) { return v.toFixed(d == null ? 1 : d) + "%"; };
     var lines = series.map(function (s) {
       var c = [];
       cmA(s.vals).forEach(function (r, i) { if (cmNum(r[1]) != null) c.push((i / (n - 1) * W).toFixed(1) + "," + Y(r[1]).toFixed(1)); });
@@ -4726,12 +4870,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return '<line x1="0" x2="' + W + '" y1="' + Y(m.v).toFixed(1) + '" y2="' + Y(m.v).toFixed(1) + '" stroke="' + m.color + '" stroke-dasharray="4 4"></line>';
     }).join("");
     var pts = base.map(function (r, i) {
-      var rows = series.map(function (s) { var v = cmA(s.vals)[i]; return [s.name, v && cmNum(v[1]) != null ? v[1].toFixed(1) + "%" : "&mdash;"]; });
+      var rows = series.map(function (s) { var v = cmA(s.vals)[i]; return [s.name, v && cmNum(v[1]) != null ? F(v[1]) : "&mdash;"]; });
       if (opts.extra) rows = rows.concat(opts.extra(i));
-      return { x: i / (n - 1) * W, y: Y(cmNum(r[1]) == null ? lo : r[1]), date: cmD(r[0]), big: cmNum(r[1]) == null ? "&mdash;" : r[1].toFixed(1) + "%", rows: rows };
+      return { x: i / (n - 1) * W, y: Y(cmNum(r[1]) == null ? lo : r[1]), date: cmD(r[0]), big: cmNum(r[1]) == null ? "&mdash;" : F(r[1]), rows: rows };
     });
     var svg = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(opts.label || "chart") + '">' +
-      '<text class="axis" x="0" y="9">' + hi.toFixed(0) + '%</text><text class="axis" x="0" y="' + (H - 4) + '">' + lo.toFixed(0) + "%</text>" +
+      '<text class="axis" x="0" y="9">' + F(hi, 0) + '</text><text class="axis" x="0" y="' + (H - 4) + '">' + F(lo, 0) + "</text>" +
       '<text class="axis" x="' + (W - 70) + '" y="' + (H - 4) + '">' + cmD(base[n - 1][0], true) + "</text>" + marks + lines + "</svg>";
     return '<div class="cm-ch">' + chartWrap(svg, { pts: pts, color: series[0].color, vbWidth: W, vbTop: 0, vbHeight: H }) + "</div>" +
       '<div class="cm-leg">' + series.concat(opts.marks || []).map(function (s) {
@@ -4754,10 +4898,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return cmCard(cmH2("Implied volatility", "Commodity implied vol"), "proxy from " + esc(cmStr(V.sym) || "a US fund"),
         '<div class="struct">' +
         cmTile("Implied vol (proxy)", cmPc(V.cur, 1), esc(cmStr(V.sym) || "ETF") + " options, ATM, " + cmD(V.asOf), "Commodity implied vol") +
-        cmTile("Forecast realised", cmPc(cmO(I.realised).forecast, 1), "HAR forecast, rupee series", "Commodity implied vol") +
+        cmTile("Forecast realised", cmPc(cmO(I.realised).forecast, 1), "HAR forecast, " + cmSeries(I), "Commodity implied vol") +
         cmTile("Implied / forecast", cmX(cmO(I.vrp).ratio), "a seller needs 1.10x from a real implied", "Commodity implied vol") + "</div>" +
         '<div class="cm-note">This reading comes from a US-listed fund&rsquo;s options (' + esc(cmStr(V.name)) + "), used as a proxy for skew and " +
-        "positioning. It is not the price of MCX options, it has no stored history, so there is no IV rank, and the desk never sells on it alone.</div>");
+        "positioning. " + (cmIndia(I) === "options" ? "It is not the price of MCX options, it" : "No option on this market trades in India; the reading") +
+        " has no stored history, so there is no IV rank, and the desk never sells on it alone.</div>");
     }
     var ser = cmA(V.series).filter(function (r) { return Array.isArray(r) && cmNum(r[1]) != null; }).slice(-160);
     var tiles = '<div class="struct">' +
@@ -4816,7 +4961,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       esc(cmStr(C.from).slice(0, 4)) + "; the last " + m21.h + " sessions delivered " + cmPc(m21.cur, 1) + "." :
       "The last " + m21.h + " sessions delivered " + cmPc(m21.cur, 1) + ", the " + cmPc(m21.curPct, 0) + " percentile of every " + m21.h +
       "-session window since " + esc(cmStr(C.from).slice(0, 4)) + ". There is no implied vol to set against it.";
-    return cmCard(cmH2("Realised volatility cone", "Commodity vol cone"), (cmNum(C.n) || 0) + " sessions of the rupee series since " + cmD(C.from),
+    return cmCard(cmH2("Realised volatility cone", "Commodity vol cone"), (cmNum(C.n) || 0) + " sessions of the " + cmSeries(I) + " since " + cmD(C.from),
       '<div class="cm-note">' + read + "</div>" +
       '<div class="cm-ch">' + chartWrap(svg, { pts: pts, color: "var(--calls)", vbWidth: W, vbTop: 0, vbHeight: H }) + "</div>" +
       '<div class="cm-leg"><span><i style="background:var(--calls)"></i>now</span><span><i style="background:var(--ink-3)"></i>median</span>' +
@@ -4876,12 +5021,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function cmVrpCard(I) {
     var V = cmO(I.vrp), R = cmO(I.realised), HR = cmO(R.har), B = cmO(HR.beta), C = cmO(HR.components);
     var tiles = '<div class="struct">' +
-      cmTile("Forecast realised vol", cmPc(R.forecast, 1), "HAR-RV on the rupee series", "Commodity HAR forecast") +
+      cmTile("Forecast realised vol", cmPc(R.forecast, 1), "HAR-RV on the " + cmSeries(I), "Commodity HAR forecast") +
       cmTile("Implied / forecast", cmX(V.ratio), cmNum(V.ratio) == null ? "no implied vol" : "sell needs " + cmX(cmO(cmO(I.side).rule).rich), "Commodity VRP") +
       cmTile("Implied - forecast", cmNum(V.spread) == null ? "&mdash;" : cmSg(V.spread, 1) + " pts", "vol points a seller collects", "Commodity VRP") +
       cmTile("Implied / 21-day realised", cmX(V.trailingRatio), "against the last month instead of the forecast", "Commodity VRP") +
-      cmTile("Yang-Zhang 5 / 21 / 63", cmPc(R.yz5, 1) + " / " + cmPc(R.yz21, 1) + " / " + cmPc(R.yz63, 1), "realised, rupee series", "Commodity HAR forecast") +
-      cmTile("MCX close-to-close 21", cmPc(R.mcxCc21, 1), cmNum(R.mcxCc21) == null ? "no MCX bars stored" : "the contract&rsquo;s own bars", "Commodity HAR forecast") + "</div>";
+      cmTile("Yang-Zhang 5 / 21 / 63", cmPc(R.yz5, 1) + " / " + cmPc(R.yz21, 1) + " / " + cmPc(R.yz63, 1), "realised, " + cmSeries(I), "Commodity HAR forecast") +
+      cmTile("MCX close-to-close 21", cmPc(R.mcxCc21, 1), cmIndia(I) === "none" ? "no MCX contract" : cmNum(R.mcxCc21) == null ? "no MCX bars stored" : "the contract&rsquo;s own bars", "Commodity HAR forecast") + "</div>";
     var hr = function (k, w, v) {
       return "<tr>" + cmL("td", k, "Commodity HAR forecast", "lft") + "<td>" + (cmNum(w) == null ? "&mdash;" : w.toFixed(3)) + "</td><td>" + (v == null ? "&mdash;" : v) + "</td></tr>";
     };
@@ -4902,13 +5047,54 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       " of its year) against a forecast of " + cmPc(R.forecast, 1) + ": " + cmX(VR.ratio) + ", " +
       (cmNum(VR.ratio) != null && VR.ratio >= (cmNum(cmO(cmO(I.side).rule).rich) || 1.1) ? "rich enough to sell." : "not rich enough to sell.") :
       "No implied vol for " + esc(cmStr(I.label)) + ": realised " + cmPc(R.yz21, 1) + " over 21 sessions, forecast " + cmPc(R.forecast, 1) + ". Trend and range only.";
-    return dhLine("Volatility &middot; " + esc(cmStr(I.label)), why, "rupee series since " + esc(cmStr(cmO(I.price).historyFrom).slice(0, 4))) +
+    return dhLine("Volatility &middot; " + esc(cmStr(I.label)), why, cmSeries(I) + " since " + esc(cmStr(cmO(I.price).historyFrom).slice(0, 4))) +
       cmSafe(cmIvCard, I) + cmSafe(cmVrpCard, I) + cmSafe(cmConeCard, I) + cmSafe(cmIvrCard, I);
   }
 
   /* ---------------------------------------------------------- Positioning */
+  var CM_POS_NONE = {
+    ZINC: "No CFTC contract covers zinc, and the LME&rsquo;s own weekly Commitments of Traders report is not wired into this desk, so there is no zinc positioning to show. The CFTC metals study follows.",
+    LEAD: "No CFTC contract covers lead, and the LME&rsquo;s own weekly Commitments of Traders report is not wired into this desk, so there is no lead positioning to show. The CFTC metals study follows.",
+    NICKEL: "No CFTC contract covers nickel, and the LME&rsquo;s own weekly Commitments of Traders report is not wired into this desk, so there is no nickel positioning to show. The CFTC metals study follows.",
+    IRONORE: "The CFTC disaggregated futures files the desk reads carry no iron ore contract, so there is no iron ore positioning to show. The CFTC metals study follows."
+  };
+  function cmPosNote(group, key) {
+    var p = CM_POS[key], lab = esc(CM_LABEL[key] || key);
+    var t = function (k, v, m) { return cmTile(k, v, m, "Commodity positioning link"); };
+    var n0 = function (v) { v = cmNum(v); return v == null ? "&mdash;" : (v < 0 ? "&minus;" : "") + Math.abs(Math.round(v)).toLocaleString("en-US"); };
+    if (!p) return cmCard(cmH2("Positioning for " + lab, "Commodity positioning link"), "no free report", '<div class="cm-note">' + (CM_POS_NONE[key] || "No free positioning report covers this market.") + "</div>");
+    if (group === "metal") {
+      var M = typeof MTL !== "undefined" ? cmO(MTL) : {};
+      if (p === "aluminium") {
+        var A = cmO(M.aluminium);
+        if (cmNum(A.oi) == null) return "";
+        return cmCard(cmH2("Positioning for " + lab, "Commodity positioning link"), "CFTC, COMEX aluminum &middot; as of " + cmD(A.date),
+          '<div class="struct">' + t("Managed money long", n0(A.mmL), "contracts") + t("Managed money short", n0(A.mmS), "contracts") +
+          t("Open interest", n0(A.oi), "contracts, all traders") + "</div>" +
+          '<div class="cm-note">COMEX aluminum is a thin contract beside the LME, where aluminium is really priced; read these as a small sample of US funds, not the market. The full study below covers the CFTC metals.</div>');
+      }
+      var mm = cmA(M.metals).filter(function (x) { return cmO(x).key === p; })[0];
+      if (!mm) return "";
+      var L = cmO(cmO(mm).latest);
+      return cmCard(cmH2("Positioning for " + lab, "Commodity positioning link"), "CFTC managed money, " + esc(cmStr(mm.exchange)) + " &middot; as of " + cmD(L.date),
+        '<div class="struct">' + t("Managed money net", n0(L.net), "contracts; this week " + cmSg(L.dN, 0)) +
+        t("Share of open interest", cmPc(L.netPctOi, 1), "net long as a share of all contracts") +
+        t("z (3 years)", cmSg(L.z, 2), "against its own last three years") + t("This week", esc(cmStr(L.action) || "&mdash;"), esc(cmStr(L.actionLong))) + "</div>" +
+        '<div class="cm-note">The full study below opens on ' + lab + ".</div>");
+    }
+    var E = typeof ENERGY !== "undefined" ? cmO(ENERGY) : {};
+    var mk = cmA(E.markets).filter(function (x) { return cmO(x).key === p; })[0];
+    if (!mk) return "";
+    var L2 = cmO(cmO(mk).latest), MMc = cmO(cmO(L2.cats).mm);
+    return cmCard(cmH2("Positioning for " + lab, "Commodity positioning link"), esc(cmStr(mk.label)) + " &middot; " + esc(cmStr(mk.venue)) + " &middot; as of " + cmD(mk.asOf),
+      '<div class="struct">' + t("Managed money net", n0(MMc.net), "contracts; this week " + cmSg(MMc.dNet, 0)) +
+      t("Share of open interest", cmPc(L2.pctOI, 1), "net long as a share of all contracts") +
+      t("z (3 years)", cmSg(L2.z, 2), "against its own last three years") + t("Open interest", n0(L2.oi), "contracts, all traders") + "</div>" +
+      '<div class="cm-note">The full study below opens on ' + esc(cmStr(mk.label)) + ".</div>");
+  }
   function cmPositioning(group, key) {
-    var ext = "";
+    cmPosFollow(key);
+    var ext = cmSafe(cmPosNote, group, key);
     if (typeof cdChainCard === "function") ext += cmSafe(cdChainCard, key);
     if (typeof cdEventsCard === "function") ext += cmSafe(cdEventsCard, key);
     var head = dhLine("Positioning &middot; " + esc(CM_LABEL[key] || key),
@@ -4933,7 +5119,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function cmReadings(I) {
     var RG = cmO(I.regimes), R = cmO(RG.readings);
     var t = function (k, v, m) { return cmTile(k, v, m, "Commodity momentum readings"); };
-    return cmCard(cmH2("Where " + esc(cmStr(I.label)) + " stands", "Commodity momentum readings"), "textbook indicators on the rupee series, as of " + cmD(RG.asOf),
+    return cmCard(cmH2("Where " + esc(cmStr(I.label)) + " stands", "Commodity momentum readings"), "textbook indicators on the " + cmSeries(I) + ", as of " + cmD(RG.asOf),
       '<div class="struct">' +
       t("RSI (14)", cmFx(R.rsi, null, 1), "above 70 overbought, below 30 oversold") +
       t("Stochastic", cmFx(R.stoch, null, 1), "close within its 14-day range") +
@@ -4990,7 +5176,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       cmL("th", "Spells", "Commodity regime state") + cmL("th", "Median length", "Commodity regime state") + cmL("th", "Up after 10", "Commodity regime state") +
       cmL("th", "10-session edge", "Commodity regime state") + cmL("th", "Move size", "Commodity regime state") + cmL("th", "Verdict", "Commodity regime state") +
       "</tr></thead><tbody>" + body + "</tbody></table></div>" +
-      dsMethod("Method", "regimes.py&rsquo;s machinery, run on the commodity&rsquo;s rupee series: textbook thresholds, spells merged across 1-2 day gaps, " +
+      dsMethod("Method", "regimes.py&rsquo;s machinery, run on the commodity&rsquo;s " + cmSeries(I) + ": textbook thresholds, spells merged across 1-2 day gaps, " +
         "10-session returns from the first day of each spell against an ordinary 10 sessions, and the two halves of the history checked separately. " +
         "Implied-vol states use the CBOE index where one exists; positioning states are left out (no option chain)."));
   }
@@ -5085,7 +5271,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         "Commodities have fat tails; the history band and the 2-sigma line are there because the 1-sigma band is breached more often than 32% of the time in a shock."],
       how: cmHow(function (I) {
         var R = cmO(I.range);
-        return esc(cmStr(I.label)) + " " + cmFx(cmO(I.price).mcx, I) + ", vol " + cmPc(R.sigma, 1) + ", " + (cmNum(R.sessions) || 0) + " sessions to " + cmD(R.expiry) +
+        return esc(cmStr(I.label)) + " " + cmFx(cmSpot(I), I) + ", vol " + cmPc(R.sigma, 1) + ", " + (cmNum(R.sessions) || 0) + " sessions to " + cmD(R.expiry) +
           ": 1 sigma <b>" + cmFx(R.lo1, I) + " to " + cmFx(R.hi1, I) + "</b>, 2 sigma " + cmFx(R.lo2, I) + " to " + cmFx(R.hi2, I) + ".";
       })
     },
@@ -5107,8 +5293,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       deep: ["Resistance 1 is the 20-session high if it lies between a quarter and one-and-a-half expected moves above, else half an expected move. Resistance 2 and 3 add half an expected move each, at least one and one-and-a-half expected moves out. Support mirrors it.",
         "Distance is from today's MCX settlement, in percent."],
       how: cmHow(function (I) {
-        var H = cmPrimary(I) || {}, L = cmO(H.levels), spot = cmNum(cmO(I.price).mcx) || 0;
-        return "MCX " + cmFx(spot, I) + ": resistance " + cmA(L.R).map(function (v) { return cmFx(v, I); }).join(", ") + "; support " +
+        var H = cmPrimary(I) || cmO(I.reads), L = cmO(H.levels), spot = cmSpot(I) || 0;
+        return (cmIndia(I) === "none" ? esc(cmStr(I.world)) + " " : "MCX ") + cmFx(spot, I) + ": resistance " + cmA(L.R).map(function (v) { return cmFx(v, I); }).join(", ") + "; support " +
           cmA(L.S).map(function (v) { return cmFx(v, I); }).join(", ") + " (expected move &plusmn;" + cmFx(H.em, I) + ").";
       })
     },
@@ -5239,6 +5425,82 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       })
     }
   };
+  CM_TERMS["Commodity world benchmark"] = {
+    plain: ["The world futures contract an instrument is read on when no Indian contract exists, in its own unit (dollars an ounce, a tonne, a barrel or a gallon).",
+      "Where MCX lists a contract, the world price times USD/INR gives the long rupee history; where it does not, the desk reads the dollar series as published."],
+    deep: ["Platinum and palladium are NYMEX (PL=F, PA=F), aluminium COMEX (ALI=F), iron ore COMEX 62% Fe (TIO=F), Brent ICE (BZ=F), ULSD and RBOB NYMEX (HO=F, RB=F). Zinc, lead and nickel are priced on the LME, which is not free, so the desk uses WisdomTree's LME-index ETCs on the LSE (ZINC.L, LEED.L, NICK.L), which drift from LME cash by the roll and a fee.",
+      "ICE gasoil has no free daily series at all: its page carries positioning only."],
+    how: cmHow(function (I) {
+      var P = cmO(I.price);
+      if (!cmStr(I.world)) return esc(cmStr(I.label)) + ": no free price series.";
+      return esc(cmStr(I.label)) + ": " + esc(cmStr(I.worldName)) + ", " + cmFx(P.world, I) + " " + esc(cmStr(I.worldUnit)) + " on " + cmD(P.worldAsOf) +
+        ", " + (cmNum(P.historyBars) || 0) + " sessions since " + cmD(P.historyFrom) + ".";
+    })
+  };
+  CM_TERMS["Commodity reads"] = {
+    plain: ["The if-then tree without a trade: the levels, and what a stall, a breakout, a pullback or a breakdown would mean, for a market with no Indian option.",
+      "The desk does not trade futures, so where MCX lists no option the plan stops at the read."],
+    deep: ["Levels are built as in the option plan (20-session high and low within reach, else half an expected move, then one and one-and-a-half expected moves) on a price grid instead of a strike grid.",
+      "For MCX futures-only metals the card also gives what one expected move is worth on one futures lot, so the size of the risk is plain."],
+    how: cmHow(function (I) {
+      if (!cmA(cmO(cmO(I.reads).levels).R).length) {
+        /* an instrument with an option plan borrows the first one without */
+        var alt = null;
+        CM_KEYS.metal.concat(CM_KEYS.energy).forEach(function (k) { if (!alt && cmA(cmO(cmO(cmO(cmInst(k)).reads).levels).R).length) alt = cmInst(k); });
+        if (!alt) return "No instrument without an Indian option is loaded; 0 reads to show, against 16 markets on the two pages.";
+        I = alt;
+      }
+      var RD = cmO(I.reads), L = cmO(RD.levels);
+      return esc(cmStr(I.label)) + ": expected move &plusmn;" + cmFx(RD.em, I) + ", resistance 1 " + cmFx(cmA(L.R)[0], I) + ", support 1 " + cmFx(cmA(L.S)[0], I) +
+        (cmStr(cmO(RD.lotMove).text) ? ". " + esc(cmStr(cmO(RD.lotMove).text)) : ".");
+    })
+  };
+  CM_TERMS["Indian contract"] = {
+    plain: ["Whether this market trades in India at all. MCX lists options on gold, silver, copper, zinc, crude oil and natural gas; futures only on aluminium, lead and nickel; nothing on platinum, palladium, iron ore, Brent, heating oil, gasoline or gasoil.",
+      "With no Indian contract there is nothing to sell or buy here, so the desk always stands aside and reads the world price."],
+    deep: ["Checked on 14-Nov-2026 against the MCX launch-calendar circular MCX/TRD/567/2025 (reproduced by MarketScreener) and broker contract lists (AlgoTest, ICICI Direct, 5paisa); mcxindia.com refuses automated access, so these are secondary sources."],
+    how: cmHow(function (I) {
+      var ind = cmIndia(I), S = cmO(I.specs), n = { options: 0, futures: 0, none: 0 };
+      Object.keys(CM_INDIA).forEach(function (k) { n[CM_INDIA[k]]++; });
+      return esc(cmStr(I.label)) + ": " + (ind === "options" ? "MCX futures and options" : ind === "futures" ? "MCX futures only, no options" : "no Indian contract") +
+        (cmNum(S.multiplier) != null ? ", lot " + esc(cmStr(S.lot)) + " (" + cmRs(S.multiplier) + " a lot for a 1-point move)" : "") +
+        ". Of the " + Object.keys(CM_INDIA).length + " markets on the two pages, " + n.options + " have MCX options, " + n.futures + " MCX futures only and " + n.none + " no Indian contract.";
+    })
+  };
+  CM_TERMS["Crack spread"] = {
+    plain: ["What a refiner earns turning a barrel of crude into a product: the product price per gallon times 42, minus the crude price per barrel.",
+      "A wide crack pays refiners to run hard (more product supply later); a thin one makes them cut runs."],
+    deep: ["Shown as the simple 1:1 crack against NYMEX WTI on the same day. Refiners actually yield several products from one barrel (the 3-2-1 crack weighs two of gasoline and one of distillate against three of crude); the 1:1 version isolates one product.",
+      "Product prices are quoted per gallon, crude per barrel: 42 US gallons make a barrel."],
+    how: cmHow(function (I) {
+      var C = cmO(cmO(I.price).crack);
+      if (cmNum(C.last) == null) {
+        var J = cmInst("HEATINGOIL"); C = cmO(cmO(cmO(J).price).crack);
+        if (cmNum(C.last) == null) return "No crack spread is loaded (0 product series).";
+        return esc(cmStr(I.label)) + " has none; heating oil&rsquo;s crack is $" + C.last.toFixed(2) + " a barrel, the " + cmPc(C.pct1y, 0) + " percentile of its year.";
+      }
+      return esc(cmStr(I.label)) + ": " + cmFx(cmO(I.price).world, I) + " x 42 minus WTI = <b>$" + C.last.toFixed(2) + "</b> a barrel on " + cmD(C.asOf) +
+        ", the " + cmPc(C.pct1y, 0) + " percentile of the last year (five-year median $" + (cmNum(C.median5y) || 0).toFixed(2) + ").";
+    })
+  };
+  CM_TERMS["Commodity positioning link"] = {
+    plain: ["The selected instrument's own line from the weekly positioning reports: what managed money (funds) holds in the matching futures contract.",
+      "Where no free report covers the market (zinc, lead, nickel, iron ore), the card says so."],
+    deep: ["Metals from the CFTC disaggregated report (COMEX gold, silver, copper, aluminum; NYMEX platinum, palladium); energy from the CFTC (WTI, NY Harbor ULSD, RBOB, Henry Hub) and ICE (Brent, gasoil). Positions are as of Tuesday and published on Friday.",
+      "Net as a share of open interest and its z-score against the last three years measure crowding; they describe, they do not time."],
+    how: cmHow(function (I) {
+      var p = CM_POS[cmStr(I.key)], lab = esc(cmStr(I.label)), cov = 0;
+      Object.keys(CM_POS).forEach(function (k) { if (CM_POS[k]) cov++; });
+      var tail = " " + cov + " of the " + Object.keys(CM_POS).length + " markets have a free weekly report.";
+      if (!p) return lab + ": no free positioning report." + tail;
+      var M = typeof MTL !== "undefined" ? cmO(MTL) : {}, E = typeof ENERGY !== "undefined" ? cmO(ENERGY) : {};
+      var mm = cmA(M.metals).filter(function (x) { return cmO(x).key === p; })[0];
+      if (mm) { var L = cmO(mm.latest); return lab + ": managed money net " + (cmNum(L.net) == null ? "&mdash;" : Math.round(L.net)) + " contracts, " + cmPc(L.netPctOi, 1) + " of open interest, z " + cmSg(L.z, 2) + " on " + cmD(L.date) + "." + tail; }
+      var mk = cmA(E.markets).filter(function (x) { return cmO(x).key === p; })[0];
+      if (mk) { var L2 = cmO(mk.latest), C = cmO(cmO(L2.cats).mm); return lab + ": managed money net " + (cmNum(C.net) == null ? "&mdash;" : Math.round(C.net)) + " contracts, " + cmPc(L2.pctOI, 1) + " of open interest, z " + cmSg(L2.z, 2) + " on " + cmD(mk.asOf) + "." + tail; }
+      return lab + ": the " + esc(p) + " line of the weekly report is not loaded." + tail;
+    })
+  };
   var CM_ALIAS = {
     "Today's call": "Commodity side call", "Implied / forecast": "Commodity side call",
     "MCX futures": "Commodity MCX price", "MCX price": "Commodity MCX price",
@@ -5262,7 +5524,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Active states": "Commodity regime state", "Lasts 5 more": "Commodity regime state", "Median / 90th spell": "Commodity regime state",
     "10-session edge": "Commodity regime state", "Up after 10": "Commodity regime state",
     "Base rates after similar moves": "Commodity base rates", "Closed higher": "Commodity base rates", "On any day": "Commodity base rates",
-    "16-84% band": "Commodity base rates"
+    "16-84% band": "Commodity base rates",
+    "World futures": "Commodity world benchmark", "World price": "Commodity world benchmark", "No free price series": "Commodity world benchmark",
+    "World benchmark": "Indian contract", "MCX options": "Indian contract", "Price": "Commodity levels", "Level": "Commodity levels",
+    "Crack now": "Crack spread", "5-year median": "Crack spread", "21-session change": "Crack spread", "1-year percentile": "Crack spread",
+    "Managed money net": "Commodity positioning link", "Share of open interest": "Commodity positioning link",
+    "z (3 years)": "Commodity positioning link", "This week": "Commodity positioning link", "Managed money long": "Commodity positioning link",
+    "Managed money short": "Commodity positioning link"
   };
   function cmRegisterTerms() {
     var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
@@ -10105,7 +10373,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
      browser only, every access guarded. */
   var CE = null, CE_ERR = null;
   var CE_KEYS = ["GOLD", "SILVER", "COPPER", "CRUDEOIL", "NATURALGAS"];
-  var CE_PAGE = { "metal-index": ["GOLD", "SILVER", "COPPER"], "energy-index": ["CRUDEOIL", "NATURALGAS"] };
+  var CE_PAGE = { "metal-index": ["GOLD", "SILVER", "PLATINUM", "PALLADIUM", "COPPER", "ALUMINIUM", "ZINC", "LEAD", "NICKEL", "IRONORE"],
+    "energy-index": ["CRUDEOIL", "BRENT", "HEATINGOIL", "GASOLINE", "NATURALGAS"] };
   var CE_UI = { sel: { "metal-index": "GOLD", "energy-index": "CRUDEOIL" }, num: {} };
   var CE_STORE_KEY = "deskLearn.ce.v1";
   var CE_MEM = {};
@@ -10431,7 +10700,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "Black-76 with zero rates while the price is positive, Bachelier at or below zero. " +
       "<b>Calendar.</b> MCX expiries from the exchange rules applied to NYMEX/COMEX sessions: crude and gas options 3 sessions before the NYMEX last trade day (MCX futures 1 session before it, options 2 business days before the futures); metals 5 sessions before the futures (gold and silver: the last session on or before the 5th; copper: month end), one cycle a month although the 1 kg and 30 kg contracts are bi-monthly (GOLDM, SILVERM are monthly). Energy trades start the session after the NYMEX roll, so no contract roll falls inside a trade. " +
       (p ? "<b>Negative crude.</b> The research series uses the June 2020 contract on " + p + "; the raw front month is replayed separately. " : "") +
-      "<b>Hypothetical years.</b> MCX options started in " + esc(((I.spec || {}).optionsFrom || "").slice(0, 4)) + "; earlier trades are what the rule would have done had the options existed. " +
+      (I.hypothetical ? "<b>Hypothetical throughout.</b> No " + esc(I.label) + " option trades in India" + ((I.spec || {}).india === "futures" ? " (MCX lists futures only)" : "") +
+        ", so every trade is what a monthly option on the world future, charged MCX&rsquo;s costs on a lot of " + esc((I.spec || {}).lot || "") + ", would have done. " :
+        (I.spec || {}).optionsFrom ? "<b>Hypothetical years.</b> MCX options started in " + esc(((I.spec || {}).optionsFrom || "").slice(0, 4)) + "; earlier trades are what the rule would have done had the options existed. " :
+        "<b>Hypothetical years.</b> The launch date of these MCX options is not verified here, so treat every year as what the rule would have done had the options existed. ") +
+      (ORIG_CE.indexOf(I.key) < 0 ? "<b>Calendar for this market.</b> One monthly cycle ending 5 sessions before the last session of the month" +
+        (/^(BRENT|HEATINGOIL|GASOLINE)$/.test(I.key) ? ", entered on the first session of the next month, after the front contract rolls" : "") +
+        ". " + (/\.L$/.test((I.spec || {}).sym || "") ? "The world series is a WisdomTree LME-index ETC on the LSE, not a futures contract: it carries roll and fee drift. " : "") : "") +
       "<b>Exits.</b> Checked at daily closes only; no intraday stops. In-the-money legs at expiry devolve into futures at the strike, net across legs, and the futures are closed with futures costs. " +
       "<b>Costs.</b> Per order brokerage &#8377;20 plus " + cst + "; slippage " + ceP(((I.spec || {}).slip || 0) * 100, 0) + " of premium per fill (assumed; MCX option books are thin outside crude). " +
       "<b>Search.</b> " + ceN(I.rules) + " rules: structure, short strike in sigma, wing, entry offset, implied/forecast gate, implied-vol percentile, events in the last 5 sessions (FOMC for metals, OPEC+ and FOMC for energy), take profit, stop, time exit. Objective as rulelab (annual return on capital / CVaR95 + 0.1 x return - drawdown penalty), at least 40 training trades; robust pick = best mean of own and neighbours' objective among the top 30. " +
@@ -10439,10 +10714,22 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "<b>Grading.</b> CFTC disaggregated managed money from 2006 (usable from the Friday release), EIA weekly stocks, cone = implied vol's percentile within two years of 22-session realised vol. " +
       "<b>Honesty.</b> A model world: it ranks rules and sizes risk; it cannot promise rupee results. Analysis, not advice.");
   }
+  var ORIG_CE = ["GOLD", "SILVER", "COPPER", "CRUDEOIL", "NATURALGAS"];
+  function ceHypo(I) {
+    if (!I.hypothetical) return "";
+    return '<section class="card"><div class="caution"><p><b>Hypothetical study.</b> ' + esc(I.label) +
+      ((I.spec || {}).india === "futures" ? " trades on MCX as futures only" : " has no Indian contract") +
+      ": no option on it can be bought or sold in India. Everything below is what a monthly option on the world future would have earned had one listed, " +
+      "priced from a model implied vol and charged MCX&rsquo;s costs. It ranks rules and sizes risk; it is not a trade the desk can make.</p></div></section>";
+  }
   function ceTrackRecord(key) {
     var k = String(key || "").toUpperCase();
     if (k === "CRUDE") k = "CRUDEOIL";
     if (k === "NATGAS" || k === "NATURAL GAS") k = "NATURALGAS";
+    if (k === "GASOIL") {
+      return nfxBand("Track record: GASOIL", "no free price history") + '<section class="card"><div class="caution"><p>ICE gasoil has no free daily price series, ' +
+        "so there is nothing to backtest, stress or grade. Heating oil (NY Harbor ULSD) carries the distillate study.</p></div></section>";
+    }
     var I = ceInst(k);
     var band = nfxBand("Track record: " + esc(k), "rule research, stress lab and signal grading on 18+ years of " + (I ? esc(I.label.toLowerCase()) : "history"));
     if (!I || !I.reports) {
@@ -10450,7 +10737,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         (CE ? " for " + esc(k) : "") + ". Run python commevidence.py --research, then export_snapshot writes it.</p></div></section>";
     }
     var safe = function (fn) { try { return fn(I) || ""; } catch (e) { return '<section class="card"><div class="caution"><p><b>This block failed to render.</b> ' + esc(e.message || String(e)) + "</p></div></section>"; } };
-    return band + safe(ceSummary) + safe(ceRuleCard) + safe(ceCompare) + safe(ceEquity) + safe(ceYears) + safe(ceRegime) +
+    return band + safe(ceHypo) + safe(ceSummary) + safe(ceRuleCard) + safe(ceCompare) + safe(ceEquity) + safe(ceYears) + safe(ceRegime) +
       safe(ceOverfit) + safe(ceSmile) + safe(ceStress) + safe(ceCrises) + safe(ceGrading) +
       '<section class="card">' + safe(ceMethod) + '<div class="ce-p">Research run ' + esc(CE.generatedAt || "") + "</div></section>";
   }
@@ -10771,6 +11058,115 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     });
   })();
 
+  /* ---------- Learning: the markets added by desk-cx-metalenergy (orders 121-130) ----------
+     A new concept each: crack spreads, PGMs and autocatalysts, base metals
+     and China. Same machinery (ceCard, ceTable, ceQuiz), registered as their
+     own sections so the seven above keep their keys and orders. */
+  function cxPx(key) { return ((ceInst(key) || {}).today || {}).usd; }
+  function cxCm(key) { try { return typeof cmInst === "function" ? cmInst(key) || {} : {}; } catch (e) { return {}; } }
+  function cxSecCrack() {
+    if (!CE) return ceNeed();
+    var ho = cxPx("HEATINGOIL"), rb = cxPx("GASOLINE"), cl = cxPx("CRUDEOIL");
+    if (!ceOk(ho) || !ceOk(rb) || !ceOk(cl)) return ceNeed();
+    var hc = ho * 42 - cl, rc = rb * 42 - cl, c321 = (2 * rb * 42 + ho * 42 - 3 * cl) / 3;
+    var HC = ((cxCm("HEATINGOIL").price || {}).crack) || {}, RC = ((cxCm("GASOLINE").price || {}).crack) || {};
+    var gh = (((ceInst("HEATINGOIL") || {}).grading || {}).eia) || {}, gg = (((ceInst("GASOLINE") || {}).grading || {}).eia) || {};
+    var qs = [
+      { t: "Heating oil (ULSD) is USD " + ceN(ho, 4) + " a gallon and WTI USD " + ceN(cl, 2) + " a barrel. What is the 1:1 crack, in USD a barrel? (42 gallons a barrel)", num: hc, tol: 0.02, abs: 0.5, unit: "USD/bbl",
+        why: "Product per gallon x 42, minus crude per barrel." },
+      { t: "With gasoline (RBOB) at USD " + ceN(rb, 4) + " a gallon, what is the 3-2-1 crack in USD a barrel of crude? (two barrels of gasoline and one of distillate from three of crude, per barrel)", num: c321, tol: 0.03, abs: 0.5, unit: "USD/bbl",
+        why: "(2 x RBOB x 42 + ULSD x 42 - 3 x WTI) / 3." },
+      { t: "A crack spread near the top of its year usually means", opts: ["Refiners are paid to run hard, so product supply tends to rise later", "Crude is about to fall", "Refiners are losing money", "Nothing: cracks do not move"], ans: 0,
+        why: "A wide margin is an incentive to refine more; the extra product narrows it again, with a lag." },
+      { t: "In this data, did big distillate stock surprises (EIA) call heating oil&rsquo;s next 5 sessions better than a coin flip with a clear margin?", opts: ["Yes: the verdict is &ldquo;works&rdquo;", "No: the verdict is &ldquo;" + esc(gh.verdict || "n/a") + "&rdquo;"], ans: gh.verdict === "works" ? 0 : 1,
+        why: "Hit rate " + ceP(gh.hitPct, 1) + " over " + ceN(gh.n) + " large surprises (p " + ceF(gh.p, 2) + ")." }
+    ];
+    return ceCard("Crack spreads: products against crude", "heating oil and gasoline against WTI &middot; " + ceLink("energy-index", "See the products on the Energy Index"),
+      '<div class="ce-p">A refinery buys crude and sells products. The <b>crack spread</b> is its gross margin: the product price times 42 (gallons to a barrel) minus the crude price. ' +
+      "The <b>1:1</b> crack isolates one product; the <b>3-2-1</b> crack weighs what a typical US refinery yields (two barrels of gasoline and one of distillate from three of crude). " +
+      "Distillate (heating oil, diesel, gasoil) and gasoline have their own seasons: distillate tightens into the northern winter, gasoline into the US driving season. " +
+      "None of these products trades in India: MCX lists only WTI crude and Henry Hub gas, so this is context for reading the crude market, not a trade.</div>" +
+      ceTable(["Product", "USD a gallon", "USD a barrel", "WTI", "1:1 crack", "1-year percentile"], [
+        ["Heating oil (ULSD)", ceN(ho, 4), ceN(ho * 42, 2), ceN(cl, 2), ceN(hc, 2), ceP(HC.pct1y, 0)],
+        ["Gasoline (RBOB)", ceN(rb, 4), ceN(rb * 42, 2), ceN(cl, 2), ceN(rc, 2), ceP(RC.pct1y, 0)]]) +
+      '<div class="ce-p"><b>Today.</b> The 3-2-1 crack is USD ' + ceN(c321, 2) + " a barrel of crude. Heating oil&rsquo;s crack sits at the " + ceP(HC.pct1y, 0) +
+      " percentile of its year (five-year median USD " + ceN(HC.median5y, 2) + "), gasoline&rsquo;s at the " + ceP(RC.pct1y, 0) + ". " +
+      "EIA&rsquo;s weekly report carries distillate and gasoline stocks beside crude: large distillate surprises called heating oil&rsquo;s next week " + ceP(gh.hitPct, 1) +
+      " of the time (" + esc(gh.verdict || "n/a") + "), large gasoline surprises called RBOB&rsquo;s " + ceP(gg.hitPct, 1) + " (" + esc(gg.verdict || "n/a") + ").</div>") +
+      ceQuiz("cx-crack", qs);
+  }
+  function cxSecPgm() {
+    if (!CE) return ceNeed();
+    var pl = cxPx("PLATINUM"), pa = cxPx("PALLADIUM"), au = cxPx("GOLD");
+    if (!ceOk(pl) || !ceOk(pa)) return ceNeed();
+    var cp = (((ceInst("PALLADIUM") || {}).grading || {}).cftc) || {}, cpl = (((ceInst("PLATINUM") || {}).grading || {}).cftc) || {};
+    var Lp = cp.latest || {}, Ll = cpl.latest || {};
+    var cr = function (k) { return ((ceInst(k) || {}).crises || []).filter(function (c) { return c.key === "pgm2020"; })[0] || {}; };
+    var cpa = cr("PALLADIUM"), cpt = cr("PLATINUM");
+    var qs = [
+      { t: "Palladium is USD " + ceN(pa, 1) + " an ounce and platinum USD " + ceN(pl, 1) + ". What is the palladium / platinum ratio? (two decimals)", num: pa / pl, tol: 0, abs: 0.015, unit: "", dp: 2,
+        why: "Palladium price / platinum price." },
+      { t: "Can an Indian trader buy or sell a platinum or palladium option on MCX?", opts: ["Yes, monthly options", "No: MCX lists neither futures nor options on them", "Only futures"], ans: 1,
+        why: "So the desk reads the NYMEX prices for context and never proposes a trade on them." },
+      { t: "Managed money in palladium is net " + (Lp.netPct < 0 ? "short" : "long") + " " + ceP(Math.abs(Lp.netPct || 0), 1) + " of open interest (z " + ceF(Lp.z) + "). By this desk&rsquo;s rule (|z| of 1.5 or more) is that an extreme?", opts: ["Yes", "No"], ans: Math.abs(Lp.z || 0) >= 1.5 ? 0 : 1,
+        why: "z compares the net position with the previous three years." }
+    ];
+    return ceCard("Platinum, palladium and autocatalysts", "the platinum-group metals &middot; " + ceLink("metal-index", "See platinum and palladium on the Metal Index"),
+      '<div class="ce-p">Platinum and palladium are the two traded <b>platinum-group metals (PGMs)</b>. Unlike gold, most of their demand is industrial, and the largest single use is the <b>autocatalyst</b>: the catalytic converter in a car exhaust. ' +
+      "Palladium does most of the work in petrol (gasoline) engines; platinum in diesel engines, with jewellery and other industry beside. That makes them a bet on car output and on engine mix (petrol, diesel, hybrid, battery: a battery car needs neither), and they can substitute for each other when the price gap grows. " +
+      "Mine supply is concentrated in very few countries (industry surveys put most platinum in South Africa and most palladium in Russia and South Africa; the shares are not verified here), so supply shocks are sharp.</div>" +
+      ceTable(["Metal", "USD an ounce", "vs gold", "Managed money net % of OI", "z (3 years)", "Feb-Apr 2020 move"], [
+        ["Platinum", ceN(pl, 1), ceOk(au) ? ceF(pl / au, 3) + "x" : "n/a", ceP(Ll.netPct, 1), ceF(Ll.z), ceP(cpt.move, 1, true)],
+        ["Palladium", ceN(pa, 1), ceOk(au) ? ceF(pa / au, 3) + "x" : "n/a", ceP(Lp.netPct, 1), ceF(Lp.z), ceP(cpa.move, 1, true)]]) +
+      '<div class="ce-p"><b>Today.</b> Palladium costs ' + ceF(pa / pl, 2) + "x platinum. Neither trades in India, so the Metal Index shows them as world prices with trend and range reads only; the option research on them is hypothetical. " +
+      "Their implied vol is a model here (HAR forecast x an assumed premium): " + ceP(((ceInst("PLATINUM") || {}).today || {}).iv, 1) + " for platinum and " + ceP(((ceInst("PALLADIUM") || {}).today || {}).iv, 1) + " for palladium, against gold&rsquo;s " + ceP(((ceInst("GOLD") || {}).today || {}).iv, 1) + ".</div>") +
+      ceQuiz("cx-pgm", qs);
+  }
+  function cxSecBase() {
+    if (!CE) return ceNeed();
+    var D = typeof CD !== "undefined" && CD ? CD : {};
+    var keys = ["COPPER", "ALUMINIUM", "ZINC", "LEAD", "NICKEL"];
+    var pmi = function (k) { return (((((D.events || {}).keys || {})[k] || {}).rows) || []).filter(function (r) { return r && r.type === "CNPMI"; })[0] || {}; };
+    var mcx = { COPPER: "futures and options", ALUMINIUM: "futures only", ZINC: "futures and options", LEAD: "futures only", NICKEL: "futures only" };
+    var rows = keys.map(function (k) {
+      var p = pmi(k), I = ceInst(k) || {};
+      return [esc(I.label || k), mcx[k], ceN(p.median, 2) + "%", ceN(p.ordMedian, 2) + "%", ceOk(p.ratio) ? ceF(p.ratio, 2) + "x" : "n/a", I.survives ? "edge survived" : "no edge found"];
+    });
+    var zp = pmi("ZINC"), ni = ((ceInst("NICKEL") || {}).crises || []).filter(function (c) { return c.key === "nickel2022"; })[0] || {};
+    var qs = [
+      { t: "Which base metals have MCX options today?", opts: ["Copper and zinc", "Copper, aluminium, zinc, lead and nickel", "None of them", "Aluminium only"], ans: 0,
+        why: "MCX lists options on copper and zinc; aluminium, lead and nickel trade as futures only." },
+      { t: "On China&rsquo;s PMI days zinc&rsquo;s median move was " + ceN(zp.median, 2) + "% against " + ceN(zp.ordMedian, 2) + "% on ordinary days. What is the ratio? (two decimals)", num: ceOk(zp.ratio) ? zp.ratio : 0, tol: 0, abs: 0.015, unit: "x", dp: 2,
+        why: "Event-day median / ordinary-day median." },
+      { t: "Across the 2022 nickel squeeze window (mid-Feb to April), the nickel series the desk uses moved by about how much, in %?", num: ceOk(ni.move) ? ni.move : 0, tol: 0, abs: 1.5, unit: "%",
+        why: "From the crisis replay; the LME itself suspended nickel trading on 8 March 2022 after the price more than doubled." }
+    ];
+    return ceCard("Base metals and the China factory cycle", "copper, aluminium, zinc, lead and nickel &middot; " + ceLink("metal-index", "See the base metals on the Metal Index"),
+      '<div class="ce-p">Base metals are priced on the <b>London Metal Exchange</b> and consumed in wiring, construction, cans, galvanised steel (zinc), batteries (lead, nickel) and stainless steel (nickel). ' +
+      "China uses about half of the world&rsquo;s refined supply of most of them (a widely cited industry estimate, not verified here), so its factory cycle is the demand story: the desk tracks China&rsquo;s official manufacturing PMI as an event. " +
+      "LME prices are not free, so the desk reads COMEX copper and aluminum and WisdomTree&rsquo;s LME-index ETCs for zinc, lead and nickel; MCX contracts are rupee versions delivered in India.</div>" +
+      ceTable(["Metal", "On MCX", "PMI-day median move", "Ordinary-day median", "PMI vs ordinary", "Option research"], rows) +
+      '<div class="ce-p"><b>What the data says.</b> A ratio above 1 means China&rsquo;s PMI day has moved the metal more than an ordinary day. The option research is real for copper and zinc (MCX options exist) and hypothetical for the rest; ' +
+      "in March 2022 the LME nickel market broke down (a short squeeze; trading suspended and trades cancelled), a reminder that a thin market can gap through any strike.</div>") +
+      ceQuiz("cx-base", qs);
+  }
+  var CX_SECTIONS = [
+    { key: "cx-crack", label: "Crack spreads: products against crude", order: 121, render: cxSecCrack },
+    { key: "cx-pgm", label: "Platinum, palladium and autocatalysts", order: 124, render: cxSecPgm },
+    { key: "cx-base", label: "Base metals and China's factory cycle", order: 127, render: cxSecBase }
+  ];
+  (function cxRegisterLearning() {
+    var L = (typeof window !== "undefined" ? window : {}).__LEARN =
+      (typeof window !== "undefined" && window.__LEARN) || { sections: [], hostReady: false };
+    if (!L.sections || typeof L.sections.push !== "function") L.sections = [];
+    CX_SECTIONS.forEach(function (s) {
+      if (L.sections.some(function (x) { return x && x.key === s.key; })) return;
+      L.sections.push({ key: s.key, label: s.label, order: s.order,
+        render: function (m) { try { return s.render(m); } catch (e) { return ceCard("Commodity lesson", "error", '<div class="ce-p">This lesson could not be built: ' + esc(e.message || String(e)) + "</div>"); } },
+        after: function () { /* clicks are handled by the delegated ce listener (data-ceq) */ } });
+    });
+  })();
+
   /* ---------- glossary ---------- */
   function ceHow(fn) {
     return function () {
@@ -10916,7 +11312,36 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       how: ceHow(function () { return "See the message in the card."; })
     }
   };
+  CE_TERMS["PGMs and autocatalysts"] = {
+    plain: ["Platinum and palladium, the two traded platinum-group metals: mostly industrial demand, led by the catalytic converters in car exhausts (palladium for petrol engines, platinum for diesel), with mine supply concentrated in a few countries.",
+      "Neither trades in India, so the desk reads the NYMEX prices for context only."],
+    deep: ["Engine mix drives the pair: more petrol cars lift palladium, more diesel lifts platinum, battery cars need neither; when the price gap is wide, makers substitute one for the other.",
+      "The option research on both is hypothetical (no Indian option) and prices from a model implied vol."],
+    how: ceHow(function () {
+      var pl = cxPx("PLATINUM"), pa = cxPx("PALLADIUM");
+      return "Platinum USD " + ceN(pl, 1) + " and palladium USD " + ceN(pa, 1) + " an ounce: palladium costs " + (ceOk(pl) && ceOk(pa) ? ceF(pa / pl, 2) : "n/a") + "x platinum.";
+    })
+  };
+  CE_TERMS["Base metals and China"] = {
+    plain: ["Copper, aluminium, zinc, lead and nickel: priced on the London Metal Exchange and driven by industrial demand, about half of it Chinese (a widely cited estimate, not verified here).",
+      "MCX lists options on copper and zinc and futures only on aluminium, lead and nickel."],
+    deep: ["The desk measures China's official manufacturing PMI day against ordinary days for each metal; a ratio above 1 means the release has moved the metal more than a normal session.",
+      "LME prices are not free: COMEX copper and aluminum and WisdomTree's LME-index ETCs (zinc, lead, nickel) stand in, with roll and fee drift."],
+    how: ceHow(function () {
+      var D = typeof CD !== "undefined" && CD ? CD : {};
+      return ["COPPER", "ALUMINIUM", "ZINC", "LEAD", "NICKEL"].map(function (k) {
+        var r = (((((D.events || {}).keys || {})[k] || {}).rows) || []).filter(function (x) { return x && x.type === "CNPMI"; })[0] || {};
+        return k + " PMI-day ratio " + (ceOk(r.ratio) ? ceF(r.ratio, 2) : "n/a") + " (n " + ceN(r.n) + ")";
+      }).join("; ") + ".";
+    })
+  };
   var CE_ALIAS = {
+    "Crack spreads: products against crude": "Crack spread", "Product": "Crack spread", "USD a gallon": "Crack spread",
+    "USD a barrel": "Crack spread", "1:1 crack": "Crack spread", "Heating oil (ULSD)": "Crack spread", "Gasoline (RBOB)": "Crack spread",
+    "Platinum, palladium and autocatalysts": "PGMs and autocatalysts", "USD an ounce": "PGMs and autocatalysts", "vs gold": "PGMs and autocatalysts",
+    "Feb-Apr 2020 move": "PGMs and autocatalysts", "Platinum": "PGMs and autocatalysts", "Palladium": "PGMs and autocatalysts",
+    "Base metals and the China factory cycle": "Base metals and China", "PMI-day median move": "Base metals and China",
+    "PMI vs ordinary": "Base metals and China", "Option research": "Base metals and China", "On MCX": "Base metals and China",
     "Track record: GOLD": "Commodity evidence verdict", "Track record: SILVER": "Commodity evidence verdict",
     "Track record: COPPER": "Commodity evidence verdict", "Track record: CRUDEOIL": "Commodity evidence verdict",
     "Track record: NATURALGAS": "Commodity evidence verdict",
@@ -32200,8 +32625,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
      for key in GOLD, SILVER, COPPER, CRUDEOIL, NATURALGAS. Each returns an
      HTML string and never throws: malformed data gives a note, not a crash. */
   var CD = null;                      /* commdata.json; null until loaded */
-  var CD_KEYS = { GOLD: "Gold", SILVER: "Silver", COPPER: "Copper", CRUDEOIL: "Crude oil", NATURALGAS: "Natural gas" };
-  var CD_PAGE = { "metal-index": ["GOLD", "SILVER", "COPPER"], "energy-index": ["CRUDEOIL", "NATURALGAS"] };
+  var CD_KEYS = { GOLD: "Gold", SILVER: "Silver", COPPER: "Copper", CRUDEOIL: "Crude oil", NATURALGAS: "Natural gas",
+    PLATINUM: "Platinum", PALLADIUM: "Palladium", ALUMINIUM: "Aluminium", ZINC: "Zinc", LEAD: "Lead", NICKEL: "Nickel",
+    IRONORE: "Iron ore", BRENT: "Brent", HEATINGOIL: "Heating oil (ULSD)", GASOLINE: "Gasoline (RBOB)", GASOIL: "Gasoil" };
+  var CD_PAGE = { "metal-index": ["GOLD", "SILVER", "PLATINUM", "PALLADIUM", "COPPER", "ALUMINIUM", "ZINC", "LEAD", "NICKEL", "IRONORE"],
+    "energy-index": ["CRUDEOIL", "BRENT", "HEATINGOIL", "GASOLINE", "GASOIL", "NATURALGAS"] };
   var cdState = { "metal-index": "GOLD", "energy-index": "CRUDEOIL" };
 
   function cdO(x) { return x && typeof x === "object" && !Array.isArray(x) ? x : {}; }
@@ -32342,6 +32770,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var C = cdO(CD.chains), st = cdO(C.status), B = cdO(cdO(C.keys)[key]);
     var title = "US ETF options proxy";
     if (!cdKeyOk(key)) return cdCard(title, "unknown key", cdNote("No commodity called " + cdT(String(key)) + "."));
+    if (B.noEtf === true) {
+      return cdCard(title, "none for " + cdT(CD_KEYS[key]),
+        '<div class="cd-map"><b>World series.</b> ' + cdT(B.mapping) + "</div>" + cdNote(cdT(B.note) || "No US fund on this market carries a readable option chain."));
+    }
     var etf = cdT(B.etf) || "ETF", E = cdA(B.expiries).filter(function (e) { return e && typeof e === "object"; });
     var src = st.ok ? "fetched " + cdT(st.fetchedOn) + " (" + cdT(st.source) + ")" :
       "live fetch failed: " + cdT(st.reason || "not attempted") + (st.source ? "; showing " + cdT(st.source) : "");
@@ -32448,12 +32880,15 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var body = CD_SPEC_ROWS.map(function (f) {
       return "<tr><td>" + f[0] + "</td>" + syms.map(function (s) {
         var v = cdO(C[s])[f[1]];
-        return '<td class="lft">' + (f[1] === "tick" ? "Rs " + cdT(v) : cdT(v)) + "</td>";
+        return '<td class="lft">' + (f[1] === "tick" ? "Rs " + cdT(v) + (cdO(C[s]).tickVerified === false ? " (not verified)" : "") : cdT(v)) + "</td>";
       }).join("") + "</tr>";
     }).join("") + "<tr><td>Source</td>" + syms.map(function (s) {
       var c = cdO(C[s]);
-      return '<td class="lft"><a href="' + esc(cdT(c.futUrl)) + '" target="_blank" rel="noopener">futures PDF</a> &middot; <a href="' +
-        esc(cdT(c.optUrl)) + '" target="_blank" rel="noopener">options PDF</a> &middot; <a href="' + esc(cdT(c.page)) + '" target="_blank" rel="noopener">product page</a></td>';
+      var links = [];
+      if (cdT(c.futUrl)) links.push('<a href="' + esc(cdT(c.futUrl)) + '" target="_blank" rel="noopener">futures PDF</a>');
+      if (cdT(c.optUrl)) links.push('<a href="' + esc(cdT(c.optUrl)) + '" target="_blank" rel="noopener">options PDF</a>');
+      if (cdT(c.page)) links.push('<a href="' + esc(cdT(c.page)) + '" target="_blank" rel="noopener">' + (cdT(c.futUrl) ? "product page" : "MCX products") + "</a>");
+      return '<td class="lft">' + (cdT(c.source) ? cdT(c.source) + (links.length ? " &middot; " : "") : "") + links.join(" &middot; ") + "</td>";
     }).join("") + "</tr>";
     var P = cdO(K.parity), M = cdO(K.mcx), U = cdO(SP.usdinr), D = cdO(K.duty);
     var tiles = '<div class="struct cd-tiles">' +
@@ -32566,6 +33001,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Options tick": "MCX contract specifications", "Options expiry": "MCX contract specifications", "Trading hours": "MCX contract specifications",
     "Exchange margin": "MCX contract specifications", "Settlement": "MCX contract specifications", "Price basis": "MCX contract specifications",
     "GOLD": "MCX contract specifications", "GOLDM": "MCX contract specifications", "SILVER": "MCX contract specifications",
+    "ALUMINIUM": "MCX contract specifications", "ALUMINI": "MCX contract specifications", "ZINC": "MCX contract specifications",
+    "ZINCMINI": "MCX contract specifications", "LEAD": "MCX contract specifications", "LEADMINI": "MCX contract specifications",
+    "NICKEL": "MCX contract specifications",
     "SILVERM": "MCX contract specifications", "COPPER": "MCX contract specifications", "CRUDEOIL": "MCX contract specifications",
     "CRUDEOILM": "MCX contract specifications", "NATURALGAS": "MCX contract specifications", "NATGASMINI": "MCX contract specifications",
     "USDINR": "MCX parity", "Global parity": "MCX parity", "MCX last": "MCX parity", "MCX premium to parity": "MCX parity",
