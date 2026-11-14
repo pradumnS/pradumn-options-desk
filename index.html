@@ -2219,7 +2219,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (v === null || v === undefined || !isFinite(Number(v))) return "neu";
     return v >= 0 ? "pos" : "neg";
   };
-  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); };
+  /* null and undefined escape to nothing: a missing label is a gap, not the word "null" */
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); };
   var DT = function (d) { return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short" }); };
 
   /* ==========================================================
@@ -2857,7 +2858,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return '<div><span class="brf-step">' + f[0] + '</span><b>' + f[1] + '</b><span class="brf-dim">' + f[2] + "</span></div>";
     }).join("") + "</div>";
 
-    var one = '<div class="brf-one"><span class="brf-tag">Today</span><span><b>' + b.oneLine + '</b></span>' +
+    /* brief.json carries ready-made markup; a missing piece is a gap, not "null" */
+    function brfHtml(x) { return x == null ? "" : x; }
+    var one = '<div class="brf-one"><span class="brf-tag">Today</span><span><b>' + brfHtml(b.oneLine) + '</b></span>' +
       '<span class="brf-dim">Built ' + esc(b.generatedAt || "") + " from the " + esc(b.session || "") +
       " session. Re-check at the open.</span></div>";
 
@@ -2870,12 +2873,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         var src = r.link
           ? '<a class="brf-src brf-' + esc(r.kind) + '" href="' + esc(r.link) + '" target="_blank" rel="noopener">' + esc(r.source) + "</a>"
           : '<span class="brf-src brf-' + esc(r.kind) + '">' + esc(r.source) + "</span>";
-        return "<li><span>" + r.text + "</span>" + src + "</li>";
+        return "<li><span>" + brfHtml(r.text) + "</span>" + src + "</li>";
       }).join("");
-      return '<article class="card brf-story"><div class="brf-title"><b>' + s.title + '</b><span class="brf-dim">' + s.sub + "</span></div>" +
+      return '<article class="card brf-story"><div class="brf-title"><b>' + brfHtml(s.title) + '</b><span class="brf-dim">' + brfHtml(s.sub) + "</span></div>" +
         '<div class="brf-body"><div><div class="brf-h">What happened</div><p>' + (s.what || []).join(" ") + "</p></div>" +
         '<div><div class="brf-h">Why</div><ul class="brf-why">' + why + "</ul></div>" +
-        '<div class="brf-so"><b>So today:</b> ' + s.so + "</div></div>" +
+        '<div class="brf-so"><b>So today:</b> ' + brfHtml(s.so) + "</div></div>" +
         '<div class="brf-foot"><span class="brf-learn" data-term="' + esc(s.learn) + '" tabindex="0">Learn: ' + esc(s.learnLabel) + "</span>" +
         '<span class="brf-open" data-page="' + esc(s.page) + '" tabindex="0">Open page &rarr;</span></div></article>';
     }).join("") + "</div>";
@@ -2889,8 +2892,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       }
       var chg = r.chgText || brfChg(r.chg);
       return g + '<tr' + (r.focus ? ' class="brf-focus"' : "") + '><td class="lft" data-term="Morning brief"><b>' + esc(r.market) + "</b></td>" +
-        '<td class="brf-num">' + r.last + '<br><span class="' + cls(r.chg) + '">' + chg + "</span></td>" +
-        '<td class="brf-num">' + r.range + '<br><span class="brf-dim">' + esc(r.rangeNote || "") + "</span></td>" +
+        '<td class="brf-num">' + brfHtml(r.last) + '<br><span class="' + cls(r.chg) + '">' + chg + "</span></td>" +
+        '<td class="brf-num">' + brfHtml(r.range) + '<br><span class="brf-dim">' + esc(r.rangeNote || "") + "</span></td>" +
         '<td><span class="brf-chip brf-' + esc(r.chip) + '">' + esc(r.call) + "</span>" +
           (r.detail ? '<br><span class="brf-dim">' + esc(r.detail) + "</span>" : "") + "</td>" +
         '<td class="lft">' + (r.act ? esc(r.act) : '<span class="brf-dim">\u2014</span>') + "</td>" +
@@ -5589,7 +5592,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function slFromRow(r) {
     if (!r) return { src: "Nothing loaded", legs: [] };
     return { src: (r.rank ? "Scanner row " + r.rank + ": " : "Scanner reference row: ") + r.expiry + " " +
-               SL_STRUCT[r.struct].toLowerCase() + " " + r.name,
+               String(SL_STRUCT[r.struct] || "").toLowerCase() + " " + r.name,
              legs: r.legs.map(function (g) { return { act: g.act, exp: r.expiry, k: g.k, type: g.type, lots: 1 }; }) };
   }
   function slFromPlaybook() {
@@ -5693,7 +5696,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       ["Theta / vega a lot", slRs(r.theta) + " a day / " + slRs(r.vega) + " per vol pt"],
       ["Breached in history", vpP(r.histTouch, 1) + " on a close, " + vpP(r.histEnd, 1) + " at the end (" + vpN(r.histN) + " cases)"]
     ];
-    return vtBox(esc(slEs(r.expiry) + " " + SL_STRUCT[r.struct].toLowerCase() + " " + r.name),
+    return vtBox(esc(slEs(r.expiry) + " " + String(SL_STRUCT[r.struct] || "").toLowerCase() + " " + r.name),
       "EV " + slRs(r.ev) + " a lot after costs", rows, (r.flags || []).map(esc).join("<br>"));
   }
   function slTable(list, strangle) {
@@ -5728,7 +5731,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return vpCard("Strategy lab summary", "NIFTY " + vpN(SL.spot, 2) + " &middot; lot " + SL.lot + " &middot; chains from the " + vpD(SL.asOf) + " close",
       '<div class="struct">' +
       sc("Side rule", sideWord(sd.side), "implied / forecast " + vpN(sd.ratio, 2) + "x on the " + vpD(sd.date) + " close") +
-      sc("Best EV per lot", b ? slRs(b.ev) : "&mdash;", b ? slEs(b.expiry) + " " + SL_STRUCT[b.struct].toLowerCase() + ", after costs" : "nothing ranked") +
+      sc("Best EV per lot", b ? slRs(b.ev) : "&mdash;", b ? slEs(b.expiry) + " " + String(SL_STRUCT[b.struct] || "").toLowerCase() + ", after costs" : "nothing ranked") +
       sc("Positive-EV trades", vpN(SL.nPositive), "of " + vpN(SL.nRanked) + " ranked, after costs") +
       sc("Trades ranked", vpN(SL.nRanked), vpN(tot.put_spread) + " put spreads, " + vpN(tot.call_spread) + " call spreads, " + vpN(tot.condor) + " condors") +
       sc("Desk forecast vol", vpP(SL.sigmaDesk, 1), "against front ATM IV " + vpP(front.atmIv, 1) + " (" + slEs(front.expiry) + ")") +
@@ -5920,7 +5923,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return '<tr><td class="lft">' + x[0] + '</td><td class="' + x[3] + '">' + x[1] + "</td><td>" + x[2] + "</td></tr>";
     }).join("");
     var sameLots = A.Q.every(function (y) { return y.l.lots === 1; });
-    return vpCard("Builder vs best scanner row", esc(A.E0.expiry) + " &middot; best row: #" + r.rank + " " + SL_STRUCT[r.struct].toLowerCase() + " " + esc(r.name),
+    return vpCard("Builder vs best scanner row", esc(A.E0.expiry) + " &middot; best row: #" + r.rank + " " + String(SL_STRUCT[r.struct] || "").toLowerCase() + " " + esc(r.name),
       '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Measure</th><th>Builder</th><th>Best scanner row</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
       '<div class="vp-note">Scanner rows are one lot of each leg' + (sameLots ? "." : "; the builder position has more lots, so compare EV per risk rather than rupees.") +
       " Green = the builder is at least as good on that measure.</div>");
@@ -5947,7 +5950,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (!SL || !SL.asOf || (m && m.cfg && m.cfg.key && m.cfg.key !== "NIFTY")) return "";
     var b = (SL.rows || [])[0], sd = SL.side || {};
     var why = b
-      ? "Best edge: <b>" + slEs(b.expiry) + " " + SL_STRUCT[b.struct].toLowerCase() + " " + esc(b.name) + "</b>, EV <b>" + slRs(b.ev) +
+      ? "Best edge: <b>" + slEs(b.expiry) + " " + String(SL_STRUCT[b.struct] || "").toLowerCase() + " " + esc(b.name) + "</b>, EV <b>" + slRs(b.ev) +
         "</b> per lot after costs, POP <b>" + vpP(b.pop, 0) + "</b>, side rule: <b>" + slSideWord() + "</b>" +
         (SL.reference ? ", so reference only." : ".") +
         ((b.ev || 0) < 0 ? " Not one of " + vpN(SL.nRanked) + " ranked trades clears its costs on the desk&rsquo;s history." : "")
@@ -7183,7 +7186,14 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       { key: "monthly", label: "Desk rules, monthly", color: "var(--maxpain)" }
     ].filter(function (s) { return (C[s.key] || []).length; });
     var day = function (iso) { return Date.parse(iso + "T00:00:00Z") / 864e5; };
-    var x0 = day(BT.from), x1 = day(BT.to);
+    /* a point with no exit date or no equity cannot be placed: dropped, not drawn at NaN */
+    var ok = function (p) { return p && p.eq != null && isFinite(p.eq) && isFinite(day(p.d)); };
+    var CC = {};
+    Object.keys(C).forEach(function (k) { CC[k] = Array.isArray(C[k]) ? C[k].filter(ok) : []; });
+    C = CC; main = C.rules || [];
+    if (main.length < 2) return btCard("Equity curve", "1 lot, after costs", '<div class="caution"><p>Fewer than two closed trades: nothing to chart yet.</p></div>');
+    var x0 = isFinite(day(BT.from)) ? day(BT.from) : day(main[0].d);
+    var x1 = isFinite(day(BT.to)) ? day(BT.to) : day(main[main.length - 1].d);
     var vals = [0];
     defs.forEach(function (s) { C[s.key].forEach(function (p) { vals.push(p.eq); }); });
     var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), pad = (hi - lo) * 0.08 || 1;
@@ -7201,7 +7211,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       svg += '<line x1="' + L + '" y1="' + Y(0).toFixed(1) + '" x2="' + (W - Rr) + '" y2="' + Y(0).toFixed(1) + '" stroke="var(--ink-3)" stroke-width="1"></line>';
     }
     defs.slice().reverse().forEach(function (s) {
-      var pts = [[X(BT.from), Y(0)]];
+      var pts = [[L, Y(0)]];                 /* X(x0): the curve starts at zero on the first day */
       C[s.key].forEach(function (p) { pts.push([X(p.d), Y(p.eq)]); });
       svg += '<polyline fill="none" stroke="' + s.color + '" stroke-width="' + (s.key === "rules" ? 2.2 : 1.5) + '"' +
         (s.dash ? ' stroke-dasharray="5 4"' : "") + ' stroke-linejoin="round" points="' +
@@ -7212,6 +7222,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         (p.pnl >= 0 ? "var(--up)" : "var(--down)") + '"></circle>';
     });
     [BT.from, BT.to].forEach(function (d, i) {
+      if (!isFinite(day(d))) return;
       svg += '<text class="axis" x="' + X(d).toFixed(1) + '" y="' + (H - 5) + '" text-anchor="' + (i ? "end" : "start") + '">' + btD(d) + "</text>";
     });
     svg += "</svg>";
@@ -8174,7 +8185,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return '<section class="card ir-card"><div class="card-hd"><h2>Rules in force</h2>' +
       '<span class="sub">NIFTY options, as of ' + irD(IR.asOf) + "</span></div>" +
       '<div class="ir-say">Every cost on the desk (scanner, backtest, this example) comes from one dated table: a fill pays the rate in force on its own date. ' +
-      'Rows marked <span class="ir-asm">assumption</span> could not be confirmed in a primary document.</div>' +
+      'Rows marked <span class="ir-asm">assumption</span> could not be confirmed in a primary document.' +
+      (window.__LEARN && window.__LEARN.hostReady && typeof window.__LEARN.link === "function" &&
+        (window.__LEARN.sections || []).some(function (x) { return x && x.key === "lp-rules"; }) ?
+        " How each rule changed since October 2024, with the seller&rsquo;s arithmetic: " + window.__LEARN.link("learning/lp-rules", "Rule-change timeline", "Rule-change timeline") : "") +
+      "</div>" +
       costTbl + ruleTbl + upTbl + exTbl +
       dsMethod("Sources and method", "Rates and dates were read in NSE circulars (FATAX, FA, FAOP series), SEBI circulars and the Finance Act memoranda linked in each row. " +
         "Lot size is a property of the contract: the series expiring on a date carries the lot shown. The margin figures on the playbook are estimates " +
@@ -9614,18 +9629,18 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var rel = q.reliability || {}, keys = Object.keys(rel);
     var relTable = "";
     if (keys.length) {
-      keys.sort(function (x, y) { return rel[y].pct - rel[x].pct; });
+      keys.sort(function (x, y) { return ((rel[y] || {}).pct || 0) - ((rel[x] || {}).pct || 0); });
       relTable = '<div class="tablewrap"><table class="dt"><thead><tr>' +
         '<th class="lft">Claim</th><th>Graded</th><th>Correct</th><th>Hit rate</th>' +
         '<th class="lft">&nbsp;</th></tr></thead><tbody>' +
         keys.map(function (k) {
-          var v = rel[k];
+          var v = rel[k] || {};
           var col = v.pct >= 70 ? "var(--up)" : v.pct >= 55 ? "var(--maxpain)" : "var(--down)";
           return '<tr><td class="lft">' + esc(k.replace(/_/g, " ")) + "</td><td>" +
-            v.n + "</td><td>" + v.k + '</td><td style="color:' + col +
+            n0(v.n) + "</td><td>" + n0(v.k) + '</td><td style="color:' + col +
             ';font-weight:600">' + n1(v.pct) + '%</td><td class="lft">' +
             '<div class="pbar" style="background:var(--surface-3)"><i style="left:' +
-            Math.min(100, v.pct).toFixed(1) + "%;background:" + col +
+            Math.min(100, v.pct || 0).toFixed(1) + "%;background:" + col +
             '"></i></div></td></tr>';
         }).join("") + "</tbody></table></div>";
     }
@@ -9747,7 +9762,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
                         : '<span style="color:var(--down)">\u2717</span>';
           var res = x.correct == null ? "not yet resolved"
             : (x.actual == null ? (x.correct ? "held" : "missed") : n2(x.actual));
-          return '<tr><td class="lft">' + esc(x.claim.replace(/_/g, " ")) +
+          return '<tr><td class="lft">' + esc(String(x.claim || "").replace(/_/g, " ")) +
             " \u2014 " + esc(x.stated || "") + '</td><td class="lft">' +
             '<span class="kpi-m">' + res + "</span></td><td>" + mark + "</td></tr>";
         }).join("") + "</tbody></table></div>";
@@ -9955,7 +9970,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var s = logRows.map(function (r) {
       var tone = r.status === "ok" ? "ok" : r.status === "skipped" ? "idle" : "warnd";
       return [tone, esc(r.source) + (r.attempt ? " \u00b7 try " + r.attempt : ""),
-              r.status === "ok" ? "OK" : r.status.charAt(0).toUpperCase() + r.status.slice(1),
+              r.status === "ok" ? "OK" : String(r.status || "").charAt(0).toUpperCase() + String(r.status || "").slice(1),
               esc((r.message || "").slice(0, 60))];
     });
 
@@ -10032,8 +10047,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         "something derived from a placeholder.</p></div></section>";
     }
     var sd1 = m.sd1, sd2 = sd1 * 2;
-    var lo1 = m.range1[0], hi1 = m.range1[1];
-    var lo2 = m.range2[0], hi2 = m.range2[1];
+    var lo1 = (m.range1 || [])[0], hi1 = (m.range1 || [])[1];
+    var lo2 = (m.range2 || [])[0], hi2 = (m.range2 || [])[1];
 
     var cands = candidates(m);
     var ok = cands.filter(function (x) { return x.verdict.c === "go"; });
@@ -10399,7 +10414,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
     var rows = (M.drivers || []).map(function (x) {
       var chips = (x.sectors || []).map(function (s) {
-        var dir = s[1];
+        var dir = String(s[1] == null ? "" : s[1]);
         var k = dir.indexOf("+") === 0 ? "up" : (dir.indexOf("-") === 0 ? "dn" : "");
         return '<span class="mac-chip ' + k + '">' + esc(s[0]) + " " + esc(dir) + "</span>";
       }).join("");
@@ -11128,7 +11143,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var atm = L.atm;
     /* Stored OI is shares; show lakh contracts like the cards above it. */
     var oiDiv = 1e5 * ((((MODEL || {})[L.index] || {}).cfg || {}).lot || 1);
-    var rows = e.strikes.slice().reverse().map(function (s) {
+    var rows = (e.strikes || []).slice().reverse().map(function (s) {
       var ce = s.ce || {}, pe = s.pe || {};
       var itmC = s.strike < L.spot, itmP = s.strike > L.spot;
       return '<tr class="clickable' + (s.strike === atm ? " atm" : "") + '"' +
@@ -11269,7 +11284,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var pct = (r.rate || 0) * 100;
       var tone = pct >= 70 ? "var(--up)" : pct >= 55 ? "var(--warn)" : "var(--down)";
       return '<tr><td class="lft">' + (CLAIM_LABEL[r.claim] || esc(r.claim)) + "</td>" +
-        "<td>" + r.n + "</td><td>" + r.hits + "</td>" +
+        "<td>" + n0(r.n) + "</td><td>" + n0(r.hits) + "</td>" +
         '<td style="color:' + tone + ';font-weight:600">' + n1(pct) + "%</td>" +
         '<td class="lft"><div class="relbar"><i style="width:' +
           Math.max(0, Math.min(100, pct)).toFixed(1) + "%;background:" + tone +
@@ -11425,6 +11440,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   var LEARN = (typeof window !== "undefined" ? window : {}).__LEARN =
     (typeof window !== "undefined" && window.__LEARN) || { sections: [], hostReady: false };
   if (!LEARN.sections || typeof LEARN.sections.push !== "function") LEARN.sections = [];
+  /* Other learning blocks add cards to the Progress tab here instead of a
+     progress view of their own: {key, render(m), after(root)}. */
+  if (!Array.isArray(LEARN.progressParts)) LEARN.progressParts = [];
 
   var LC_KEY = "deskLearn.v1", LC_TABKEY = "deskLearn.tab", LC_PREFIX = "deskLearn.";
   var LC_MEM = {};            /* used when the browser refuses storage */
@@ -11816,6 +11834,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return lcRawSet(k, String(value));
   };
   LEARN.today = lcToday;
+  /* Open a Learning tab (a section key, or "home"). */
+  LEARN.go = function (tab) {
+    lcSetTab(String(tab || "home"));
+    if (typeof state !== "undefined") { state.page = "india-index"; state.view = "learning"; }
+    try { render(); } catch (e) { /* tests */ }
+    try { window.scrollTo(0, 0); } catch (e) { /* tests */ }
+  };
   LEARN.storageOk = function () { lcRaw(LC_KEY); return LC_STORE.ok !== false; };
   /* Wrong answers, for a review queue: {src, tag, q, d}. */
   LEARN.mistakes = function () { try { return lcDb().mist.slice(); } catch (e) { return []; } };
@@ -12519,12 +12544,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         var pts = t ? t.pts : 18.05, lot = o.lot || 65;
         return {
           ex: (t ? "Backtest trade from " + lcD(t.entry) + " made " + lcN(pts, 2) + " points on lot 75 (" + lcRs(pts * 75) + " before costs). " : "") +
-            "Since January 2026 the lot is " + lot + ", so the same points are worth 13% fewer rupees and the risk-budget lot count changes. Dates are from exchange and press notices; check the circulars before relying on them.",
+            "Since January 2026 the lot is " + lot + ", so the same points are worth 13% fewer rupees and the risk-budget lot count changes. Every date, with its circular, is on the Rule changes tab; what applies today is in Rules in force.",
           qs: [
             lcQn("L5.2a", "A trade made " + lcN(pts, 2) + " points on the old lot of 75. Same points on lot " + lot + ", in rupees?", pts * lot, 1.5, "abs", "&#8377;",
               lcN(pts, 2) + " &times; " + lot + " = <b>" + lcRs(pts * lot) + "</b> (against " + lcRs(pts * 75) + ").", function (x) { return lcRs(x); }),
             lcQc("L5.2b", "From which expiry did NIFTY options trade in lots of 65?", ["November 2024", "January 2026 (first weekly expiry 06-Jan-2026)", "April 2025"], 1,
-              "NSE revised the lot from 75 to 65 at the end of December 2025; the first weekly expiry on lot 65 was 06-Jan-2026 (secondary sources).")
+              "NSE revised the lot from 75 to 65 for expiries from January 2026: the first weekly on lot 65 expired 06-Jan-2026, the first monthly 27-Jan-2026 (NSE/FAOP/70616, 3-Oct-2025).")
           ]
         };
       } },
@@ -13461,7 +13486,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var body = '<div class="lc-lesson"><h3 class="lc-lt">' + L.id + " &middot; " + L.t + "</h3>" +
       '<div class="lc-goal"><span class="lc-k">Goal</span>' + L.goal + "</div>" +
       '<div class="lc-meta"><div><span class="lc-k">The misconception</span>' + L.myth + "</div>" +
-      "<div><span class=\"lc-k\">NISM VIII / Varsity</span>" + L.ref + "</div>" +
+      "<div><span class=\"lc-k\">NISM VIII / Varsity</span>" + L.ref +
+        (/NISM VIII unit/.test(L.ref) && LEARN.sections.some(function (s) { return s && s.key === "exam"; }) ? ' <a href="#india-index/learning/exam" data-lctab="exam">exam practice for this unit &rarr;</a>' : "") + "</div>" +
       (terms ? "<div><span class=\"lc-k\">Glossary</span>" + terms + "</div>" : "") + "</div>" +
       (L.route ? '<div class="lc-row">' + LEARN.link(L.route, "Show me on the desk: " + L.card, L.card) + "</div>" : "") +
       (aided ? '<div class="lc-ex-box"><span class="lc-k">Worked example from today&rsquo;s snapshot</span>' + g.ex + "</div>" :
@@ -13487,6 +13513,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     }).join("");
     return (open ? lcLessonPanel(m, open) : "") +
       lcCard("Curriculum", LC_LESSONS.length + " lessons, 6 levels, beginner to professional",
+        (LEARN.sections.some(function (s) { return s && s.key === "lp-placement"; }) ?
+          lcSay("Already know some of this? The placement test checks levels 1-5 on today&rsquo;s numbers and folds away the worked examples you do not need. " +
+            '<button type="button" class="tgl" data-lctab="lp-placement">Placement test &rarr;</button>') : "") +
         lcSay("Each lesson names the misconception it targets, links to the live card that shows it, and ends in questions built from today&rsquo;s snapshot, so the answers change every session. " +
           "Retrieval beats rereading: try the questions before opening the worked example. <b>Mastery</b> is every question right, unaided, on three separate days.") +
         '<div class="lc-levels">' + lv + "</div>");
@@ -13500,8 +13529,31 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     LC_LESSONS.forEach(function (L) { var s = lcStatus(L.id); if (s === "done" || s === "mastered") done++; if (s === "mastered") mast++; });
     var last = db.ex.slice(-50), acc = last.length ? last.reduce(function (t, a) { return t + (Number(a.ok) || 0); }, 0) / last.length : null;
     var S = lcFcScores();
-    return { done: done, mast: mast, exN: db.ex.length, acc: acc, fcN: S.n, fcOpen: S.open, brier: S.you, days: db.days.length,
+    return { done: done, mast: mast, exN: db.ex.length, acc: acc, fcN: S.n, fcOpen: S.open, brier: S.you, days: lcAllDays(db),
       cases: Object.keys(db.cases).filter(function (k) { return db.cases[k] && db.cases[k].commit; }).length, myths: Object.keys(db.myths).length };
+  }
+  /* Learning days across every section: this block's own record, the
+     replay and exam days (deskLearn.progress.v1) and spaced-review days
+     (deskLearn.review.v1). One count, shown once. */
+  function lcAllDays(db) {
+    var seen = {}, iso = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+    (db.days || []).forEach(function (d) { if (iso.test(d)) seen[d] = 1; });
+    try {
+      var p = JSON.parse(lcRaw(LC_PREFIX + "progress.v1") || "null");
+      if (p && Array.isArray(p.days)) p.days.forEach(function (d) { if (typeof d === "string" && iso.test(d)) seen[d] = 1; });
+    } catch (e) { /* unreadable: not counted */ }
+    try {
+      var r = JSON.parse(lcRaw(LC_PREFIX + "review.v1") || "null");
+      if (r && Array.isArray(r.log)) r.log.forEach(function (x) { if (x && typeof x.d === "string" && iso.test(x.d)) seen[x.d] = 1; });
+    } catch (e) { /* unreadable: not counted */ }
+    return Object.keys(seen).length;
+  }
+  function lcProgressParts(m) {
+    return (LEARN.progressParts || []).map(function (p) {
+      if (!p || typeof p.render !== "function") return "";
+      try { return p.render(m) || ""; }
+      catch (e) { return '<section class="card"><div class="caution"><p>' + esc(String(p.key || "A progress card")) + " could not be drawn: " + esc(e && e.message ? e.message : String(e)) + "</p></div></section>"; }
+    }).join("");
   }
   function lcTiles(S) {
     return '<div class="struct lc-tiles">' +
@@ -13509,7 +13561,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       sc("Exercise accuracy", S.acc == null ? "&mdash;" : lcN(S.acc * 100, 0) + "%", "last " + Math.min(50, S.exN) + " of " + S.exN + " answers") +
       sc("Forecasts resolved", lcN(S.fcN), S.fcOpen + " waiting") +
       sc("Your Brier score", lcN(S.brier, 3), S.fcN < 100 ? "n under 100: mostly noise" : "lower is better") +
-      sc("Learning days", lcN(S.days), "days with any practice; not a streak") + "</div>";
+      sc("Learning days", lcN(S.days), "days with practice in any tab; not a streak") + "</div>";
   }
   function lcProgress(m) {
     var db = lcDb(), S = lcSummary();
@@ -13548,7 +13600,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       }).join("") : '<div class="lc-note">No misses recorded yet.</div>') +
       '<div class="lc-note">Cases committed: ' + S.cases + " &middot; myths judged: " + S.myths + "</div></div></div>") +
       lcCard("Exercise record", "per generator", '<div class="tablewrap"><table class="lc-t"><thead><tr><th>Practice exercise</th><th>Exercise attempts</th><th>Exercise accuracy</th><th>First-try accuracy</th><th>Median answer error</th></tr></thead><tbody>' +
-        exRows + "</tbody></table></div>" + lcSay("First try is the first answer of each day; median error is relative for E1 and E7, points for E3, rupees for E4, E8 and E10.")) + bk;
+        exRows + "</tbody></table></div>" + lcSay("First try is the first answer of each day; median error is relative for E1 and E7, points for E3, rupees for E4, E8 and E10.")) +
+      lcProgressParts(m) + bk;
   }
   function lcExport() {
     var out = { app: "desk-learning", exportedAt: new Date().toISOString(), keys: {} };
@@ -13595,6 +13648,17 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var ev = (typeof FP !== "undefined" && FP && FP.events && FP.events.upcoming || [])[0];
     var rl = (typeof RG !== "undefined" && RG && RG.readings) || {};
     var br = (typeof BRIEF !== "undefined" && BRIEF && BRIEF.lesson) || null;
+    /* With the practice block present its picker decides, so Home and the
+       Today's lesson tab never name two different lessons for one market. */
+    if (typeof lpPickLesson === "function") {
+      try {
+        var P = lpPickLesson(m), last = P.triggers && P.triggers[P.triggers.length - 1];
+        var fired = (P.triggers || []).filter(function (t) { return t.fired; })[0];
+        var fallback = fired === last && !lpHabits(lpMistakes().items).length;
+        if (P && lcLesson(P.id) && !fallback) return { id: P.id, why: P.why + (fired && fired.now ? " (" + fired.now + ")" : "") + ".", lp: true };
+        if (fallback && firstOpen) return { id: firstOpen.id, why: "No market trigger fired today and no habit is logged: your next unfinished lesson." };
+      } catch (e) { /* fall back to this block's own rules */ }
+    }
     if (lcOk(o.ivrv) && o.ivrv < 0.95) { pick = "L2.3"; why = "IV / RV is " + lcN(o.ivrv, 2) + " today: premium is thin, so the lesson is when not to sell."; }
     else if (o.sess === 0 || o.dte === 0) { pick = "L5.3"; why = "It is expiry day."; }
     else if (ev && o.expIso && ev.date <= o.expIso) { pick = "L3.7"; why = esc(ev.label) + " falls inside the front expiry."; }
@@ -13620,7 +13684,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var next = lcCard("Your next step", "picked from today&rsquo;s market and your record",
       '<div class="lc-next">' +
       '<div class="lc-nx"><span class="lc-k">Today&rsquo;s lesson</span><b>' + (L ? L.id + " &middot; " + L.t : "") + "</b><p>" + tl.why + "</p>" +
-        '<button type="button" class="tgl lc-go-btn" data-lcopen="' + tl.id + '">Open the lesson</button></div>' +
+        '<button type="button" class="tgl lc-go-btn" data-lcopen="' + tl.id + '">Open the lesson</button>' +
+        (tl.lp && LEARN.sections.some(function (s) { return s && s.key === "lp-lesson"; }) ? ' <button type="button" class="tgl lc-go-btn" data-lctab="lp-lesson">Short version with today&rsquo;s questions</button>' : "") + "</div>" +
       '<div class="lc-nx"><span class="lc-k">Today&rsquo;s forecasts</span><b>' + locked + " of " + Q.length + " locked</b><p>" +
         (open ? "Open until 09:15 IST on " + lcD(lcNextSession(o.asOf)) + ". The desk&rsquo;s numbers appear after you lock." : "Closed for this snapshot; results so far are on the tab.") + "</p>" +
         '<button type="button" class="tgl lc-go-btn" data-lctab="calibrate">Go to calibration</button></div>' +
@@ -13644,7 +13709,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     { key: "calibrate", label: "Calibration", order: 30, render: lcCalibration, after: lcAfterRanges },
     { key: "cases", label: "Case studies", order: 40, render: lcCases, after: lcAfterRanges },
     { key: "myths", label: "Myth vs measurement", order: 50, render: lcMyths },
-    { key: "progress", label: "Progress", order: 60, render: lcProgress },
+    { key: "progress", label: "Progress", order: 60, render: lcProgress, after: function (root) {
+      (LEARN.progressParts || []).forEach(function (p) { try { if (p && typeof p.after === "function") p.after(root); } catch (e) { /* a part's hook must not break the page */ } });
+    } },
     { key: "glossary", label: "Glossary", order: 65, render: function (m) { return lcGlossaryView(m); } }
   ];
   LC_OWN.forEach(function (s) {
@@ -15070,6 +15137,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "@media (max-width:760px){.lr-card .struct{grid-template-columns:repeat(2,minmax(0,1fr))}.lr-form input.lr-wide{width:100%}}" +
       ".lr-note{padding:0 14px 10px;font-size:12px;color:var(--ink-3);line-height:1.5}" +
       ".lr-note b{color:var(--ink-2)}" +
+      "table.dt.lr-wrap td{white-space:normal;line-height:1.45;text-align:left}table.dt.lr-wrap th{text-align:left}table.dt.lr-wrap td:last-child,table.dt.lr-wrap .pill{white-space:nowrap}" +
       ".lr-banner{margin:0 14px 12px;padding:7px 12px;border:1px dashed var(--line);border-radius:var(--r);font-size:12px;color:var(--ink-2)}" +
       ".lr-tools{display:flex;flex-wrap:wrap;gap:6px;padding:4px 14px 10px;align-items:center}" +
       ".lr-btn[aria-pressed=true]{border-color:var(--calls);color:var(--calls)}" +
@@ -15766,12 +15834,19 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     LR_BANK.forEach(function (q) { counts[q.u] = (counts[q.u] || 0) + 1; });
     var mrows = LR_UNITS.map(function (u) {
       var a = acc[u.u], pct = a.n ? a.ok / a.n * 100 : null;
-      return "<tr><td>" + u.u + "</td><td>" + u.t + "</td><td>" + u.desk + "</td><td>" + counts[u.u] + "</td><td>" +
+      var cite = typeof LC_LESSONS !== "undefined" && LEARN.hostReady ? LC_LESSONS.filter(function (L) {
+        var mm = /NISM VIII units? ([0-9]+)(?: and ([0-9]+))?/.exec(String(L.ref || ""));
+        return !!mm && (+mm[1] === u.u || +mm[2] === u.u);
+      }) : [];
+      var lessons = cite.length ? '<div class="lr-note">Curriculum: ' + cite.map(function (L) {
+        return '<a href="#india-index/learning/path" data-lcopen="' + esc(L.id) + '" data-tip="' + esc(L.id + ": " + String(L.t).replace(/&[a-z]+;/g, " ")) + '">' + esc(L.id) + "</a>";
+      }).join(", ") + "</div>" : "";
+      return "<tr><td>" + u.u + "</td><td>" + u.t + "</td><td>" + u.desk + lessons + "</td><td>" + counts[u.u] + "</td><td>" +
         (pct == null ? "not tried" : lrMeter(pct, "Unit " + u.u + ": " + a.ok + " right of " + a.n + " answers (" + Math.round(pct) + "%)", pct >= 70 ? "lr-good" : pct < 50 ? "lr-bad" : "") + " " + Math.round(pct) + "%") +
         "</td><td>" + lrBtn("exmode", "unit:" + u.u, "Practise") + "</td></tr>";
     }).join("");
     var map = lrCard("lr-nism", "NISM Series VIII map", "the ten units of the published test objectives, where the desk covers each, and an original practice bank",
-      '<div class="tablewrap"><table class="dt"><thead><tr><th>Unit</th><th>Topic</th><th>Where on the desk</th><th>Questions</th><th>Your accuracy</th><th></th></tr></thead><tbody>' + mrows + "</tbody></table></div>" +
+      '<div class="tablewrap"><table class="dt lr-wrap"><thead><tr><th>Unit</th><th>Topic</th><th>Where on the desk</th><th>Questions</th><th>Your accuracy</th><th></th></tr></thead><tbody>' + mrows + "</tbody></table></div>" +
       lrNote("The exam itself: 100 questions in 2 hours, 60% to pass, a quarter mark deducted for each wrong answer (NISM). These " + LR_BANK.length +
         " questions are written for this desk and mapped to the published units; they are not taken from the NISM workbook or any question bank. Regulation and tax items are as of FY2025-26; check current rules before the exam."));
     var modes = '<div class="lr-tools">' + lrBtn("exmode", "mix", "Mixed set (20)", { pressed: !!(c && c.mode === "mix") }) +
@@ -15845,7 +15920,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var R = lrReplayStore().done, E = lrExamStore();
     var answered = Object.keys(E.hist).reduce(function (a, k) { return a + E.hist[k].length; }, 0);
     var tiles = '<div class="struct">' +
-      sc("Learning days", n0(p.days.length), "distinct days with a replay or an exam set; not a streak, gaps cost nothing") +
+      (LR_PROG_EMBED ? "" : sc("Learning days", n0(p.days.length), "distinct days with a replay or an exam set; not a streak, gaps cost nothing")) +
       sc("Skill badges", got + " of " + B.length, "earned by quality, never by volume") +
       sc("Questions answered", n0(answered), "across " + n0(E.sessions.length) + " marked set(s)") +
       sc("Replays debriefed", n0(R.length), "the process score is what counts") + "</div>";
@@ -15857,10 +15932,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       ["replay", "exam", "all"].map(function (k) {
         var lbl = k === "replay" ? "replay history" : k === "exam" ? "exam history" : "everything here";
         return rs === k ? lrBtn("reset", k, "Click again to erase " + lbl, { primary: true }) : lrBtn("reset", k, "Reset " + lbl);
-      }).join("") + lrBtn("export", null, "Download my learning data") + (LR_UI.msg ? '<span class="lr-note" style="padding:0 6px">' + esc(LR_UI.msg) + "</span>" : "") + "</div>";
+      }).join("") + (LR_PROG_EMBED ? "" : lrBtn("export", null, "Download my learning data")) + (LR_UI.msg ? '<span class="lr-note" style="padding:0 6px">' + esc(LR_UI.msg) + "</span>" : "") + "</div>";
     return lrCard("lr-progress", "Progress signals", "light by design &middot; stored in this browser only",
-      tiles + '<div class="tablewrap"><table class="dt"><thead><tr><th>Badge</th><th>Status</th><th>What it takes</th><th>Where you are</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
-      lrNote("Nothing here counts trades placed, rupees made or time on the page, and there is no leaderboard. Rewarding activity pushes a seller to trade more, which is the opposite of what the evidence on retail F&amp;O says to do.") +
+      tiles + '<div class="tablewrap"><table class="dt lr-wrap"><thead><tr><th>Badge</th><th>Status</th><th>What it takes</th><th>Where you are</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      lrNote("Nothing here counts trades placed, rupees made or time on the page, and there is no leaderboard. Rewarding activity pushes a seller to trade more, which is the opposite of what the evidence on retail F&amp;O says to do." +
+        (LR_PROG_EMBED ? " Replay and exam days count in Learning days above; Back up and restore below exports and imports these records with the rest." : "")) +
       resets);
   }
   function lrProgAct(act, val) {
@@ -16099,9 +16175,21 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     { key: "exam", label: "Exam practice", order: 95, render: function () { return '<div id="lr-exam-root">' + lrExamSection() + "</div>"; }, after: function (root) { lrWire(); if (root) lrDecorate(root); } },
     { key: "progress-signals", label: "Progress signals", order: 98, render: function () { return '<div id="lr-progress-root">' + lrProgressSection() + "</div>"; }, after: function (root) { lrWire(); if (root) lrDecorate(root); } }
   ];
+  /* With the Learning host present, the badges join its Progress tab (one
+     progress view, one learning-day count, one export) instead of a tab of
+     their own. Without it the section stands alone as before. */
+  var LR_PROG_EMBED = !!LEARN.hostReady;
   LR_SECTIONS.forEach(function (s) {
+    if (LR_PROG_EMBED && s.key === "progress-signals") return;
     if (!LEARN.sections.some(function (x) { return x && x.key === s.key; })) LEARN.sections.push(s);
   });
+  if (LR_PROG_EMBED) {
+    if (!Array.isArray(LEARN.progressParts)) LEARN.progressParts = [];
+    if (!LEARN.progressParts.some(function (p) { return p && p.key === "lr-progress"; })) {
+      LEARN.progressParts.push({ key: "lr-progress", render: function () { return '<div id="lr-progress-root">' + lrProgressSection() + "</div>"; },
+        after: function (root) { lrWire(); if (root) lrDecorate(root); } });
+    }
+  }
   /* Without the Learning host (this branch alone), append the sections
      below the existing glossary. Does nothing once a host has claimed the
      registry (hostReady), so the two never render the sections twice. */
@@ -16197,11 +16285,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<span class="sub">' + esc(d.tradeDate) + " &middot; settled close</span>" +
       '<div class="right"><span class="kpi-m">click a column to sort</span></div></div>' +
       '<div class="probs">' +
-        '<div class="prob"><div class="prob-k">Advancing</div><div class="prob-v pos">' + up + "</div>" +
-          '<div class="kpi-m">of ' + d.count + "</div></div>" +
-        '<div class="prob"><div class="prob-k">Declining</div><div class="prob-v neg">' + dn + "</div>" +
-          '<div class="kpi-m">of ' + d.count + "</div></div>" +
-        '<div class="prob"><div class="prob-k">Above 50-DMA</div><div class="prob-v">' + d.aboveDma + "</div>" +
+        '<div class="prob"><div class="prob-k">Advancing</div><div class="prob-v pos">' + n0(up) + "</div>" +
+          '<div class="kpi-m">of ' + n0(d.count) + "</div></div>" +
+        '<div class="prob"><div class="prob-k">Declining</div><div class="prob-v neg">' + n0(dn) + "</div>" +
+          '<div class="kpi-m">of ' + n0(d.count) + "</div></div>" +
+        '<div class="prob"><div class="prob-k">Above 50-DMA</div><div class="prob-v">' + n0(d.aboveDma) + "</div>" +
           '<div class="kpi-m">participation</div></div>' +
         '<div class="prob"><div class="prob-k">Turnover</div><div class="prob-v">&#8377;' + n0(totTurn / 1e7) + "cr</div>" +
           '<div class="kpi-m">index constituents</div></div>' +
@@ -17041,7 +17129,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<div class="right"><b style="color:' + sideColor(SD.side) + '">' + sideWord(SD.side) + "</b></div></div>" +
       (ST ? '<p class="side-why">ATM straddle <b>' + n0(ST.strike) + "</b> costs <b>" + n1(ST.cost) +
         " pts</b> (&#8377;" + n0(ST.cost_rs) + " a lot). The seller wins if NIFTY settles between <b>" +
-        n0(ST.breakevens[0]) + "</b> and <b>" + n0(ST.breakevens[1]) + "</b>; the buyer wins outside it.</p>" : "") +
+        n0((ST.breakevens || [])[0]) + "</b> and <b>" + n0((ST.breakevens || [])[1]) + "</b>; the buyer wins outside it.</p>" : "") +
       '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Input</th><th>Today</th>' +
       '<th class="lft">What it means</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
       (sig ? '<p class="side-why"><b>Reasons to buy present today</b></p><ul class="side-list">' + sig + "</ul>" : "") +
@@ -17936,7 +18024,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       nfxMore("Every expiry in one sentence each (the clear picture)", nfxSafe(rgPictureCard, m)) +
       nfxBand("Momentum &amp; regime", "overbought, oversold or sideways, and what followed in the past") +
       nfxSafe(rgNowCard, m) + nfxSafe(rgActiveCard, m) + nfxSafe(rgChartCard, m) +
-      nfxBand("The evidence", "every state, " + esc(RG.from.slice(0, 4)) + " to today") +
+      nfxBand("The evidence", "every state, " + esc(String(RG.from || "").slice(0, 4)) + " to today") +
       nfxSafe(rgHistoryCard, m) + nfxSafe(rgSustainCard, m) +
       nfxBand("Research &amp; playbook", "what to do when premium is too cheap to sell, and the research behind it") +
       nfxSafe(rgCheapCard, m) + nfxSafe(rgResearchCard, m) + "</div>";
@@ -24581,10 +24669,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
   function psLegs(forceReal) {
     var d = psJson(psKey(forceReal), null), out = [];
+    /* storage is the viewer's own and may be anything: only an array of legs counts */
     (d && Array.isArray(d.legs) ? d.legs : []).forEach(function (l) {
       if (!l || (l.act !== "SELL" && l.act !== "BUY") || (l.type !== "CE" && l.type !== "PE")) return;
       var k = +l.k, lots = +l.lots, px = +l.px;
-      if (!isFinite(k) || !isFinite(lots) || lots <= 0 || !isFinite(px) || px < 0 || !l.expiry) return;
+      /* +null is 0: a missing strike must not become a 0 strike */
+      if (l.k == null || !isFinite(k) || k <= 0 || !isFinite(lots) || lots <= 0 || !isFinite(px) || px < 0 || !l.expiry) return;
       out.push({ id: String(l.id || ""), group: String(l.group || "Position 1"), act: l.act, type: l.type,
         expiry: String(l.expiry), k: k, lots: lots, px: px, added: l.added || "" });
     });
@@ -24709,7 +24799,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
 
   function psRules() {
-    var r = ((typeof PB !== "undefined" && PB && PB.rules) || []).join(" ");
+    var r = (typeof PB !== "undefined" && PB && Array.isArray(PB.rules) ? PB.rules : []).join(" ");
     var a = /([0-9]+)% of its credit/.exec(r), b = /([0-9.]+)x the credit/.exec(r);
     PS_TP = a ? +a[1] / 100 : 0.5;
     PS_STOP = b ? +b[1] : 1.5;
@@ -24727,7 +24817,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var sigMax = Math.max.apply(null, L.map(function (c) { return c.sigPts; }));
     var lo = Math.max(1, Math.min(Math.min.apply(null, ks), S) - Math.max(2.5 * sigMax, 400));
     var hi = Math.max(Math.max.apply(null, ks), S) + Math.max(2.5 * sigMax, 400);
-    var step = 5, grid = [], best = -Infinity, worst = Infinity, bes = [];
+    /* 5-point steps, coarser only when a stored strike is absurd (a corrupt
+       1e9 would otherwise build a 200-million-point grid and hang the tab). */
+    var step = Math.max(5, Math.ceil((hi - lo) / 20000) * 5), grid = [], best = -Infinity, worst = Infinity, bes = [];
     for (var X = Math.floor(lo / step) * step; X <= hi; X += step) {
       var v = psValueAt(L, X, null);
       grid.push([X, v]);
@@ -27489,7 +27581,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       if (px == null || !(px > 0)) return null;
       return { id: id, tag: "lot-math", q: "You sell a spread for a net <b>" + n2(px) + "</b> points. With today&rsquo;s NIFTY lot, how many rupees is that per lot?",
         choices: [lpRs(px * N.lot), lpRs(px * 75), lpRs(px * 25), lpRs(px)], a: 0,
-        explain: n2(px) + " x lot " + N.lot + " = <b>" + lpRs(px * N.lot) + "</b>. Lot 75 applied until the 30-Dec-2025 expiry; lot 25 before 20-Nov-2024." };
+        explain: n2(px) + " x lot " + N.lot + " = <b>" + lpRs(px * N.lot) + "</b>. Lot 75 applied until the 30-Dec-2025 expiry; lot 25 before the 2-Jan-2025 expiry." };
     }
     return null;
   }
@@ -27825,6 +27917,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     }).join("");
     return lpCard("lp-sec-lesson", "Today&rsquo;s lesson", esc(id) + " &middot; " + esc(L.title),
       '<div class="vp-say"><b>Why this lesson today:</b> ' + (id === P.id ? P.why + "." : "you picked it from the list below.") + " Live card: " + L.card + ".</div>" +
+      (LEARN.hostReady ? '<div class="lp-acts">' + lpHostBtn("data-lcopen", id, "Full lesson " + esc(id) + " in the Curriculum") +
+        '<span class="lp-note">This is the short daily version of Curriculum lesson ' + esc(id) + "; marking it done here marks it done there" +
+        (typeof LEARN.isDone === "function" && LEARN.isDone(id) ? " (it is already done)." : ".") + "</span></div>" : "") +
       (fast ? '<details class="lp-worked"><summary>Worked example (hidden: your placement test fast-tracked level ' + L.level + ")</summary>" + body + "</details>" :
         '<div class="lp-worked">' + body + "</div>") +
       '<div class="ps-sub">Answer before you look anything up</div>' +
@@ -27902,9 +27997,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
      snippet or press only.
      ========================================================== */
   var LP_RULES = [
-    { date: "2024-11-20", what: "Index contracts revised so a lot is worth Rs 15-20 lakh at introduction; NIFTY lot 25 to 75 for new contracts",
-      math: function (N) { return "Rupees per point per lot went 25 to 75 (x3). At " + (N.spot == null ? "today&rsquo;s spot" : n0(N.spot)) + " a lot of 65 is worth " + (N.spot == null ? "&mdash;" : lpRs(N.spot * N.lot)) + ", inside the band."; },
-      ref: "SEBI/HO/MRD/TPD-1/P/CIR/2024/132 (1-Oct-2024); NSE/FAOP/64625 (18-Oct-2024)", url: "https://nsearchives.nseindia.com/content/circulars/FAOP64625.pdf", status: "verified" },
+    { date: "2024-11-20", what: "Minimum contract value: index contracts worth Rs 15 lakh at introduction, lots reviewed to Rs 15-20 lakh",
+      math: function (N) { return "At " + (N.spot == null ? "today&rsquo;s spot" : n0(N.spot)) + " a lot of " + N.lot + " is worth " + (N.spot == null ? "&mdash;" : lpRs(N.spot * N.lot)) + ", inside the band."; },
+      ref: "SEBI/HO/MRD/TPD-1/P/CIR/2024/132 (1-Oct-2024)", url: "https://www.sebi.gov.in/legal/circulars/oct-2024/measures-to-strengthen-equity-index-derivatives-framework-for-increased-investor-protection-and-market-stability_87208.html", status: "verified" },
+    { date: "2025-01-01", what: "NIFTY lot 25 to 75: first lot-75 weekly expired 2-Jan-2025, first lot-75 monthly 27-Feb-2025 (new contracts from 20-Nov-2024)",
+      math: function () { return "Rupees per point per lot went 25 to 75 (x3): a 20-point premium was " + lpRs(20 * 25) + " per lot and became " + lpRs(20 * 75) + "."; },
+      ref: "NSE/FAOP/64625 (Circular 128/2024, 18-Oct-2024)", url: "https://nsearchives.nseindia.com/content/circulars/FAOP64625.pdf", status: "verified" },
     { date: "2024-11-20", what: "Weekly expiries on one benchmark index per exchange (NSE kept NIFTY)",
       math: function () { return "Bank Nifty, Fin Nifty and Midcap weeklies ended on NSE; weekly sellers concentrate on NIFTY."; },
       ref: "SEBI 2024/132; Master Circular ch.5, 2.1.7.2", url: "https://www.sebi.gov.in/sebi_data/commondocs/dec-2024/RE_Chapter%205%20-%20Exchange%20Traded%20Derivatives%20FINAL_1_p.pdf", status: "verified" },
@@ -27914,6 +28012,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     { date: "2025-02-01", what: "Net option premium collected upfront from buyers; no calendar-spread margin benefit on expiry day",
       math: function (N) { var w = N.base ? lpNum(N.base.longPx, null) : null; return "A wing is paid in full upfront" + (w == null ? "." : ": today&rsquo;s " + n0(N.base.long) + " PE wing costs " + lpRs(w * N.lot) + " per lot.") + " Calendar spreads lose their offset on expiry day."; },
       ref: "SEBI 2024/132; Master Circular ch.5, 14.4.2 and 1.2.7", url: "https://www.sebi.gov.in/sebi_data/commondocs/dec-2024/RE_Chapter%205%20-%20Exchange%20Traded%20Derivatives%20FINAL_1_p.pdf", status: "verified" },
+    { date: "2025-04-04", what: "Planned move of NSE expiries to Monday deferred before it took effect; it never applied",
+      math: function () { return "No effect: NIFTY stayed on Thursday until the Tuesday move of 1-Sep-2025."; },
+      ref: "NSE/FAOP/67338 (27-Mar-2025), deferring NSE/FAOP/66938", url: "https://nsearchives.nseindia.com/content/circulars/FAOP67338.pdf", status: "verified" },
     { date: "2025-04-01", what: "Position limits monitored intraday (at least 4 snapshots a day)",
       math: function () { return "Limits are in thousands of crores, so a 1-10 lot seller is not affected; it matters for large books."; },
       ref: "SEBI 2024/132; Master Circular ch.5, 1.3.4", url: "https://www.sebi.gov.in/sebi_data/commondocs/dec-2024/RE_Chapter%205%20-%20Exchange%20Traded%20Derivatives%20FINAL_1_p.pdf", status: "verified" },
@@ -27935,7 +28036,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     { date: "2025-12-08", what: "Penalty for intraday position-limit breaches on expiry day after the glide period",
       math: function () { return "Large-book rule. Circular number not seen."; },
       ref: "NSE surveillance circular of 5-Dec-2025 (search snippet only)", url: "", status: "unverified" },
-    { date: "2026-01-06", what: "NIFTY lot 75 to 65: last lot-75 weekly 23-Dec-2025, last lot-75 monthly 30-Dec-2025, first lot-65 weekly 6-Jan-2026",
+    { date: "2026-01-01", what: "NIFTY lot 75 to 65: first lot-65 weekly expired 6-Jan-2026, first lot-65 monthly 27-Jan-2026 (last lot-75 expiry 30-Dec-2025)",
       math: function (N) {
         var s = "Rupees per point per lot fall 13.3% (75 to 65).";
         if (N.maxLossLot != null && N.width != null) {
@@ -27944,7 +28045,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         }
         return s;
       },
-      ref: "NSE/FAOP/70616 (3-Oct-2025)", url: "https://nsearchives.nseindia.com/content/circulars/FAOP70616.pdf", status: "verified" }
+      ref: "NSE/FAOP/70616 (Circular 176/2025, 3-Oct-2025)", url: "https://nsearchives.nseindia.com/content/circulars/FAOP70616.pdf", status: "verified" },
+    { date: "2026-08-03", what: "Settlement price from the closing auction session (CAS): constituents' CAS closes, CAS 15:15-15:35 with a random close 15:28-15:30",
+      math: function () { return "The expiry settlement of a short option now comes from an auction close, not the last-30-minute average."; },
+      ref: "SEBI HO/47/11/11(3)2025-MRD-POD2/I/2765/2026 (16-Jan-2026)", url: "https://www.sebi.gov.in/sebi_data/attachdocs/jan-2026/1768576287344.pdf", status: "verified" },
+    { date: "2026-12-07", what: "Settlement price from the VWAP of constituents over 15:00-15:30; expiring index contracts stop trading at 15:30; CAS 15:30-15:40",
+      math: function () { return "Upcoming. A 30-minute average is harder to push at the close than a single print, which matters to anyone short near the money on expiry day."; },
+      ref: "SEBI circular of Oct-2026", url: "https://www.sebi.gov.in/sebi_data/attachdocs/oct-2026/1792079571420.pdf", status: "verified" }
   ];
   function lpRulesSvg(today) {
     var t0 = "2024-10-01", t1 = lpAddDays(today, 30) > "2026-02-01" ? lpAddDays(today, 30) : "2026-02-01";
@@ -27988,14 +28095,17 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         "0.02 x " + n0(N.spot) + " x " + N.lot + " = " + lpRs(0.02 * N.spot * N.lot) + ".", "rules-stale"));
     }
     var ans = LP_UI.rulesAns;
+    var inForce = LEARN.hostReady && typeof LEARN.link === "function" ?
+      '<div class="lp-acts"><span class="lp-note">This is the history. What applies today (lot, expiry weekday, settlement, margins and every cost rate) is in the Rules in force card.</span>' +
+      LEARN.link("learning/glossary", "Rules in force", "Rules in force") + "</div>" : "";
     return lpCard("lp-sec-rules", "Rule-change timeline", "SEBI and NSE changes that move a NIFTY seller&rsquo;s rupees &middot; checked 13-Nov-2026",
-      lpRulesSvg(today) +
+      inForce + lpRulesSvg(today) +
       '<div class="tablewrap"><table class="dt ps-wrap"><thead><tr><th>Effective</th><th class="lft">What changed</th><th class="lft">Seller&rsquo;s math today</th><th>Checked</th><th class="lft">Primary source</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
       '<div class="ps-sub">Recompute under the new rules</div>' + qs.map(function (q) { return lpChoice(today, q, "data-lprules", ans[q.id] == null ? null : ans[q.id]); }).join("") +
       dsMethod("How this was checked",
         "Each row was checked on 13-Nov-2026 against the SEBI or NSE document linked. The 1-Oct-2024 circular (2024/132) PDF itself did not load, so its dates are read from SEBI&rsquo;s Master Circular, chapter 5 (Dec-2024), which cites it for each measure; " +
         "SEBI&rsquo;s web page shows the number as TPD/P/CIR/2024/132 and the Master Circular as TPD-1/P/CIR/2024/132. The rupee figures use today&rsquo;s spot, lot and playbook spread. " +
-        "Regulation changes: confirm on the exchange before relying on any row. Leads not yet checked: a SEBI circular of Feb-2026 on single-stock expiry-day calendar margin and one of 15-Oct-2026 on the closing auction and derivatives timings."));
+        "Regulation changes: confirm on the exchange before relying on any row. Dates follow the desk&rsquo;s rules file (india_rules.py), which the Rules in force card reads; a lot change is dated from the first expiry month that carries the new lot. Lead not yet checked: a SEBI circular of Feb-2026 on single-stock expiry-day calendar margin."));
   }
 
   /* ==========================================================
@@ -28091,6 +28201,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     }
     return lpCard("lp-sec-placement", "Placement test", "skip what you already know; the test grades the task, never the person",
       res + test + (P.taken && !LP_UI.plcOpen ? '<div class="lp-acts"><button type="button" class="ps-btn" data-lpplcretake="1">Retake (new numbers each day)</button></div>' : "") +
+      (LEARN.hostReady ? '<div class="lp-acts"><span class="lp-note">Path levels 1-5 are the Curriculum&rsquo;s levels 1-5 (level 0, orientation, is not tested). The Practice and Myth vs measurement tabs drill the same skills without placing you.</span>' +
+        lpHostBtn("data-lctab", "path", "Curriculum") + lpHostBtn("data-lctab", "practice", "Practice") + lpHostBtn("data-lctab", "myths", "Myth vs measurement") + "</div>" : "") +
       dsMethod("How placement works",
         "Twelve questions across five levels (foundations, pricing and volatility, selling mechanics, evidence, professional), interleaved and built from today&rsquo;s numbers. " +
         "A level passes at two-thirds correct; levels pass in order, so a gap stops the fast-track there. Passed levels fold their worked examples away (worked examples help novices and slow experts: the expertise-reversal effect). " +
@@ -28270,8 +28382,16 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     try { window.scrollTo(0, y); } catch (e) { /* none */ }
     try { psBarPaint(); } catch (e) { /* none */ }
   }
+  /* A link to another Learning tab or Curriculum lesson; empty without the
+     host or when the target is not registered. */
+  function lpHostBtn(attr, val, label) {
+    if (!LEARN.hostReady) return "";
+    if (attr === "data-lctab" && !(LEARN.sections || []).some(function (s) { return s && s.key === val; })) return "";
+    if (attr === "data-lcopen" && !(typeof lcLesson === "function" && lcLesson(val))) return "";
+    return '<button type="button" class="tgl lp-hostlink" ' + attr + '="' + esc(val) + '">' + label + " &rarr;</button>";
+  }
   function lpGo(key) {
-    if (typeof LEARN.link === "function") { try { LEARN.link(key); return; } catch (e) { /* fall through */ } }
+    if (LEARN.hostReady && typeof LEARN.go === "function") { try { LEARN.go(key); return; } catch (e) { /* fall through */ } }
     try { var el = document.getElementById("lp-sec-" + key.replace(/^lp-/, "")); if (el && el.scrollIntoView) el.scrollIntoView(); } catch (e) { /* none */ }
   }
   function lpPickClick(attr, store, ev) {
@@ -28327,7 +28447,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var key = ld.getAttribute("data-lplessondone"), ls = lpLessonStore();
       ls.done[lpTradeDay(m)] = key;
       lpSave(LP_K.lesson, ls);
-      if (typeof LEARN.markDone === "function") { try { LEARN.markDone("lp-lesson:" + key); } catch (e) { /* none */ } }
+      /* the same lesson id as the Curriculum, so a lesson done here counts once there */
+      if (typeof LEARN.markDone === "function") { try { LEARN.markDone(key); } catch (e) { /* none */ } }
       lpRerender(); return;
     }
     var lo = t.closest("[data-lplessonopen]");
@@ -28664,7 +28785,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       how: lpHow(function () { var P = lpPlacement(); return P.taken ? "Taken " + lpShowDate(P.taken) + ": " + P.score + " of " + P.n + " correct, levels 1-" + P.passed + " fast-tracked, start at level " + P.level + "." : "Not taken in this browser yet; the " + lpToday() + " test has " + lpPlacementItems(lpM()).length + " questions over 5 levels."; })
     },
     "Path level": {
-      plain: ["A rung of the path: 1 foundations, 2 pricing and volatility, 3 selling mechanics and risk, 4 evidence and base rates, 5 professional.",
+      plain: ["A rung of the path, the same as the Curriculum&rsquo;s levels: 1 foundations, 2 pricing and volatility, 3 selling mechanics and risk, 4 edge and evidence, 5 professional.",
         "A level passes at two-thirds correct, and levels pass in order."],
       how: lpHow(function () { var P = lpPlacement(); return P.taken ? "Passed " + P.passed + " of 5 levels on " + lpShowDate(P.taken) + "." : "No placement result in this browser; 5 levels, 12 questions today."; })
     },
@@ -28753,6 +28874,17 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     ix = termIndex();
     Object.keys(LP_ALIAS).forEach(function (k) {
       if (!has(ix, termNorm(k)) && !has(TERM_ALIAS, k) && !has(TERMS, k)) TERM_ALIAS[k] = LP_ALIAS[k];
+    });
+    /* First-column labels that are data: a lesson id in the trigger table
+       opens the card on how the lesson is picked; a date in the rule-change
+       table opens the card on effective dates. Generated from the lists, so
+       a new lesson or rule row is covered without editing this. */
+    Object.keys(LP_LESSONS).forEach(function (k) {
+      if (!has(ix, termNorm(k)) && !has(TERM_ALIAS, k) && !has(TERMS, k)) TERM_ALIAS[k] = "Lesson trigger";
+    });
+    LP_RULES.forEach(function (r) {
+      var k = lpShowDate(r.date).replace(/ /g, "-");
+      if (!has(ix, termNorm(k)) && !has(TERM_ALIAS, k) && !has(TERMS, k)) TERM_ALIAS[k] = "Effective";
     });
     _termIndex = null;
   }
@@ -30038,8 +30170,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   if (typeof grRegisterTerms === "function") grRegisterTerms();   /* Signal grading glossary (desk-grade) */
   if (typeof slRegisterTerms === "function") slRegisterTerms();   /* Strategy lab glossary (desk-lab) */
   if (typeof fpRegisterTerms === "function") fpRegisterTerms();   /* Positioning glossary (desk-flows) */
+  if (typeof lcRegisterTerms === "function") lcRegisterTerms();   /* Learning host glossary (desk-learn-core) registered first: the host owns shared names such as Lesson */
   if (typeof lpRegisterTerms === "function") lpRegisterTerms();   /* Learning practice glossary (desk-learn-practice) */
-  if (typeof lcRegisterTerms === "function") lcRegisterTerms();   /* Learning host glossary (desk-learn-core) */
   if (typeof lpInit === "function") lpInit();                     /* Learning practice: listeners, paper mode, host shim */
   if (typeof lrRegisterTerms === "function") lrRegisterTerms();   /* Learning replay glossary (desk-learn-replay) */
   if (typeof lrInit === "function") lrInit();                     /* Learning replay sections; no-op once the Learning host is ready */
