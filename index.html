@@ -923,6 +923,33 @@ table.pf td.pf-v { color: var(--ink); font-weight: 600; }
 .pt-more[open] > summary::after { content: " \25b4"; }
 .pt-more > summary:hover { color: var(--calls); }
 .pt-more p { margin: 9px 0 0; color: var(--ink-2); }
+.sg-range { color: var(--ink-2); }
+.sg { margin-top: 10px; }
+.sg-bar { position: relative; display: flex; height: 12px; border-radius: 6px; overflow: visible; background: var(--surface-3); margin-top: 22px; }
+.sg-seg { height: 100%; border-right: 2px solid var(--surface); }
+.sg-seg:first-child { border-radius: 6px 0 0 6px; }
+.sg-seg:last-child { border-radius: 0 6px 6px 0; border-right: 0; }
+.sg-sell, .sg-good { background: var(--up); }
+.sg-buy { background: var(--calls); }
+.sg-wait { background: var(--ink-3); }
+.sg-ok { background: var(--warn); }
+.sg-risk, .sg-bad { background: var(--down); }
+.sg-mark { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1.5px; background: var(--ink); border-radius: 2px; }
+.sg-mark span { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: var(--font-num); font-size: 11px; color: var(--ink); padding-bottom: 2px; }
+.sg-ends { display: flex; justify-content: space-between; font-family: var(--font-num); font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+.sg-list { margin-top: 8px; display: grid; gap: 6px; }
+.sg-z { padding: 5px 8px; border-radius: 6px; }
+.sg-z.sg-now { background: var(--surface-2); outline: 1px solid var(--line); }
+.sg-sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.sg-r { font-family: var(--font-num); font-size: 12px; color: var(--ink-3); }
+.sg-here { font-size: 12px; color: var(--ink); font-weight: 600; }
+.sg-m { color: var(--ink-2); margin-top: 2px; }
+.sg-act { margin-top: 8px; }
+.vt-good { color: var(--up); }
+.sg-plain { background: var(--surface-3); }
+.sg-band { position: absolute; top: 0; bottom: 0; background: var(--calls-dim); border: 1px solid var(--calls); border-radius: 6px; }
+.sg-mid { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink-3); }
+.sg-live { margin-top: 10px; }
 
 .pt-rk.has-term, .si-k.has-term, .lg-k.has-term, .ohlc-k.has-term,
 td.has-term, h2.has-term, .bandrow-k.has-term,
@@ -4914,9 +4941,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
             (x.carryAnnPct != null ? cmSg(x.carryAnnPct, 2) + "%" : "&mdash;") + "</td></tr>";
         }).join("") + "</tbody></table></div>";
     };
-    /* the world curve, price against days to the contract month */
-    var chart = "";
-    if (W.length >= 2) {
+    /* the world curve, price against days to the contract month; a point
+       without both a day count and a price cannot be placed, so it is left
+       off the chart (the table above still lists it with a dash). */
+    var chart = "", WP = W.filter(function (x) { return cmNum(cmO(x).days) != null && cmNum(cmO(x).px) != null; });
+    if (WP.length >= 2) {
+      var W = WP;
       var w = 600, h = 150, pl = 8, pr = 8, pt = 14, pb = 22;
       var dmax = Math.max.apply(null, W.map(function (x) { return x.days; }));
       var lo = Math.min.apply(null, W.map(function (x) { return x.px; })), hi = Math.max.apply(null, W.map(function (x) { return x.px; }));
@@ -5321,6 +5351,17 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
   /* Terms that need an implied vol borrow the nearest instrument that has one. */
   function cmWithIv(I) { return cmO(I.implied).has === true ? I : (cmInst(cmO(I).group === "energy" ? "CRUDEOIL" : "GOLD") || I); }
+  /* Implied vol has no fixed good number: gold at 25% is high, silver at 25%
+     is ordinary. The card shows the market's own history instead. */
+  simpleLiveRegister("Commodity implied vol", cmHow(function (I) {
+    var J = cmWithIv(I), V = cmO(J.implied);
+    if (V.has !== true) return "";
+    return simpleRangeHtml({ name: cmStr(J.label) + " implied vol (" + cmStr(V.sym).replace("^", "") + ", in dollars)", unit: "%",
+      lo: cmNum(V.minAll), hi: cmNum(V.maxAll), mid: cmNum(V.median), lo1y: cmNum(V.min1y), hi1y: cmNum(V.max1y),
+      now: cmNum(V.cur), since: String(V.from || "").slice(0, 4),
+      note: (J === I ? "" : esc(cmStr(I.label)) + " has no free implied index, so this is " + esc(cmStr(J.label)) + "'s. ") +
+        "High against its own history means premium is rich; low means cheap. The sell decision still needs implied to be 1.10x the forecast." });
+  }));
   var CM_TERMS = {
     "Commodity option expiries": {
       plain: ["Every MCX option expiry coming up for this commodity, month by month, with how far the price could move by each one.",
@@ -28370,7 +28411,93 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   if (typeof window !== "undefined") window.__simpleOf = simpleOf;
   /* The simple sections, in the order a beginner asks them. Writer text is
      plain text, so it is escaped; how() is the page's own HTML. */
-  function simpleHtml(s, today) {
+  /* "What number is good?" -- the possible range, the zones that favour a
+     seller or a buyer, and where today's number sits among them. */
+  /* A number with no fixed good value (implied vol, a price) is judged
+     against its own market's history. Desks that hold that history
+     register a function here; it returns the market's own range. */
+  var SIMPLE_LIVE_REG;
+  function simpleLiveRegister(key, fn) { (SIMPLE_LIVE_REG || (SIMPLE_LIVE_REG = {}))[key] = fn; }
+  function simpleLive(keys, m) {
+    for (var i = 0; i < keys.length; i++) {
+      var f = SIMPLE_LIVE_REG && keys[i] && SIMPLE_LIVE_REG[keys[i]];
+      if (f) { try { return f(m) || ""; } catch (e) { return ""; } }
+    }
+    return "";
+  }
+  /* o: {name, unit, lo, hi, mid, lo1y, hi1y, now, since, note} -- a bar from
+     the all-time low to the all-time high, the last year shaded, the middle
+     ticked and today marked. */
+  function simpleRangeHtml(o) {
+    var ok = function (v) { return typeof v === "number" && isFinite(v); };
+    if (!o || !ok(o.lo) || !ok(o.hi) || o.hi <= o.lo) return "";
+    var u = o.unit || "", f = function (v) { return (Math.round(v * 10) / 10) + u; };
+    var pos = function (v) { return (Math.min(Math.max((v - o.lo) / (o.hi - o.lo), 0), 1) * 100).toFixed(2); };
+    var band = ok(o.lo1y) && ok(o.hi1y)
+      ? '<span class="sg-band" style="left:' + pos(o.lo1y) + "%;width:" + (pos(o.hi1y) - pos(o.lo1y)).toFixed(2) + '%"></span>' : "";
+    var mid = ok(o.mid) ? '<span class="sg-mid" style="left:' + pos(o.mid) + '%"></span>' : "";
+    var now = ok(o.now) ? '<span class="sg-mark" style="left:' + pos(o.now) + '%"><span>today ' + f(o.now) + "</span></span>" : "";
+    var where = "";
+    if (ok(o.now) && ok(o.mid)) {
+      where = o.now > o.mid * 1.25 ? "well above its usual level" : o.now > o.mid * 1.05 ? "a little above its usual level"
+        : o.now < o.mid * 0.8 ? "well below its usual level" : o.now < o.mid * 0.95 ? "a little below its usual level" : "close to its usual level";
+    }
+    return '<div class="sg-live"><div class="sg-range"><b>' + esc(o.name || "This market") + "'s own range" +
+      (o.since ? " since " + esc(o.since) : "") + ":</b> lowest " + f(o.lo) + ", highest " + f(o.hi) +
+      (ok(o.mid) ? ", middle (median) " + f(o.mid) : "") +
+      (ok(o.lo1y) && ok(o.hi1y) ? ". Last year: " + f(o.lo1y) + " to " + f(o.hi1y) + " (shaded)" : "") +
+      (where ? ". Today " + f(o.now) + " is " + where + "." : ".") + "</div>" +
+      '<div class="sg"><div class="sg-bar sg-plain">' + band + mid + now + "</div>" +
+      '<div class="sg-ends"><span>' + f(o.lo) + "</span><span>" + f(o.hi) + "</span></div></div>" +
+      (o.note ? '<div class="sg-m">' + o.note + "</div>" : "") + "</div>";
+  }
+  function simpleNum(v) {
+    var t = deent(String(v == null ? "" : v).replace(/<[^>]*>/g, " ")).replace(/\u2212/g, "-");
+    var m = t.match(/[-+]?\d[\d,]*(\.\d+)?/);
+    if (!m) return null;
+    var n = parseFloat(m[0].replace(/,/g, ""));
+    return isFinite(n) ? n : null;
+  }
+  function simpleFmt(n) {
+    return Math.abs(n) >= 1000 ? Number(n).toLocaleString("en-IN") : String(n);
+  }
+  function simpleScaleHtml(sc, value) {
+    if (!sc || typeof sc !== "object") return "";
+    var tx = function (v) { return typeof v === "string" && v.trim() ? esc(v.trim()) : ""; };
+    var out = tx(sc.range) ? '<div class="sg-range">' + tx(sc.range) + "</div>" : "";
+    var Z = Array.isArray(sc.zones) ? sc.zones : [];
+    var lo = +sc.lo, hi = +sc.hi;
+    if (Z.length && isFinite(lo) && isFinite(hi) && hi > lo) {
+      var vt = deent(String(value || "").replace(/<[^>]*>/g, " "));
+      var unitOk = !sc.unit || vt.indexOf(sc.unit) >= 0;
+      var now = value != null && value !== "" && unitOk ? simpleNum(value) : null;
+      var pos = function (x) { return Math.min(Math.max((x - lo) / (hi - lo), 0), 1) * 100; };
+      var prev = lo, segs = "", rows = "", hit = -1;
+      Z.forEach(function (z, i) {
+        var to = z.to == null ? hi : +z.to;
+        var tone = /^(sell|buy|wait|risk|good|ok|bad)$/.test(z.tone) ? z.tone : "wait";
+        if (now != null && hit < 0 && (now < to || i === Z.length - 1)) hit = i;
+        segs += '<span class="sg-seg sg-' + tone + '" style="width:' + (pos(to) - pos(prev)).toFixed(2) + '%"></span>';
+        var un = function (n) { return simpleFmt(n) + (sc.unit === "%" || sc.unit === "x" ? sc.unit : sc.unit ? " " + sc.unit : ""); };
+        var rg = i === 0 ? "below " + un(to)
+          : z.to == null ? un(prev) + " and above"
+          : un(prev) + " to " + un(to);
+        rows += '<div class="sg-z' + (i === hit ? " sg-now" : "") + '"><i class="sg-sw sg-' + tone + '"></i>' +
+          "<b>" + tx(z.label) + '</b> <span class="sg-r">' + esc(rg) + "</span>" +
+          (i === hit ? ' <span class="sg-here">&larr; today</span>' : "") +
+          '<div class="sg-m">' + tx(z.means) + "</div></div>";
+        prev = to;
+      });
+      out += '<div class="sg"><div class="sg-bar">' + segs +
+        (now != null ? '<span class="sg-mark" style="left:' + pos(now).toFixed(2) + '%"><span>today ' + esc(simpleFmt(now)) + (sc.unit || "") + "</span></span>" : "") +
+        '</div><div class="sg-ends"><span>' + simpleFmt(lo) + "</span><span>" + simpleFmt(hi) + "</span></div>" +
+        '<div class="sg-list">' + rows + "</div></div>";
+    }
+    if (tx(sc.sell)) out += '<div class="sg-act"><b>For selling options:</b> ' + tx(sc.sell) + "</div>";
+    if (tx(sc.buy)) out += '<div class="sg-act"><b>For buying options:</b> ' + tx(sc.buy) + "</div>";
+    return out;
+  }
+  function simpleHtml(s, today, value, live) {
     var tx = function (v) { return typeof v === "string" && v.trim() ? esc(v.trim()) : ""; };
     var sec = function (k, v, cls) {
       return v ? '<div class="pt-sec' + (cls ? " " + cls : "") + '"><span class="pt-sk">' + k +
@@ -28381,6 +28508,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       sec("In simple words", tx(s.simple)) +
       sec("Everyday example", tx(s.example), "pt-ex") +
       sec("When you see this number", tx(s.readIt)) +
+      sec("What number is good?", simpleScaleHtml(s.scale, value) + (live || ""), "pt-scale") +
       sec("What happens when it changes", imp) +
       sec("What it means for you", tx(s.forYou)) +
       sec("Good or bad", tx(s.goodBad)) +
@@ -28448,7 +28576,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<div class="pt-s">on this desk, right now</div></div>' +
       '<button class="tgl" type="button" data-ptclose="1">Close</button></div>' +
       (value ? '<div class="pt-big">' + value + "</div>" : "") +
-      (simple ? simpleHtml(simple, how) : "") +
+      (simple ? simpleHtml(simple, how, value, simpleLive([key, deepKey, label], m)) : "") +
       detailHtml(
         rows.filter(function (kv) { return kv[1]; }).map(function (kv) {
           return '<div class="pt-sec"><span class="pt-sk">' + kv[0] +
@@ -28773,6 +28901,13 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
   function vtText(el) { return el ? String(el.textContent || "").replace(/\s+/g, " ").trim() : ""; }
   function vtMeaning(label) {
+    /* The hover box speaks the beginner's language first, and says what a
+       good number is when the card has a scale. */
+    var sm = label ? simpleOf(label) : null;
+    if (sm && sm.simple) {
+      return esc(sm.simple) + (sm.scale && sm.scale.quick
+        ? '<br><b class="vt-good">Good number:</b> ' + esc(sm.scale.quick) : "");
+    }
     var key = label ? termKey(label) : null;
     if (!key) return "";
     var src = PLAIN[key] || DEEP[key] || TERMS[key];
@@ -28911,7 +29046,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var lt = t.closest("[data-term]");
       var ls = lt ? simpleOf(lt.getAttribute("data-term")) : null;
       if (ls && ls.simple) {
-        return vtBox(esc(deent(lt.getAttribute("data-term"))), "", null, esc(ls.simple)) +
+        return vtBox(esc(deent(lt.getAttribute("data-term"))), "", null, esc(ls.simple) +
+          (ls.scale && ls.scale.quick ? '<br><b class="vt-good">Good number:</b> ' + esc(ls.scale.quick) : "")) +
           '<div class="vt-hint">Click for the full explanation</div>';
       }
     }

@@ -1132,7 +1132,7 @@
 "z now": "Reading CFTC positioning"
 },
 "count": 870,
-"generatedAt": "2026-11-14T18:34:57Z",
+"generatedAt": "2026-11-14T19:30:55Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -1156,6 +1156,33 @@
 "goodBad": "Low is good; high means heavy expiry-day risk.",
 "impact": "If it goes up: more trades rely on the riskiest days. If it goes down: you use more time.",
 "readIt": "When you see a high percent, many trades were very short-dated.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "Rule of thumb: under 10% = good, 10-30% = watch it, over 30% = too much expiry-day risk. The desk's benchmark condor opens about 5 days out.",
+"range": "From 0% (no trade opened that late) to 100% (every trade opened 1.5 days or less before expiry).",
+"unit": "%",
+"zones": [
+{
+"label": "Rare",
+"means": "Few very short-dated trades. Your trades have time to earn overnight.",
+"to": 10,
+"tone": "good"
+},
+{
+"label": "Watch it",
+"means": "A fair share of trades open on the riskiest days.",
+"to": 30,
+"tone": "ok"
+},
+{
+"label": "Too much",
+"means": "Many trades rely on the last day, where gamma is highest and intraday selling has lost money.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "DTE means days to expiry. This is the share of trades opened with a day and a half or less to expiry. NIFTY sellers earn mostly overnight. Intraday option selling lost money in 2017-20."
 },
 "1&sigma; coverage": {
@@ -1171,6 +1198,10 @@
 "forYou": "Use it to check the Shorts outside 1 sigma rule.",
 "impact": "If it goes up: the expected range widens, so strikes must sit further out. If it goes down: the range narrows.",
 "readIt": "When you see this number, place sold strikes at least this far from the forward.",
+"scale": {
+"quick": "Not good or bad: it is the normal-sized move to the second expiry. Place sold strikes at least this far from the forward.",
+"range": "NIFTY points. Bigger with higher IV and more days left. About two thirds of outcomes land inside it in theory; real markets cross it more often."
+},
 "simple": "This is the normal-sized move NIFTY may make up to the second expiry. It comes from the forward price, the at-the-money IV and time left. About two thirds of outcomes would land inside it. Real markets cross it more often than that."
 },
 "2&sigma; adjusted": {
@@ -1303,6 +1334,10 @@
 "goodBad": "High means streaks are expected; low means rarer, but never impossible.",
 "impact": "If it goes up: losing runs are more likely, so size smaller. If it goes down: runs are rarer but still possible.",
 "readIt": "When you see a high percent, expect a losing run at some point this year and plan for it.",
+"scale": {
+"quick": "Not good or bad: it is how normal a losing run is. Above about 50% means expect at least one run of 3 losses in a year of trades.",
+"range": "From 0% to 100%. With a loss rate around 1 in 4 and about 50 weekly trades, the odds of 3 in a row somewhere are high. That is normal, not a broken strategy."
+},
 "simple": "This is the chance of three or more losing trades in a row in a year of weekly trades. It uses the backtest's loss rate. Such a run is normal for this strategy. It is not a reason to change plans or win money back."
 },
 "3-year positioning percentile": {
@@ -1343,6 +1378,33 @@
 "goodBad": "Near 80 percent is well calibrated; far below means overconfident ranges.",
 "impact": "If it goes up toward 80 percent: your ranges are honest. If it goes down: they are too narrow.",
 "readIt": "When you see it below 65 percent, widen your ranges.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "65-95% = calibrated (the desk's badge range, target 80%). Under 65% = ranges too narrow; widen them. Over 95% = too wide.",
+"range": "From 0% to 100% of your 80% ranges that held the settlement. Needs at least 10 ranges to judge.",
+"unit": "%",
+"zones": [
+{
+"label": "Too narrow",
+"means": "You are overconfident. Strikes placed by these ranges get hit too often.",
+"to": 65,
+"tone": "bad"
+},
+{
+"label": "Calibrated",
+"means": "Your 80% ranges hold about as often as they should.",
+"to": 95,
+"tone": "good"
+},
+{
+"label": "Too wide",
+"means": "Ranges are safer than stated. You may be giving up premium.",
+"to": null,
+"tone": "ok"
+}
+]
+},
 "simple": "This is the share of your 80 percent ranges that contained the final settlement. Far below 80 percent means your ranges are too narrow, which is the usual bias."
 },
 "A measured big event ahead": {
@@ -1424,6 +1486,33 @@
 "goodBad": "90 percent or more is the target; low means your results reflect mistakes as much as the market.",
 "impact": "If it goes up: you follow your rules more. If it goes down: more trades break the plan.",
 "readIt": "When you see this number, under 90 percent means some trades broke your own rules.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "90% or more = on target (the desk's target). 75-90% = some trades broke your rules. Under 75% = results reflect mistakes as much as the market.",
+"range": "From 0% (no trade kept the rules) to 100% (every trade passed the gate and exited per plan). Only closed trades count. 90% is the desk target; 75% is a rule of thumb.",
+"unit": "%",
+"zones": [
+{
+"label": "Rules often broken",
+"means": "One trade in four or more broke the gate or the exit plan. Fix this before anything else.",
+"to": 75,
+"tone": "bad"
+},
+{
+"label": "Below target",
+"means": "Most trades kept the rules, but not enough. Find which rule slips.",
+"to": 90,
+"tone": "ok"
+},
+{
+"label": "On target",
+"means": "You follow your own rules. Your results now mostly reflect the strategy, not mistakes.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is the share of closed trades that passed the gate without an override and exited per plan. The target is 90 percent or more."
 },
 "Agri & softs": {
@@ -1812,6 +1901,10 @@
 "forYou": "Retake the test after studying weak levels.",
 "impact": "If it goes up: you pass more levels. If it goes down: start lower on the path.",
 "readIt": "When you see a score just under two-thirds, a little revision may pass the level.",
+"scale": {
+"quick": "Two-thirds or more of a level's questions right = the level passes (desk rule). Less = start your lessons at that level.",
+"range": "From 0 up to the number of questions at that level, shown as right / asked."
+},
 "simple": "This is how many questions you got right at this level in your last placement test. Two-thirds or better passes the level."
 },
 "Back up and restore": {
@@ -1935,6 +2028,10 @@
 "forYou": "Close or shrink a trade before adding one when you are near the cap.",
 "impact": "If the book's total goes up: you get close to the cap. If it goes down: there is room for another trade.",
 "readIt": "When you see the book near its cap, the next trade will likely be blocked.",
+"scale": {
+"quick": "Default 6% of your capital for all open trades together (Rs 60,000 on Rs 10 lakh). The next trade is blocked if it would go over.",
+"range": "A rupee limit set from your capital. The default is 3 times the per-trade cap, so at most about 3 full-size trades at once."
+},
 "simple": "This is the most all open trades together may lose if gapped through. The default is 6 percent of capital. A new trade that would push the book past it is blocked."
 },
 "Bootstrap": {
@@ -1963,6 +2060,10 @@
 "forYou": "Remember costs push the true breakeven a little further out.",
 "impact": "If NIFTY ends beyond a breakeven: you lose. If inside: you keep part or all of the credit.",
 "readIt": "When you see breakevens, compare them with the expected range.",
+"scale": {
+"quick": "No good or bad level. Compare it with the expected range: breakevens outside the 1-sigma range give a cushion; inside it, an ordinary move loses money.",
+"range": "A NIFTY level. For a condor: sold put minus credit below, sold call plus credit above. Between the two you keep money at expiry."
+},
 "simple": "The breakeven is where a trade neither makes nor loses money at expiry. For sellers it is the sold put minus credit below and sold call plus credit above. Between them you keep money."
 },
 "Breakevens": {
@@ -2070,6 +2171,10 @@
 "forYou": "Compare call and put IV to see which side the market fears.",
 "impact": "If it goes up: calls are dearer. If it goes down: calls are cheaper.",
 "readIt": "When you see it, compare with put IV at the same distance.",
+"scale": {
+"quick": "No fixed good number. Compare it with put IV at the same distance; for NIFTY call IV is usually a little lower (put skew).",
+"range": "From near 0% with no top; for NIFTY usually in the 10-25% area."
+},
 "simple": "This is the implied volatility of the call, the fear level in its price. It is shown on out-of-the-money strikes, those above NIFTY."
 },
 "CE OI (L)": {
@@ -2077,6 +2182,10 @@
 "forYou": "Use it as context, not as a forecast.",
 "impact": "If it goes up: more sellers at that level. If it goes down: they are leaving.",
 "readIt": "When you see a big number, many call sellers sit at that strike.",
+"scale": {
+"quick": "No good or bad number. Compare strikes: the biggest call OI marks where call sellers are committed. OI alone does not predict direction.",
+"range": "From 0 up, in lakh shares. Near-the-money and round-number strikes usually hold the most."
+},
 "simple": "CE means call option. OI means open interest, the number of contracts still open. This is call open interest at that strike, in lakh shares. Large call OI marks where sellers are committed."
 },
 "CE and PE": {
@@ -2091,6 +2200,10 @@
 "forYou": "Use it to compute credit.",
 "impact": "If it goes up after you sell: you lose. If it goes down: you gain.",
 "readIt": "When you see it, remember your fill will be a little worse.",
+"scale": {
+"quick": "No good or bad price: it is the call's close that day. Your fill will be a little worse after slippage.",
+"range": "From 0 up. Further-out strikes cost less; nearer expiries cost less."
+},
 "simple": "This is the call's price at that day's close. It is its last trade if it traded, else NSE's settlement price. Fills add or subtract slippage."
 },
 "CFTC positioning": {
@@ -2168,6 +2281,10 @@
 "goodBad": "Lower than the reference bar shows real skill. Higher means guessing your win rate would do better.",
 "impact": "If it goes down: your confidence fits reality better. If it goes up: you are more over- or under-confident.",
 "readIt": "When you see this score, lower is better; compare it with the guess-your-win-rate bar shown beside it.",
+"scale": {
+"quick": "Lower is better; 0 is perfect. Good means below the bar shown beside it (always saying your own win rate). 0.25 is what always saying 50% scores.",
+"range": "From 0 (perfect) to 1 (always sure and always wrong). The fair bar depends on your win rate: at a 75% win rate always saying 75% scores about 0.19."
+},
 "simple": "Calibration means your stated confidence matches what really happens. The Brier score measures this. Zero is perfect. The bar to beat is always guessing your own win rate."
 },
 "Calibration (ECE)": {
@@ -2183,7 +2300,33 @@
 "forYou": "Write an honest chance on every replay.",
 "goodBad": "Lower is better; near 0.25 or above means no better than saying 50 percent.",
 "impact": "If it goes down: your sense of odds improves. If it goes up: you are more overconfident or underconfident.",
-"readIt": "When you see a value, compare it with 0.25; under 0.20 over 10 forecasts helps earn the Calibrated badge.",
+"readIt": "When you see a value, compare it with 0.25; 0.20 or lower over 10 or more forecasts helps earn the Calibrated badge.",
+"scale": {
+"hi": 0.5,
+"lo": 0,
+"quick": "Lower is better. 0.20 or lower = calibrated (badge level, over 10+ forecasts). 0.20-0.25 = weak. Above 0.25 = worse than always saying 50%.",
+"range": "From 0 (perfect) to 1 (always sure and wrong). Always saying 50% scores 0.25.",
+"zones": [
+{
+"label": "Calibrated",
+"means": "Your chance of profit matches reality. Badge level with 10 or more forecasts.",
+"to": 0.2,
+"tone": "good"
+},
+{
+"label": "Weak",
+"means": "Slightly better than saying 50% every time.",
+"to": 0.25,
+"tone": "ok"
+},
+{
+"label": "No better than 50%",
+"means": "Saying 50% every time would score better. Your stated chances are off.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "This scores your chance-of-profit forecasts. It is the average squared gap between your chance and what happened, 1 for profit, 0 for loss. Zero is perfect, 0.25 is always saying 50 percent. Lower is better."
 },
 "Calibration trainer": {
@@ -2368,6 +2511,41 @@
 "goodBad": "High rank means rich premium; low rank means cheap premium.",
 "impact": "If it goes up: premium is richer than usual. If it goes down: premium is cheaper than usual.",
 "readIt": "When you see this number, above 70 means premium is rich against history. Below 30 means cheap. Percentile is usually more useful than rank.",
+"scale": {
+"buy": "A rank under 30 makes options cheap, but the desk has no tested record of buying commodity options, so it does not act on this.",
+"hi": 100,
+"lo": 0,
+"quick": "0 to 100. Below 30 = options cheap for this market, 30-70 = normal, 70-90 = rich, above 90 = very rich (usually after a shock). Sellers prefer higher.",
+"range": "Always between 0 and 100. 0 means implied vol is at its lowest of the past year, 100 means at its highest.",
+"sell": "Higher is better for sellers, but the desk only sells when implied is also at least 1.10x the forecast. Rank alone never triggers a trade.",
+"unit": "%",
+"zones": [
+{
+"label": "Cheap",
+"means": "Options are cheap against this market's last year. Little premium for sellers; buyers pay less.",
+"to": 30,
+"tone": "buy"
+},
+{
+"label": "Normal",
+"means": "Ordinary premium for this market. Selling here earns the usual pay, if implied / forecast says sell.",
+"to": 70,
+"tone": "wait"
+},
+{
+"label": "Rich",
+"means": "Premium is high against its year. Better pay for sellers, if implied / forecast also says sell.",
+"to": 90,
+"tone": "sell"
+},
+{
+"label": "Very rich",
+"means": "At or near the year's high, usually after a shock. Best premium, but moves are big too: wider strikes, smaller size.",
+"to": null,
+"tone": "risk"
+}
+]
+},
 "simple": "It shows where today's implied volatility sits in its own past year. 0 is the year's low and 100 the year's high. Percentile is the share of past days below today."
 },
 "Commodity MCX price": {
@@ -2455,6 +2633,12 @@
 "goodBad": "High means options are expensive and the market is nervous; low means calm and cheap options.",
 "impact": "If it goes up: options cost more and sellers get paid more for more risk. If it goes down: options get cheaper.",
 "readIt": "When you see this number, compare it with the forecast of real moves. Remember it is not the MCX option chain. Every option price here is an estimate.",
+"scale": {
+"buy": "Cheaper when it is low against its own history (IV rank below about 20) and below the forecast. The desk has no tested record of buying commodity options, so it does not act on this.",
+"quick": "No fixed good number: it can be 0% up to no limit, and each market has its own normal (gold usually 12-25%). Judge it by IV rank and by implied / forecast (sell needs 1.10x or more).",
+"range": "Lowest possible is 0%. There is no top: in panics it can jump to 50% or even 100%+. Each market has its own normal level, so 25% is high for gold but ordinary for silver or crude. The bar below shows this market's own lowest, highest and middle.",
+"sell": "Good when it is high against this market's own history (IV rank above about 50) AND at least 1.10x the forecast realised vol. High alone is not enough."
+},
 "simple": "Implied volatility is the size of moves that option prices assume, as a yearly percent. For commodities it is free only for crude (OVX) and gold (GVZ). These are US indexes, converted into rupees."
 },
 "Commodity implied vs realised": {
@@ -2540,6 +2724,41 @@
 "goodBad": "Sell means options are priced above likely moves; stand aside means the edge is thin or unknown.",
 "impact": "If the ratio goes up past 1.10: the call can turn to sell. If it drops below, or a measured event appears: the call turns to stand aside.",
 "readIt": "When you see the call, check the implied over forecast ratio. Below 1.10 means stand aside. For silver, copper and gas there is no implied vol, so the desk never says sell.",
+"scale": {
+"buy": "Below 1.00 options are cheap, but buying has no tested record on this desk's commodity history, so the desk does not act on it.",
+"hi": 2.0,
+"lo": 0.5,
+"quick": "Implied / forecast: below 1.00 = options cheap, 1.00-1.10 = stand aside, 1.10 or more = sell zone. Today's call comes from this number.",
+"range": "Usually between about 0.6 and 2.0. 1.00 means options charge exactly the move the desk forecasts.",
+"sell": "Sell only at 1.10x or higher, with no big event inside the expiry.",
+"unit": "x",
+"zones": [
+{
+"label": "Cheap",
+"means": "Options charge less than the expected move. Bad for sellers: you are paid too little for the risk.",
+"to": 1.0,
+"tone": "buy"
+},
+{
+"label": "Stand aside",
+"means": "Fair price. Not enough extra premium to be worth selling, so the desk waits.",
+"to": 1.1,
+"tone": "wait"
+},
+{
+"label": "Sell zone",
+"means": "Options charge at least 10% more than the expected move. This is where the desk sells, if no event blocks it.",
+"to": 1.6,
+"tone": "sell"
+},
+{
+"label": "Very rich: check why",
+"means": "Options charge far more than the forecast. Often a known event (a big report or meeting) is coming, so check the events list first.",
+"to": null,
+"tone": "risk"
+}
+]
+},
 "simple": "The desk's daily answer: sell option premium on this commodity, or stand aside. Selling needs implied volatility at least 1.10 times the forecast. It also needs no event that has moved this market before expiry."
 },
 "Commodity track record": {
@@ -2631,6 +2850,10 @@
 "goodBad": "Negative means waiting would have saved money; positive means no-edge days happened to pay in this sample.",
 "impact": "If it goes more negative: impatience cost more. If it moves toward zero or positive: waiting mattered less in this sample.",
 "readIt": "When you see a negative number, read it as the price of not waiting in the backtest.",
+"scale": {
+"quick": "Below 0 = waiting would have saved this much in the backtest. Above 0 = no-edge days happened to pay in this sample, which is not a reason to trade them.",
+"range": "Rupees for one lot, summed over all no-edge trades in the backtest. Standing aside makes 0, so 0 is the line to compare with."
+},
 "simple": "This is the total the backtest made or lost on trades taken when the filter said stand aside. Standing aside would have made zero. A negative figure is money given away by not waiting."
 },
 "Costliest habits": {
@@ -2654,6 +2877,33 @@
 "goodBad": "Low is good; high means trading too often for the size of the gains.",
 "impact": "If it goes up: costs take more of your gains. If it goes down: more of the profit stays with you.",
 "readIt": "When you see this percent, a high figure means costs eat much of what you earn.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "Rule of thumb: under 10% of gross profit = good, 10-30% = high, over 30% = costs eat the edge (trading too often or too small).",
+"range": "From 0% up; it can pass 100% when costs are bigger than the gross profit, or when there was a gross loss.",
+"unit": "%",
+"zones": [
+{
+"label": "Low",
+"means": "Most of the gross profit stays with you.",
+"to": 10,
+"tone": "good"
+},
+{
+"label": "High",
+"means": "A big slice goes to brokerage, taxes and fees. Fewer entries and exits help.",
+"to": 30,
+"tone": "ok"
+},
+{
+"label": "Eating the edge",
+"means": "Costs take a third or more of what you earn. Trade less often.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "Costs are brokerage, taxes and fees you entered. This shows them as a share of your gross profit. Every extra entry and exit adds to it."
 },
 "Coverage": {
@@ -2662,6 +2912,33 @@
 "goodBad": "Close to target is good; far below means ranges are too tight.",
 "impact": "If it goes down: strikes placed at the band edge get hit more. If it goes up: premium was left on the table.",
 "readIt": "When you see coverage, compare it with the band's target, like 68 percent.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "For the one-sigma band the target is 68%. About 60-76% = close to target (rule of thumb). Much lower = ranges too narrow, the usual and dangerous error for sellers.",
+"range": "From 0% to 100%. A one-sigma band should cover about 68% of outcomes; an 80% range about 80%. The Kupiec test says if the gap is more than chance.",
+"unit": "%",
+"zones": [
+{
+"label": "Too narrow",
+"means": "Outcomes land outside the band too often. Strikes placed at its edge get hit more than expected.",
+"to": 60,
+"tone": "bad"
+},
+{
+"label": "Close to target",
+"means": "The one-sigma band covers about the share it promises.",
+"to": 76,
+"tone": "good"
+},
+{
+"label": "Too wide",
+"means": "The band is safer than stated, so strikes at its edge are over-cautious and earn less.",
+"to": null,
+"tone": "ok"
+}
+]
+},
 "simple": "Coverage is the share of outcomes that landed inside a stated range. A one-sigma band should cover about 68 percent. Too low means the band is too narrow."
 },
 "Coverage and source": {
@@ -2700,6 +2977,11 @@
 "goodBad": "A larger credit pays more but almost always means strikes closer to the market, so more risk.",
 "impact": "If it is bigger: the target is bigger but you usually took more risk. If it is smaller: less to gain, so check the risk is small too.",
 "readIt": "When you see this number, halve it for the profit target. Multiply it by 1.5 for the stop.",
+"scale": {
+"quick": "No fixed good number: it grows with lots. Check it against the spread width: the desk wants the credit to be at least 15% of the width.",
+"range": "From 0 up to the width of the spread (a credit can never be bigger than the width). For a desk-style 1-sigma condor it is usually a small part of the width. A negative figure means you paid (a debit).",
+"sell": "More credit is better only if the strikes stay at least 1 sigma away and the credit is 15% or more of the width."
+},
 "simple": "Credit is the money you collect when you sell options. This is what you took in when you opened the trade. Money paid for bought options is taken off. The exit rules are measured against this number."
 },
 "Credit worth the risk": {
@@ -2766,6 +3048,10 @@
 "forYou": "Respect it; the next trade after a bad day is often the worst one.",
 "impact": "If you hit it: no new entries today. If you stay under: trading stays open.",
 "readIt": "When you see this hit, stop opening trades for the day.",
+"scale": {
+"quick": "Default 1% of capital (Rs 10,000 on Rs 10 lakh). Reach it and new trades lock until tomorrow; exits stay open.",
+"range": "A rupee limit from your capital. Defaults: 1% a day, 2.5% a week, 5% a month."
+},
 "simple": "Once your booked losses today reach this, new trades are locked until tomorrow. The default is 1 percent of capital. Exits are never locked."
 },
 "Dated cost table": {
@@ -2938,7 +3224,11 @@
 "forYou": "Use it to choose a size that you could sit through without breaking rules.",
 "goodBad": "Short recovery is easier to live with; long recovery tests patience and often leads to revenge trades.",
 "impact": "If recovery times go up: losses take longer to repair, so size smaller. If they go down: the strategy healed faster in this sample.",
-"readIt": "When you see this, read the time in weeks, and imagine sitting through it calmly.",
+"readIt": "When you see this, read the time in days, and imagine sitting through it calmly.",
+"scale": {
+"quick": "Shorter is easier to live with. No fixed good number: it is the median days the backtest needed to climb back to its old high.",
+"range": "From a few days to many months; some drawdowns never recover inside the sample. Rule of thumb: be sure you could wait twice this long without trading bigger."
+},
 "simple": "Drawdown means a fall from your highest account value. This shows how long the backtest took to climb back to its old high. Recovery needs a bigger gain than the loss. A 20 percent fall needs 25 percent to get back."
 },
 "Drawdown, 99th percentile": {
@@ -3108,6 +3398,26 @@
 "forYou": "If you rate 4 or 5, wait before saving the trade.",
 "impact": "If strong-emotion entries go up: more decisions are made in heat. If they go down: calmer decisions.",
 "readIt": "When you see strong emotions often, check those trades' results.",
+"scale": {
+"hi": 5,
+"lo": 1,
+"quick": "Strength 1-3 = fine. 4 or 5 = strong emotion, flagged at the pre-trade gate. Stronger feeling usually means worse decisions.",
+"range": "You rate how strongly you feel from 1 (barely) to 5 (very strong). The desk flags 4 and 5.",
+"zones": [
+{
+"label": "Mild",
+"means": "You are calm enough to follow the plan.",
+"to": 4,
+"tone": "good"
+},
+{
+"label": "Strong",
+"means": "Flagged at the gate. Strong feeling often drives revenge or panic trades; look twice.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "This records how you felt at entry and how strongly, from 1 to 5. Strong emotion, 4 or 5, is flagged at the gate."
 },
 "Energy": {
@@ -3131,6 +3441,10 @@
 "goodBad": "Low is good; high suggests revenge trading.",
 "impact": "If it goes up: you trade more after losses, which is risky. If it goes down: you handle losses better.",
 "readIt": "When you see this count, check whether those trades were bigger or worse than usual.",
+"scale": {
+"quick": "Lower is better, but no fixed number: what matters is whether these trades did worse or were bigger than the rest (the averages beside it).",
+"range": "From 0 up. A weekly seller may open the next trade within 72 hours of a loss by plan; it is a warning only if those trades were bigger or worse."
+},
 "simple": "These are trades opened within 72 hours of a losing close. Taking more risk after a loss is the best-known way traders give money back."
 },
 "Equity curve": {
@@ -3244,6 +3558,33 @@
 "forYou": "Aim above 70 percent in practice.",
 "impact": "If it goes up: you are safer. If it goes down: more revision needed.",
 "readIt": "When you see it near 60 percent, you are on the edge.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "60% = the real NISM pass mark. 70% or more on a 50-question mock = the Mock exam pass badge. Under 60% = fail.",
+"range": "Marks out of the questions asked: +1 right, -0.25 wrong, 0 blank. Can go slightly below 0 if almost everything is wrong. The bands below use the percent shown beside the score.",
+"unit": "%",
+"zones": [
+{
+"label": "Fail",
+"means": "Below the real exam's pass mark. Revise the weak units.",
+"to": 60,
+"tone": "bad"
+},
+{
+"label": "Pass",
+"means": "Would pass the real exam, but with little margin.",
+"to": 70,
+"tone": "ok"
+},
+{
+"label": "Safe pass",
+"means": "70% or more; on a full mock this earns the Mock exam pass badge.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is right answers minus a quarter for each wrong one. It is shown against the 60 percent pass mark."
 },
 "Excess kurtosis": {
@@ -3259,6 +3600,33 @@
 "goodBad": "High means fluent arithmetic; it says nothing about trading profit.",
 "impact": "If it goes up: your current calculation is sharper. If it goes down: practise the weak exercise.",
 "readIt": "When you see it dip after mixed sets, that is normal; mixing is harder.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "Rule of thumb: 80% or more = fluent, 50-80% = learning, under 50% = revise. Close answers count half. It says nothing about trading profit.",
+"range": "From 0% to 100%, over your last 50 exercise answers. Mixed sets score lower and teach more.",
+"unit": "%",
+"zones": [
+{
+"label": "Revise",
+"means": "Half or more of recent answers are wrong. Go back to the lesson.",
+"to": 50,
+"tone": "bad"
+},
+{
+"label": "Learning",
+"means": "Getting there. Keep practising mixed sets.",
+"to": 80,
+"tone": "ok"
+},
+{
+"label": "Fluent",
+"means": "Your arithmetic is reliable. It still says nothing about trading profit.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is the share of your last 50 exercise answers that were right. Close answers count half. It shows your current skill, not your early tries."
 },
 "Exercise record": {
@@ -3347,6 +3715,27 @@
 "goodBad": "Positive means a small average gain per trade; negative means a steady average loss.",
 "impact": "If it goes up: each trade is worth more on average. If it goes down or negative: the rules lose money at that win rate.",
 "readIt": "When you see this number, multiply by your credit to get rupees, then remember costs come off.",
+"scale": {
+"hi": 0.5,
+"lo": -0.5,
+"quick": "Below 0 = the exit rules lose money at that win rate; above 0 = they make money. With these rules the line is about a 75% win rate. Costs come off on top.",
+"range": "In units of the credit, before costs. With take profit at 0.5x and stop at 1.5x credit it runs from -1.5 (never win) to +0.5 (always win).",
+"unit": "x",
+"zones": [
+{
+"label": "Loses money",
+"means": "At this win rate one stop wipes out more than the winners make. The rules lose over many trades.",
+"to": 0,
+"tone": "bad"
+},
+{
+"label": "Makes money",
+"means": "At this win rate winners outweigh stops, before costs. Costs and gaps can still eat it.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "Expected value is the average result of one trade over many trades. Here it is counted in units of the credit, before costs. Positive means the rules make money over many trades at that win rate."
 },
 "Expiries scanned": {
@@ -3442,6 +3831,10 @@
 "goodBad": "Below zero means no-edge trades lost money in the test; near the pass-day number means the filter added little.",
 "impact": "If it goes down: trading on no-edge days hurts more. If it goes up toward or above zero: the filter matters less in this sample.",
 "readIt": "When you see a negative number, it is the average cost of trading without the filter's OK.",
+"scale": {
+"quick": "Below 0 = trading on no-edge days lost money in the backtest (waiting pays). Near the pass-day result = the filter made little difference.",
+"range": "Rupees for one lot per trade, after costs. Standing aside makes exactly 0, so any negative number is the price of impatience per trade."
+},
 "simple": "This is what the same trade made when entered on a day the filter said stand aside. If it is below zero, each such trade is like paying a tax."
 },
 "Feature impact": {
@@ -3472,6 +3865,10 @@
 "forYou": "Count slippage in every trade plan.",
 "impact": "If slippage goes up: each trade costs more. If it goes down: fills are closer to marks.",
 "readIt": "When you see the fill, it is slightly worse than the mark.",
+"scale": {
+"quick": "No good or bad number: it is the mark adjusted by slippage. Always slightly worse than the mark for you.",
+"range": "From 0 up, in points. Lower than the mark when you sell, higher when you buy."
+},
 "simple": "This is the price assumed for your order. It is the mark minus slippage when selling, plus slippage when buying. Slippage is a small extra cost standing in for the gap between buy and sell prices."
 },
 "Filter pass rate": {
@@ -3480,6 +3877,11 @@
 "goodBad": "High means many good days for sellers; low means the market is rarely paying, so stand aside more.",
 "impact": "If it goes up: more days suit selling. If it goes down: fewer good days, so expect to wait more.",
 "readIt": "When you see this number, compare it with how often you trade. Trading more often means some trades had no edge.",
+"scale": {
+"quick": "No good or bad number: it is how often the market paid a seller. Your trades a week should not be more than the pass sessions a week.",
+"range": "From 0 to all sessions (0% to 100%). Long runs of 0 happen when options are cheap. If 4 of 20 pass, that is about 1 sell day a week.",
+"sell": "Trade only on pass days; the rate tells you how often to expect one."
+},
 "simple": "This is the share of recent sessions when the side rule said sell. The side rule is the desk's buy, sell or stand-aside call. It tells how often the market actually pays a seller."
 },
 "Fired": {
@@ -3495,6 +3897,33 @@
 "goodBad": "High means real fluency; low means you rely on retries.",
 "impact": "If it goes up: you know the skill cold. If it goes down: the skill fades between sessions.",
 "readIt": "When you see it lower than overall accuracy, retries are flattering your score.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "Rule of thumb: 80% or more = fluent, 50-80% = learning, under 50% = revise the lesson. It is usually lower than overall accuracy.",
+"range": "From 0% to 100%. Only your first answer each day counts, so retries cannot lift it.",
+"unit": "%",
+"zones": [
+{
+"label": "Revise",
+"means": "Most first tries are wrong. Reopen the worked example.",
+"to": 50,
+"tone": "bad"
+},
+{
+"label": "Learning",
+"means": "You often get it, but not reliably yet.",
+"to": 80,
+"tone": "ok"
+},
+{
+"label": "Fluent",
+"means": "You get it right without retries.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is the share of right answers on your first answer of each day for an exercise. Retries make overall accuracy look better than it is. First tries show what you really know."
 },
 "Flip side holds": {
@@ -3538,6 +3967,26 @@
 "forYou": "Keep forecasting until it passes 100.",
 "impact": "If it goes up: your score becomes more trustworthy. If it stays low: keep forecasting.",
 "readIt": "When you see a small count, treat your Brier score as a rough early guess.",
+"scale": {
+"hi": 200,
+"lo": 0,
+"quick": "Under 100 = your score is mostly noise (the desk's own note). 100 or more = your Brier score starts to mean something.",
+"range": "From 0 up. Each forecast resolves after a later close. Expect many weeks to reach 100.",
+"zones": [
+{
+"label": "Mostly noise",
+"means": "Too few to judge. A few surprises can swing your score a lot.",
+"to": 100,
+"tone": "ok"
+},
+{
+"label": "Worth reading",
+"means": "Enough forecasts that your score reflects skill more than luck.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This counts your forecasts whose outcome is now known. Below it is the number still waiting. Scores mean little until this reaches many dozens."
 },
 "Foreign exchange pair": {
@@ -3576,6 +4025,10 @@
 "goodBad": "Large positive is safe for a short leg; small or negative is danger.",
 "impact": "If it goes up: the short leg is safer. If it goes down or turns negative: the strike is being crossed and losses grow.",
 "readIt": "When you see a small or negative number on a short leg, that leg is the one at risk.",
+"scale": {
+"quick": "No fixed good number of points: read the sigma-away column instead. For a sold leg, positive = out of the money (safe for now), 0 or negative = crossed.",
+"range": "Any number of NIFTY points, plus or minus. 300 points is far on an expiry 2 days away but close on one a month away, so sigma away is the fair yardstick."
+},
 "simple": "Spot is NIFTY's current level. This is the number of points between spot and the strike. It is positive while the option is out of the money. That means it would expire worthless right now."
 },
 "Front ATM IV": {
@@ -3583,6 +4036,11 @@
 "forYou": "Always read it alongside Next ATM IV.",
 "impact": "If it goes up: options are dearer and sellers get paid more for more risk. If it goes down: premiums shrink.",
 "readIt": "When you see it much higher than the next expiry, something soon is worrying the market.",
+"scale": {
+"quick": "No fixed good number: for NIFTY it is often 10-20%, higher in panics. What matters for selling is IV against expected movement, not IV alone.",
+"range": "From near 0% with no top; NIFTY has seen 60%+ in crashes. The front expiry is the noisiest; on expiry day it can jump around.",
+"sell": "Higher pays sellers more, but the desk sells only when implied is at least 1.10x the realised-vol forecast."
+},
 "simple": "This is implied volatility, the fear level priced in, for the nearest expiry at the strike closest to NIFTY. Very short expiries have the noisiest IV. Compare it with the next expiry."
 },
 "Front expiry": {
@@ -3692,6 +4150,10 @@
 "forYou": "Look at the worst column before every new trade.",
 "impact": "If the loss in these columns grows: you hold more crash risk. If it shrinks: the book can absorb shocks better.",
 "readIt": "When you see the minus 5 or minus 8 percent column, remember it is the hopeful crash case.",
+"scale": {
+"quick": "No fixed good number: it is rupees if NIFTY opened that far away. Compare the worst column with your capital; the down-gap figures are the hopeful case.",
+"range": "A 3% NIFTY gap is uncommon, 5% is rare and 8% is a crash-day move. The loss can never exceed the max loss if gapped."
+},
 "simple": "This shows the position valued as if NIFTY opened that many percent up or down. It uses today's volatility. In a real fall fear usually rises, so the real down-gap loss can be worse."
 },
 "Gap scenarios": {
@@ -3888,6 +4350,10 @@
 "goodBad": "Zero overstays is good; many means time exits are being ignored.",
 "impact": "If overstays go up: more risk in the last days near expiry. If they go down: you keep to time exits.",
 "readIt": "When you see trades held past plan, look at what made you stay.",
+"scale": {
+"quick": "The days held are not good or bad. The number to watch is the count held past the planned time exit, shown beside it: 0 is good.",
+"range": "Median days held, from under 1 up to the days to expiry. The desk's weekly trades last at most about a week."
+},
 "simple": "This shows how long trades were held, and how many stayed past the time exit in your plan. Holding to expiry is where most of the March 2020 losses sat."
 },
 "Horizon": {
@@ -4068,6 +4534,10 @@
 "forYou": "Do not judge the model by this number alone.",
 "impact": "If the gap to out of sample grows: the model overfits more. If it shrinks: it is more honest.",
 "readIt": "When you see it much lower than out of sample, the model is flattered by its own data.",
+"scale": {
+"quick": "Smaller looks better, but this number flatters the model. If it is much smaller than the out-of-sample error, trust the out-of-sample one.",
+"range": "From 0 up, in points or vol points as the row says."
+},
 "simple": "This is the error on the days the price model was fitted on. It is shown only to compare with the out-of-sample figure."
 },
 "In sample and out of sample": {
@@ -4175,6 +4645,26 @@
 "forYou": "Trust it more as the number of cases grows.",
 "impact": "If p goes down below 0.05: the band likely misses its target. If p goes up: no evidence of a problem.",
 "readIt": "When you see p above 0.05, the band is not proven wrong; it is not proven right either.",
+"scale": {
+"hi": 1,
+"lo": 0,
+"quick": "p-value under 0.05 = the band's coverage is wrong by more than chance. 0.05 or more = not proven wrong (not proven right either). Weak under 100 cases.",
+"range": "A p-value from 0 to 1. The 0.05 line is the standard test level.",
+"zones": [
+{
+"label": "Band rejected",
+"means": "The miss is too big to be luck. Do not trust the band's stated coverage.",
+"to": 0.05,
+"tone": "bad"
+},
+{
+"label": "Not rejected",
+"means": "The record fits the band so far. With few cases this proves little.",
+"to": null,
+"tone": "ok"
+}
+]
+},
 "simple": "This test checks whether a band's coverage differs from its target by more than chance. A p-value above 0.05 means the record cannot reject the band. It is weak with under 100 cases."
 },
 "LTP and premium": {
@@ -4204,6 +4694,39 @@
 "forYou": "Note how your plan handled the biggest day.",
 "impact": "If it goes up: the path had wild days. If it goes down: the path was calm.",
 "readIt": "When you see 3 or more, that day would have tested any short strike.",
+"scale": {
+"hi": 5,
+"lo": 0,
+"quick": "Under 1 sigma = ordinary day. 1-2 = big but common. 2-3 = large. 3 or more = a shock that would test any short strike.",
+"range": "From 0 up. A normal-curve 3-sigma day should come once in years; real markets make them far more often.",
+"unit": "sigma",
+"zones": [
+{
+"label": "Ordinary",
+"means": "Calm path. Sellers usually keep their premium.",
+"to": 1,
+"tone": "sell"
+},
+{
+"label": "Big but common",
+"means": "A real move. A 1-sigma short strike may come under pressure.",
+"to": 2,
+"tone": "wait"
+},
+{
+"label": "Large",
+"means": "Rare under the bell curve. Short strikes near 1 sigma are often tested.",
+"to": 3,
+"tone": "risk"
+},
+{
+"label": "Shock",
+"means": "3 sigma or more: would test any short strike. Only size and the bought wing protect you.",
+"to": null,
+"tone": "risk"
+}
+]
+},
 "simple": "This is the biggest one-day move in the revealed path. It is measured in sigmas, using the previous day's India VIX. A 3-sigma day should be rare, but markets make them far more often."
 },
 "Lean": {
@@ -4218,6 +4741,10 @@
 "forYou": "Study a little on many days rather than a lot on a few.",
 "impact": "If it goes up: more spaced practice. If it stays flat: you have not studied recently, with no penalty.",
 "readIt": "When you see this number grow, your practice is spread over many days, which helps memory.",
+"scale": {
+"quick": "More days spread out is better for memory, but there is no target and no streak: missing a day costs nothing.",
+"range": "From 0 up. It counts separate days with any practice, not hours."
+},
 "simple": "This counts the separate days on which you studied. Any question, forecast, case, replay debrief or exam set counts. It is not a streak. Missing a day costs nothing."
 },
 "Learning levels": {
@@ -4253,6 +4780,10 @@
 "forYou": "Aim for mastered, not just done.",
 "impact": "If done goes up: you have covered more ground. If mastered goes up: the skills are sticking.",
 "readIt": "When you see done much higher than mastered, come back to those lessons after a gap.",
+"scale": {
+"quick": "More is better, but mastered matters more than done. Mastered = every question right, unaided, on 3 separate days.",
+"range": "From 0 up to all 34 lessons. Done counts a first right answer; mastered counts lasting knowledge."
+},
 "simple": "This counts lessons whose questions you answered right at least once, out of all lessons. Underneath is the number mastered. Mastered means every question right, without help, on three different days."
 },
 "Livestock cycles": {
@@ -4298,6 +4829,32 @@
 "goodBad": "Low is calm; high often comes with nervous exits.",
 "impact": "If it goes up: more chances to react emotionally. If it goes down: calmer days.",
 "readIt": "When you see a high count, ask whether any look led to a useful action.",
+"scale": {
+"hi": 20,
+"lo": 0,
+"quick": "Rule of thumb: 0-3 a day = calm (the default plan has 2 check times). 4-8 = restless. More often comes with nervous exits.",
+"range": "From 0 up. It counts opens of My positions in this browser today.",
+"zones": [
+{
+"label": "Calm",
+"means": "About the two scheduled checks plus one. Enough to follow the rules.",
+"to": 4,
+"tone": "good"
+},
+{
+"label": "Restless",
+"means": "More looks than the plan needs. Ask whether any led to an action.",
+"to": 9,
+"tone": "ok"
+},
+{
+"label": "Watching every tick",
+"means": "Frequent looks invite panicky exits. Try scheduled-check mode.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "This counts how many times you opened My positions today. It counts only this browser."
 },
 "Losing trades, one at a time": {
@@ -4320,6 +4877,10 @@
 "forYou": "Pick lots from your risk budget, never from your mood.",
 "impact": "If lots go up: every point moves more rupees, both ways. If lots go down: gains and losses both shrink.",
 "readIt": "When you see this number, multiply by the lot size to get units per point.",
+"scale": {
+"quick": "No good number by itself: lots should come from your risk budget, not from margin. Lots = budget / max loss per lot, rounded down.",
+"range": "From 1 up. Each NIFTY lot moves rupees by the lot size for every point."
+},
 "simple": "A lot is the fixed bundle size the exchange sets for each option. This shows how many lots the leg holds. Rupee P&L equals price change times lots times lot size."
 },
 "Lower 1 sigma": {
@@ -4467,6 +5028,10 @@
 "forYou": "Use it to see what each leg would cost to close today.",
 "impact": "If the mark of a sold option goes up: you are losing. If it goes down: you are gaining.",
 "readIt": "When you see est next to a mark, treat that price as a rough estimate, not a real trade.",
+"scale": {
+"quick": "No good or bad mark: it is today's price of one option. For a sold option, a mark below your entry price means profit.",
+"range": "From 0 upward; at expiry it ends at its intrinsic value (0 if out of the money). A mark marked est is a model estimate, not a real trade price."
+},
 "simple": "The mark is what an option is worth right now. It is the last traded price for that strike. If no price exists, the page estimates one and shows est. In a replay, it is the closing or settlement price that day."
 },
 "Market analysis": {
@@ -4540,6 +5105,10 @@
 "goodBad": "Low relative to capital is safe; high means one trade could hurt a lot.",
 "impact": "If it goes up: the worst case is bigger, so the trade may break the cap. If it goes down: the worst case is smaller.",
 "readIt": "When you see this number, compare it with your per-trade cap.",
+"scale": {
+"quick": "No fixed good rupee number: compare it with your capital. Default limit: at most 2% of capital for one trade and 6% for all trades together.",
+"range": "From a small sum for a narrow spread up to unlimited if a sold option has no bought wing. For a spread it is (width - credit) x lots x lot size."
+},
 "simple": "This is the worst the position can lose at expiry. It is what a gap straight through your strikes costs, whatever your stop says. For a spread it is the width minus the credit, times lots and lot size."
 },
 "Max pain": {
@@ -4562,6 +5131,10 @@
 "forYou": "Plan to take about half of it, not all of it.",
 "impact": "If it goes up: the best case is bigger, usually with more risk. If it goes down: the best case shrinks.",
 "readIt": "When you see this number, compare it with max loss to see how lopsided the trade is.",
+"scale": {
+"quick": "No fixed good rupee number. Compare it with the max loss: a desk-style spread risks more than it can make, so it needs a high win rate.",
+"range": "For a credit spread or condor it equals the credit received. It can be unlimited for some bought positions."
+},
 "simple": "This is the most the trade can make if held to expiry, at the best NIFTY level. For a credit spread or condor it equals the credit received. If profit keeps rising past every strike, it shows unlimited."
 },
 "Measure": {
@@ -4584,6 +5157,10 @@
 "goodBad": "Small is precise; large means your estimates are often far off.",
 "impact": "If it goes down: you are more precise. If it goes up: your method or arithmetic is slipping.",
 "readIt": "When you see it fall over weeks, your estimates are getting tighter.",
+"scale": {
+"quick": "Smaller is better. The unit changes by exercise: E1 counts within 3% as right, E3 within 5 points, E7 within 5%, E8 within Rs 25, E10 within 10%.",
+"range": "From 0 (exact) up. Percent for range and straddle exercises, points for chance of profit, rupees for money exercises. Watch it fall over weeks."
+},
 "simple": "This is your typical distance from the right answer in an exercise. Median means the middle value when errors are lined up. It is in percent, points or rupees depending on the exercise."
 },
 "Metals and oil": {
@@ -4641,6 +5218,10 @@
 "forYou": "Use the pause to find which habit cost the most.",
 "impact": "If you hit it: no new entries until the 1st. If you stay under: trading stays open.",
 "readIt": "When you see this hit, stop new trades and review the month.",
+"scale": {
+"quick": "Default 5% of capital (Rs 50,000 on Rs 10 lakh). Reach it and new trades lock until the 1st of next month.",
+"range": "A rupee limit from your capital. Defaults: 1% a day, 2.5% a week, 5% a month. A 5% month needs about 5.3% to win back."
+},
 "simple": "Once your booked losses this month reach this, new trades are locked until the 1st. The default is 5 percent of capital."
 },
 "Morning brief": {
@@ -4690,6 +5271,10 @@
 "forYou": "Use it as the anchor for every distance in the replay.",
 "impact": "If you pick a day with a very different close: all distances and strikes shift. If similar: the setup looks alike.",
 "readIt": "When you see it, measure your strikes' distance from it.",
+"scale": {
+"quick": "No good or bad level: it is the starting point. Every strike distance and sigma on the page is measured from it.",
+"range": "A NIFTY index level on the replay day."
+},
 "simple": "This is NIFTY's closing level on the replay day. Every strike and every sigma on the page is measured from it or from the forward price."
 },
 "NIFTY up and VIX up over 5 sessions": {
@@ -4736,6 +5321,10 @@
 "forYou": "Read it alongside the adherence score, never alone.",
 "impact": "If it goes up: you kept more after costs. If it goes down: losses or costs grew.",
 "readIt": "When you see this number, remember costs are already subtracted.",
+"scale": {
+"quick": "No fixed good rupee number: compare it with your capital (a month's result as a % of capital) and judge it only after about 30 closed trades.",
+"range": "Any amount, plus or minus, after the costs you entered. A few trades say little; the process numbers mean more early on."
+},
 "simple": "This is your booked profit or loss on closed trades. The costs you entered are already taken off."
 },
 "Net credit": {
@@ -4751,6 +5340,10 @@
 "goodBad": "Close to zero means little direction risk. A large plus or minus means you carry a direction bet.",
 "impact": "If it goes up (more positive): you gain more when NIFTY rises and lose more when it falls. If it goes down (more negative): the reverse.",
 "readIt": "When you see this number, multiply it by 100 to see the rupee change for a 100-point move.",
+"scale": {
+"quick": "Closer to 0 is calmer. There is no fixed limit: the size grows with lots. Times 100 gives the rupees won or lost on a 100-point NIFTY move.",
+"range": "Any number, plus or minus. A balanced condor sits near 0. A large plus or minus means you carry a direction bet; compare delta x 100 with your credit to see how much a 100-point move matters."
+},
 "simple": "Delta tells how much the trade gains or loses when NIFTY moves one point. Net means all legs added together. Near zero means you are not betting on a direction."
 },
 "Net futures position": {
@@ -4766,6 +5359,10 @@
 "goodBad": "Small means the trade changes slowly; large negative means a big move hurts fast.",
 "impact": "If it goes more negative: losses speed up on big moves, so watch closer. If it moves toward zero: the trade is calmer.",
 "readIt": "When you see a large negative number, expect delta to swing fast on a big move. Check your short strikes.",
+"scale": {
+"quick": "Closer to 0 is calmer. Sellers are usually negative. More negative means delta swings faster on a big move. It grows with lots and near expiry.",
+"range": "Any number; for sellers usually a small negative. It gets much bigger (more negative) in the last days before expiry, which is why 0-1 day trades are risky."
+},
 "simple": "Gamma tells how fast delta changes when NIFTY moves. Sellers usually have negative gamma. That means the trade turns against them faster the further NIFTY travels."
 },
 "Net index futures by group": {
@@ -4789,6 +5386,10 @@
 "forYou": "Check it against the spread width; it should be at least 15 percent.",
 "impact": "If it goes up: the reward is bigger, usually with more risk. If it goes down: less reward for the same structure.",
 "readIt": "When you see a positive number, you collected money; negative means you paid.",
+"scale": {
+"quick": "Positive = you collected money (credit); negative = you paid (debit). For a spread, a credit under 15% of the width fails the credit-worth-the-risk rule.",
+"range": "Points per unit. A credit can never exceed the spread width."
+},
 "simple": "This is the credit received, or debit paid, across all legs. It is in points per unit at the marks. After slippage it becomes your fill, and times the lot it becomes rupees."
 },
 "Net theta": {
@@ -4797,6 +5398,10 @@
 "goodBad": "Positive is the seller's daily pay; it is earned only if NIFTY stays calm.",
 "impact": "If it goes up: each quiet day pays more, but usually the risk is higher too. If it goes down: less daily pay.",
 "readIt": "When you see this number, remember it is pay for carrying risk. It is not free money.",
+"scale": {
+"quick": "Positive is a seller's daily pay. No fixed good number: it grows with lots and near expiry. Bigger theta almost always comes with bigger risk.",
+"range": "Rupees per calendar day. Positive for most selling trades, negative for buying trades. Compare a day's theta with the credit: it is a slice of it, earned only on quiet days."
+},
 "simple": "Theta is how much the trade earns or loses from one day passing. Option prices shrink as expiry comes closer. Sellers usually have positive theta: time pays them for carrying risk."
 },
 "Net to open interest": {
@@ -4812,6 +5417,10 @@
 "goodBad": "Near zero means little exposure to fear changes; large negative means a fear spike can hurt a lot.",
 "impact": "If it goes more negative: a fear spike costs you more. If it moves toward zero: fear changes matter less.",
 "readIt": "When you see this number, check the event calendar: results, RBI or budget days can push fear up.",
+"scale": {
+"quick": "Closer to 0 is safer. Sellers are usually negative: each 1-point jump in implied vol costs this many rupees. It grows with lots.",
+"range": "Rupees per 1 vol point. Negative for selling trades. In shocks implied vol can jump 5 to 10 points in a day, so multiply by 5 to 10 to see a bad day."
+},
 "simple": "Implied volatility is the market's fear level priced into options. Vega tells how much the trade gains or loses when it rises one point. Sellers usually have negative vega. A jump in fear hurts them even if NIFTY does not move."
 },
 "Never stand aside": {
@@ -4835,6 +5444,11 @@
 "forYou": "Use it to place strikes outside 1 sigma.",
 "impact": "If it goes up: the expected move is wider, so strikes move further out. If it goes down: the range narrows.",
 "readIt": "When you see it, it decides how far out the strikes need to be.",
+"scale": {
+"quick": "No fixed good number: for NIFTY it is often 10-20%. Higher IV means a wider 1-sigma move, so sold strikes must sit further out.",
+"range": "From near 0% with no top. Usually steadier than the front expiry's IV.",
+"sell": "Higher pays sellers more, but the desk sells only when implied is at least 1.10x the realised-vol forecast."
+},
 "simple": "This is implied volatility at the strike closest to NIFTY for the second expiry. Its sigma sets the one-sigma move used in the templates and the process check."
 },
 "Next gap": {
@@ -4842,6 +5456,10 @@
 "forYou": "Do not worry about box 0; it is where learning happens.",
 "impact": "If cards move to higher boxes: you remember them well. If they drop to box 0: they need more practice.",
 "readIt": "When you see many cards in box 0, those are your weak spots.",
+"scale": {
+"quick": "Not good or bad: it is the wait before a card returns. Gaps run 1, 3, 7, 16, 35, 80 days. Cards in high boxes are ones you remember well.",
+"range": "From 1 day (box 0, missed cards) to 80 days (top box). A miss sends a card back to 1 day."
+},
 "simple": "This is how many days a card in this box waits before coming back after a correct recall. Box 0 holds missed cards; they return tomorrow. Higher boxes come back less often."
 },
 "Next-session cap": {
@@ -4882,6 +5500,32 @@
 "goodBad": "Zero is the goal; a high count means impatience.",
 "impact": "If it goes up: more trades without an edge. If it goes down: you wait better.",
 "readIt": "When you see this count above zero, look at how those trades did.",
+"scale": {
+"hi": 10,
+"lo": 0,
+"quick": "0 = good: every trade had the filter's OK. 1-2 = look at why. 3 or more = a habit of trading without an edge.",
+"range": "From 0 up to all your gated trades. Shown as a count out of your gated trades. Rule of thumb zones; the goal is zero.",
+"zones": [
+{
+"label": "None",
+"means": "Every selling trade waited for the filter's OK.",
+"to": 1,
+"tone": "good"
+},
+{
+"label": "A few",
+"means": "One or two slipped through. Read their journal notes for the reason.",
+"to": 3,
+"tone": "ok"
+},
+{
+"label": "A habit",
+"means": "Trading without an edge has become a pattern. The backtest says these trades cost money.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "These are selling trades you opened while the side rule said stand aside. They had no edge behind them."
 },
 "OI direction signals": {
@@ -4910,6 +5554,33 @@
 "forYou": "Use it to make paper losses feel real.",
 "impact": "If it goes up: the trade gained more of your capital. If it goes down: the loss bites deeper.",
 "readIt": "When you see a large percent loss, imagine it with real money.",
+"scale": {
+"hi": 5,
+"lo": -5,
+"quick": "A loss bigger than -2% of capital means the trade lost more than the 2% budget cap. 0 to -2% = a loss within budget. Above 0 = profit.",
+"range": "Any percent, plus or minus. The desk's paper budget is 2% of declared capital (or Rs 20,000 if smaller).",
+"unit": "%",
+"zones": [
+{
+"label": "Over budget",
+"means": "Lost more than the 2% budget. Size was too big or the exit was late.",
+"to": -2,
+"tone": "bad"
+},
+{
+"label": "Loss within budget",
+"means": "A planned-size loss. Normal for a seller; read the process score.",
+"to": 0,
+"tone": "ok"
+},
+{
+"label": "Profit",
+"means": "The trade made money. Still read the process score: a win can be luck.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is the paper trade's net P&L as a share of the capital you declared in the plan. A loss in percent is harder to ignore than a number on a practice screen."
 },
 "One change at a time": {
@@ -4970,6 +5641,10 @@
 "forYou": "Always read this one first.",
 "impact": "If it goes up: the model is less trustworthy. If it goes down: more trustworthy.",
 "readIt": "When you see it, trust it over the in-sample number.",
+"scale": {
+"quick": "Smaller is better. This is the honest error. No fixed good number; compare it with the in-sample error and with the price itself.",
+"range": "From 0 up, in points or vol points as the row says."
+},
 "simple": "This is the error measured on days the price model was not fitted on. It is the honest number. Error on fitted days always looks better."
 },
 "Out-of-sample equity": {
@@ -4985,6 +5660,10 @@
 "forYou": "Judge outcomes only over many replays.",
 "impact": "If it goes up: the trade made money, which may be luck. If it goes down: it lost, which may also be luck.",
 "readIt": "When you see it, read the process score first, then this.",
+"scale": {
+"quick": "Above 0 = profit, below 0 = loss, after slippage and charges. One replay's outcome is mostly noise; read the process score first.",
+"range": "Rupees. The best case is the credit kept; the worst is the max loss of the position."
+},
 "simple": "This is the rupee profit or loss of the replayed trade after slippage and charges. One replay's outcome is mostly noise. Good process loses on some days and bad process wins on some."
 },
 "Overfitting check": {
@@ -5001,6 +5680,32 @@
 "goodBad": "Few is good; many means the rules are not really running your trading.",
 "impact": "If it goes up: you bend rules more often. If it goes down: you trust the rules more.",
 "readIt": "When you see this count, compare override results with compliant results.",
+"scale": {
+"hi": 10,
+"lo": 0,
+"quick": "0 = good: the rules ran every trade. 1-2 = check their results. 3 or more = the rules are not really in charge.",
+"range": "From 0 up to all your gated trades, shown as a count out of them. Rule of thumb zones; compare the override average with the compliant average beside it.",
+"zones": [
+{
+"label": "None",
+"means": "No hard rule was bent.",
+"to": 1,
+"tone": "good"
+},
+{
+"label": "A few",
+"means": "Rare overrides. Check whether they did better or worse than compliant trades.",
+"to": 3,
+"tone": "ok"
+},
+{
+"label": "Many",
+"means": "The rules are being bent often. Overrides usually do worse.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "These are trades saved even though a hard rule failed, with the reason you typed. Their results are compared with trades that followed the rules."
 },
 "P&L": {
@@ -5017,6 +5722,10 @@
 "goodBad": "Positive is money in hand if you close now; negative is money you would lose. One trade says little about skill.",
 "impact": "If it goes up: you are closer to the take-profit target. If it goes down: you are closer to the stop, and the rule may say exit.",
 "readIt": "When you see this number, compare it with the take-profit target and the stop level, not with your feelings.",
+"scale": {
+"quick": "No fixed good number: it is rupees for your size. Judge it against the trade's own rules: take profit at half the credit, stop when the loss reaches 1.5 times the credit.",
+"range": "Can be any amount, plus or minus. The most it can reach is the max profit (usually the credit). The loss is capped by the bought wing; with no wing it has no limit. Compare it with the credit, not with your mood."
+},
 "simple": "P&L means profit and loss. This is what the trade has made or lost if you closed it at today's prices. Plus means profit, minus means loss."
 },
 "P&L pts": {
@@ -5024,6 +5733,10 @@
 "forYou": "Check it against the target and stop.",
 "impact": "If it goes up: you are in more profit. If it goes down: you are losing.",
 "readIt": "When you see it, multiply by lot size to get rough rupees.",
+"scale": {
+"quick": "Above 0 = profit, below 0 = loss, in points before slippage and charges. Desk rules: take profit at half the credit; stop at a loss of 1.5x the credit.",
+"range": "At most the entry credit (all kept); the worst is the width minus the credit for a spread."
+},
 "simple": "This is the entry credit minus the position value, in points per unit. It is before slippage and charges. The debrief shows rupees after both."
 },
 "P(profit)": {
@@ -5083,6 +5796,10 @@
 "forYou": "Expect put IV higher; worry only if the gap is unusual.",
 "impact": "If it goes up: puts are dearer and falls are feared more. If it goes down: less fear.",
 "readIt": "When you see put IV well above call IV, the market fears a fall.",
+"scale": {
+"quick": "No fixed good number. Put IV above call IV at the same distance is normal. Much higher means the market fears a fall.",
+"range": "From near 0% with no top; for NIFTY usually in the 10-30% area, higher on far puts."
+},
 "simple": "This is the implied volatility of the put, shown on out-of-the-money strikes, those below NIFTY. Put IV above call IV at the same distance is normal. It is called put skew."
 },
 "PE OI (L)": {
@@ -5090,6 +5807,10 @@
 "forYou": "Use it as context, not as a forecast.",
 "impact": "If it goes up: more sellers at that level. If it goes down: they are leaving.",
 "readIt": "When you see a big number, many put sellers sit at that strike.",
+"scale": {
+"quick": "No good or bad number. Compare strikes: the biggest put OI marks where put sellers are committed. OI alone does not predict direction.",
+"range": "From 0 up, in lakh shares. Near-the-money and round-number strikes usually hold the most."
+},
 "simple": "PE means put option. This is put open interest, the number of open put contracts, at that strike in lakh shares. Large put OI marks where sellers are committed."
 },
 "PE price": {
@@ -5097,6 +5818,10 @@
 "forYou": "Use it to compute credit.",
 "impact": "If it goes up after you sell: you lose. If it goes down: you gain.",
 "readIt": "When you see it, remember your fill will be a little worse.",
+"scale": {
+"quick": "No good or bad price: it is the put's close that day. Your fill will be a little worse after slippage.",
+"range": "From 0 up. Further-out strikes cost less; nearer expiries cost less."
+},
 "simple": "This is the put's price at that day's close. It is its last trade if it traded, else NSE's settlement price. Fills add or subtract slippage."
 },
 "PGMs and autocatalysts": {
@@ -5159,6 +5884,10 @@
 "goodBad": "Higher than the fail-day result means the filter helped in the backtest. It is no promise for the future.",
 "impact": "If it goes up: trading on good days has paid better in the test. If it goes down: even good days paid less.",
 "readIt": "When you see this number, look at its range too. A wide range means a small or noisy sample.",
+"scale": {
+"quick": "Above 0 = trading on filter-sell days made money in the backtest; below 0 = it lost. It should be higher than the fail-day result.",
+"range": "Rupees for one lot per trade, after costs. Look at its 90% range too: if the range crosses 0, the sample cannot tell gain from loss yet."
+},
 "simple": "This is what the backtest's weekly trade made on average when entered on a day the filter said sell. It is for one lot, after costs. A 90 percent range shows how much it varied."
 },
 "Passes": {
@@ -5225,6 +5954,10 @@
 "forYou": "Let it decide your size, not your confidence.",
 "impact": "If you raise it: each trade can hurt more. If it halves after losses: you trade smaller until things settle.",
 "readIt": "When you see the cap, compare it with each trade's share of capital.",
+"scale": {
+"quick": "Default 2% of your capital (Rs 20,000 on Rs 10 lakh). It halves to 1% after two stops in a row or a 5% fall from your peak.",
+"range": "It is a rupee limit set from your capital. Rule of thumb for option sellers: 1% to 2% a trade. Above 2% one bad gap can hurt for months."
+},
 "simple": "This is the most one trade may lose if gapped through, as a share of your capital. The default is 2 percent. It halves after two stops in a row or a 5 percent drawdown."
 },
 "Pin strike": {
@@ -5292,6 +6025,10 @@
 "forYou": "Use it to know in advance where your plan changes.",
 "impact": "If NIFTY crosses it: a new scenario and its action line apply. If it holds: the current plan stays.",
 "readIt": "When you see NIFTY near this level, check the playbook branch and your short strikes.",
+"scale": {
+"quick": "No good or bad level: it is a NIFTY price the playbook watches. What matters is where NIFTY is against it.",
+"range": "A NIFTY index level, usually a few hundred points above or below today's price. Crossing it changes the playbook branch."
+},
 "simple": "This is a support or resistance level the playbook watches. Support is a level where falls have often stopped; resistance is where rises have often stopped. Crossing the first level starts a scenario. The second is a warning."
 },
 "Playbook levels": {
@@ -5321,6 +6058,10 @@
 "forYou": "Compare it with the credit each day.",
 "impact": "If it goes up: you are losing. If it goes down: you are gaining.",
 "readIt": "When you see it fall below your credit, you are in profit.",
+"scale": {
+"quick": "For a credit trade, lower is better: below your entry credit means profit. At 0 every option has expired worthless.",
+"range": "From 0 up to the spread width, in points per unit."
+},
 "simple": "This is what it would cost to close the position at that day's prices, in points per unit. Settled legs count at their intrinsic value."
 },
 "Positioning decision log": {
@@ -5448,6 +6189,26 @@
 "goodBad": "High means rules were followed; low means the trade broke rules, whatever the profit.",
 "impact": "If it goes up: your decisions follow the rules more. If it goes down: you are cutting corners.",
 "readIt": "When you see 5 of 5, you followed every rule, win or lose.",
+"scale": {
+"hi": 5,
+"lo": 0,
+"quick": "4 or 5 of 5 = good process (desk rule). 3 or less = weak process, whatever the profit.",
+"range": "From 0 to 5: one point each for a written plan, defined risk, budget, conditions, and exit as planned.",
+"zones": [
+{
+"label": "Weak process",
+"means": "Two or more rules were broken. A win here is luck and teaches the wrong lesson.",
+"to": 4,
+"tone": "bad"
+},
+{
+"label": "Good process",
+"means": "The rules were followed. A loss here is the normal cost of the strategy.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is the five-point process score of a closed paper trade: plan, defined risk, budget, conditions, exit as planned. It is scored apart from profit. One trade's result says little about the decision."
 },
 "Process score": {
@@ -5456,6 +6217,33 @@
 "goodBad": "High means the rules were followed; low means the decision was poor, whatever the money.",
 "impact": "If it goes up: your decisions follow the rules more. If it goes down: you are breaking rules, even if you won.",
 "readIt": "When you see this score, read it before the profit. 80 percent over 5 replays earns Rules first.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "80% or more = Rules first level (desk badge). 70-80% = fair (counts for Crisis literate). Under 70% = weak, whatever the money.",
+"range": "From 0% to 100% of the replay rules that applied. A decision with no rule applying counts as 100%.",
+"unit": "%",
+"zones": [
+{
+"label": "Weak",
+"means": "Several rules were broken. Fix the process before looking at profit.",
+"to": 70,
+"tone": "bad"
+},
+{
+"label": "Fair",
+"means": "Most rules followed. Enough for a crisis day to count toward Crisis literate.",
+"to": 80,
+"tone": "ok"
+},
+{
+"label": "Rules first level",
+"means": "Averaged over your last 5 debriefs, this earns the Rules first badge.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is the share of the eight replay rules you followed. They cover price, risk, size, strikes, credit, exits, events and sticking to plan. It is decided before the outcome, so it is scored apart from profit."
 },
 "Process vs outcome": {
@@ -5487,6 +6275,39 @@
 "goodBad": "Around 50 percent or more means most of the reward is banked. Low or negative means it has not paid yet.",
 "impact": "If it goes up: you are nearer the profit target and the rule may say close. If it goes down: the trade is giving back gains.",
 "readIt": "When you see this number near 50 percent, the take-profit rule is close. Check the exit rules row.",
+"scale": {
+"hi": 100,
+"lo": -200,
+"quick": "Below 0% = losing, 0-50% = earning, 50% or more = take-profit zone (desk rule). Near -150% the loss reaches 1.5x the credit: the stop.",
+"range": "Top is 100% (all of the max profit kept). It can go far below 0% when the trade loses: -150% means the loss is 1.5 times the max profit. For a credit spread the max profit is the credit.",
+"unit": "%",
+"zones": [
+{
+"label": "Stop zone",
+"means": "The loss has reached 1.5 times the credit. The desk rule says close now.",
+"to": -150,
+"tone": "risk"
+},
+{
+"label": "Losing",
+"means": "The trade is under water. Check the stop level and the sigma-away column.",
+"to": 0,
+"tone": "bad"
+},
+{
+"label": "Earning",
+"means": "Some profit is in hand. The plan says keep holding until 50% or a stop.",
+"to": 50,
+"tone": "ok"
+},
+{
+"label": "Take profit",
+"means": "Half or more of the max profit is in hand. The desk rule says close and bank it.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This shows how much of the most you can make is already in your pocket. It is a percent. Sellers usually close well before 100 percent. The last part pays little for the risk you still carry."
 },
 "Profit target": {
@@ -5632,6 +6453,10 @@
 "forYou": "Answer every question in weak units.",
 "impact": "If questions go up: more practice is available. If few: practise elsewhere too.",
 "readIt": "When you see a high count, that unit gets more practice.",
+"scale": {
+"quick": "Not good or bad: it is how many practice questions the unit has. Units the live desk does not show get more.",
+"range": "From a handful to a few dozen per unit."
+},
 "simple": "This is the number of original practice questions for this unit. None is copied from the NISM workbook or a question bank."
 },
 "Questions answered": {
@@ -5639,6 +6464,10 @@
 "forYou": "Do not chase this number.",
 "impact": "If it goes up: more practice done. If it stays: no new practice.",
 "readIt": "When you see a big number, check accuracy too.",
+"scale": {
+"quick": "Not good or bad on its own: it earns nothing. Read it with accuracy; many answers at low accuracy means revise, not more volume.",
+"range": "From 0 up, across all marked sets."
+},
 "simple": "This counts every practice answer you have submitted, across all sets. It is shown for context and earns nothing by itself."
 },
 "RBI MPC decision": {
@@ -5846,6 +6675,10 @@
 "forYou": "Mix calm and crisis days in your practice.",
 "impact": "If it goes up: more days to practise on. If it stays the same: pick crisis days for variety.",
 "readIt": "When you see this count, more days mean more practice choices.",
+"scale": {
+"quick": "Not good or bad: more days just means more practice choices, including made-up crisis days.",
+"range": "From 0 up: real stored days plus synthetic crisis days. The most recent week is never listed."
+},
 "simple": "This counts past days you can replay: real stored option data plus made-up crisis days. A real day needs its later expiry to have settled. So the most recent week is never listed."
 },
 "Replays debriefed": {
@@ -5853,6 +6686,10 @@
 "forYou": "Debrief every replay you start.",
 "impact": "If it goes up: your process figures become more reliable. If it stays low: scores are still early.",
 "readIt": "When you see this number grow, your sample of decisions is growing.",
+"scale": {
+"quick": "More is better for judging yourself. The Rules first badge needs at least 5; scores swing a lot under about 10.",
+"range": "From 0 up. Standing aside counts the same as a trade."
+},
 "simple": "This counts replays you finished and reviewed. Standing aside counts exactly like a trade. The score is about the decision, not about being active."
 },
 "Research: how option sellers make money": {
@@ -5904,6 +6741,10 @@
 "forYou": "Do not skip ahead; each day is a decision point.",
 "impact": "If it goes up: you are closer to the end. If it stays: you have not moved forward.",
 "readIt": "When you see it rise, more of the outcome is visible.",
+"scale": {
+"quick": "Not good or bad: it counts how many days after your decision are shown so far.",
+"range": "From 0 up to the sessions until the second expiry settles."
+},
 "simple": "This counts how many days after the decision have been shown. The path ends when the second expiry settles."
 },
 "Rich put wing": {
@@ -5919,6 +6760,10 @@
 "forYou": "Focus on getting more right, not on answering all.",
 "impact": "If it goes up: your score rises. If it goes down: your score falls.",
 "readIt": "When you see this, compare with wrong answers.",
+"scale": {
+"quick": "More is better. Each right answer adds 1 mark. Compare with wrong answers: each wrong one takes back a quarter.",
+"range": "From 0 up to the questions in the set."
+},
 "simple": "This counts questions answered correctly in this set. Each adds one mark."
 },
 "Risk budget": {
@@ -5926,6 +6771,10 @@
 "forYou": "Set the budget first, then work out the number of lots.",
 "impact": "If the budget goes up: bigger trades and bigger possible losses. If it goes down: smaller trades, smaller losses.",
 "readIt": "When you see a trade's max loss above it, the gate flags the trade.",
+"scale": {
+"quick": "The desk uses Rs 20,000 a trade. Compare it with your capital: on Rs 5 lakh that is 4%, double the 2% default per-trade cap.",
+"range": "A rupee figure. Rule of thumb for sellers: 1-2% of your capital. Lots = budget / max loss per lot, rounded down."
+},
 "simple": "This is the most you agree to lose on one trade, in rupees. The desk uses Rs 20,000. Lots = budget divided by the worst loss per lot, rounded down. Size comes from the loss you can take, not broker margin."
 },
 "Risk of ruin": {
@@ -5965,6 +6814,26 @@
 "goodBad": "Low is good; high means losses are being hidden.",
 "impact": "If it goes up: more losses are being pushed forward. If it goes down: you take losses cleanly.",
 "readIt": "When you see this count, ask whether each roll was planned or just avoiding the loss.",
+"scale": {
+"hi": 5,
+"lo": 0,
+"quick": "0 = good: losses taken cleanly. Any roll of a loser counts against adherence, because rolled exits are never per plan.",
+"range": "From 0 up. Each roll hides a real loss inside a new trade.",
+"zones": [
+{
+"label": "None",
+"means": "Every losing trade was closed and the loss taken.",
+"to": 1,
+"tone": "good"
+},
+{
+"label": "Some",
+"means": "Losses are being pushed forward instead of taken. Rolled exits never count as per plan.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "These are losing trades closed by moving them to another strike or expiry instead of taking the loss. Rolling turns a real loss into a hidden one."
 },
 "Rough rice": {
@@ -6055,6 +6924,10 @@
 "forYou": "Fix the habit with the most rupees first.",
 "impact": "If it goes up: the habit is costing more. If it goes down: it is costing less.",
 "readIt": "When you see a large figure, this habit has cost you the most.",
+"scale": {
+"quick": "Lower is better. No fixed good number: it is the rupees you linked to this habit. Compare it with your capital and with the other habits.",
+"range": "From 0 up. Lesson and test misses add 0; only paper or real losses add rupees."
+},
 "simple": "These are the rupees you linked to this habit. A paper or real loss is split across the habits tagged in its review. Lesson and test misses carry no rupee cost."
 },
 "SEBI turnover fee": {
@@ -6131,6 +7004,10 @@
 "forYou": "Look at the trend over many replays.",
 "impact": "If running scores improve: your forecasts improve. If they worsen: adjust your confidence.",
 "readIt": "When you see a single score, do not judge yourself on it.",
+"scale": {
+"quick": "For chance of profit: Brier, lower is better, 0 perfect, 0.25 = saying 50%. For the range: inside or outside. One score is noise.",
+"range": "A single Brier score runs from 0 to 1. Judge yourself on the running average, not one forecast."
+},
 "simple": "For your chance of profit, this is the Brier score, where lower is better. For your range, it says inside or outside. One forecast is noise. Read the running figures."
 },
 "Scored": {
@@ -6197,6 +7074,10 @@
 "forYou": "Use it to understand why the side rule said sell or stand aside today.",
 "impact": "If the threshold goes up: fewer sell days, stricter rule. If it goes down: more sell days, looser rule.",
 "readIt": "When you see the threshold, compare today's IV to RV ratio with it.",
+"scale": {
+"quick": "The desk uses 1.10x: implied vol must be at least 1.10 times the realised-vol forecast before it sells. Higher = stricter, fewer sell days.",
+"range": "A rule setting, not a market reading. Around 1.00 means sell whenever options are fairly priced; 1.10 asks for a 10% cushion."
+},
 "simple": "Implied volatility is the market's priced-in fear; realised volatility is how much NIFTY actually moves. The side rule says sell only when implied is at least this many times the realised forecast."
 },
 "Seller edge": {
@@ -6226,6 +7107,10 @@
 "forYou": "Compare it with your range after every replay.",
 "impact": "If it lands outside your range often: your ranges are too narrow. If inside about 80 percent of the time: well calibrated.",
 "readIt": "When you see it, check whether it fell inside your forecast range.",
+"scale": {
+"quick": "No good or bad level: it is the final NIFTY price your 80% range is checked against.",
+"range": "A NIFTY index level on the first expiry day."
+},
 "simple": "This is the exchange's final price for the first expiry, the index close on expiry day. Your 80 percent range is checked against it."
 },
 "Settlement price": {
@@ -6250,6 +7135,39 @@
 "goodBad": "Low (around 2 percent or less) is small; high means one trade is a big bet.",
 "impact": "If it goes up: the trade risks more of your account. If it goes down: the trade is a smaller bite.",
 "readIt": "When you see this percent, compare it with your per-trade cap, 2 percent by default.",
+"scale": {
+"hi": 10,
+"lo": 0,
+"quick": "Up to 2% = within the default per-trade cap. Over 2% fails the cap for one trade. The whole book may use up to 6%. After losses the cap halves to 1%.",
+"range": "From 0% up. The default caps are 2% for one trade and 6% for the whole book (you can change them; they then lock for a week).",
+"unit": "%",
+"zones": [
+{
+"label": "Small",
+"means": "Within even the halved cap used after losses. A gap would sting, not ruin.",
+"to": 1,
+"tone": "good"
+},
+{
+"label": "Up to the cap",
+"means": "Within the default 2% per-trade cap, but over the halved cap used after two stops or a 5% fall.",
+"to": 2,
+"tone": "ok"
+},
+{
+"label": "Over the trade cap",
+"means": "Too big for one trade: the gate blocks it unless you override. Fine only as a whole-book total.",
+"to": 6,
+"tone": "bad"
+},
+{
+"label": "Over the book cap",
+"means": "More than the 6% book cap. One bad morning could do serious damage.",
+"to": null,
+"tone": "risk"
+}
+]
+},
 "simple": "This is the max loss if gapped, shown as a percent of the capital you entered. The per-trade and book caps use the same units."
 },
 "Share of cost": {
@@ -6257,6 +7175,10 @@
 "forYou": "Use it to choose which habit to fix first.",
 "impact": "If a bar grows: that habit takes more of your losses. If it shrinks: you are improving.",
 "readIt": "When you see a short bar with a high count, the habit is frequent but cheap.",
+"scale": {
+"quick": "The top habit is always the full bar. A long bar is a big leak; fix the longest bar first.",
+"range": "From 0 to the full bar (the costliest habit). It is relative, so it never says how big the leak is in rupees."
+},
 "simple": "This bar shows the habit's rupees against your costliest habit. The biggest leak reads at a glance. Check the count column too."
 },
 "Sharpe": {
@@ -6348,6 +7270,39 @@
 "goodBad": "High (over 1.5) is comfortable; low (under 0.5) means the strike is tested.",
 "impact": "If it goes up: your strike is safer. If it goes down: NIFTY is getting close and the trade is at risk.",
 "readIt": "When you see a number under 0.5, the short strike is tested. Decide to close, roll or accept.",
+"scale": {
+"hi": 3,
+"lo": -1,
+"quick": "Under 0.5 = strike tested (decide now), 0.5-1.5 = watch, above 1.5 = comfortably far. Below 0 means NIFTY has crossed your sold strike.",
+"range": "Can be below 0 (strike crossed) up to about 3 or more for far strikes. A new desk-style condor starts a little above 1. It shrinks as NIFTY comes toward the strike.",
+"sell": "Sell strikes at least 1 sigma away; once a short strike falls under 0.5 sigma, follow the tested rule.",
+"zones": [
+{
+"label": "Crossed",
+"means": "NIFTY is past your sold strike. The loss grows point for point; act on your plan.",
+"to": 0,
+"tone": "risk"
+},
+{
+"label": "Tested",
+"means": "Within half a sigma of the strike. The desk rule says decide now: close, roll or accept on purpose.",
+"to": 0.5,
+"tone": "risk"
+},
+{
+"label": "Watch",
+"means": "An ordinary move could reach it. Normal for a fresh 1-sigma trade; keep checking.",
+"to": 1.5,
+"tone": "wait"
+},
+{
+"label": "Comfortable",
+"means": "Far from the strike. Good for a seller, though a gap can still reach it.",
+"to": null,
+"tone": "sell"
+}
+]
+},
 "simple": "Sigma is the size of a normal move up to expiry. This shows how many such moves NIFTY is from your sold strike. Under 0.5 means the strike is under attack. Over 1.5 means it is comfortably far."
 },
 "Sigma from spot": {
@@ -6356,6 +7311,32 @@
 "goodBad": "Above 1 is outside the normal range; under 1 is inside it.",
 "impact": "If it goes up: the strike is safer. If it goes down: the strike is more at risk.",
 "readIt": "When you see under 1 on a sold strike, an ordinary move can reach it.",
+"scale": {
+"hi": 3,
+"lo": 0,
+"quick": "Under 1 = inside the normal range (an ordinary move can reach it). 1-2 = outside it, where the desk sells. Above 2 = far, safe but pays little.",
+"range": "From 0 (at the money) up to 3 or more. The desk's condor sells the first strikes just outside 1 sigma.",
+"zones": [
+{
+"label": "Inside the range",
+"means": "More likely than not to be reached. Too close for a sold strike.",
+"to": 1,
+"tone": "risk"
+},
+{
+"label": "Desk's zone",
+"means": "Outside the one-sigma move. This is where the desk places sold strikes.",
+"to": 2,
+"tone": "sell"
+},
+{
+"label": "Far out",
+"means": "Very safe but the premium is tiny; costs can eat it (rule of thumb).",
+"to": null,
+"tone": "wait"
+}
+]
+},
 "simple": "This shows how many one-sigma moves a strike is from the current NIFTY level. Under 1 means inside the expected range. The desk's condor sells just outside it."
 },
 "Sigma used": {
@@ -6599,6 +7580,33 @@
 "goodBad": "Near zero minutes is good; long delays mean hoping instead of acting.",
 "impact": "If it goes up: you hesitate more, and losses can grow. If it goes down: you act on stops quickly.",
 "readIt": "When you see a large number, you waited after the stop fired.",
+"scale": {
+"hi": 2000,
+"lo": 0,
+"quick": "Near 0 minutes = good. Up to a day = hesitating. Over a day (1440 min) the exit no longer counts as per plan.",
+"range": "From 0 minutes up. Only stops seen in this browser count. The desk scores a stop exit per plan only if closed within a day of the stop showing.",
+"unit": "min",
+"zones": [
+{
+"label": "Fast",
+"means": "You act on stops quickly, like professionals do (30 minutes is a rule of thumb).",
+"to": 30,
+"tone": "good"
+},
+{
+"label": "Hesitating",
+"means": "You waited after the stop fired. Losses can grow while you wait.",
+"to": 1440,
+"tone": "ok"
+},
+{
+"label": "Over a day",
+"means": "The stop was ignored for more than a day. The exit is no longer per plan.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "This is the minutes between a stop first showing in this browser and you closing the trade. Successful professionals take losses fast. The target is about zero."
 },
 "Stop vs winners": {
@@ -6607,6 +7615,10 @@
 "goodBad": "Lower means stops are cheaper relative to wins; higher means one loss undoes a lot of work.",
 "impact": "If it goes up: each stop hurts more, so you need more winners. If it goes down: a stop costs fewer winners.",
 "readIt": "When you see 3, read it as: one stop equals three take-profit wins.",
+"scale": {
+"quick": "With the desk rules it is always 3: one stop wipes out 3 winners, so you must win about 3 trades in 4 just to break even. Lower would be easier.",
+"range": "Stop size divided by the take-profit size: 1.5 / 0.5 = 3. The win rate you need is this number divided by (this number + 1): 3 / 4 = 75%."
+},
 "simple": "This shows how many winning trades one stopped loss wipes out. With these rules one stop erases about three winners. That is why skipping a stop is so costly."
 },
 "Storage, carry and the cost of holding": {
@@ -6746,6 +7758,10 @@
 "forYou": "Treat synthetic crisis prices as rough.",
 "impact": "If the error goes up: trust synthetic prices less. If it goes down: they are closer to real.",
 "readIt": "When you see the error, judge how much to trust a synthetic price.",
+"scale": {
+"quick": "Smaller is better. No fixed good number; read it against the IV itself: 2 vol points on a 15% IV is a rough but usable price.",
+"range": "From 0 up, in vol points (or points of price for the price rows). The 90th percentile row shows the worst tenth of strikes."
+},
 "simple": "Old crisis days have no stored option prices. The desk builds prices from NIFTY and India VIX, the fear index. This shows how far those made-up prices are from real ones. Use crisis replays to rehearse maths, not exact prices."
 },
 "Synthetic vs real chains": {
@@ -6844,6 +7860,10 @@
 "forYou": "Use it to see which leg earns the most and which costs you.",
 "impact": "If it goes up on a sold leg: more daily pay, usually with more risk. If it goes down: less pay.",
 "readIt": "When you see this number, add it across legs to see the daily pay of the whole trade.",
+"scale": {
+"quick": "No fixed good number: rupees per day for this one leg. Plus on sold legs, minus on bought legs. Add them up for the trade's daily pay.",
+"range": "Grows with lots and as expiry nears. A sold leg's theta is a slice of its premium, earned only if NIFTY stays away."
+},
 "simple": "This is what one day of time passing is worth on this one leg, in rupees. Sold legs earn it. Bought legs pay it."
 },
 "Time exit": {
@@ -6858,6 +7878,10 @@
 "forYou": "Watch frequent habits; cheap ones can turn costly.",
 "impact": "If it goes up: the habit is growing. If it goes down: you are breaking it.",
 "readIt": "When you see a high count with low rupees, the habit is frequent but cheap so far.",
+"scale": {
+"quick": "Lower is better, but there is no target: honest logging matters more than a low count. A high count with low rupees is a frequent but cheap habit.",
+"range": "From 1 up. It counts mistake-log entries with this habit."
+},
 "simple": "This is how many entries in your mistake log carry this habit. It breaks ties when two habits cost the same rupees."
 },
 "Today&rsquo;s lesson": {
@@ -6895,6 +7919,10 @@
 "goodBad": "At or below the edge count is good; well above means overtrading.",
 "impact": "If your count goes up past the edge count: more no-edge trades. If it falls to match: you trade only when paid.",
 "readIt": "When you see your count above the edge count, some trades were not backed by the filter.",
+"scale": {
+"quick": "Good = at or below the filter's pass sessions a week shown beside it. Well above it = overtrading on no-edge days.",
+"range": "From 0 up. The desk's backtest holds one weekly trade at a time, so about 1 a week is its top pace. No fixed good number: it depends on how often the filter passes."
+},
 "simple": "This shows how often you open a trade. Beside it is how often the desk's filter saw an edge. More trades than edge days means trading on no-edge days."
 },
 "Trading-day basis": {
@@ -7031,6 +8059,10 @@
 "forYou": "Guess if you can rule out even one option.",
 "impact": "If blanks go up: fewer marks scored. If they go down: more chances to score.",
 "readIt": "When you see many blanks, consider guessing if you can rule out one option.",
+"scale": {
+"quick": "Fewer is usually better: a blank scores 0, while a pure guess among 4 options still gains a little on average. Skip only when you would guess worse than 1 in 5.",
+"range": "From 0 up to the questions in the set."
+},
 "simple": "This counts questions left blank. A blank costs nothing. With four options, a random guess still gains a little on average."
 },
 "Unit": {
@@ -7046,6 +8078,32 @@
 "goodBad": "Zero is ideal; many means the urge to watch is strong.",
 "impact": "If it goes up: more urges to peek. If it goes down: better patience.",
 "readIt": "When you see this above zero, note what made you look.",
+"scale": {
+"hi": 10,
+"lo": 0,
+"quick": "0 = ideal. 1-3 = some peeking. 4 or more = the urge to watch is strong (rule of thumb).",
+"range": "From 0 up. It counts opens of live P&L outside a scheduled check today.",
+"zones": [
+{
+"label": "None",
+"means": "You waited for the scheduled checks.",
+"to": 1,
+"tone": "good"
+},
+{
+"label": "Some peeking",
+"means": "A few looks outside the plan. Note what made you look.",
+"to": 4,
+"tone": "ok"
+},
+{
+"label": "Strong urge",
+"means": "Peeking a lot. Exit rules are watched for you; there is nothing to gain.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "This counts times you opened live profit and loss outside a scheduled check. It is a measure of peeking."
 },
 "Upcoming rule changes": {
@@ -7291,6 +8349,10 @@
 "forYou": "Use the break to review the week's trades.",
 "impact": "If you hit it: no new entries until Monday. If you stay under: trading stays open.",
 "readIt": "When you see this hit, take the rest of the week off new trades.",
+"scale": {
+"quick": "Default 2.5% of capital (Rs 25,000 on Rs 10 lakh). Reach it and new trades lock until next Monday.",
+"range": "A rupee limit from your capital. Defaults: 1% a day, 2.5% a week, 5% a month."
+},
 "simple": "Once your booked losses this week reach this, new trades are locked until next Monday. The default is 2.5 percent of capital."
 },
 "Weekly market context": {
@@ -7549,6 +8611,10 @@
 "forYou": "Review each wrong answer's explanation.",
 "impact": "If it goes up: your score falls. If it goes down: your score rises.",
 "readIt": "When you see many wrong answers, you may be guessing too much.",
+"scale": {
+"quick": "Fewer is better. Each costs a quarter mark, so 4 wrong cancel 1 right.",
+"range": "From 0 up to the questions in the set."
+},
 "simple": "This counts questions answered incorrectly in this set. Each costs a quarter mark."
 },
 "Year by year results": {
@@ -7572,6 +8638,32 @@
 "goodBad": "Positive skill means you beat that reference; negative means you would do better copying it.",
 "impact": "If your skill goes up: your forecasts add real information. If it goes below zero: quoting their number would have done better.",
 "readIt": "When you see your skill against each, above zero beats them and below zero loses to them.",
+"scale": {
+"hi": 0.5,
+"lo": -0.5,
+"quick": "Your skill against it: below 0 = you lose to it (copy its number instead). 0 to 0.1 = slightly better. Above 0.1 = clearly better (rule of thumb).",
+"range": "Skill = 1 - your Brier / its Brier. Top is 1 (perfect). No bottom. Under about 100 forecasts it swings a lot.",
+"zones": [
+{
+"label": "Losing to it",
+"means": "Quoting that forecaster's number would have scored better than yours.",
+"to": 0,
+"tone": "bad"
+},
+{
+"label": "Slightly better",
+"means": "A small edge over it. Could still be luck on a small sample.",
+"to": 0.1,
+"tone": "ok"
+},
+{
+"label": "Clearly better",
+"means": "You beat it by a clear margin on the same questions.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This compares your Brier score with the desk model's and the base rate's on the same questions. The base rate is how often the thing happens anyway. Skill above zero means you beat that forecaster."
 },
 "Your Brier score": {
@@ -7580,6 +8672,32 @@
 "goodBad": "Lower is better; under the base rate's score means real skill, near 0.25 means coin-flip quality.",
 "impact": "If it goes down: your forecasts are better. If it goes up: they are worse or more overconfident.",
 "readIt": "When you see a value, compare it with the desk and base rate. Quoting the base rate scores about 0.21 on range questions.",
+"scale": {
+"hi": 0.5,
+"lo": 0,
+"quick": "Lower is better; 0 is perfect. Up to 0.20 = good. 0.20-0.25 = about base-rate level (quoting the base rate scores about 0.21 on range questions). Above 0.25 = worse than saying 50%.",
+"range": "From 0 (perfect) to 1 (always sure and always wrong). Always saying 50% scores 0.25. Under 100 forecasts it is mostly noise.",
+"zones": [
+{
+"label": "Good",
+"means": "Your chances match reality well. The same bar the Calibrated badge uses.",
+"to": 0.2,
+"tone": "good"
+},
+{
+"label": "Near the base rate",
+"means": "About what quoting the usual frequency scores. Little real skill yet.",
+"to": 0.25,
+"tone": "ok"
+},
+{
+"label": "Coin-flip or worse",
+"means": "Saying 50% every time would have scored better.",
+"to": null,
+"tone": "bad"
+}
+]
+},
 "simple": "This scores your yes-or-no forecasts. For each, take your chance minus the outcome, square it, and average. Zero is perfect. Always saying 50 percent scores 0.25."
 },
 "Your accuracy": {
@@ -7588,6 +8706,33 @@
 "goodBad": "70 percent or more counts toward the All ten units badge; low means revise.",
 "impact": "If it goes up: you know the unit better. If it goes down: revise it.",
 "readIt": "When you see few answers, do not trust the percent yet.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "70% or more = badge level (needs 3+ answers). 60-70% = around the real exam pass mark. Under 60% = revise this unit.",
+"range": "From 0% to 100%. Under about 10 answers it jumps a lot with each question.",
+"unit": "%",
+"zones": [
+{
+"label": "Revise",
+"means": "Below the real exam's 60% pass mark. Practise this unit next.",
+"to": 60,
+"tone": "bad"
+},
+{
+"label": "Pass level",
+"means": "Around the pass mark, but short of the 70% the All ten units badge needs.",
+"to": 70,
+"tone": "ok"
+},
+{
+"label": "Badge level",
+"means": "70% or more counts toward the All ten units badge, with 3 or more answers.",
+"to": null,
+"tone": "good"
+}
+]
+},
 "simple": "This is the share of your answers in this unit that were right. Under about 10 answers, it moves a lot with each question."
 },
 "Your confidence": {
