@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 890,
-"generatedAt": "2026-11-15T09:17:47Z",
+"count": 912,
+"generatedAt": "2026-11-15T10:31:10Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -3549,6 +3549,14 @@
 "impact": "If its move versus a normal day goes up: China's factory news has been moving NIFTY more. If it goes down: NIFTY has been ignoring it.",
 "readIt": "When you see this row, compare its move with an ordinary day's move and check whether Counts says yes.",
 "simple": "This is China's official monthly survey of factory managers, released on the last day of each month. Above 50 means factories are growing, below 50 means shrinking."
+},
+"China wholesale price index": {
+"example": "111 means food in China's wholesale markets is about 11% dearer than in 2015.",
+"forYou": "It is background only; it gives no price per kg.",
+"goodBad": "Not good or bad. Big jumps are worth noticing for world food prices.",
+"impact": "If it rises: China may buy more abroad, which can lift world prices. If it falls: China has plenty.",
+"readIt": "When you see the index, compare it with the days before: up means Chinese wholesale food got dearer.",
+"simple": "A number China's farm ministry publishes every day for how dear wholesale food is. 100 means the 2015 level."
 },
 "Claims": {
 "example": "Like writing your match prediction in a notebook before the toss, then marking it after. NIFTY range claims score high; direction claims score near 50%.",
@@ -6636,6 +6644,41 @@
 },
 "simple": "What your trade is worth if NIFTY opens far away from yesterday's close. A stop loss cannot help here, because no trading happens in between. This number should decide how big your trade is."
 },
+"Gap vs median %": {
+"example": "Median tomato price Rs 60 a kg; Tokyo at Rs 240 a kg is +300% from the median.",
+"forYou": "Markets far from the median are usually different grades, different seasons or rich countries with high costs. Check before reading anything into it.",
+"goodBad": "Near 0% is ordinary. Very large numbers usually mean a different product grade, not a mistake in the market.",
+"impact": "If it grows: that market drifts away from the rest. If it shrinks: it comes back in line.",
+"readIt": "When you see this number, plus means that market is dearer than most, minus means cheaper than most.",
+"scale": {
+"hi": 200,
+"lo": -100,
+"quick": "Within -15% to +15% of the median is ordinary. Far beyond means a dear (plus) or cheap (minus) market, often a different grade.",
+"range": "Any size. Rich markets such as Tokyo often sit 100% or more above the median.",
+"unit": "%",
+"zones": [
+{
+"label": "Cheaper than most",
+"means": "This market sells below most others.",
+"to": -15,
+"tone": "ok"
+},
+{
+"label": "Ordinary",
+"means": "In line with the other markets.",
+"to": 15,
+"tone": "wait"
+},
+{
+"label": "Dearer than most",
+"means": "This market pays above most others; check the grade and the date.",
+"to": null,
+"tone": "ok"
+}
+]
+},
+"simple": "How far a market's price is from the middle price of all markets, in percent. Used when India has no price."
+},
 "Gasoline": {
 "example": "Like the wholesale price of petrol before taxes are added at your local pump. If gasoline is 2.10 dollars a gallon and rises to 2.40, petrol is getting costlier worldwide.",
 "forYou": "It matters for Indian refiners and oil-marketing stocks, and through fuel prices, for inflation.",
@@ -7618,6 +7661,14 @@
 },
 "simple": "This is on when India VIX is higher than on 80% of days in the past year (252 sessions). Fear and option prices are high compared with recent history."
 },
+"India same month last year": {
+"example": "Onion in Delhi mandis in November last year was about Rs 12 a kg; today's price shows how much the season moved it.",
+"forYou": "Use it for seasons: onion and tomato swing a lot by month. It is official but about a year behind, so it is never used for today's gap.",
+"goodBad": "Not good or bad. A big change from last year is worth a look at news and arrivals.",
+"impact": "If today is far above last year: supply is tighter this year. If far below: a good harvest or weak demand.",
+"readIt": "When you see it, compare with India's price today: a much higher price now means this year is dearer than last.",
+"simple": "India's official mandi price for this product in the same month last year, from Agmarknet (Delhi, monthly)."
+},
 "Indian contract": {
 "example": "Some vegetables are sold at your local mandi; others only in big city markets. If it is not sold locally, you cannot buy it here.",
 "forYou": "Only plan trades on markets where MCX lists options.",
@@ -8144,6 +8195,181 @@
 "sell": "A very large net long (COT index 85 or more) warns that a sharp drop is possible: keep put strikes wider. A very large net short warns of a sharp rally against short calls."
 },
 "simple": "Managed money means big hedge funds that trade futures for profit. The US regulator, the CFTC, counts their bets every week. Net position is their buy bets minus their sell bets. Above zero means funds bet on a rise; below zero, on a fall."
+},
+"Mandi India price": {
+"example": "For jeera the India price is NCDEX's Unjha spot, about Rs 285 a kg. For onion it is Delhi's price on a private website until the official mandi feed is connected.",
+"forYou": "An official mandi price is the best yardstick. NCDEX prices are exchange prices for one grade at one centre; the private site looks closer to retail.",
+"goodBad": "Not good or bad. A fresher and more official India price makes every gap more trustworthy.",
+"impact": "If India's price rises while others stay flat: the gaps shrink and Indian produce looks less cheap abroad. If it falls: the gaps widen.",
+"readIt": "When you see the India price, read the small label under it: mandi, private site, NCDEX spot, NCDEX futures, or Delhi DoCA monthly. That tells you how much to trust it.",
+"simple": "India's wholesale price for the product in rupees per kg: the yardstick every other market is compared against."
+},
+"Mandi daily change": {
+"example": "Tomato in Multan 16,700 PKR then 17,700 PKR per 100 kg the next day: a change of +6%.",
+"forYou": "Fresh vegetables often move 5% to 10% a day; grains and pulses much less. A gap on a volatile product can vanish in a week.",
+"goodBad": "Small changes mean a calm market. Very big ones mean shortage or glut news; check the history before reading a gap.",
+"impact": "If changes are big every day: the product is volatile, like tomato. If they are small: it is steady, like wheat.",
+"readIt": "When you see the change, green is up and red is down. It uses the local price, so exchange-rate moves do not show here.",
+"scale": {
+"hi": 30,
+"lo": -30,
+"quick": "Within -3% to +3%: a calm day. Beyond +-10%: a big move, common for vegetables, rare for grains.",
+"range": "Any size. Vegetables often move 5-10% a day; grains, pulses and oils usually under 2%.",
+"unit": "%",
+"zones": [
+{
+"label": "Big fall",
+"means": "A sharp drop: new supply arrived or demand fell.",
+"to": -10,
+"tone": "risk"
+},
+{
+"label": "Falling",
+"means": "A normal down day.",
+"to": -3,
+"tone": "ok"
+},
+{
+"label": "Calm",
+"means": "Little change.",
+"to": 3,
+"tone": "good"
+},
+{
+"label": "Rising",
+"means": "A normal up day.",
+"to": 10,
+"tone": "ok"
+},
+{
+"label": "Big rise",
+"means": "A sharp jump: shortage, rain damage or festival demand.",
+"to": null,
+"tone": "risk"
+}
+]
+},
+"simple": "How much the price moved since the same market's previous stored day, in percent."
+},
+"Mandi download": {
+"example": "Click Download CSV and open the file in Excel to sort onion prices by market.",
+"forYou": "Use it to make your own charts or to keep your own notes on prices.",
+"goodBad": "Not a number; more rows means more history.",
+"impact": "If the desk stores more days: the file grows. Nothing is sent anywhere; your browser builds it.",
+"readIt": "When you open the file, each line is one market's price on one day. The kind column says wholesale or exchange.",
+"simple": "A file with every daily price on this tab: date, market, country, product, local price, unit and rupees per kg."
+},
+"Mandi exchange rates": {
+"example": "1 US dollar = Rs 94.24 and 1 Pakistani rupee = Rs 0.341 on 15 Nov 2026.",
+"forYou": "Real exporters also pay bank conversion costs, so the true rupee value is a little worse than this rate.",
+"goodBad": "Not good or bad; a weaker rupee helps Indian exporters and hurts importers.",
+"impact": "If the rupee gets weaker (more rupees per dollar): foreign prices look higher in rupees and Indian exports look cheaper. If it gets stronger: the opposite.",
+"readIt": "When you see these rates, they are the bridges used to turn every price into rupees.",
+"simple": "How many rupees one unit of each foreign money bought on the price's day: dollar, Pakistani rupee, Chinese yuan, Japanese yen, euro, Saudi riyal, Bangladeshi taka."
+},
+"Mandi freshness": {
+"example": "AMIS Pakistan publishes every day, so its latest date is today or yesterday. FAO's Delhi wholesale series is monthly, so its latest date is the 1st of last month.",
+"forYou": "A gap between a fresh price and a month-old price can be pure timing. Prefer comparisons between prices of nearly the same date.",
+"goodBad": "Daily and recent is best. Monthly is fine for grains and oils that move slowly, poor for vegetables that change every day.",
+"impact": "If the latest date moves forward every day: the source is alive. If it stops moving: prices from it get older and less useful.",
+"readIt": "When you see the latest date, count the days back to today. More than a few days for a daily source means something stopped.",
+"simple": "How often a source publishes prices, and the date of the newest price this desk has from it."
+},
+"Mandi history": {
+"example": "Onion in Lahore: 13 Nov Rs 49, 14 Nov Rs 49, 15 Nov Rs 56 a kg.",
+"forYou": "Use history to see whether a gap is new or has lasted for weeks. A lasting gap is more meaningful than one day's jump.",
+"goodBad": "More days are better. The desk never invents a missing day; a gap in dates means the market did not publish.",
+"impact": "If a market's price climbs day after day: supply is short or demand is up there. If it falls: supply is arriving.",
+"readIt": "When you see the history, read down one market at a time to see its trend. Change shows the move since that market's previous stored day.",
+"simple": "Every stored day's price of the chosen product, newest first, one row per market."
+},
+"Mandi lagged data": {
+"example": "In November the newest Tokyo wholesale price on file is from 30 June.",
+"forYou": "Never compare a lagged price with today's Indian price as a trade idea; seasons change prices a lot.",
+"goodBad": "Lagged data is honest but old. Use it only for scale.",
+"impact": "If the lag shrinks: the source published newer months. If it grows: it stopped publishing.",
+"readIt": "When you see (lagged) under a date, the price is old. It shows how expensive that market usually is, not what it costs today.",
+"simple": "Real prices that are published months late. Tokyo's city government is the example here."
+},
+"Mandi local price": {
+"example": "Lahore onion 17,500 PKR per 100 kg; Beijing onion 0.97 yuan per jin (half a kilo); Delhi DoCA onion in rupees per 100 kg.",
+"forYou": "Check the local price when a rupee number looks strange: the unit (per dozen, per 100 pieces) explains many surprises.",
+"goodBad": "Not good or bad; it is the raw published number.",
+"impact": "If the local price rises: food got dearer there in local money. The rupee value can also move because of the exchange rate.",
+"readIt": "When you see the local price, read its unit next to it. The Rs/kg column turns it into rupees for one kilogram.",
+"simple": "The price in the market's own money and unit, exactly as it was published."
+},
+"Mandi market column": {
+"example": "The Lahore column shows Lahore's mandi price; the Beijing column shows Xinfadi, the biggest wholesale market in Beijing; World (WB) shows the World Bank's world price.",
+"forYou": "Compare columns of the same kind: city mandi with city mandi. National averages and world benchmark prices are smoother and slower.",
+"goodBad": "Not good or bad. More columns with recent dates make the picture fairer.",
+"impact": "If a column's prices rise: food got dearer in that market (or the rupee got weaker against that money). If they fall: the opposite.",
+"readIt": "When you see a column, read its small date under each price and whether it says weekly or monthly.",
+"simple": "Each column is one wholesale market or one official national average, with its price turned into rupees per kg."
+},
+"Mandi median of markets": {
+"example": "Tomato at Rs 52, 57, 60, 63 and 63 a kg in five markets: the median is Rs 60.",
+"forYou": "When India has no price, use the median as the yardstick. It is not moved much by one strange market.",
+"goodBad": "No good or bad level; it is a reference point.",
+"impact": "If the median rises: food is getting dearer across these markets. If it falls: cheaper.",
+"readIt": "When you see the median, compare India's price with it. India far below the median means India is cheap for this product today.",
+"simple": "The middle price of all markets that have a recent price for the product: half are above it, half below."
+},
+"Mandi price comparison": {
+"example": "Onion row: India Rs 57 (private site), Lahore Rs 56 (grey, no real gap), Beijing Rs 27 (red, much cheaper).",
+"forYou": "Use it to learn which products India is competitive in. Always check the date, the grade and the costs before thinking of a trade.",
+"goodBad": "Grey (within 10%) means no real gap; bright colours mean a gap worth studying, not a profit.",
+"impact": "If a row turns greener over the weeks: India is becoming the cheaper place for that product. If redder: India is becoming dearer.",
+"readIt": "When you see the table, pick a product row, read India first, then the coloured percentages: green the market pays more than India, red it is cheaper.",
+"simple": "The main table: every product's latest wholesale price in every market, in rupees per kg, with how far it is from India's price."
+},
+"Mandi prices": {
+"example": "Onion at Rs 57 a kg in Delhi and Rs 27 a kg in Beijing's Xinfadi market on the same day: the same vegetable, two very different prices.",
+"forYou": "Use it to learn how food prices differ across borders and to spot questions worth studying. A price gap is not money in your pocket: freight, duty, quality, packing and export rules all sit in between.",
+"goodBad": "No number is good or bad on its own. A big gap is only interesting after you subtract every cost of moving the goods.",
+"impact": "If a foreign price goes up while India's stays flat: India's produce looks more competitive abroad. If it goes down: imports into India look more tempting.",
+"readIt": "When you see this tab, go product by product: look at India's column, then across the row to see which markets are cheaper (red) or dearer (green).",
+"simple": "A mandi is a big wholesale market where farmers and traders sell food by the sack. This tab puts India's wholesale price of a product next to the same product's wholesale price in other countries, all in rupees per kg."
+},
+"Mandi private source": {
+"example": "It shows Delhi onion at Rs 57 a kg, while official Delhi wholesale onion is usually well below the shop price.",
+"forYou": "Trust its direction more than its level. The official data.gov.in feed replaces it once a key and an Indian network are available.",
+"goodBad": "Useful for direction, weak for exact gaps.",
+"impact": "If it rises for many days: Indian vegetable prices are probably rising. Its exact level can be off.",
+"readIt": "When you see 'private site' under India's price, treat the number as a rough level and watch its direction.",
+"simple": "vegetablemarketprice.com is a private website. It does not say how it collects prices, and they look closer to shop prices than mandi wholesale."
+},
+"Mandi product": {
+"example": "Chickpea, desi (chana): Delhi NCDEX spot about Rs 78 a kg and Lahore about Rs 72 a kg in mid-November 2026.",
+"forYou": "Varieties differ: a Chinese onion is not a Nashik onion and Thai rice is not basmati. Treat each row as a rough guide.",
+"goodBad": "No good or bad number. Products with prices in many markets give the most reliable picture.",
+"impact": "If one market is far above the others: check the grade and the date before believing it. If all markets move together: it is a world-wide price move.",
+"readIt": "When you see a product row, read India's price first, then move right across the markets.",
+"simple": "One farm product, named the way an Indian market names it (pyaz, aloo, jeera), compared across markets."
+},
+"Mandi product group": {
+"example": "Onion and tomato sit under vegetables; jeera and haldi under spices; chana and moong under pulses.",
+"forYou": "Start with the group you care about, for example spices if you follow NCDEX jeera and turmeric.",
+"goodBad": "Not a number, just a way to sort the table.",
+"impact": "If a whole group turns red against India: India is dearer for that kind of food. If it turns green: India is cheaper.",
+"readIt": "When you see a group row, the products under it belong together. Use the chips above the table to show only one group.",
+"simple": "Products are grouped into vegetables, fruits, spices, edible oils and oilseeds, grains, pulses and other."
+},
+"Mandi source status": {
+"example": "Pakistan: AMIS Punjab, daily, ok. UAE: no free daily public data. India mandi (data.gov.in): needs a free key and an Indian internet connection.",
+"forYou": "Before trusting a gap, look here to see whether both prices are fresh and official, or old, private or only an index.",
+"goodBad": "ok is good; lagged and stale mean old data; needs key and no free daily public data mean nothing is shown, honestly.",
+"impact": "If more rows turn ok: more products get a fair comparison. If a row turns stale or unreachable: that market's prices are old and its gaps are left out.",
+"readIt": "When you see this table, check the Status column first. Only ok rows are fresh enough to compare with today's Indian price.",
+"simple": "A list of every country and market the tab tries to read, where each price comes from, how fresh it is, and why some countries show nothing."
+},
+"Mandi status": {
+"example": "Tokyo says lagged because Japan's city government publishes its wholesale prices about five months late.",
+"forYou": "Compare only ok prices with each other. Use lagged prices just to see how expensive a country usually is.",
+"goodBad": "ok is what you want. Anything else is shown so you know why a price is missing or old.",
+"impact": "If a status goes from needs key to ok: a new market (for example India's official mandis) joins the comparison. If ok turns stale: that market stopped publishing for a while.",
+"readIt": "When you see ok, the prices are recent. Lagged means real but old. Needs key means a free sign-up is required before any price appears.",
+"simple": "One word saying whether a source gave usable prices: ok, lagged, stale, needs key, unreachable, or no free daily public data."
 },
 "Margin (est.)": {
 "example": "Like a deposit for renting a hall. If margin is Rs 1,00,000, that money cannot be used elsewhere until you close.",
@@ -9850,6 +10076,55 @@
 "readIt": "When you see this card, check where the price sits in its year range and the trend.",
 "simple": "The latest price, its change, its place in the 12-month range, 1-year return, volatility and trend. A short paragraph reads it using only those figures."
 },
+"Price gap vs India %": {
+"example": "Wheat at Rs 30 a kg in India and Rs 48 a kg in Rawalpindi: the gap is +60%. Rawalpindi pays 60% more than India.",
+"forYou": "A big gap is a question, not a profit. Subtract freight, insurance, import duty, packing, spoilage and paperwork, and check whether export or import is even allowed. Most gaps disappear after that.",
+"goodBad": "Near 0% means the two markets agree. Beyond +30% or -30% is worth studying, never worth acting on without the costs.",
+"impact": "If the gap grows: the price difference between the two places is widening. If it shrinks towards zero: the two markets are moving closer.",
+"readIt": "When you see a green plus number, that market pays more than India, so India is cheaper. A red minus number means that market is cheaper than India.",
+"scale": {
+"buy": "A large minus gap means the foreign price is lower: in theory buying abroad could be cheaper, only after duty, freight and import rules.",
+"hi": 150,
+"lo": -100,
+"quick": "Within -10% to +10%: no real gap. Beyond +30%: India much cheaper (export question). Beyond -30%: world much cheaper (import question). Not a profit.",
+"range": "Can be any size, plus or minus. Fresh vegetables often differ by 50% or more between countries; grains and oils usually by less than 30%. Dates more than 10 days apart are not compared.",
+"sell": "A large plus gap means India's price is lower: in theory Indian produce could be sold there, only after freight, duty, quality checks and export rules.",
+"unit": "%",
+"zones": [
+{
+"label": "World much cheaper",
+"means": "That market sells far below India. Imports could pressure Indian prices, if duty and rules allow.",
+"to": -30,
+"tone": "risk"
+},
+{
+"label": "World a bit cheaper",
+"means": "A modest gap. Usually eaten by transport and duty.",
+"to": -10,
+"tone": "ok"
+},
+{
+"label": "No real gap",
+"means": "Prices agree within normal noise. Nothing to study here.",
+"to": 10,
+"tone": "wait"
+},
+{
+"label": "India a bit cheaper",
+"means": "A modest gap. Usually eaten by freight, packing and losses.",
+"to": 30,
+"tone": "ok"
+},
+{
+"label": "India much cheaper",
+"means": "That market pays far more than India. A question worth studying: check costs, grade and export rules first.",
+"to": null,
+"tone": "good"
+}
+]
+},
+"simple": "How much more (plus) or less (minus) a market's price is than India's price, in percent."
+},
 "Price history": {
 "example": "Like a chart of onion prices over five years on a kitchen wall.",
 "forYou": "Check long history before judging today's price.",
@@ -11195,6 +11470,14 @@
 "range": "A thin US contract; it has mostly stayed between about 10 and 22 dollars over the past decade."
 },
 "simple": "The world price of unmilled rice, from the CBOT rough rice future in Chicago, in US dollars per hundred pounds. India is the world's biggest rice exporter. World rice prices affect Indian exports and food policy."
+},
+"Rs per kg": {
+"example": "17,500 PKR per 100 kg is 175 PKR a kg; at 0.341 rupees per PKR that is about Rs 60 a kg.",
+"forYou": "Use Rs/kg to compare, but remember part of a move can be the exchange rate, not the food price.",
+"goodBad": "Not good or bad on its own; compare it across markets.",
+"impact": "If the rupee weakens: every foreign price looks higher in rupees even if nothing changed there. If it strengthens: they look lower.",
+"readIt": "When you see Rs/kg, it already includes the exchange rate of that day and the unit conversion.",
+"simple": "The price turned into Indian rupees for one kilogram, so every market can be compared."
 },
 "Rule": {
 "example": "Like a road rule: stop at red, whatever happens at the next crossing.",

@@ -12789,7 +12789,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     { key: "vol", label: "Volatility" },
     { key: "positioning", label: "Positioning" },
     { key: "momentum", label: "Momentum" },
-    { key: "record", label: "Track record" }
+    { key: "record", label: "Track record" },
+    { key: "mandi", label: "Mandi prices" }
   ];
   var AG_GROUPS = [["grains", "Grains"], ["oilseeds", "Oilseeds &amp; oils"], ["pulses", "Pulses"], ["spices", "Spices"],
     ["vegetables", "Vegetables"], ["fruits", "Fruits"], ["softs", "Softs"], ["livestock", "Livestock &amp; dairy"],
@@ -13072,6 +13073,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var tabs = '<div class="ag-tabs" role="tablist" aria-label="Agri desk view">' + AG_TABS.map(function (t) {
       return '<button class="ag-tab" role="tab" data-agtab="' + t.key + '" aria-selected="' + (t.key === AG_STATE.tab) + '">' + t.label + "</button>";
     }).join("") + "</div>";
+    /* The mandi tab compares markets, not one instrument: no browser. */
+    if (AG_STATE.tab === "mandi") return intro + tabs + agSafe(mdView);
     var cur = "";
     if (E) {
       var t = Math.min(Math.max(E.tier, 1), 3);
@@ -13723,6 +13726,365 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     });
     if (typeof _termIndex !== "undefined") _termIndex = null;
   }
+  /* ================= MANDI PRICES (md*, mandi.py -> snapshot/mandi.json) =================
+     India's wholesale (mandi) prices against world wholesale markets, product
+     by product, in rupees per kg. The "Mandi prices" tab of the Agri Index
+     page (#agri-index/mandi/...). Reads mandi.json only; the CSV download is
+     built in the browser from the same file (the site publishes JSON only).
+     Every heading, column and row label opens a glossary card (AG_TERMS). */
+  var MD = {};
+  var MD_STATE = { product: "", cat: "all" };
+  getJson("mandi.json").then(function (d) {
+    MD = d && typeof d === "object" ? d : {};
+    if (state.page === "agri-index" && AG_STATE.tab === "mandi" && MODEL[state.idx]) render();
+  }).catch(function () { MD = {}; });
+  (function mdStyles() {
+    if (typeof document === "undefined" || !document.head || document.getElementById("md-css")) return;
+    var css = ".md-gap{display:inline-block;font-size:11px;font-weight:650;margin-left:5px}" +
+      ".md-sub{display:block;font-size:10.5px;color:var(--ink-3);white-space:nowrap}.md-old{color:var(--maxpain)}" +
+      ".md-why{white-space:normal;font-size:12px;color:var(--ink-2);min-width:220px;display:block}" +
+      "table.md-cmp td,table.md-cmp th{white-space:nowrap;vertical-align:top}table.md-cmp td.lft{white-space:normal;min-width:150px}" +
+      "tr.md-grp td{background:var(--surface-2);font-weight:650;color:var(--ink)}" +
+      ".md-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 10px}" +
+      ".md-pick{max-width:340px}.md-dl{background:var(--ink);color:var(--surface);border:0;border-radius:var(--r);padding:7px 13px;font:inherit;font-size:13px;cursor:pointer}" +
+      ".md-lag{font-style:italic}";
+    var el = document.createElement("style");
+    el.id = "md-css";
+    el.textContent = css;
+    document.head.appendChild(el);
+  })();
+  function mdProducts() { return agA(agO(MD).products).map(agO).filter(function (p) { return agS(p.key) && agS(p.label); }); }
+  function mdMarkets() { return agA(agO(MD).markets).map(agO).filter(function (m) { return agS(m.id); }); }
+  function mdMarket(id) {
+    var m = mdMarkets().filter(function (x) { return x.id === id; })[0];
+    return m || { id: id, short: id, name: id, country: "" };
+  }
+  function mdIsIndia(id) { return /^in-/.test(agS(id)); }
+  function mdRs(v) {
+    v = agN(v);
+    if (v == null) return "&mdash;";
+    return "Rs " + (Math.abs(v) >= 100 ? Math.round(v).toLocaleString("en-IN") : v.toFixed(2));
+  }
+  function mdLocal(v) {
+    v = agN(v);
+    if (v == null) return "&mdash;";
+    var a = Math.abs(v), d = a >= 1000 ? 0 : a >= 10 ? 2 : 3;
+    return v.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function mdGap(v, term) {
+    v = agN(v);
+    if (v == null) return "";
+    var a = Math.abs(v), col = a < 10 ? "var(--ink-3)" : v > 0 ? "var(--up)" : "var(--down)";
+    return '<span class="md-gap has-term" data-term="' + esc(term || "Price gap vs India %") + '" tabindex="0" role="button" style="color:' + col + '">' +
+      (v > 0 ? "+" : v < 0 ? "&minus;" : "") + (a >= 100 ? Math.round(a) : a.toFixed(0)) + "%</span>";
+  }
+  function mdDate(iso, lagged) {
+    if (!agS(iso)) return "";
+    var age = Math.round((Date.now() - Date.parse(agS(iso) + "T12:00:00Z")) / 86400000);
+    var old = isFinite(age) && age > 4;
+    if (lagged) return '<span class="md-sub md-lag has-term" data-term="Mandi lagged data" tabindex="0" role="button">' + agD(iso) + " (lagged)</span>";
+    return '<span class="md-sub' + (old ? " md-old" : "") + '">' + agD(iso) + "</span>";
+  }
+  function mdKind(I) {
+    var m = agS(agO(I).market);
+    return m === "in-ncdex-spot" ? "NCDEX spot" : m === "in-ncdex-fut" ? "NCDEX futures" : m === "in-delhi" ? "Delhi mandi" : m === "in-national" ? "India mandis" :
+      m === "in-vmp-delhi" ? "Delhi, private site" : m === "in-doca-delhi" ? "Delhi DoCA, monthly" : agS(mdMarket(m).short);
+  }
+
+  function mdView() {
+    var D = agO(MD), P = mdProducts();
+    var intro = agCard(agH2("Mandi prices", "Mandi prices"), "India's wholesale prices against world wholesale markets, in rupees per kg",
+      agNote("A <b>mandi</b> is a wholesale market: farmers and traders sell onions, wheat or jeera there by the sack, before shops add their margin. " +
+        "This tab puts India's wholesale price next to the same product's price in Pakistan, China, Japan, Bangladesh, Saudi Arabia (the nearest Gulf data: no free UAE feed exists), " +
+        "the USA, Germany, the Netherlands and the World Bank's world prices, " +
+        "all turned into <b>rupees per kg</b>, so you can see where the same thing is cheaper or dearer.") +
+      agNote("<b>A price gap is not a profit.</b> Moving goods across a border costs freight, insurance, import duty, cold storage, packing and losses on the way, " +
+        "grades and varieties differ, and some exports are banned or capped. A big gap is a question to study, not a trade.") +
+      (agS(D.error) ? agNote("<b>The export failed:</b> " + esc(agS(D.error))) : ""));
+    if (!P.length) {
+      return intro + agCard(agH2("No prices on file", "Mandi prices"), "",
+        agNote("mandi.json has no product prices yet. It is written by mandi.py: <code>python mandi.py --fetch</code> collects the day's prices, then the export writes the file.")) +
+        mdSources(D);
+    }
+    return intro + mdSources(D) + mdCompare(D, P) + mdHistory(D, P) + mdChina(D);
+  }
+
+  function mdSources(D) {
+    var S = agA(D.sources).map(agO);
+    var fx = agO(D.fx);
+    var fxs = ["USD", "PKR", "CNY", "JPY"].filter(function (k) { return agN(agO(fx[k]).inr) != null; }).map(function (k) {
+      return "1 " + k + " = Rs " + agFx(agO(fx[k]).inr, k === "USD" ? 2 : 4) + " (" + agD(agO(fx[k]).date) + ")";
+    });
+    if (!S.length) return agCard(agH2("Where the prices come from", "Mandi source status"), "", agNote("No source status is in mandi.json."));
+    var rows = S.map(function (s) {
+      var st = agS(s.status) || "unknown";
+      var col = st === "ok" ? "var(--up)" : st === "lagged" || st === "stale" ? "var(--maxpain)" : "var(--down)";
+      return agRow(esc(agS(s.country) || "Unknown"), "Mandi source status", [
+        esc(agS(s.market) || "-"),
+        esc(agS(s.source) || "-"),
+        esc(agS(s.freshness) || "-") + (agS(s.asOf) ? '<span class="md-sub">latest ' + agD(s.asOf) + "</span>" : ""),
+        '<span class="has-term" data-term="Mandi status" tabindex="0" role="button" style="color:' + col + ';font-weight:650">' + esc(st) + "</span>",
+        '<span class="md-why">' + esc(agS(s.why) || "-") + "</span>"]);
+    });
+    return agCard(agH2("Where the prices come from", "Mandi source status"), S.length + " sources and markets, including the ones with no free data",
+      agTable([["Country", "Mandi source status"], ["Market", "Mandi market column"], ["Source", "Mandi source status"], ["Freshness", "Mandi freshness"],
+        ["Status", "Mandi status"], ["Why", "Mandi source status"]], rows) +
+      agNote('<span class="has-term" data-term="Mandi exchange rates" tabindex="0" role="button"><b>Exchange rates used</b></span>: ' +
+        (fxs.length ? fxs.join(" &middot; ") : "none on file, so foreign prices have no rupee value") +
+        ". Each price is converted at the rate of its own day."));
+  }
+
+  function mdCompare(D, P) {
+    var order = agA(D.indiaOrder).map(agS);
+    var cols = mdMarkets().filter(function (m) { return !mdIsIndia(m.id); });
+    var cats = agA(D.categories).map(agO).filter(function (c) { return agS(c.key); });
+    var cat = MD_STATE.cat;
+    if (cat !== "all" && !cats.some(function (c) { return c.key === cat; })) cat = MD_STATE.cat = "all";
+    var chip = function (k, label, n) {
+      return '<button type="button" class="ag-chip" data-mdcat="' + esc(k) + '" aria-pressed="' + (cat === k) + '">' + label + (n != null ? " <span>" + n + "</span>" : "") + "</button>";
+    };
+    var chips = '<div class="ag-gchips">' + chip("all", "All", P.length) + cats.map(function (c) {
+      var n = P.filter(function (p) { return p.category === c.key; }).length;
+      return n ? chip(c.key, esc(agS(c.label)), n) : "";
+    }).join("") + "</div>";
+    var head = "<thead><tr>" + agL("th", "Product", "Mandi product", "lft") + agL("th", "India", "Mandi India price") +
+      agL("th", "India a year ago", "India same month last year") +
+      cols.map(function (m) { return agL("th", esc(agS(m.short) || agS(m.id)), "Mandi market column"); }).join("") +
+      agL("th", "Median", "Mandi median of markets") + agL("th", "Widest gap", "Price gap vs India %") + "</tr></thead>";
+    var ncol = cols.length + 5;
+    var body = "";
+    cats.forEach(function (c) {
+      if (cat !== "all" && cat !== c.key) return;
+      var ps = P.filter(function (p) { return p.category === c.key; });
+      if (!ps.length) return;
+      body += '<tr class="md-grp">' + agL("td", esc(agS(c.label)), "Mandi product group", "lft") + '<td colspan="' + (ncol - 1) + '"></td></tr>';
+      ps.forEach(function (p) {
+        var I = p.india ? agO(p.india) : null;
+        var prices = agA(p.prices).map(agO);
+        var cell = function (m) {
+          var x = prices.filter(function (q) { return q.market === m.id; })[0];
+          if (!x) return "<td>&mdash;</td>";
+          var tip = esc(agS(m.name) + ": " + mdLocal(x.local).replace(/&[a-z]+;/g, "") + " " + agS(x.unit) + (agS(x.note) ? " (" + agS(x.note) + ")" : ""));
+          if (agN(x.inrKg) == null) {
+            return '<td data-tip="' + tip + '">' + mdLocal(x.local) + '<span class="md-sub">' + esc(agS(x.unit)) + ", no per-kg price</span>" + mdDate(x.date, x.lagged) + "</td>";
+          }
+          var R = x.gapRef ? agO(x.gapRef) : null;
+          if (R && agN(R.inrKg) != null) tip += esc(" Gap against India " + mdKind(R).replace(/&[a-z]+;/g, "") + " Rs " + agN(R.inrKg).toFixed(2) + "/kg on " + agS(R.date) + ".");
+          return '<td data-tip="' + tip + '">' + mdRs(x.inrKg) + (x.gap != null ? mdGap(x.gap) : !I && x.gapMed != null ? mdGap(x.gapMed, "Gap vs median %") : "") +
+            (x.gap == null && agS(x.gapWhy) ? '<span class="md-sub">' + esc(agS(x.gapWhy)) + "</span>" : "") + mdDate(x.date, x.lagged) +
+            (x.period === "monthly" || x.period === "weekly" ? '<span class="md-sub">' + x.period + "</span>" : "") + "</td>";
+        };
+        var ic = I && agN(I.inrKg) != null ? "<td>" + mdRs(I.inrKg) +
+          (I.kind === "private" ? '<span class="md-sub md-old has-term" data-term="Mandi private source" tabindex="0" role="button">' + esc(mdKind(I)) + "</span>" :
+            '<span class="md-sub">' + esc(mdKind(I)) + "</span>") + mdDate(I.date) + "</td>" :
+          '<td>&mdash;<span class="md-sub">no India price</span></td>';
+        var Y = p.indiaYearAgo ? agO(p.indiaYearAgo) : null;
+        var yc = Y && agN(Y.inrKg) != null ? "<td>" + mdRs(Y.inrKg) + '<span class="md-sub">Agmarknet ' + esc(agS(Y.month)) + (Y.sameMonth === false ? " (latest)" : "") + "</span></td>" : "<td>&mdash;</td>";
+        var W = p.widest ? agO(p.widest) : null;
+        var wc = W && agN(W.gap) != null ? "<td>" + mdGap(W.gap) + '<span class="md-sub">' + esc(agS(mdMarket(W.market).short)) + "</span></td>" : "<td>&mdash;</td>";
+        body += "<tr>" + agL("td", esc(agS(p.label)), "Mandi product", "lft") + ic + yc + cols.map(cell).join("") +
+          "<td>" + mdRs(p.median) + "</td>" + wc + "</tr>";
+      });
+    });
+    var withIn = P.filter(function (p) { return p.india; }).length;
+    return agCard(agH2("Price comparison, rupees per kg", "Mandi price comparison"),
+      P.length + " products &middot; " + withIn + " with an India price &middot; newest " + agD(D.asOf),
+      chips + '<div class="tablewrap tall"><table class="dt md-cmp">' + head + "<tbody>" + body + "</tbody></table></div>" +
+      agNote("Each cell: the market's latest wholesale price in rupees per kg, its gap against India's price " +
+        '(<span style="color:var(--up)">green</span>: that market pays more than India, so India is cheaper; ' +
+        '<span style="color:var(--down)">red</span>: that market is cheaper than India; grey: within 10%), and the date of the price. ' +
+        "Where a product has no India price, the percent is against the median of the markets instead. " +
+        "Gaps are shown only when the two dates are at most " + (agN(D.gapMaxDays) || 10) + " days apart, so Tokyo's months-old prices are never compared with today's India price. " +
+        "India's column is the first of: Delhi mandi and all-India mandi median (data.gov.in, needs a key), Delhi on vegetablemarketprice.com " +
+        "(a private site whose prices look closer to retail), NCDEX spot, NCDEX futures (exchange prices, not mandi), Delhi wholesale from the Department of Consumer Affairs (monthly). " +
+        "A weekly or monthly price is compared with India's stored price nearest its own date. India a year ago is the official Agmarknet Delhi monthly price (via Ashoka University CEDA, about a year behind). " +
+        "Where India has no price yet (most vegetables and fruit until the data.gov.in key is added), the median of the other markets is the yardstick.") +
+      '<div class="md-tools"><button type="button" class="md-dl" data-mddl="1">Download CSV (opens in Excel)</button>' +
+      '<span class="has-term" data-term="Mandi download" tabindex="0" role="button">What is in the file?</span></div>');
+  }
+
+  function mdHistory(D, P) {
+    var key = MD_STATE.product;
+    if (!P.some(function (p) { return p.key === key; })) {
+      key = (P.filter(function (p) { return p.india && agA(agO(D.history)[p.key]).length; })[0] || P[0]).key;
+      MD_STATE.product = key;
+    }
+    var prod = P.filter(function (p) { return p.key === key; })[0] || P[0];
+    var units = agO(prod.units);
+    var cats = agA(D.categories).map(agO);
+    var opts = cats.map(function (c) {
+      var ps = P.filter(function (p) { return p.category === c.key; });
+      if (!ps.length) return "";
+      return '<optgroup label="' + esc(agS(c.label)) + '">' + ps.map(function (p) {
+        return '<option value="' + esc(p.key) + '"' + (p.key === key ? " selected" : "") + ">" + esc(p.label) + "</option>";
+      }).join("") + "</optgroup>";
+    }).join("");
+    var H = agA(agO(D.history)[key]).filter(function (r) { return Array.isArray(r) && agS(r[0]) && agS(r[1]) && agN(r[2]) != null; });
+    var rows = H.map(function (r, i) {
+      var prev = null;
+      for (var j = i + 1; j < H.length; j++) if (H[j][1] === r[1]) { prev = H[j]; break; }
+      var chg = prev && agN(prev[2]) ? (r[2] / prev[2] - 1) * 100 : null;
+      var m = mdMarket(r[1]);
+      return "<tr>" + '<td class="lft">' + agD(r[0]) + "</td>" + '<td class="lft">' + esc(agS(m.short) || r[1]) + '<span class="md-sub">' + esc(agS(m.country)) + "</span></td>" +
+        "<td>" + mdLocal(r[2]) + "</td>" + '<td class="lft">' + esc(agS(units[r[1]]) || "-") + "</td>" + "<td>" + mdRs(r[3]) + "</td>" +
+        (chg == null ? "<td>&mdash;</td>" : '<td class="' + cls(chg) + '">' + agSg(chg, 1) + "%</td>") + "</tr>";
+    });
+    var head = "<thead><tr>" + agL("th", "Date", "Mandi history", "lft") + agL("th", "Market", "Mandi market column", "lft") +
+      agL("th", "Local price", "Mandi local price") + agL("th", "Unit", "Mandi local price", "lft") + agL("th", "Rs/kg", "Rs per kg") +
+      agL("th", "Change", "Mandi daily change") + "</tr></thead>";
+    var table = function (rs) { return '<div class="tablewrap tall"><table class="dt hist">' + head + "<tbody>" + rs.join("") + "</tbody></table></div>"; };
+    var first = rows.slice(0, 80), rest = rows.slice(80);
+    var picker = '<div class="md-tools"><select class="ag-q md-pick" data-mdpick="1" aria-label="Pick a product">' + opts + "</select></div>";
+    return agCard(agH2("Daily history", "Mandi history"), esc(agS(prod.label)) + " &middot; " + rows.length + " daily prices &middot; newest first",
+      picker + (rows.length ? table(first) + (rest.length ? '<details class="nfx-more"><summary>Show ' + rest.length + " more rows</summary>" + table(rest) + "</details>" : "") :
+        agNote("No daily prices are stored for this product yet.")) +
+      agNote("One row per market per day the market published, kept from the first day this desk collected it (no invented back-fill; AMIS and Xinfadi offered " +
+        "their recent past days, Tokyo publishes months of history at once). Change is against the same market's previous stored day. Up to " +
+        (agN(D.historyDays) || 60) + " days per market."));
+  }
+
+  function mdChina(D) {
+    var C = agA(D.chinaIndex).map(agO).filter(function (x) { return agS(x.date); }).slice(-10).reverse();
+    if (!C.length) return "";
+    var rows = C.map(function (x) {
+      return "<tr>" + '<td class="lft">' + agD(x.date) + "</td><td>" + agFx(x.agriculture, 2) + "</td><td>" + agFx(x.grainAndOil, 2) + "</td><td>" + agFx(x.vegetableBasket, 2) + "</td></tr>";
+    });
+    return agCard(agH2("China wholesale price index", "China wholesale price index"), "Ministry of Agriculture daily index, 2015 = 100 (an index, not a price per kg)",
+      '<div class="tablewrap"><table class="dt">' + "<thead><tr>" + agL("th", "Date", "China wholesale price index", "lft") + agL("th", "Farm produce", "China wholesale price index") +
+      agL("th", "Grain and oil", "China wholesale price index") + agL("th", "Vegetable basket", "China wholesale price index") + "</tr></thead><tbody>" + rows.join("") + "</tbody></table></div>");
+  }
+
+  /* CSV built here from mandi.json: GitHub Pages serves the snapshot's
+     JSON files only, and a Blob link works on any static host. */
+  function mdCsv(D) {
+    D = agO(D);
+    var q = function (v) { v = v == null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var lines = [["date", "market", "country", "product", "category", "price_local", "unit_local", "price_rs_per_kg", "kind"].join(",")];
+    mdProducts().forEach(function (p) {
+      var units = agO(p.units);
+      agA(agO(D.history)[p.key]).forEach(function (r) {
+        if (!Array.isArray(r)) return;
+        var m = mdMarket(r[1]);
+        lines.push([r[0], m.name, m.country, p.label, p.category, r[2], units[r[1]] || "", r[3] == null ? "" : r[3],
+          r[1] === "in-ncdex-spot" || r[1] === "in-ncdex-fut" ? "exchange" : "wholesale"].map(q).join(","));
+      });
+    });
+    return lines.join("\n") + "\n";
+  }
+  function mdDownload() {
+    var csv = mdCsv(MD);
+    var url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "mandi-prices-" + (agS(agO(MD).asOf) || "latest") + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  if (typeof document !== "undefined" && document.addEventListener) {
+    document.addEventListener("click", function (e) {
+      var t = e.target && e.target.closest ? e.target.closest("[data-mdcat], [data-mddl]") : null;
+      if (!t) return;
+      if (t.hasAttribute("data-mddl")) { mdDownload(); return; }
+      MD_STATE.cat = t.getAttribute("data-mdcat") || "all";
+      var y = window.scrollY;
+      render();
+      window.scrollTo(0, y);
+    });
+    document.addEventListener("change", function (e) {
+      var t = e.target;
+      if (!t || !t.getAttribute || !t.getAttribute("data-mdpick")) return;
+      MD_STATE.product = t.value || "";
+      var y = window.scrollY;
+      render();
+      window.scrollTo(0, y);
+    });
+  }
+
+  /* Glossary: one card per label on the tab, merged into AG_TERMS so the
+     agri registration (agRegisterTerms) picks them up. */
+  function mdHow(fn) {
+    return function () {
+      var P = mdProducts();
+      if (!P.length) return "mandi.json has no prices loaded, so there are no figures to show here.";
+      try { return fn(agO(MD), P) || ""; } catch (e) { return "No figures for this term in mandi.json."; }
+    };
+  }
+  function mdPick(P) {
+    return P.filter(function (p) { return p.key === MD_STATE.product; })[0] || P.filter(function (p) { return p.india; })[0] || P[0];
+  }
+  var MD_TERMS = {
+    "Mandi prices": { plain: ["Wholesale prices of the same farm product in India and in other countries, turned into rupees per kg so they can be compared.", "A gap between them is a question, not a profit: freight, duty, quality and export rules sit in between."],
+      deep: ["mandi.py collects AMIS Punjab (Pakistan), Beijing Xinfadi (China), Tokyo's central markets (Japan, lagged), vegetablemarketprice.com and NCDEX (India), Agmarknet history via Ashoka CEDA, FAO GIEWS national series, the World Bank Pink Sheet, and data.gov.in and USDA when keys are added; prices are converted at each day's exchange rate."],
+      how: mdHow(function (D, P) { return P.length + " products across " + mdMarkets().length + " markets are on file; the newest price is from " + agD(D.asOf) + "."; }) },
+    "Mandi source status": { plain: ["Which country and market each price comes from, how fresh it is, and why a country has no data.", "Countries with no free daily wholesale list are shown too, so a blank is never a mystery."],
+      deep: ["ok: the source answered and its latest day is recent. lagged: real data published late. needs key: a free API key is required. no free daily public data: none was found."],
+      how: mdHow(function (D) { var S = agA(D.sources).map(agO); return S.filter(function (s) { return s.status === "ok"; }).length + " of " + S.length + " sources are ok today; " + S.filter(function (s) { return agS(s.asOf); }).map(function (s) { return esc(agS(s.country)) + " latest " + agD(s.asOf); }).join(", ") + "."; }) },
+    "Mandi status": { plain: ["Whether a source gave prices: ok, lagged (old data), stale, needs key, unreachable, or no free daily public data.", "Only ok rows are compared with today's India price."],
+      deep: ["A source with no key or no Indian network is skipped honestly; nothing is filled in for it."],
+      how: mdHow(function (D) { var S = agA(D.sources).map(agO); return S.length + " rows: " + S.map(function (s) { return esc(agS(s.country)) + " " + esc(agS(s.status)) + (agS(s.asOf) ? " (" + agD(s.asOf) + ")" : ""); }).join("; ") + "."; }) },
+    "Mandi freshness": { plain: ["How often the source publishes and the date of its latest price on file.", "Daily is best; Tokyo publishes months late."],
+      deep: ["A daily source whose latest day is more than four days old is marked stale."],
+      how: mdHow(function (D) { return "The newest price on file in mandi.json is from " + agD(D.asOf) + "; each market's own latest day is in the Freshness column."; }) },
+    "Mandi market column": { plain: ["One wholesale market: a city mandi in Pakistan, Beijing's Xinfadi, Tokyo's central markets, or an Indian source.", "Prices are that market's own, converted to rupees per kg."],
+      deep: ["Pakistan: AMIS Punjab fair quality price per 100 kg. Beijing: Xinfadi average per jin (0.5 kg). Tokyo: median mid price per kg over its markets."],
+      how: mdHow(function () { return mdMarkets().map(function (m) { return esc(agS(m.short)) + " (" + esc(agS(m.country)) + ", latest " + agD(m.last) + ")"; }).join(", ") + "."; }) },
+    "Mandi product": { plain: ["One farm product, named the way an Indian market names it, compared across markets.", "Varieties differ between countries: an onion in Beijing is not the same as a Nashik onion."],
+      deep: ["Each source's product names are mapped to one list by hand (Chinese and Japanese names included); where a market lists several grades the median is used."],
+      how: mdHow(function (D, P) { var p = mdPick(P); return esc(p.label) + " has prices in " + agA(p.prices).length + " market(s)" + (p.india ? ", India at " + mdRs(agO(p.india).inrKg) + " per kg." : ", none in India yet."); }) },
+    "Mandi product group": { plain: ["Products are grouped: vegetables, fruits, spices, edible oils and oilseeds, grains, pulses and other.", "Use the chips above the table to show one group."],
+      deep: ["Groups follow the desk's agri groups."],
+      how: mdHow(function (D, P) { return agA(D.categories).map(agO).map(function (c) { return esc(agS(c.label)) + " " + P.filter(function (p) { return p.category === c.key; }).length; }).join(", ") + "."; }) },
+    "Mandi India price": { plain: ["India's wholesale price for the product, in rupees per kg: the yardstick every other market is compared with.", "From a Delhi mandi when available, else NCDEX exchange prices."],
+      deep: ["Order: Delhi (Azadpur) mandi, median of all Indian mandis (both need the data.gov.in key and an Indian network), Delhi on vegetablemarketprice.com (a private site, closer to retail), NCDEX polled spot, NCDEX front futures, Delhi wholesale from the Department of Consumer Affairs (monthly, via FAO)."],
+      how: mdHow(function (D, P) { var n = P.filter(function (p) { return p.india; }).length; return n + " of " + P.length + " products have an India price today."; }) },
+    "Mandi median of markets": { plain: ["The middle price of all markets with a recent price for this product, in rupees per kg.", "Half the markets are above it, half below."],
+      deep: ["Markets more than 10 days older than the newest price are left out; at least two markets are needed."],
+      how: mdHow(function (D, P) { var p = mdPick(P); return esc(p.label) + ": the median of " + agA(p.prices).length + " market price(s) is " + mdRs(p.median) + " per kg, newest price on " + agD(D.asOf) + "."; }) },
+    "Price gap vs India %": { plain: ["How much more (plus) or less (minus) a market's price is than India's, in percent.", "+50% means that market pays one and a half times India's price."],
+      deep: ["(market Rs/kg minus India Rs/kg) / India Rs/kg x 100, only when the two dates are at most 10 days apart."],
+      how: mdHow(function (D, P) { var p = mdPick(P), W = p.widest ? agO(p.widest) : null, I = agO(p.india); return W ? "Widest gap for " + esc(p.label) + ": " + agSg(W.gap, 1) + "% in " + esc(agS(mdMarket(W.market).short)) + ", against India at " + mdRs(I.inrKg) + " per kg on " + agD(I.date) + "." : esc(p.label) + " has no gap against India on " + agD(D.asOf) + ": India has no price within " + (agN(D.gapMaxDays) || 10) + " days of the other markets."; }) },
+    "Gap vs median %": { plain: ["How far a market's price is from the middle of all markets, in percent.", "Used when India has no price."],
+      deep: ["(market minus median) / median x 100."],
+      how: mdHow(function (D, P) { var p = mdPick(P); return esc(p.label) + ": median " + mdRs(p.median) + " per kg across " + agA(p.prices).length + " market(s); each market's percent is measured from it when India has no price (" + agD(D.asOf) + ")."; }) },
+    "Mandi history": { plain: ["Every stored day's price for the chosen product, newest first, one row per market.", "Read down a market to see its trend."],
+      deep: ["Kept from the first day the desk collected it; nothing is invented for days a market did not publish."],
+      how: mdHow(function (D, P) { var p = mdPick(P), H = agA(agO(D.history)[p.key]); return esc(p.label) + ": " + H.length + " daily prices stored, newest " + agD(agO({ d: (H[0] || [])[0] }).d) + ", up to " + (agN(D.historyDays) || 60) + " days per market."; }) },
+    "Mandi local price": { plain: ["The price in the market's own money and unit, exactly as it was published.", "For example PKR per 100 kg in Lahore or yuan per jin (half a kg) in Beijing."],
+      deep: ["A few items are quoted per dozen or per 100 pieces; they keep their local price and have no rupee-per-kg value."],
+      how: mdHow(function (D, P) { var p = mdPick(P); return esc(p.label) + " as published: " + agA(p.prices).map(agO).map(function (x) { return esc(agS(mdMarket(x.market).short)) + " " + mdLocal(x.local) + " " + esc(agS(x.unit)); }).join(", ") + "."; }) },
+    "Rs per kg": { plain: ["The price turned into Indian rupees for one kilogram, so every market can be compared.", "Local price, divided by the kilograms in the unit, times the exchange rate of that day."],
+      deep: ["FX: Yahoo USD/INR; PKR, CNY and JPY as crosses through the dollar."],
+      how: mdHow(function (D) { var f = agO(D.fx); return "Rates: " + Object.keys(f).map(function (k) { return "1 " + esc(k) + " = Rs " + agFx(agO(f[k]).inr, 4); }).join(", ") + "."; }) },
+    "Mandi daily change": { plain: ["How much the price moved since the same market's previous stored day, in percent.", "Fresh vegetables often move 5-10% in a day; grains and pulses much less."],
+      deep: ["Local prices are compared, so exchange-rate moves do not show here."],
+      how: mdHow(function (D, P) { var p = mdPick(P), H = agA(agO(D.history)[p.key]).filter(Array.isArray), a = H[0], b = a ? H.filter(function (r) { return r[1] === a[1] && r[0] < a[0]; })[0] : null; return b && agN(b[2]) ? esc(agS(mdMarket(a[1]).short)) + " " + esc(p.label) + ": " + mdLocal(b[2]) + " on " + agD(b[0]) + " to " + mdLocal(a[2]) + " on " + agD(a[0]) + ", " + agSg((a[2] / b[2] - 1) * 100, 1) + "%." : "Change is measured on the local price, market by market; " + esc(p.label) + " has " + H.length + " stored daily prices."; }) },
+    "Mandi exchange rates": { plain: ["How many rupees one dollar, Pakistani rupee, Chinese yuan or Japanese yen bought on the price's day.", "A weaker rupee makes every foreign price look higher in rupees."],
+      deep: ["Daily closes from Yahoo Finance (INR=X, PKR=X, CNY=X, JPY=X), cached in data/mandi/fx.json."],
+      how: mdHow(function (D) { var f = agO(D.fx); return Object.keys(f).map(function (k) { return "1 " + esc(k) + " = Rs " + agFx(agO(f[k]).inr, 4) + " on " + agD(agO(f[k]).date); }).join("; ") + "."; }) },
+    "India same month last year": { plain: ["India's official mandi price for this product in the same month last year: Delhi's monthly modal price from Agmarknet.", "It shows the season: compare it with today's India price."],
+      deep: ["Agmarknet data cleaned by Ashoka University's CEDA (agmarknet.ceda.ashoka.edu.in), Rs per quintal divided by 100. It ends about a year behind, so where the same month is missing the latest month on file is shown, marked latest."],
+      how: mdHow(function (D, P) { var p = P.filter(function (x) { return x.indiaYearAgo; })[0]; var Y = p ? agO(p.indiaYearAgo) : null; return Y ? esc(p.label) + ": Rs " + agFx(Y.inrKg, 2) + " per kg in " + esc(agS(Y.month)) + "; the official series ends in " + esc(agS(D.cedaLast)) + "." : "No official Agmarknet history is on file yet (mandi.py fetches it weekly, 50 or so products)."; }) },
+    "Mandi private source": { plain: ["vegetablemarketprice.com is a private website: it does not publish how it gets its prices, and they look closer to shop (retail) prices than mandi wholesale.", "Use it to see direction and rough level, not exact numbers."],
+      deep: ["One page per state per day (Delhi, Maharashtra, Karnataka, Tamil Nadu, West Bengal, Gujarat), vegetables only; its fruit page is filled by a script and is not read."],
+      how: mdHow(function (D, P) { var n = P.filter(function (p) { return agO(p.india).market === "in-vmp-delhi"; }).length; return n + " products take India's price from this private site today (Delhi page), newest " + agD(mdMarket("in-vmp-delhi").last) + "."; }) },
+    "Mandi lagged data": { plain: ["Real prices published months late: Tokyo's open data is the example.", "Good for seeing how expensive a market is, not for today's gap."],
+      deep: ["Lagged prices are never compared with today's Indian price."],
+      how: mdHow(function () { var m = mdMarket("jp-tokyo"); return agS(m.last) ? "Tokyo's latest day on file: " + agD(m.last) + "." : "No lagged market on file."; }) },
+    "China wholesale price index": { plain: ["China's national index of farm wholesale prices: 100 means the 2015 level.", "Up means Chinese wholesale food got dearer."],
+      deep: ["pfsc.agri.cn (Ministry of Agriculture and Rural Affairs): farm produce, grain and oil, and vegetable basket indices."],
+      how: mdHow(function (D) { var C = agA(D.chinaIndex).map(agO), x = C[C.length - 1]; return x ? "On " + agD(x.date) + " the farm produce index was " + agFx(x.agriculture, 2) + "." : "No index on file."; }) },
+    "Mandi download": { plain: ["A CSV file of every daily price on this tab: date, market, country, product, local price, unit and rupees per kg.", "It opens in Excel or Google Sheets."],
+      deep: ["Built in your browser from mandi.json; nothing is sent anywhere."],
+      how: mdHow(function (D, P) { var n = 0; P.forEach(function (p) { n += agA(agO(D.history)[p.key]).length; }); return n + " rows would be in the file now, for " + P.length + " products, newest " + agD(D.asOf) + "."; }) },
+    "Mandi price comparison": { plain: ["The main table: each product's latest wholesale price in every market, in rupees per kg, with its gap against India.", "Green: that market pays more than India. Red: it is cheaper."],
+      deep: ["Gaps only between prices at most 10 days apart."],
+      how: mdHow(function (D, P) { return P.length + " products; " + P.filter(function (p) { return p.india; }).length + " with an India price; " + mdMarkets().length + " markets; newest price " + agD(D.asOf) + "."; }) },
+  };
+  Object.keys(MD_TERMS).forEach(function (k) { if (!Object.prototype.hasOwnProperty.call(AG_TERMS, k)) AG_TERMS[k] = MD_TERMS[k]; });
+  if (typeof window !== "undefined") { window.mdCsv = mdCsv; }
+  /* ================= end MANDI PRICES ================= */
   if (typeof window !== "undefined") { window.agInst = agInst; window.agEntries = agEntries; }
   /* ================= end AGRI INDEX (ag*, desk-cx-agri) ================= */
 
