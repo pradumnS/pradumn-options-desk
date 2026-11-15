@@ -4544,7 +4544,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var body;
     if (S.tab === "positioning") body = cmPositioning(group, S.inst);
     else if (!I) body = cmMissing(S.inst);
-    else if (I.noSeries === true) body = cmNoSeries(I, group);
+    else if (I.noSeries === true) body = cmNoSeries(I, group) + (S.tab === "record" ? cmSafe(cmHistory, I) : "");
     else if (cmStr(I.error)) body = '<section class="card"><div class="caution"><p><b>' + esc(CM_LABEL[S.inst]) + ":</b> " + esc(cmStr(I.error)) + "</p></div></section>";
     else if (S.tab === "today") body = cmToday(I);
     else if (S.tab === "vol") body = cmVol(I);
@@ -5340,13 +5340,114 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var head = dhLine("Track record &middot; " + esc(cmStr(I.label)),
       cmLgLine(I) + (ext ? " Below it, the side rule&rsquo;s backtests and signal grading from the evidence layer: after-the-fact studies on history, not graded calls." :
         " The evidence layer (commevidence.json) is not loaded, so there is no backtest to show beside it."), "");
-    if (ext) return head + lg + ext;
+    var hist = cmSafe(cmHistory, I);
+    if (ext) return head + lg + hist + ext;
     var X = cmO(cmO(I.ivr).all);
-    return head + lg + cmCard(cmH2("Track record", "Commodity track record"), "what can already be checked",
+    return head + lg + hist + cmCard(cmH2("Track record", "Commodity track record"), "what can already be checked",
       '<div class="cm-note">Until the backtest for this desk lands, the nearest evidence is on the Volatility tab: ' +
       (cmNum(X.n) != null ? "over " + X.n + " closed " + (cmNum(cmO(I.ivr).h) || 21) + "-session windows, implied vol covered the move " + cmPc(X.inside, 0) +
         " of the time and sat above the realised vol that followed " + cmPc(X.ivAbove, 0) + " of the time." :
         "there is no implied vol for " + esc(cmStr(I.label)) + ", so there is no premium record to show.") + "</div>");
+  }
+
+  /* ------------------------------------------------------ Session history
+     commdesk.py history_block: one row per stored session, newest first,
+     for the world future (its own currency) and, where MCX bars are stored,
+     the front MCX contract in rupees. Rows are arrays in I.history.cols
+     order: t, o, h, l, c, pc, rv20, iv, fx, flag, contract. */
+  var CM_HV = "world";
+  document.addEventListener("click", function (e) {
+    var t = e.target && e.target.closest ? e.target.closest("[data-cmhv]") : null;
+    if (!t) return;
+    CM_HV = t.getAttribute("data-cmhv") === "mcx" ? "mcx" : "world";
+    var y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  });
+  function cmHN(v, rupee) {
+    v = cmNum(v);
+    if (v == null) return "&mdash;";
+    var a = Math.abs(v), d = rupee ? (a >= 1000 ? 0 : 2) : (a >= 10 ? 2 : a >= 1 ? 3 : 4);
+    return v.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function cmHS(v, rupee) {
+    v = cmNum(v);
+    if (v == null) return "<td>&mdash;</td>";
+    return '<td class="' + cls(v) + '">' + (v > 0 ? "+" : v < 0 ? "&minus;" : "") + cmHN(Math.abs(v), rupee) + "</td>";
+  }
+  function cmHistory(I) {
+    I = cmO(I);
+    var H = cmO(I.history);
+    var W = cmO(H.world), M = cmO(H.mcx);
+    var hasM = cmA(M.rows).length > 0, hasW = cmA(W.rows).length > 0;
+    if (!hasW && !hasM) {
+      return cmCard(cmH2("Session history", "Commodity session history"), esc(cmStr(I.label) || cmStr(I.key) || "This instrument"),
+        '<div class="cm-note">' + (cmStr(H.none) ? esc(cmStr(H.none)) + " There are no daily rows to show." :
+          I.noSeries === true ? "No free daily price series exists for this market, so there are no daily rows to show." :
+          "No daily bars are in this snapshot for this instrument (0 sessions).") + "</div>");
+    }
+    var view = (CM_HV === "mcx" || !hasW) && hasM ? "mcx" : "world";
+    var V = view === "mcx" ? M : W, rupee = view === "mcx";
+    var rows = cmA(V.rows).filter(function (r) { return Array.isArray(r) && cmStr(r[0]) && cmNum(r[4]) != null; });
+    var ivName = cmStr(H.iv);
+    var hasIv = !!ivName && rows.some(function (r) { return cmNum(r[7]) != null; });
+    var hasFx = cmStr(I.india) !== "none" && rows.some(function (r) { return cmNum(r[8]) != null; });
+    var rvN = cmNum(H.rvWindow) || 20;
+    var lab = esc(cmStr(I.label) || cmStr(I.key) || "This instrument");
+    var unit = esc(cmStr(V.unit));
+    if (!hasW) W = { label: "World (USD)", unit: "USD", sym: "none" };
+    var toggle = '<div class="cm-pick">' +
+      '<button class="nrg-tab" data-cmhv="world" aria-pressed="' + (view === "world") + '" data-tip="' + esc("World series, " + cmStr(W.sym) + ", in " + cmStr(W.unit)) + '">' +
+        (cmStr(W.label) ? esc(cmStr(W.label)) : "World (" + esc(cmStr(W.unit).split("/")[0] || "USD") + ")") + "</button>" +
+      (hasM ? '<button class="nrg-tab" data-cmhv="mcx" aria-pressed="' + (view === "mcx") + '" data-tip="' + esc((cmStr(M.venue) || "MCX") + " front contract, in rupees") + '">' + esc(cmStr(M.label) || "MCX (INR)") + "</button>" :
+        '<span class="cm-ctx">' + esc(cmStr(H.mcxWhy) || "No MCX bars are stored for this instrument.") + "</span>") + "</div>";
+    function row(r) {
+      var o = cmNum(r[1]), h = cmNum(r[2]), l = cmNum(r[3]), c = cmNum(r[4]), pc = cmNum(r[5]);
+      var chg = pc != null ? c - pc : null, chgP = pc ? (c / pc - 1) * 100 : null;
+      var rng = h != null && l != null ? h - l : null;
+      var fl = r[9] === 1 ? '<span class="pill risk" data-tip="' + esc("Closed outside the 1-sigma band built from the prior close and the prior day's " + rvN + "-session realised vol") + '">outside</span>' :
+        r[9] === 0 ? '<span class="pill nx" data-tip="' + esc("Closed inside the prior day's 1-sigma band") + '">inside</span>' : "&mdash;";
+      return "<tr>" + '<td class="lft">' + cmD(r[0]) + "</td>" +
+        (rupee ? '<td class="lft">' + cmD(r[10]) + "</td>" : "") +
+        "<td>" + cmHN(o, rupee) + "</td><td>" + cmHN(h, rupee) + "</td><td>" + cmHN(l, rupee) + "</td>" +
+        '<td style="color:var(--ink)">' + cmHN(c, rupee) + "</td><td>" + cmHN(pc, rupee) + "</td>" +
+        cmHS(chg, rupee) + '<td class="' + cls(chgP || 0) + '">' + cmSg(chgP, 2) + (chgP == null ? "" : "%") + "</td>" +
+        cmHS(o != null && pc != null ? o - pc : null, rupee) + cmHS(o != null ? c - o : null, rupee) +
+        "<td>" + cmHN(l != null ? c - l : null, rupee) + "</td><td>" + cmHN(h != null ? h - c : null, rupee) + "</td>" +
+        "<td>" + cmHN(rng, rupee) + "</td><td>" + (rng != null && c ? cmPc(rng / c * 100, 2) : "&mdash;") + "</td>" +
+        "<td>" + cmPc(r[6], 1) + "</td>" +
+        (hasIv ? "<td>" + cmFx(r[7], null, 2) + "</td>" : "") +
+        (hasFx ? "<td>" + cmFx(r[8], null, 2) + "</td>" : "") +
+        "<td>" + fl + "</td></tr>";
+    }
+    var head = '<thead><tr>' + cmL("th", "Date", "Commodity session history", "lft") +
+      (rupee ? cmL("th", "Contract", "Commodity session history", "lft") : "") +
+      cmL("th", "Open", "Commodity session OHLC") + cmL("th", "High", "Commodity session OHLC") + cmL("th", "Low", "Commodity session OHLC") +
+      cmL("th", "Close", "Commodity session OHLC") + cmL("th", "Prev close", "Commodity session OHLC") +
+      cmL("th", "Chg", "Commodity session change") + cmL("th", "Chg %", "Commodity session change") +
+      cmL("th", "Open &minus; prev close", "Open &minus; prev close") + cmL("th", "Close &minus; open", "Close &minus; open") +
+      cmL("th", "Close &minus; low", "Close &minus; low") + cmL("th", "High &minus; close", "High &minus; close") +
+      cmL("th", "Range", "Commodity session range") + cmL("th", "Range %", "Commodity session range") +
+      cmL("th", "Realised " + rvN + "d", "Commodity session realised vol") +
+      (hasIv ? cmL("th", esc(ivName), "Commodity session implied index") : "") +
+      (hasFx ? cmL("th", "USD/INR", "Commodity session USD/INR") : "") +
+      cmL("th", "1&sigma; band", "Commodity session band break") + "</tr></thead>";
+    var first = rows.slice(0, 60), rest = rows.slice(60);
+    var table = function (rs) { return '<div class="tablewrap tall"><table class="dt hist">' + head + "<tbody>" + rs.map(row).join("") + "</tbody></table></div>"; };
+    var breaks = rows.filter(function (r) { return r[9] === 1; }).length, judged = rows.filter(function (r) { return r[9] === 0 || r[9] === 1; }).length;
+    var ven = cmStr(M.venue) || "MCX";
+    var wname = /[.]L$/.test(cmStr(W.sym)) ? esc(cmStr(I.worldName) || cmStr(W.sym)) + " (an LSE-listed ETC in dollars, standing in for the LME price, which is not free)" :
+      esc(cmStr(W.sym)) + " front-month future (Yahoo)";
+    var src = view === "mcx" ? esc(ven) + " " + esc(cmStr(M.symbol)) + " futures, the nearest unexpired contract each day (the Contract column shows each roll); " +
+        (ven === "NCDEX" ? "settlements from the NCDEX daily bhavcopy" : "daily bars via Moneycontrol") + ", stored since " + cmD(M.from) :
+      wname + ", stored since " + cmD(W.from) + "; the series switches contract at each roll, so a roll day can show a jump that is not a price move";
+    return cmCard(cmH2("Session history", "Commodity session history"),
+      lab + " &middot; " + rows.length + " of " + (cmNum(V.stored) || rows.length) + " sessions &middot; " + unit + " &middot; newest first",
+      toggle + (rows.length ? table(first) +
+        (rest.length ? '<details class="nfx-more"><summary>Show ' + rest.length + " more sessions</summary>" + table(rest) + "</details>" : "") : '<div class="cm-note">No rows in this view.</div>') +
+      '<div class="cm-note">' + src + ". Prev close and every change use the same contract&rsquo;s previous close." +
+      (judged ? " The close fell outside the prior day&rsquo;s 1&sigma; band on <b>" + breaks + "</b> of " + judged + " sessions (" + cmPc(breaks / judged * 100, 0) + "; about 32% is what a calibrated band gives)." : "") +
+      " Volume and open interest are not stored for these series, so they are not shown.</div>");
   }
 
   /* ---------------------------------------------------- Prediction ledger
@@ -5389,6 +5490,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return fn(I, L, esc(cmStr(I.label) || cmStr(I.key) || "This instrument"));
     };
   }
+  function cmLgTail(L, claim) {
+    var T = cmLgType(L, claim);
+    return " " + (T ? (cmNum(T.n) || 0) : 0) + " such claim(s) on file, " + (T ? (cmNum(T.graded) || 0) : 0) + " graded.";
+  }
   function cmLgType(L, claim) {
     var T = cmA(L.types).map(cmO);
     for (var i = 0; i < T.length; i++) if (cmStr(T[i].claim) === claim) return T[i];
@@ -5418,9 +5523,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var sub = "written before the outcome &middot; graded after &middot; never rewritten";
     var n = cmNum(L.n) || 0;
     if (n <= 0) {
-      var why = cmStr(L.whyNone);
-      return cmCard(head, sub, '<div class="cm-note">No claims are recorded for ' + lab + (why ? ": " + esc(why) : " yet") +
-        ". The ledger starts on the first export that records a claim; earlier days are not backfilled, because a claim written after its outcome proves nothing.</div>");
+      var why = cmStr(L.whyNone), absent = !I.ledger || typeof I.ledger !== "object" || Array.isArray(I.ledger);
+      return cmCard(head, sub, '<div class="cm-note">' + (absent ? "The prediction ledger has no entry for " + lab +
+        ": it records claims only for instruments the desk draws a range for, from the export that first carries them." :
+        "No claims are recorded for " + lab + (why ? ": " + esc(why) : " yet") + ".") +
+        " Earlier days are not backfilled, because a claim written after its outcome proves nothing.</div>");
     }
     var g = cmNum(L.graded) || 0, p = cmNum(L.pending) || 0, u = (cmNum(L.ungradable) || 0) + (cmNum(L.notGraded) || 0);
     var since = cmD(L.since);
@@ -5848,7 +5955,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "Each claim is graded on the same series its price came from: the MCX contract's daily settlement for an Indian contract (expiry claims on the option's underlying future), the world front-month future where nothing trades in India."],
     how: cmLgHow(function (I, L, lab) {
       var n = cmNum(L.n) || 0;
-      if (!n) return lab + ": no claim recorded yet" + (cmStr(L.whyNone) ? " (" + esc(cmStr(L.whyNone)) + ")" : "") + "; 0 graded.";
+      if (!n) return lab + ": 0 claims recorded yet" + (cmStr(L.whyNone) ? " (" + esc(cmStr(L.whyNone)) + ")" : "") + ", 0 graded; a full day carries up to 6 claim types.";
       return lab + ": <b>" + n + "</b> claim(s) since " + cmD(L.since) + ", " + (cmNum(L.graded) || 0) + " graded, " + (cmNum(L.pending) || 0) + " pending" +
         (cmStr(L.firstNext) && !(cmNum(L.graded) || 0) ? "; the first next-session grade is due " + cmD(L.firstNext) : "") + ".";
     })
@@ -5870,7 +5977,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "Side, vol-premium and lean claims carry no stated probability, so they are read against a coin's 50%."],
     how: cmLgHow(function (I, L, lab) {
       var T = cmLgType(L, "range_next") || cmLgType(L, "range_1sd");
-      if (!T) return lab + ": no range claim on file, so no hit rate yet (0 graded).";
+      if (!T) return lab + ": no range claim on file, so no hit rate yet (0 graded; a 1-sigma range promises 68%, a 2-sigma range 95%).";
       var r = cmNum(T.rate);
       return lab + " " + esc(cmStr(T.label)) + ": " + (r == null ? "none of " + (cmNum(T.n) || 0) + " graded yet" : "<b>" + Math.round(r * 100) + "%</b> held over " + (cmNum(T.graded) || 0) + " graded") +
         " against a promised " + cmLgPct(T.promised) + ".";
@@ -5903,7 +6010,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     deep: ["lo, hi = price x exp(-/+ vol x sqrt(1/252)), with the same vol as the expiry range (implied where it exists, the HAR forecast otherwise). Graded on the settlement of the first session the exchange traded after the claim day."],
     how: cmLgHow(function (I, L, lab) {
       var N = cmO(cmO(I.range).next);
-      return lab + ": next settlement " + cmLgN(N.lo1) + " to " + cmLgN(N.hi1) + " (+/-" + (cmNum(N.movePct) == null ? "&mdash;" : N.movePct.toFixed(2) + "%") + ").";
+      return lab + ": next settlement " + cmLgN(N.lo1) + " to " + cmLgN(N.hi1) + " (+/-" + (cmNum(N.movePct) == null ? "&mdash;" : N.movePct.toFixed(2) + "%") + ")." + cmLgTail(L, "range_next");
     })
   };
   CM_TERMS["Commodity expiry range claim"] = {
@@ -5912,7 +6019,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     deep: ["Graded on the settlement of the option's underlying futures contract on the expiry date (the first session on or after it). Where the price came from the front contract and the option sits on the next one, the band is still graded on the option's own contract, which can differ by the calendar spread."],
     how: cmLgHow(function (I, L, lab) {
       var R = cmO(I.range);
-      return lab + ": to " + cmD(R.expiry) + ", 1 sigma " + cmLgN(R.lo1) + " to " + cmLgN(R.hi1) + ", 2 sigma " + cmLgN(R.lo2) + " to " + cmLgN(R.hi2) + ".";
+      return lab + ": to " + cmD(R.expiry) + ", 1 sigma " + cmLgN(R.lo1) + " to " + cmLgN(R.hi1) + ", 2 sigma " + cmLgN(R.lo2) + " to " + cmLgN(R.hi2) + "." + cmLgTail(L, "range_1sd");
     })
   };
   CM_TERMS["Commodity side call claim"] = {
@@ -5921,7 +6028,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     deep: ["Realised vol is the root mean square of daily log returns of the contract's settlements from the claim day to the expiry settlement, times sqrt(252). Recorded only where an Indian option can be traded."],
     how: cmLgHow(function (I, L, lab) {
       var S = cmO(I.side), N = cmO(S.inputs);
-      return lab + ": today " + esc(cmSideWord(cmStr(S.side))) + (cmNum(N.ratio) != null ? " at " + cmX(N.ratio) + " implied / forecast" : " (no ratio)") + ".";
+      return lab + ": today " + esc(cmSideWord(cmStr(S.side))) + (cmNum(N.ratio) != null ? " at " + cmX(N.ratio) + " implied / forecast" : " (no ratio)") + "." + cmLgTail(L, "side");
     })
   };
   CM_TERMS["Commodity vol premium claim"] = {
@@ -5930,8 +6037,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     deep: ["The implied vol itself is stored, not the ratio: testing the ratio against 1 would grade a number against itself. A proxy implied (a US fund's options) is recorded and labelled as such."],
     how: cmLgHow(function (I, L, lab) {
       var V = cmO(I.vrp);
-      if (cmNum(V.ratio) == null) return lab + ": no implied vol, so no vol-premium claim today.";
-      return lab + ": implied " + cmPc(V.iv, 1) + " against forecast " + cmPc(V.rv, 1) + " = " + cmX(V.ratio) + " (" + (V.ratio > 1 ? "rich" : "cheap") + ").";
+      if (cmNum(V.ratio) == null) return lab + ": no implied vol, so no vol-premium claim today." + cmLgTail(L, "vrp");
+      return lab + ": implied " + cmPc(V.iv, 1) + " against forecast " + cmPc(V.rv, 1) + " = " + cmX(V.ratio) + " (" + (V.ratio > 1 ? "rich" : "cheap") + ")." + cmLgTail(L, "vrp");
     })
   };
   CM_TERMS["Commodity lean claim"] = {
@@ -5940,7 +6047,97 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     deep: ["The lean comes from regimes.py's trend zone (above or below both the 50 and 200-day averages, not sideways). It has no stated probability, so it is read against 50%."],
     how: cmLgHow(function (I, L, lab) {
       var b = cmStr(I.bias);
-      return lab + ": the plan leans " + (b === "up" || b === "down" ? "<b>" + b + "</b>" : "neither way (no lean claim today)") + ".";
+      var R = cmO(cmO(I.regimes).readings);
+      return lab + ": the plan leans " + (b === "up" || b === "down" ? "<b>" + b + "</b>" : "neither way (no lean claim today)") +
+        " (ADX " + cmFx(R.adx, null, 1) + ", " + cmSg(R.dist200, 1) + "% from the 200-day average)." + cmLgTail(L, "lean");
+    })
+  };
+  /* Session history terms (commdesk.py history_block). */
+  function cmHRow(I, view) {
+    var H = cmO(cmO(I).history), useM = cmA(cmO(H.mcx).rows).length > 0 && (view === "mcx" || !cmA(cmO(H.world).rows).length);
+    var V = cmO(H[useM ? "mcx" : "world"]), r = cmA(V.rows)[0];
+    return { H: H, V: V, r: Array.isArray(r) ? r : [], mcx: useM };
+  }
+  CM_TERMS["Commodity session history"] = {
+    plain: ["One row per trading day, newest first: where the price opened, how high and low it went, where it closed, and how the day was built.",
+      "Two views: the world future in its own currency, and where MCX bars are stored, the MCX contract in rupees with the contract month shown so a roll is visible."],
+    deep: ["World rows come from Yahoo's daily front-month bars (stored since 2000 for most markets); MCX rows from the exchange bars Moneycontrol republishes per contract, taking the nearest unexpired contract on each date.",
+      "The snapshot carries the last 250 sessions per view; the first 60 show, the rest open on request."],
+    how: cmLgHow(function (I) {
+      var X = cmHRow(I, CM_HV), r = X.r;
+      if (!r.length) return esc(cmStr(I.label)) + ": 0 sessions stored for this view.";
+      return esc(cmStr(I.label)) + (X.mcx ? " MCX " : " world ") + "view: " + cmA(X.V.rows).length + " of " + (cmNum(X.V.stored) || 0) + " sessions, latest " + cmD(r[0]) +
+        " close " + cmHN(r[4], X.mcx) + (X.mcx ? " on the " + cmD(r[10]) + " contract" : "") + ".";
+    })
+  };
+  CM_TERMS["Commodity session OHLC"] = {
+    plain: ["Open, high, low and close: the first price of the day, the highest, the lowest and the final settlement. Prev close is the settlement the day before.",
+      "Together they show where the day started, how far it travelled and where it ended up."],
+    deep: ["Prev close is always the same contract's previous settlement, so the day an MCX roll happens (or Yahoo switches month) does not count the gap between two contracts as a change. On the first day a new MCX contract is the front month, its own previous bar is used."],
+    how: cmLgHow(function (I) {
+      var X = cmHRow(I, CM_HV), r = X.r;
+      if (!r.length) return esc(cmStr(I.label)) + ": no session stored (0 rows).";
+      return esc(cmStr(I.label)) + " on " + cmD(r[0]) + ": open " + cmHN(r[1], X.mcx) + ", high " + cmHN(r[2], X.mcx) + ", low " + cmHN(r[3], X.mcx) +
+        ", close " + cmHN(r[4], X.mcx) + " against a previous close of " + cmHN(r[5], X.mcx) + ".";
+    })
+  };
+  CM_TERMS["Commodity session change"] = {
+    plain: ["How much the close moved from the previous close, in price and in percent.",
+      "A plus means the price rose on the day, a minus that it fell."],
+    deep: ["Chg = close - previous close of the same contract; Chg % = close / previous close - 1. Percent is the number to compare across instruments and across years."],
+    how: cmLgHow(function (I) {
+      var X = cmHRow(I, CM_HV), r = X.r, c = cmNum(r[4]), p = cmNum(r[5]);
+      if (c == null || p == null) return esc(cmStr(I.label)) + ": no change to show (0 rows with a previous close).";
+      return esc(cmStr(I.label)) + " on " + cmD(r[0]) + ": " + cmHN(c, X.mcx) + " against " + cmHN(p, X.mcx) + " = " + cmSg((c / p - 1) * 100, 2) + "%.";
+    })
+  };
+  CM_TERMS["Commodity session range"] = {
+    plain: ["How far the price travelled inside the day: the high minus the low, and that as a share of the close.",
+      "A wide range is a busy, nervous day; a narrow one a quiet day."],
+    deep: ["Range % = (high - low) / close. Over many days its average is roughly 1.6 times the daily standard deviation of returns for a normal distribution, so it is a rough cross-check on the realised vol column."],
+    how: cmLgHow(function (I) {
+      var X = cmHRow(I, CM_HV), r = X.r, h = cmNum(r[2]), l = cmNum(r[3]), c = cmNum(r[4]);
+      if (h == null || l == null || !c) return esc(cmStr(I.label)) + ": no high and low on the latest row (0 to show).";
+      return esc(cmStr(I.label)) + " on " + cmD(r[0]) + ": " + cmHN(h, X.mcx) + " - " + cmHN(l, X.mcx) + " = " + cmHN(h - l, X.mcx) + ", " + cmPc((h - l) / c * 100, 2) + " of the close.";
+    })
+  };
+  CM_TERMS["Commodity session realised vol"] = {
+    plain: ["How much the price has actually been moving lately: the last 20 daily changes, turned into a yearly percentage.",
+      "High means big daily swings; low means calm. It is what really happened, not what option prices expected."],
+    deep: ["Close-to-close: the standard deviation of the 20 log returns ending that day, times sqrt(252). Returns use the same contract's previous close, so a roll is not a return."],
+    how: cmLgHow(function (I) {
+      var X = cmHRow(I, CM_HV), r = X.r;
+      return esc(cmStr(I.label)) + ": " + (cmNum(X.H.rvWindow) || 20) + "-session realised vol " + cmPc(r[6], 1) + " on " + cmD(r[0]) + "; the desk's forecast today is " + cmPc(cmO(I.realised).forecast, 1) + ".";
+    })
+  };
+  CM_TERMS["Commodity session implied index"] = {
+    plain: ["What the option market charged that day for the next 30 days of movement, as a yearly percentage: GVZ for gold, OVX for crude oil.",
+      "Set beside realised vol, it shows whether options were dear or cheap against how the price really moved."],
+    deep: ["CBOE indices on US ETF options (GLD, USO), in dollars, as published that day. They exist only for gold and crude; other instruments show no column rather than a column of gaps."],
+    how: cmHow(function (I) {
+      var J = cmWithIv(I), X = cmHRow(J, "world"), r = X.r;
+      if (!cmStr(X.H.iv)) return "No implied index is stored for any loaded instrument (0 values).";
+      return (J === I ? "" : esc(cmStr(I.label)) + " has none; ") + esc(cmStr(X.H.iv)) + " " + cmFx(r[7], null, 2) + " on " + cmD(r[0]) + " against " + cmPc(r[6], 1) + " realised over 20 sessions.";
+    })
+  };
+  CM_TERMS["Commodity session USD/INR"] = {
+    plain: ["How many rupees one US dollar cost that day.",
+      "A weaker rupee (a higher number) lifts the rupee price of gold, silver and crude even when the dollar price does not move."],
+    deep: ["Yahoo INR=X daily close for the same date; shown for instruments with an Indian contract, where the rupee is part of the price."],
+    how: cmHow(function (I) {
+      var X = cmHRow(I, CM_HV), r = X.r;
+      return esc(cmStr(I.label)) + ": USD/INR " + cmFx(r[8], null, 2) + " on " + cmD(r[0]) + "; today's desk rate " + cmFx(cmO(I.price).fx, null, 2) + ".";
+    })
+  };
+  CM_TERMS["Commodity session band break"] = {
+    plain: ["Whether the day's close landed outside the band the day before said was normal: the previous close plus and minus one day's worth of recent movement.",
+      "A calibrated band is broken about 32 days in 100. Many more breaks than that mean the market was moving more than its own recent past suggested."],
+    deep: ["Band = previous close x exp(+/- rv20 / sqrt(252)), with rv20 the 20-session realised vol as of the PREVIOUS close: built only from what was known then, so there is no look-ahead. It is a simple check on the history, not the desk's forecast (the desk's own next-session range is graded in the prediction ledger)."],
+    how: cmLgHow(function (I) {
+      var X = cmHRow(I, CM_HV), rows = cmA(X.V.rows).filter(Array.isArray);
+      var j = rows.filter(function (r) { return r[9] === 0 || r[9] === 1; }), b = j.filter(function (r) { return r[9] === 1; }).length;
+      if (!j.length) return esc(cmStr(I.label)) + ": 0 sessions with a band to judge.";
+      return esc(cmStr(I.label)) + ": outside the prior day's band on <b>" + b + "</b> of " + j.length + " sessions (" + cmPc(b / j.length * 100, 0) + ") against about 32% for a calibrated band.";
     })
   };
   var CM_ALIAS = {
@@ -13340,7 +13537,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       ext = agSafe(ceTrackRecord, key);
       if (/is not loaded|could not be drawn/.test(ext)) ext = "";
     }
-    var lg = agSafe(cmLedger, I);
+    var lg = agSafe(cmLedger, I) + agSafe(cmHistory, I);
     var head = dhLine("Track record &middot; " + esc(agS(I.label)), cmLgLine(I) + (ext ? " Below it, how the side rule and its signals have done on this contract in the evidence layer&rsquo;s after-the-fact studies." :
       " The evidence layer has no backtest for this contract."), "");
     if (ext) return head + lg + ext;
@@ -36028,6 +36225,31 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         ["Largest moves", big || "&mdash;", "1 year"]]));
     return out;
   }
+  /* Session history for a universe series: closes only (the packs carry no
+     open, high or low), newest first, at whatever frequency the source has. */
+  function auHistory(E, P) {
+    var S = cmO(cmO(P).series), d = cmA(S.d), c = cmA(S.c), rows = [];
+    for (var i = 0; i < d.length && i < c.length; i++) if (cmStr(d[i]) && cmNum(c[i]) != null) rows.push([cmStr(d[i]), c[i]]);
+    var head = cmH2("Session history", "Commodity session history"), nm = esc(cmStr(cmO(E).name) || cmStr(cmO(E).key) || "This series");
+    if (!rows.length) return cmCard(head, nm, '<div class="cm-note">No stored observations for this series, so there are no rows to show.</div>');
+    var n = rows.length, keep = rows.slice(-120).reverse();
+    var rupee = cmStr(cmO(E).currency) === "INR";
+    function row(r, j) {
+      var p = keep[j + 1], pc = p ? p[1] : null, ch = pc != null ? r[1] - pc : null;
+      var dd = cmD(r[0]);
+      return '<tr><td class="lft">' + (dd === "&mdash;" ? esc(r[0]) : dd) + "</td><td>" + cmHN(r[1], rupee) + "</td><td>" + cmHN(pc, rupee) + "</td>" + cmHS(ch, rupee) +
+        '<td class="' + cls(ch || 0) + '">' + (pc ? cmSg((r[1] / pc - 1) * 100, 2) + "%" : "&mdash;") + "</td></tr>";
+    }
+    var th = "<thead><tr>" + cmL("th", "Date", "Commodity session history", "lft") + cmL("th", "Close", "Commodity session OHLC") +
+      cmL("th", "Prev close", "Commodity session OHLC") + cmL("th", "Chg", "Commodity session change") + cmL("th", "Chg %", "Commodity session change") + "</tr></thead>";
+    var tb = function (a, off) { return '<div class="tablewrap tall"><table class="dt hist">' + th + "<tbody>" + a.map(function (r, j) { return row(r, j + off); }).join("") + "</tbody></table></div>"; };
+    var first = keep.slice(0, 60), rest = keep.slice(60);
+    return cmCard(head, nm + " &middot; " + keep.length + " of " + n + " observations &middot; " + esc(cmStr(cmO(E).unit)) + " &middot; newest first",
+      tb(first, 0) + (rest.length ? '<details class="nfx-more"><summary>Show ' + rest.length + " more</summary>" + tb(rest, 60) + "</details>" : "") +
+      '<div class="cm-note">' + esc(cmStr(cmO(E).source)) + ", " + esc(cmStr(cmO(E).frequency)) + ". The pack stores closes only, so open, high, low and the day&rsquo;s anatomy cannot be shown; " +
+      "a change spans the gap to the previous stored observation, which in older history can be a week.</div>");
+  }
+
   function auRecord(E, P) {
     var C = P.record || { can: [], cannot: [] }, out = auIdLine(E);
     var li = function (xs) { return "<ul>" + (xs || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>"; };
@@ -36047,6 +36269,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<div class="au-p"><b>Coverage.</b> ' + esc(E.coverage || "") + "<br><b>Held:</b> " + auDm(E, E.from) + " to " + auDm(E, E.to) + ", " + auNum(E.n, 0) +
       " observations, " + esc(E.frequency) + ".<br><b>Source:</b> " + '<a href="' + esc(E.url) + '" target="_blank" rel="noopener">' + esc(E.url) + "</a>" +
       (src ? "<br><b>Last fetch:</b> " + esc(src.why || "") : "") + "</div>");
+    out += cmSafe(auHistory, E, P);
     return out;
   }
 

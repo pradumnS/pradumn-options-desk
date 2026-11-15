@@ -1131,8 +1131,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 870,
-"generatedAt": "2026-11-15T05:44:25Z",
+"count": 888,
+"generatedAt": "2026-11-15T06:30:43Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -3894,6 +3894,14 @@
 },
 "simple": "How far the MCX price can move by the next option expiry. One sigma covers about 68% of outcomes. Two sigma covers about 95%, if the volatility is right."
 },
+"Commodity expiry range claim": {
+"example": "On 13 Nov the desk says gold settles between 130,200 and 143,600 on the 27 Nov option expiry (1 sigma) and between 124,000 and 150,800 (2 sigma). On 27 Nov the settlement is checked against both.",
+"forYou": "A seller places short strikes near or outside these bands. A record of the bands holding is the evidence that placement is sound.",
+"goodBad": "Near 68 percent for 1 sigma and near 95 percent for 2 sigma is good.",
+"impact": "If they hold more often than promised: the ranges are wide and short strikes outside them are very safe. If less often: short strikes need more room.",
+"readIt": "When you see these claims, remember many days point at the same expiry, so the ledger counts each expiry once when it tests them.",
+"simple": "The bands the desk expects the price to be inside on the option expiry date: the 1-sigma band about 68 times out of 100 and the wider 2-sigma band about 95 times out of 100."
+},
 "Commodity futures curve": {
 "example": "Rice stored in a godown for a year costs rent and interest, so rice for next year is priced higher: contango. If rice is scarce today, today's rice costs more: backwardation.",
 "forYou": "Each MCX option sits on one futures month, so check that month's price on the curve.",
@@ -3963,6 +3971,121 @@
 },
 "simple": "For each past day, it compares implied volatility with the move that followed in 21 sessions. It shows how often implied covered the move. It shows how often a seller was paid."
 },
+"Commodity lean claim": {
+"example": "Silver is below its 50-day and 200-day averages, so the plan leans down from 176,543. If silver settles below that on the expiry, the lean was right.",
+"forYou": "Do not size a trade on the lean until its record beats 50 percent over many graded claims.",
+"goodBad": "Above 50 percent over many claims is good; near 50 percent is no edge.",
+"impact": "If the lean's hit rate goes up well above 50 percent: the trend read has an edge here. If it hovers near 50: direction calls on this market are no better than a coin.",
+"readIt": "When you see this claim, remember a coin gets direction right half the time. A lean is useful only if its hit rate stays well above 50 percent over many claims.",
+"simple": "Which way the desk's plan leans, up or down, based on the trend. When the trend is unclear the desk leans neither way and records no lean."
+},
+"Commodity ledger Brier score": {
+"example": "A 68% range that held scores (0.68 - 1) squared = 0.10. One that missed scores (0.68 - 0) squared = 0.46. An honest 68% range averages about 0.217 over many claims.",
+"forYou": "Use it as a second check on the hit rate. On its own it adds little until many claims are graded.",
+"goodBad": "Near the honest value is good. Far above means the desk is overconfident.",
+"impact": "If it goes up above the honest value: more misses than the stated chance allowed. If it goes down below it: more hits than promised, meaning the range was wider than it said.",
+"readIt": "When you see this number, compare it with the honest value printed beside it: about 0.217 for 68% ranges and 0.043 for 95% ranges.",
+"scale": {
+"hi": 1,
+"lo": 0,
+"quick": "0 is perfect, 1 is worst. For 68% ranges an honest desk scores about 0.22; for 95% ranges about 0.04. Compare with the honest value beside it.",
+"range": "Between 0 and 1. With a fixed stated chance the score moves only with the hit rate, so read it beside the honest value the page prints, not on its own.",
+"zones": [
+{
+"label": "Fewer misses than stated",
+"means": "For a 68% range, more hits than promised: the band is wider than it needed to be.",
+"to": 0.15,
+"tone": "ok"
+},
+{
+"label": "Near honest for a 68% range",
+"means": "Around 0.22 is what an honest 68% range scores over many claims.",
+"to": 0.3,
+"tone": "good"
+},
+{
+"label": "Overconfident",
+"means": "More misses than the stated chance allowed. The ranges are too narrow.",
+"to": null,
+"tone": "risk"
+}
+]
+},
+"simple": "A score for a forecast that comes with a chance attached. For each claim it takes the stated chance minus what happened (1 if it held, 0 if not), squares it, and averages. Lower is better."
+},
+"Commodity ledger Kupiec test": {
+"example": "A 68% range should break about 32 times in 100. If it broke 45 times in 100, the test says rejected: too many breaks to be luck. If it broke 35 times, it passes.",
+"forYou": "Do not act on this test with fewer than 20 independent claims. After that, a rejected range means widen or narrow your strikes before trusting the desk's band.",
+"goodBad": "Passes is good. Rejected means the stated chance is wrong.",
+"impact": "If it turns to rejected: the range is badly calibrated and should not be trusted as stated. If it passes: the breaks so far fit the promise.",
+"readIt": "When you see this result, read passes or rejected. The LR number above 3.84 means rejected. The page shows needs 20 until there are enough independent claims.",
+"scale": {
+"hi": 10,
+"lo": 0,
+"quick": "LR below 3.84 passes; 3.84 or more rejects the promised rate at 95% confidence. Quoted only from 20 independent claims.",
+"range": "LR is 0 or more. Near 0 means breaks match the promise closely. It grows the further the real break rate drifts from the promise, faster with more claims.",
+"zones": [
+{
+"label": "Passes",
+"means": "The breaks fit the promised rate. Luck can explain the difference.",
+"to": 3.84,
+"tone": "good"
+},
+{
+"label": "Rejected",
+"means": "Too many or too few breaks to be luck. The range's stated chance is wrong.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "A statistics check that asks: did the range break about as often as it promised, or so much more (or less) often that bad luck no longer explains it?"
+},
+"Commodity ledger hit rate": {
+"example": "Out of 25 next-session gold ranges, 17 held. That is 68 percent, exactly the promise. If only 12 held (48 percent), the ranges were too narrow.",
+"forYou": "Before selling premium on a commodity, check that its 1-sigma hit rate sits near 68 percent over many claims. Well below means give strikes more room.",
+"goodBad": "Close to the promise is good. Far above or far below are both problems, in opposite directions.",
+"impact": "If it goes up far above the promise: the ranges are wider than needed, safe but wasteful. If it goes down far below: the ranges are too narrow and a premium seller would be hit more often than planned.",
+"readIt": "When you see this number, compare it with the promised number beside it, not with 100 percent. A range that holds every time is too wide to be useful.",
+"scale": {
+"buy": "A hit rate well below the promise means moves are bigger than the desk expects, which favours an option buyer, but the desk has no tested buying record on it.",
+"hi": 100,
+"lo": 0,
+"quick": "For a 1-sigma range the target is 68%. About 60-76% is an honest band (rule of thumb, over 30 or more claims). For a 2-sigma range the target is 95%.",
+"range": "Always between 0% and 100%. A 1-sigma range should land near 68%, a 2-sigma range near 95%. With few claims the number swings a lot: over 30 claims an honest 68% range can score from about 51% to 85%.",
+"sell": "A seller wants the 1-sigma hit rate near 68% and the 2-sigma near 95% over many claims. Below that, place short strikes further out than the range says.",
+"unit": "%",
+"zones": [
+{
+"label": "Too narrow",
+"means": "The range breaks more often than it promised. A seller using it would be hit more often than planned.",
+"to": 60,
+"tone": "risk"
+},
+{
+"label": "Honest band (rule of thumb)",
+"means": "Close to the 68% a 1-sigma range promises. This is what a well-calibrated range looks like.",
+"to": 76,
+"tone": "good"
+},
+{
+"label": "Too wide",
+"means": "The range holds more often than promised. Safe, but strikes placed on it give away premium.",
+"to": null,
+"tone": "ok"
+}
+]
+},
+"simple": "The share of graded claims that came true, compared with what each claim promised. A 1-sigma range promises to hold 68 times out of 100; a 2-sigma range promises 95 times out of 100."
+},
+"Commodity ledger status": {
+"example": "A next-session range made on Friday stays pending over the weekend. On Monday evening, once the MCX settlement is stored, it becomes graded. If the settlement for Monday never arrives, it becomes not gradable after three more sessions.",
+"forYou": "Judge the desk only on graded claims. Missing data is never counted as a miss, so it cannot make the desk look worse or better.",
+"goodBad": "Many graded and few not-gradable claims is the healthy picture.",
+"impact": "If graded goes up: more evidence. If not gradable goes up: the price feed is missing days, and those claims will never count either way.",
+"readIt": "When you see these counts, add graded and pending: that is most of the ledger. A big not-gradable count means data gaps, not bad forecasts.",
+"simple": "Each claim is in one of four states. Pending means its day has not come yet. Graded means it was checked and held or missed. Not gradable means the data to check it is missing. Not graded means a stand-aside call, which cannot lose."
+},
 "Commodity lesson": {
 "example": "Like a closed notice on a classroom door.",
 "forYou": "Check back later when the data is updated.",
@@ -4003,6 +4126,14 @@
 },
 "simple": "Today's values of textbook indicators. RSI and stochastic show momentum; ADX shows trend strength. Distance from averages and Bollinger %B show stretch."
 },
+"Commodity next-session range claim": {
+"example": "Gold settles at 136,750 on Friday with 24.6 percent yearly vol. One day's move is about 1.55 percent, so the band for Monday is about 134,650 to 138,900.",
+"forYou": "If you hold an MCX position overnight, this band is roughly how far the price can move by the next settlement on an ordinary day.",
+"goodBad": "A hit rate near 68 percent over many days is good.",
+"impact": "If more of these hold than 68 percent: the desk's vol is a bit high. If fewer hold: daily moves are bigger than the desk assumes.",
+"readIt": "When you see this claim, it is graded the very next session, so it is the first number to get a result. One miss means little; look at the hit rate over many days.",
+"simple": "The band the desk expects the next day's settlement to land in, about 68 times out of 100. It is today's price plus and minus one day's worth of expected movement."
+},
 "Commodity option expiries": {
 "example": "Like the use-by dates on milk packets in a fridge, each option has its own date. Gold futures expire every two months, but MCX lists monthly options in between, so there are no gaps.",
 "forYou": "Choose your expiry from this ladder and check its likely range before placing strikes.",
@@ -4036,6 +4167,14 @@
 },
 "simple": "This instrument's line from the weekly fund-positioning report. It shows what funds hold in the matching futures contract. Some markets have no free report."
 },
+"Commodity prediction ledger": {
+"example": "On Friday the desk writes: gold settles between 134,600 and 138,900 on Monday. On Monday evening the settlement is 136,100, so that note is marked held. The note was never changed in between.",
+"forYou": "Trust a desk call more only after its ledger has graded many claims and the hit rates sit near what was promised.",
+"goodBad": "More graded claims is better. A ledger that only shows backtests, never graded calls, proves much less.",
+"impact": "If the graded count goes up: the record becomes real evidence you can lean on. If it stays at zero: nothing has reached its settlement yet, so there is nothing to judge.",
+"readIt": "When you see this card, first look at how many claims are recorded and how many are graded. A young ledger has many pending rows and no hit rate yet; that is honest, not broken.",
+"simple": "A diary the desk writes every trading day before it knows the answer. It notes where it thinks gold, crude or any other commodity will be, and later checks each note against what really happened."
+},
 "Commodity reads": {
 "example": "Like reading the weather forecast for a city you are not visiting: useful to know, but no action.",
 "forYou": "Use it to understand markets you cannot trade through options.",
@@ -4054,6 +4193,204 @@
 "range": "The 10-session edge is the extra move after the state versus any day, usually under 1% either way. Up after 10 runs 0% to 100%; compare it with the any-day share, usually a little above 50%."
 },
 "simple": "Common chart signals like RSI, Bollinger bands and ADX, studied on this commodity's past. For each signal it shows how long spells last. It shows what price did 10 days after."
+},
+"Commodity session OHLC": {
+"example": "Crude opens at 8,350, rises to 8,420, falls to 8,300 and settles at 8,372. Yesterday it settled at 8,351, so that is the prev close.",
+"forYou": "A close far from where you placed a strike matters more than a brief touch of the high or low during the day.",
+"goodBad": "Neither: they describe what happened, they are not a score.",
+"impact": "If the close keeps landing near the high: buyers are in control. If it keeps landing near the low: sellers are in control.",
+"readIt": "When you see these numbers, compare the close with the open (did it rise or fall during the day) and with the high and low (where it ended inside the day's range).",
+"simple": "Open, high, low, close: the first price of the day, the highest, the lowest and the final settlement. Prev close is the final price of the day before."
+},
+"Commodity session USD/INR": {
+"example": "At 94 rupees a dollar, gold at 3,886 dollars an ounce costs more in rupees than it did at 90 rupees a dollar, even if the dollar price is the same.",
+"forYou": "If you trade MCX, part of your profit or loss comes from the rupee, not from the commodity itself.",
+"goodBad": "Neither: a weaker rupee helps MCX longs and hurts MCX shorts.",
+"impact": "If it goes up: MCX gold, silver and crude rise in rupees even with a flat world price. If it goes down: they fall in rupees.",
+"readIt": "When you see this number, a higher value means a weaker rupee. Compare rows to see whether the rupee or the world price drove the MCX move.",
+"simple": "How many rupees one US dollar cost that day."
+},
+"Commodity session band break": {
+"example": "Gold closed at 4,000 yesterday with 20 percent realised vol, so the band is about 3,950 to 4,050. A close at 3,885 is outside the band.",
+"forYou": "A run of outside days is a warning to widen strikes or cut size before the desk's numbers catch up.",
+"goodBad": "Around 32 percent outside is normal. Far more is a warning for option sellers.",
+"impact": "If outside days pile up: volatility is rising faster than the recent past shows. If inside days dominate: the market is calmer than its recent past.",
+"readIt": "When you see outside, the day moved more than its recent past suggested. About one day in three should be outside; many more means the market is speeding up.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "About 32% of days outside is what a calibrated band gives. Well above 40% means moves are outrunning the recent past.",
+"range": "Between 0% and 100% of the sessions shown. Read the share in the note under the table, not a single row.",
+"unit": "%",
+"zones": [
+{
+"label": "Calmer than expected",
+"means": "Fewer big days than the recent vol suggested.",
+"to": 25,
+"tone": "good"
+},
+{
+"label": "About as expected",
+"means": "Close to the 32% a calibrated band gives.",
+"to": 40,
+"tone": "ok"
+},
+{
+"label": "Moves outrunning the band",
+"means": "Many more big days than expected: volatility is rising.",
+"to": null,
+"tone": "risk"
+}
+]
+},
+"simple": "Shows whether the day's close landed outside a normal band worked out the evening before, from the previous close and the last 20 days of movement."
+},
+"Commodity session change": {
+"example": "Silver closed at 176,543 rupees after 178,527 the day before. The change is minus 1,984 rupees, about minus 1.1 percent.",
+"forYou": "Compare the change with the desk's next-session range to see whether a day was ordinary or unusual.",
+"goodBad": "Neither: a big change is risk for a seller and opportunity for a buyer.",
+"impact": "If daily changes get larger: risk is rising and option prices usually follow. If they shrink: the market is calming.",
+"readIt": "When you see this number, look at the percent to compare days and markets. A plus means the price rose, a minus that it fell.",
+"scale": {
+"hi": 5,
+"lo": -5,
+"quick": "For gold a normal day is within about plus or minus 1.5%; crude and gas often move 3% or more. Compare with the instrument's own realised vol.",
+"range": "Any size, plus or minus. Most days sit within one day's worth of realised vol (yearly vol divided by about 16); about one day in three moves more.",
+"unit": "%",
+"zones": [
+{
+"label": "Big fall",
+"means": "A large down day for most metals; ordinary for gas.",
+"to": -2,
+"tone": "risk"
+},
+{
+"label": "Ordinary day",
+"means": "Within the usual daily movement for most commodities.",
+"to": 2,
+"tone": "ok"
+},
+{
+"label": "Big rise",
+"means": "A large up day for most metals; ordinary for gas.",
+"to": null,
+"tone": "risk"
+}
+]
+},
+"simple": "How much the closing price moved from the day before, as an amount and as a percent."
+},
+"Commodity session history": {
+"example": "The top gold row might read: 13 Nov, open 3,883, high 3,927, low 3,871, close 3,886. The row below it is 12 Nov, and so on back in time.",
+"forYou": "Use it to see how a commodity has really behaved day by day before trusting any forecast or placing a strike.",
+"goodBad": "Neither good nor bad on its own: it is the raw record the other numbers are built from.",
+"impact": "If many recent rows show big ranges and large changes: the market has turned busy. If rows are small and quiet: the market has calmed down.",
+"readIt": "When you see this table, start at the top row for the latest day and read across. Use the World and MCX (or NCDEX) buttons to switch between the dollar price and the rupee price.",
+"simple": "A table with one row for every trading day, newest at the top. Each row shows where the price opened, its high and low, where it closed, and how the day moved."
+},
+"Commodity session implied index": {
+"example": "If GVZ was 25 while gold's realised vol was 20, options were charging for more movement than gold was actually making.",
+"forYou": "Option sellers want this number high relative to realised vol; buyers want it low.",
+"goodBad": "High against realised is good for sellers; low against realised is good for buyers.",
+"impact": "If it rises: options get more expensive, usually because traders fear a big move. If it falls: options get cheaper.",
+"readIt": "When you see this number, set it beside the realised vol in the same row. Implied well above realised means options were dear.",
+"scale": {
+"hi": 70,
+"lo": 0,
+"quick": "GVZ is usually 12-25 and spikes above 30 in stress; OVX is usually 25-45 and can pass 60. Compare with realised vol in the same row.",
+"range": "Always above zero. Only gold and crude have one; the level means most beside realised vol and the index's own history.",
+"zones": [
+{
+"label": "Low",
+"means": "Cheap options for gold; very cheap for crude.",
+"to": 20,
+"tone": "buy"
+},
+{
+"label": "Middle",
+"means": "High for gold, ordinary for crude.",
+"to": 40,
+"tone": "ok"
+},
+{
+"label": "High",
+"means": "Options are expensive; usually a sign of fear.",
+"to": null,
+"tone": "sell"
+}
+]
+},
+"simple": "The price of options that day, written as a yearly vol: GVZ for gold and OVX for crude oil, both published by CBOE."
+},
+"Commodity session range": {
+"example": "Gold's high was 3,927 and low 3,871, so the range was 56 dollars, about 1.4 percent of the 3,886 close.",
+"forYou": "Stop-losses placed inside a typical day's range get hit by ordinary noise; place them outside it.",
+"goodBad": "Narrow ranges suit option sellers; wide ranges warn them.",
+"impact": "If ranges widen day after day: volatility is rising and short options are at more risk. If they narrow: volatility is falling.",
+"readIt": "When you see this number, a wide range means a nervous, busy day; a narrow range a quiet one, even if the close barely changed.",
+"scale": {
+"hi": 6,
+"lo": 0,
+"quick": "For gold about 1-2% is normal; for crude and natural gas 3-5% is normal. Compare with the instrument's own recent rows.",
+"range": "Always zero or more. Over many days the average range percent is roughly 1.6 times one day's standard deviation of returns.",
+"unit": "%",
+"zones": [
+{
+"label": "Quiet",
+"means": "A calm day for most commodities.",
+"to": 1,
+"tone": "good"
+},
+{
+"label": "Normal",
+"means": "A usual day for metals; quiet for energy.",
+"to": 3,
+"tone": "ok"
+},
+{
+"label": "Wide",
+"means": "A busy, nervous day; risk for option sellers.",
+"to": null,
+"tone": "risk"
+}
+]
+},
+"simple": "How far the price travelled inside one day: the high minus the low. Range percent is that distance as a share of the closing price."
+},
+"Commodity session realised vol": {
+"example": "If gold's 20-day realised vol is 25 percent, an ordinary day moves about 25 divided by 16, roughly 1.6 percent.",
+"forYou": "Selling options is only worth it when the option price (implied vol) sits clearly above this number.",
+"goodBad": "Low suits option sellers; high suits option buyers.",
+"impact": "If it goes up: daily swings are getting bigger and option sellers face more risk. If it goes down: the market has calmed.",
+"readIt": "When you see this number, compare it with the implied vol beside it and with its own past rows. Rising realised vol means bigger daily swings lately.",
+"scale": {
+"hi": 80,
+"lo": 0,
+"quick": "Gold is often 12-25%, silver 20-40%, crude 25-50%, natural gas 40-80%. Judge it against the same market's own history.",
+"range": "Always zero or more. Each market has its own normal level; what matters is whether it is high or low for that market.",
+"unit": "%",
+"zones": [
+{
+"label": "Calm",
+"means": "Low movement for most commodities.",
+"to": 15,
+"tone": "good"
+},
+{
+"label": "Normal",
+"means": "Typical for metals and crude.",
+"to": 35,
+"tone": "ok"
+},
+{
+"label": "Wild",
+"means": "Large daily swings; normal only for natural gas.",
+"to": null,
+"tone": "risk"
+}
+]
+},
+"simple": "How much the price has actually been moving over the last 20 trading days, written as a yearly percentage."
 },
 "Commodity side call": {
 "example": "A shop sells rain insurance only if the price is clearly above the expected rain damage. If the price is too low, it does not sell. Same idea here.",
@@ -4097,6 +4434,14 @@
 ]
 },
 "simple": "The desk's daily answer: sell option premium on this commodity, or stand aside. Selling needs implied volatility at least 1.10 times the forecast. It also needs no event that has moved this market before expiry."
+},
+"Commodity side call claim": {
+"example": "Crude options price 40 percent yearly vol and the desk sells. Over the next 10 sessions crude actually moves at 30 percent yearly vol. The sale was right: realised came in below the implied vol it used.",
+"forYou": "Follow a commodity sell call with more confidence only after many graded sells have held.",
+"goodBad": "Graded sells that hold more than half the time, over many calls, is the evidence a seller wants.",
+"impact": "If sell calls keep holding: the desk's rule for when premium is rich works on this commodity. If they keep missing: its premium readings are not reliable.",
+"readIt": "When you see stand aside, it is recorded but never graded, because standing aside cannot lose. Only sell (or buy) calls get a hit or miss.",
+"simple": "The desk's sell-or-stand-aside call for an MCX option, written down with the numbers behind it. A sell call is right if the price then moves less than the option price assumed."
 },
 "Commodity track record": {
 "example": "Like a weather office counting how many rain forecasts came true, after the day has passed.",
@@ -4152,6 +4497,14 @@
 ]
 },
 "simple": "Realised volatility is how much the price actually moved. The cone shows its lowest, middle and highest values for windows of 5 to 63 days. It also shows where today sits."
+},
+"Commodity vol premium claim": {
+"example": "Gold options charge 24.6 percent yearly vol and the desk forecasts 24.3 percent, so options are slightly rich. If gold then moves at 20 percent until expiry, the rich call was right.",
+"forYou": "A good record of rich calls supports selling premium on that commodity; a poor one says do not.",
+"goodBad": "Right more than half the time over many claims is good; a coin scores 50 percent.",
+"impact": "If rich calls keep proving right: option sellers on this market are being overpaid. If wrong: the market's price for options is fair or too low.",
+"readIt": "When you see rich or cheap with a ratio, the claim is checked against what the price actually did by expiry, not against the forecast.",
+"simple": "Whether options look expensive or cheap. If the vol the market charges is above the desk's forecast of how much the price will really move, options are rich; if below, cheap."
 },
 "Commodity world benchmark": {
 "example": "Like checking the London gold rate to understand the Mumbai jeweller's price.",
