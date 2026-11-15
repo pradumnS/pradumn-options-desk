@@ -5327,18 +5327,177 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   }
 
   /* --------------------------------------------------------- Track record */
+  /* One line for the Track record header: what the ledger holds, honestly. */
+  function cmLgLine(I) {
+    var L = cmO(cmO(I).ledger), n = cmNum(L.n) || 0, g = cmNum(L.graded) || 0;
+    if (n <= 0) return "The prediction ledger has no claim for this instrument yet.";
+    return g ? "Prediction ledger: " + g + " of " + n + " daily claims graded since " + cmD(L.since) + "." :
+      "Prediction ledger: " + n + " daily claims recorded since " + cmD(L.since) + ", none graded yet.";
+  }
   function cmRecord(I, key) {
     var ext = typeof ceTrackRecord === "function" ? cmSafe(ceTrackRecord, key) : "";
+    var lg = cmSafe(cmLedger, I);
     var head = dhLine("Track record &middot; " + esc(cmStr(I.label)),
-      ext ? "How the commodity side rule and its signals have done, from the evidence layer." :
-        "The commodity side rule is new on this desk and has no graded calls yet; the evidence layer (commevidence.json) is not loaded.", "");
-    if (ext) return head + ext;
+      cmLgLine(I) + (ext ? " Below it, the side rule&rsquo;s backtests and signal grading from the evidence layer: after-the-fact studies on history, not graded calls." :
+        " The evidence layer (commevidence.json) is not loaded, so there is no backtest to show beside it."), "");
+    if (ext) return head + lg + ext;
     var X = cmO(cmO(I.ivr).all);
-    return head + cmCard(cmH2("Track record", "Commodity track record"), "what can already be checked",
+    return head + lg + cmCard(cmH2("Track record", "Commodity track record"), "what can already be checked",
       '<div class="cm-note">Until the backtest for this desk lands, the nearest evidence is on the Volatility tab: ' +
       (cmNum(X.n) != null ? "over " + X.n + " closed " + (cmNum(cmO(I.ivr).h) || 21) + "-session windows, implied vol covered the move " + cmPc(X.inside, 0) +
         " of the time and sat above the realised vol that followed " + cmPc(X.ivAbove, 0) + " of the time." :
         "there is no implied vol for " + esc(cmStr(I.label)) + ", so there is no premium record to show.") + "</div>");
+  }
+
+  /* ---------------------------------------------------- Prediction ledger
+     commledger.py writes each instrument's claims on the trading day of the
+     price they came from and grades them later against the same series.
+     I.ledger carries the counts, the per-claim hit rates and the recent
+     claims; the metal, energy and agri Track record tabs all draw it here. */
+  var CM_CLAIM = {
+    range_next: ["Next-session range", "Commodity next-session range claim"],
+    range_1sd: ["Expiry range 1&sigma;", "Commodity expiry range claim"],
+    range_2sd: ["Expiry range 2&sigma;", "Commodity expiry range claim"],
+    side: ["Side call", "Commodity side call claim"],
+    vrp: ["Vol premium", "Commodity vol premium claim"],
+    lean: ["Directional lean", "Commodity lean claim"]
+  };
+  function cmLgClaim(k) {
+    k = cmStr(k);
+    return Object.prototype.hasOwnProperty.call(CM_CLAIM, k) ? CM_CLAIM[k] : [esc(k) || "Claim", "Commodity prediction ledger"];
+  }
+  function cmLgN(v) {
+    v = cmNum(v);
+    if (v == null) return "&mdash;";
+    var a = Math.abs(v), d = a >= 1000 ? 0 : a >= 10 ? 2 : 3;
+    return v.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function cmLgPct(v, d) { v = cmNum(v); return v == null ? "&mdash;" : (v * 100).toFixed(d == null ? 0 : d) + "%"; }
+  /* The instrument the open page shows: agri on the Agri Index, else metal or energy. */
+  function cmLgCur() {
+    if (typeof state !== "undefined" && state.page === "agri-index" && typeof agInst === "function" && typeof AG_STATE !== "undefined") {
+      var a = agInst(AG_STATE.inst);
+      if (a && typeof a === "object") return a;
+    }
+    return cmCur();
+  }
+  function cmLgHow(fn) {
+    return function () {
+      var I = cmLgCur();
+      if (!I || typeof I !== "object") return "No desk file is loaded, so there are no live figures to show.";
+      var L = cmO(I.ledger);
+      return fn(I, L, esc(cmStr(I.label) || cmStr(I.key) || "This instrument"));
+    };
+  }
+  function cmLgType(L, claim) {
+    var T = cmA(L.types).map(cmO);
+    for (var i = 0; i < T.length; i++) if (cmStr(T[i].claim) === claim) return T[i];
+    return null;
+  }
+  function cmLgMark(r) {
+    var st = cmStr(r.status), note = cmStr(r.note);
+    if (st === "graded" && (r.correct === 1 || r.correct === 0)) {
+      return '<span class="mark ' + (r.correct ? "hit" : "miss") + '" data-tip="' + esc(r.correct ? "Held: the claim came true" : "Missed: the claim did not come true") + '">' +
+        (r.correct ? "&#10003;" : "&#10007;") + "</span>";
+    }
+    if (st === "ungradable") return '<span class="mark pend" data-tip="' + esc("Not gradable: " + (note || "the data to grade it is missing")) + '">n/a</span>';
+    if (st === "not_graded") return '<span class="mark pend" data-tip="' + esc(note || "Recorded, not graded") + '">not graded</span>';
+    return '<span class="mark pend" data-tip="' + esc("Pending: the horizon has not arrived or its settlement is not on file yet") + '">&middot;</span>';
+  }
+  function cmLgOutcome(r) {
+    var k = cmStr(r.claim), a = cmNum(r.actual), st = cmStr(r.status);
+    if (st === "pending") return '<span style="color:var(--ink-3)">' + (cmStr(r.horizon) === "next" ? "next session" : "due " + cmD(r.horizon_date)) + "</span>";
+    if (a == null) return '<span style="color:var(--ink-3)">' + (cmStr(r.resolved_on) ? cmD(r.resolved_on) : "&mdash;") + "</span>";
+    return ((k === "vrp" || k === "side") ? "realised " + a.toFixed(1) + "%" : cmLgN(a)) +
+      (cmStr(r.resolved_on) ? ' <i class="sub-n">' + cmD(r.resolved_on, false) + "</i>" : "");
+  }
+  function cmLedger(I) {
+    I = cmO(I);
+    var L = cmO(I.ledger), lab = esc(cmStr(I.label) || cmStr(I.key) || "This instrument");
+    var head = cmH2("Prediction ledger", "Commodity prediction ledger");
+    var sub = "written before the outcome &middot; graded after &middot; never rewritten";
+    var n = cmNum(L.n) || 0;
+    if (n <= 0) {
+      var why = cmStr(L.whyNone);
+      return cmCard(head, sub, '<div class="cm-note">No claims are recorded for ' + lab + (why ? ": " + esc(why) : " yet") +
+        ". The ledger starts on the first export that records a claim; earlier days are not backfilled, because a claim written after its outcome proves nothing.</div>");
+    }
+    var g = cmNum(L.graded) || 0, p = cmNum(L.pending) || 0, u = (cmNum(L.ungradable) || 0) + (cmNum(L.notGraded) || 0);
+    var since = cmD(L.since);
+    var tiles = '<div class="struct">' +
+      cmTile("Claims recorded", String(n), "since " + since + " &middot; " + (cmNum(L.days) || 1) + " day(s)", "Commodity prediction ledger") +
+      cmTile("Graded", String(g), g ? "hit or miss, from the settlement" : "none yet", "Commodity ledger status") +
+      cmTile("Pending", String(p), "horizon not reached", "Commodity ledger status") +
+      cmTile("Not gradable", String(u), "missing data, or stand aside", "Commodity ledger status") + "</div>";
+    var parts = [];
+    if (cmStr(L.firstNext)) parts.push("first next-session grades on " + cmD(L.firstNext));
+    if (cmStr(L.firstExpiry)) parts.push("first expiry grades on " + cmD(L.firstExpiry));
+    var status = g ? "<b>" + g + "</b> of " + n + " claims graded so far; " + p + " still pending." :
+      "<b>" + n + "</b> claims recorded since " + since + (parts.length ? "; " + parts.join(", ") : "") +
+      ". Nothing has been graded yet, so there is no hit rate to show: the table below fills in as settlements arrive.";
+    var world = cmStr(cmO(cmA(L.recent)[0]).price_source).indexOf("Yahoo") >= 0;
+    var how = world ? "Graded on the same world front-month series the price came from (Yahoo). That series switches contract at each roll, which can move it by the calendar spread on the day; read a miss near a roll with that in mind." :
+      "Graded on the daily settlement of the futures contract the price came from (expiry claims on the option&rsquo;s underlying contract), never on a different series.";
+
+    /* ---- which claims hold up */
+    var kmin = cmNum(L.kupiecMin) || 20;
+    var trows = cmA(L.types).map(cmO).map(function (t) {
+      var c = cmLgClaim(t.claim), gr = cmNum(t.graded) || 0, prom = cmNum(t.promised), rate = cmNum(t.rate);
+      var band = cmA(t.band), K = t.kupiec && typeof t.kupiec === "object" ? cmO(t.kupiec) : null;
+      var target = prom != null ? prom : 0.5;
+      var tone = rate == null ? "var(--ink-3)" : band.length === 2 && cmNum(band[0]) != null && cmNum(band[1]) != null ?
+        (rate >= band[0] && rate <= band[1] ? "var(--up)" : "var(--warn)") : (rate >= target ? "var(--up)" : "var(--warn)");
+      var bar = rate == null ? '<div class="relbar" data-tip="' + esc(cmStr(t.label) + ": no graded claim yet") + '"></div>' :
+        '<div class="relbar" data-tip="' + esc(cmStr(t.label) + ": " + Math.round(rate * 100) + "% held over " + gr + " graded; " +
+          (prom != null ? "promised " + (prom * 100).toFixed(0) + "%" : "no stated probability, a coin scores 50%")) + '"><i style="width:' +
+          Math.max(0, Math.min(100, rate * 100)).toFixed(1) + "%;background:" + tone + '"></i></div>';
+      var kup = prom == null ? "n/a" : K && cmNum(K.lr) != null ?
+        "LR " + K.lr.toFixed(2) + ", p " + (cmNum(K.p) == null ? "&mdash;" : K.p.toFixed(2)) + (K.rejected === true ? " &middot; rejected" : " &middot; passes") :
+        "needs " + kmin + " (" + (cmNum(t.independent) || 0) + ")";
+      return "<tr>" + cmL("td", c[0], c[1], "lft") +
+        "<td>" + (prom != null ? cmLgPct(prom, prom > 0.9 ? 1 : 0) : "none") + "</td>" +
+        "<td>" + gr + "</td><td>" + (cmNum(t.hits) || 0) + "</td>" +
+        '<td style="color:' + tone + ';font-weight:600">' + (rate == null ? "&mdash;" : cmLgPct(rate)) + "</td>" +
+        "<td>" + (band.length === 2 && cmNum(band[0]) != null && cmNum(band[1]) != null ? cmLgPct(band[0]) + "&ndash;" + cmLgPct(band[1]) : "&mdash;") + "</td>" +
+        "<td>" + (cmNum(t.brier) != null ? t.brier.toFixed(3) + (cmNum(t.brierCalibrated) != null ? ' <i class="sub-n">vs ' + t.brierCalibrated.toFixed(3) + "</i>" : "") : prom == null ? "n/a" : "&mdash;") + "</td>" +
+        "<td>" + kup + "</td>" +
+        "<td>" + (cmNum(t.pending) || 0) + "</td>" +
+        '<td class="lft">' + bar + "</td></tr>";
+    }).join("");
+    var types = trows ? '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      cmL("th", "Claim", "Commodity ledger hit rate", "lft") + cmL("th", "Promised", "Commodity ledger hit rate") +
+      cmL("th", "Graded", "Commodity ledger status") + cmL("th", "Held", "Commodity ledger hit rate") +
+      cmL("th", "Hit rate", "Commodity ledger hit rate") + cmL("th", "Honest band", "Commodity ledger hit rate") +
+      cmL("th", "Brier", "Commodity ledger Brier score") + cmL("th", "Kupiec", "Commodity ledger Kupiec test") +
+      cmL("th", "Pending", "Commodity ledger status") + cmL("th", "Hit rate bar", "Commodity ledger hit rate", "lft") +
+      "</tr></thead><tbody>" + trows + "</tbody></table></div>" : "";
+
+    /* ---- the claims themselves, newest first */
+    var crow = cmA(L.recent).map(cmO).map(function (r) {
+      var c = cmLgClaim(r.claim), pend = cmStr(r.status) === "pending";
+      return "<tr" + (pend ? ' class="pending-row"' : "") + ">" +
+        '<td class="lft">' + cmD(r.made_on) + "</td>" + cmL("td", c[0], c[1], "lft") +
+        '<td class="lft cm-wrap">' + esc(cmStr(r.stated) || "-") + "</td>" +
+        "<td>" + cmLgN(r.price) + "</td>" +
+        '<td class="lft">' + (cmStr(r.horizon) === "next" ? "next session" : cmD(r.horizon_date)) + "</td>" +
+        "<td>" + cmLgOutcome(r) + "</td><td>" + cmLgMark(r) + "</td></tr>";
+    }).join("");
+    var claims = crow ? '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      cmL("th", "Made on", "Commodity prediction ledger", "lft") + cmL("th", "Claim", "Commodity prediction ledger", "lft") +
+      cmL("th", "Stated on the day", "Commodity prediction ledger", "lft") + cmL("th", "Price then", "Commodity prediction ledger") +
+      cmL("th", "Horizon", "Commodity prediction ledger", "lft") + cmL("th", "Outcome", "Commodity ledger status") +
+      cmL("th", "Result", "Commodity ledger status") + "</tr></thead><tbody>" + crow + "</tbody></table></div>" : "";
+    var src = cmStr(cmO(cmA(L.recent)[0]).price_source);
+
+    return cmCard(head, sub, tiles + '<div class="cm-note">' + status + "</div>") +
+      (types ? cmCard(cmH2("Which claims hold up", "Commodity ledger hit rate"), g ? "hit rate against what each claim promised" : "every claim type on file, waiting for its first grade", types +
+        '<div class="cm-note">A 1&sigma; range promises 68%, a 2&sigma; range 95%. Over a few claims the hit rate swings widely: the honest band is where a calibrated range lands 95% of the time at that count, and Kupiec&rsquo;s test is quoted only from ' + kmin + " independent claims (an expiry counted once, however many days forecast it).</div>") : "") +
+      (claims ? cmCard(cmH2("Claims on file", "Commodity prediction ledger"), "the latest " + cmA(L.recent).length + " of " + n + ", newest first", claims +
+        '<div class="cm-note">' + how + (src ? " Price source of the latest claim: " + esc(src) + "." : "") + "</div>" +
+        dsMethod("How each claim is graded", "Ranges: inside the band at the settlement of the next session (the first session the exchange traded after the claim day; a weekend or holiday is skipped, a missing settlement makes the claim not gradable) or on the expiry date. " +
+          "Side call: a sell is right when the realised vol from the claim day to expiry (daily settlements, root mean square of the log returns) comes in below the implied vol it used; standing aside is recorded and not graded. " +
+          "Vol premium: rich is right when implied ended above the realised vol, cheap when below. Lean: the settlement at expiry is above (lean up) or below (lean down) the price on the claim day. " +
+          "Not gradable is never counted as a miss.")) : "");
   }
 
   /* -------------------------------------------------------------- glossary */
@@ -5596,8 +5755,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Commodity track record": {
       plain: ["How the commodity desk's calls have done once their expiry passed.",
         "The graded record and the backtest come from the evidence layer; until it lands, the implied-against-realised history is the nearest check."],
-      deep: ["A sell call is graded at expiry against the ATM straddle's breakevens, the same way the NIFTY desk grades its side calls.",
-        "Standing aside is not graded."],
+      deep: ["The prediction ledger (commledger.py) grades a sell call at expiry by whether the realised vol of the contract's settlements came in below the implied vol the call used.",
+        "Standing aside is recorded and not graded: it cannot lose. The backtests in the evidence layer are after-the-fact studies on history, kept apart from the ledger's graded calls."],
       how: cmHow(function (I) {
         var J = cmO(I.ivr).all ? I : cmWithIv(I), A = cmO(cmO(J.ivr).all);
         return esc(cmStr(J.label)) + ": " + (cmNum(A.n) || 0) + " closed implied windows; implied covered the move " + cmPc(A.inside, 0) + " of the time.";
@@ -5678,6 +5837,110 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var mk = cmA(E.markets).filter(function (x) { return cmO(x).key === p; })[0];
       if (mk) { var L2 = cmO(mk.latest), C = cmO(cmO(L2.cats).mm); return lab + ": managed money net " + (cmNum(C.net) == null ? "&mdash;" : Math.round(C.net)) + " contracts, " + cmPc(L2.pctOI, 1) + " of open interest, z " + cmSg(L2.z, 2) + " on " + cmD(mk.asOf) + "." + tail; }
       return lab + ": the " + esc(p) + " line of the weekly report is not loaded." + tail;
+    })
+  };
+  /* Prediction ledger terms (commledger.py). Each how() reads the open
+     instrument's own ledger, on the metal, energy or agri page. */
+  CM_TERMS["Commodity prediction ledger"] = {
+    plain: ["A diary the desk writes every trading day before it knows the answer: the range it expects, its side call, its vol-premium read and its lean, each with the price it started from.",
+      "Days later the settlement is checked and each claim is marked held or missed. Nothing is written after the fact and nothing is ever edited."],
+    deep: ["One row per claim per instrument per trading day (made_on is the day of the price). The first record of a day wins, as in the NIFTY ledger, so a re-run the same day adds nothing; earlier days are never backfilled.",
+      "Each claim is graded on the same series its price came from: the MCX contract's daily settlement for an Indian contract (expiry claims on the option's underlying future), the world front-month future where nothing trades in India."],
+    how: cmLgHow(function (I, L, lab) {
+      var n = cmNum(L.n) || 0;
+      if (!n) return lab + ": no claim recorded yet" + (cmStr(L.whyNone) ? " (" + esc(cmStr(L.whyNone)) + ")" : "") + "; 0 graded.";
+      return lab + ": <b>" + n + "</b> claim(s) since " + cmD(L.since) + ", " + (cmNum(L.graded) || 0) + " graded, " + (cmNum(L.pending) || 0) + " pending" +
+        (cmStr(L.firstNext) && !(cmNum(L.graded) || 0) ? "; the first next-session grade is due " + cmD(L.firstNext) : "") + ".";
+    })
+  };
+  CM_TERMS["Commodity ledger status"] = {
+    plain: ["Where each claim stands. Pending: its day has not come, or the settlement is not on file yet. Graded: checked against the settlement, held or missed.",
+      "Not gradable: the data to check it is missing (or the window was too short to measure vol), or it was a stand-aside call, which cannot lose. Not gradable is never counted as a miss."],
+    deep: ["A missing settlement becomes final only after three later sessions the exchange traded, so a late fetch can still grade it. For a single world series with no exchange calendar, a gap of two or more weekdays is treated as missing data, one weekday as a holiday.",
+      "The vol claims need at least five daily returns and settlements for 80% of the window's sessions."],
+    how: cmLgHow(function (I, L, lab) {
+      return lab + ": " + (cmNum(L.graded) || 0) + " graded, " + (cmNum(L.pending) || 0) + " pending, " + (cmNum(L.ungradable) || 0) + " not gradable and " +
+        (cmNum(L.notGraded) || 0) + " recorded but not graded (stand aside), of " + (cmNum(L.n) || 0) + ".";
+    })
+  };
+  CM_TERMS["Commodity ledger hit rate"] = {
+    plain: ["The share of graded claims that came true, set beside what the claim promised. A 1-sigma range promises 68%; a 2-sigma range 95%.",
+      "Close to the promise is good. Far above means the ranges are too wide (safe but wasteful); far below means they are too narrow (risky for a seller)."],
+    deep: ["The honest band is p +/- 1.96 x sqrt(p(1-p)/n): where a perfectly calibrated range lands 95% of the time over n claims. At 30 claims a 68% range can honestly score anywhere from about 51% to 85%; the band only narrows with many claims.",
+      "Side, vol-premium and lean claims carry no stated probability, so they are read against a coin's 50%."],
+    how: cmLgHow(function (I, L, lab) {
+      var T = cmLgType(L, "range_next") || cmLgType(L, "range_1sd");
+      if (!T) return lab + ": no range claim on file, so no hit rate yet (0 graded).";
+      var r = cmNum(T.rate);
+      return lab + " " + esc(cmStr(T.label)) + ": " + (r == null ? "none of " + (cmNum(T.n) || 0) + " graded yet" : "<b>" + Math.round(r * 100) + "%</b> held over " + (cmNum(T.graded) || 0) + " graded") +
+        " against a promised " + cmLgPct(T.promised) + ".";
+    })
+  };
+  CM_TERMS["Commodity ledger Brier score"] = {
+    plain: ["A score for a forecast that comes with a probability: the average of (probability - outcome) squared, where the outcome is 1 if the claim held and 0 if not. Lower is better.",
+      "For a range promising 68%, a perfectly honest one averages about 0.217; for 95%, about 0.043. The page shows that honest value beside the real one."],
+    deep: ["BS = (1/N) sum (p - o)^2, ledger.py's own function. Because every range of one type carries the same p, the Brier score here moves only with the hit rate; it becomes more telling when the claims are pooled."],
+    how: cmLgHow(function (I, L, lab) {
+      var T = cmLgType(L, "range_next") || cmLgType(L, "range_1sd");
+      if (!T || cmNum(T.brier) == null) return lab + ": no graded range claim yet, so no Brier score (an honest 68% range averages 0.217).";
+      return lab + " " + esc(cmStr(T.label)) + ": Brier <b>" + T.brier.toFixed(3) + "</b> against " + (cmNum(T.brierCalibrated) || 0).toFixed(3) + " for an honest range, over " + (cmNum(T.graded) || 0) + " claims.";
+    })
+  };
+  CM_TERMS["Commodity ledger Kupiec test"] = {
+    plain: ["A statistics check of whether a range breaks about as often as it promised, or so much more (or less) often that luck no longer explains it.",
+      "It is quoted only from 20 independent claims. Below that, a few unlucky days decide everything."],
+    deep: ["Kupiec's proportion-of-failures test, ledger.py's function: LR = -2 ln[(1-p)^(N-x) p^x / ((1-x/N)^(N-x) (x/N)^x)] ~ chi-square(1); above 3.84 the promised rate is rejected at 95%.",
+      "Expiry claims count once per expiry (the earliest made): consecutive days forecasting the same settlement are one outcome, not several."],
+    how: cmLgHow(function (I, L, lab) {
+      var T = cmLgType(L, "range_next") || cmLgType(L, "range_1sd"), K = T && T.kupiec && typeof T.kupiec === "object" ? cmO(T.kupiec) : null;
+      if (!K || cmNum(K.lr) == null) return lab + ": " + (T ? (cmNum(T.independent) || 0) : 0) + " independent graded range claim(s); the test needs " + (cmNum(L.kupiecMin) || 20) + ".";
+      return lab + " " + esc(cmStr(T.label)) + ": LR " + K.lr.toFixed(2) + " (p " + (cmNum(K.p) || 0).toFixed(2) + ") over " + (cmNum(K.n) || 0) + " claims: " + (K.rejected === true ? "<b>rejected</b>" : "passes") + ".";
+    })
+  };
+  CM_TERMS["Commodity next-session range claim"] = {
+    plain: ["The band the desk expects the next settlement to land in, 68% of the time: today's price plus and minus one day's worth of the vol it uses.",
+      "It is checked the very next session, so it is the first claim to get a grade."],
+    deep: ["lo, hi = price x exp(-/+ vol x sqrt(1/252)), with the same vol as the expiry range (implied where it exists, the HAR forecast otherwise). Graded on the settlement of the first session the exchange traded after the claim day."],
+    how: cmLgHow(function (I, L, lab) {
+      var N = cmO(cmO(I.range).next);
+      return lab + ": next settlement " + cmLgN(N.lo1) + " to " + cmLgN(N.hi1) + " (+/-" + (cmNum(N.movePct) == null ? "&mdash;" : N.movePct.toFixed(2) + "%") + ").";
+    })
+  };
+  CM_TERMS["Commodity expiry range claim"] = {
+    plain: ["The bands the desk expects the price to be inside on the option expiry: 1 sigma (68% of the time) and 2 sigma (95%).",
+      "They are the ranges on the Today tab, written down on the day and checked on the expiry settlement."],
+    deep: ["Graded on the settlement of the option's underlying futures contract on the expiry date (the first session on or after it). Where the price came from the front contract and the option sits on the next one, the band is still graded on the option's own contract, which can differ by the calendar spread."],
+    how: cmLgHow(function (I, L, lab) {
+      var R = cmO(I.range);
+      return lab + ": to " + cmD(R.expiry) + ", 1 sigma " + cmLgN(R.lo1) + " to " + cmLgN(R.hi1) + ", 2 sigma " + cmLgN(R.lo2) + " to " + cmLgN(R.hi2) + ".";
+    })
+  };
+  CM_TERMS["Commodity side call claim"] = {
+    plain: ["The desk's sell-or-stand-aside call for an Indian option, with the implied/forecast ratio behind it.",
+      "A sell is right if the market then moves less than the option price assumed: realised vol to expiry below the implied vol used. Standing aside is recorded but not graded, because it cannot lose."],
+    deep: ["Realised vol is the root mean square of daily log returns of the contract's settlements from the claim day to the expiry settlement, times sqrt(252). Recorded only where an Indian option can be traded."],
+    how: cmLgHow(function (I, L, lab) {
+      var S = cmO(I.side), N = cmO(S.inputs);
+      return lab + ": today " + esc(cmSideWord(cmStr(S.side))) + (cmNum(N.ratio) != null ? " at " + cmX(N.ratio) + " implied / forecast" : " (no ratio)") + ".";
+    })
+  };
+  CM_TERMS["Commodity vol premium claim"] = {
+    plain: ["Whether option prices look rich or cheap: implied vol above the desk's forecast of realised vol is rich, below is cheap.",
+      "It is graded on what vol actually did: rich is right if implied ended above the realised vol to expiry, cheap if below."],
+    deep: ["The implied vol itself is stored, not the ratio: testing the ratio against 1 would grade a number against itself. A proxy implied (a US fund's options) is recorded and labelled as such."],
+    how: cmLgHow(function (I, L, lab) {
+      var V = cmO(I.vrp);
+      if (cmNum(V.ratio) == null) return lab + ": no implied vol, so no vol-premium claim today.";
+      return lab + ": implied " + cmPc(V.iv, 1) + " against forecast " + cmPc(V.rv, 1) + " = " + cmX(V.ratio) + " (" + (V.ratio > 1 ? "rich" : "cheap") + ").";
+    })
+  };
+  CM_TERMS["Commodity lean claim"] = {
+    plain: ["Which way the desk's plan leans, from the trend read: up or down. When it leans neither way, no lean is recorded.",
+      "Graded at expiry: a lean up is right if the settlement is above the price on the day, a lean down if below. A coin gets this right half the time."],
+    deep: ["The lean comes from regimes.py's trend zone (above or below both the 50 and 200-day averages, not sideways). It has no stated probability, so it is read against 50%."],
+    how: cmLgHow(function (I, L, lab) {
+      var b = cmStr(I.bias);
+      return lab + ": the plan leans " + (b === "up" || b === "down" ? "<b>" + b + "</b>" : "neither way (no lean claim today)") + ".";
     })
   };
   var CM_ALIAS = {
@@ -13077,14 +13340,15 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       ext = agSafe(ceTrackRecord, key);
       if (/is not loaded|could not be drawn/.test(ext)) ext = "";
     }
-    var head = dhLine("Track record &middot; " + esc(agS(I.label)), ext ? "How the side rule and its signals have done on this contract, from the evidence layer." :
-      "The agri side rule is new on this desk and has no graded calls yet; the evidence layer has no entry for this contract.", "");
-    if (ext) return head + ext;
+    var lg = agSafe(cmLedger, I);
+    var head = dhLine("Track record &middot; " + esc(agS(I.label)), cmLgLine(I) + (ext ? " Below it, how the side rule and its signals have done on this contract in the evidence layer&rsquo;s after-the-fact studies." :
+      " The evidence layer has no backtest for this contract."), "");
+    if (ext) return head + lg + ext;
     var X = agO(agO(I.ivr).all), V = agO(I.implied);
     var txt = agN(X.n) != null ? "Over " + X.n + " closed 21-session windows the NCDEX settlement implied covered the move " + agPc(X.inside, 0) + " of the time and sat above the realised vol that followed " + agPc(X.ivAbove, 0) + " of the time." :
       V.has === true && V.kind === "etf" ? "The only implied vol here is an ETF proxy read once a day; no history is stored, so there is nothing to grade yet." :
       "There is no implied vol for " + esc(agS(I.label)) + ", so there is no premium record to show; the desk does not sell it.";
-    return head + agCard(agH2("Track record", "Agri track record"), "what can already be checked", agNote(txt + " No backtest of the agri side rule exists yet."));
+    return head + lg + agCard(agH2("Track record", "Agri track record"), "what can already be checked", agNote(txt + " No backtest of the agri side rule exists yet."));
   }
 
   /* ----------------------------------------------- universe (tier 2 / 3) */
