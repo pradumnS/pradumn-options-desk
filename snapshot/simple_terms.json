@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 888,
-"generatedAt": "2026-11-15T08:20:04Z",
+"count": 890,
+"generatedAt": "2026-11-15T09:17:47Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -8547,6 +8547,14 @@
 },
 "simple": "The average closing price over the last 20, 50 or 200 days. It is recalculated each evening. It is a slow line that many people watch."
 },
+"My alerts": {
+"example": "You hold a 25,800 put you sold. You set: NIFTY goes below 25,900. On Tuesday NIFTY falls to 25,880, and your phone gets a message, so you can act before it reaches your strike.",
+"forYou": "Put a level just before the price where you would need to act (your stop, your short strike, a support), not exactly on it, so you get time to react.",
+"goodBad": "There is no good or bad number here. A useful level is one where you already know what you will do when it is hit. Too many alerts teach you to ignore them; a handful is better.",
+"impact": "If the distance to level gets small: the alert is close to firing. If the status says fired: the condition happened; look at the market and decide.",
+"readIt": "Each row shows the rule, the number now, how far it is from your level, and the status: watching, fired, or waiting for it to clear.",
+"simple": "Your own alarm clock for the market. You pick a number, like NIFTY or the gold price, and a level. When the number reaches that level, the desk tells you."
+},
 "My positions": {
 "example": "Like a shop's own diary of stock on the shelf: it lists what you hold today and what it would fetch if you sold now.",
 "forYou": "Open it at your planned check times to see where each trade stands against its exit rules.",
@@ -9638,6 +9646,14 @@
 "range": "It is a rupee limit set from your capital. Rule of thumb for option sellers: 1% to 2% a trade. Above 2% one bad gap can hurt for months."
 },
 "simple": "This is the most one trade may lose if gapped through, as a share of your capital. The default is 2 percent. It halves after two stops in a row or a 5 percent drawdown."
+},
+"Phone alert command": {
+"example": "/alert nifty below 25800 means: message me once when NIFTY is at or below 25,800. Add the word every at the end to be told each time it happens again.",
+"forYou": "Send /alerts to your bot to see what it is watching, and /delete with the number to remove one.",
+"goodBad": "No good or bad value. It works only after the one-time Telegram set-up described under How My alerts reach you.",
+"impact": "If you send it: the desk PC checks it every couple of minutes in market hours. If the PC is off: nothing is checked until it is on again.",
+"readIt": "The words are: the name, then above, below or move, then the level. Press Copy and paste it into your bot chat.",
+"simple": "A short text you send to your own Telegram bot so the alert reaches your phone even when this page is closed."
 },
 "Pin strike": {
 "example": "Like a magnet under a table pulling a marble. If the magnet is real, the marble ends near it.",

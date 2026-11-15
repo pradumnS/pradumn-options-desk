@@ -1,0 +1,615 @@
+{
+ "generatedAt": "2026-11-15T14:47:47+05:30",
+ "metrics": [
+  {
+   "id": "nifty",
+   "label": "NIFTY 50",
+   "group": "index",
+   "unit": "pts",
+   "value": 25144.3,
+   "chgPct": -0.61,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "banknifty",
+   "label": "Bank NIFTY",
+   "group": "index",
+   "unit": "pts",
+   "value": 61034.1,
+   "chgPct": -0.79,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "finnifty",
+   "label": "FIN NIFTY",
+   "group": "index",
+   "unit": "pts",
+   "value": 27855.5,
+   "chgPct": -0.72,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "midcpnifty",
+   "label": "MIDCAP SELECT",
+   "group": "index",
+   "unit": "pts",
+   "value": 14346.45,
+   "chgPct": 0.17,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "next50",
+   "label": "NIFTY NEXT 50",
+   "group": "index",
+   "unit": "pts",
+   "value": 72874.7,
+   "chgPct": -0.83,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "giftnifty",
+   "label": "GIFT NIFTY",
+   "group": "index",
+   "unit": "pts",
+   "value": 25168.5,
+   "chgPct": -0.42,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "vix",
+   "label": "India VIX",
+   "group": "volatility",
+   "unit": "pts",
+   "value": 15.78,
+   "chgPct": -5.06,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "India VIX"
+  },
+  {
+   "id": "midcap100",
+   "label": "MIDCAP 100",
+   "group": "index",
+   "unit": "pts",
+   "value": 61889.5,
+   "chgPct": -0.24,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "smallcap100",
+   "label": "SMALLCAP 100",
+   "group": "index",
+   "unit": "pts",
+   "value": 19656.45,
+   "chgPct": -0.26,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftyit",
+   "label": "NIFTY IT",
+   "group": "sector",
+   "unit": "pts",
+   "value": 31931.15,
+   "chgPct": -0.72,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftypharma",
+   "label": "NIFTY PHARMA",
+   "group": "sector",
+   "unit": "pts",
+   "value": 28535.75,
+   "chgPct": -0.49,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftyauto",
+   "label": "NIFTY AUTO",
+   "group": "sector",
+   "unit": "pts",
+   "value": 27929.85,
+   "chgPct": -1.07,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftymetal",
+   "label": "NIFTY METAL",
+   "group": "sector",
+   "unit": "pts",
+   "value": 12647.9,
+   "chgPct": -0.98,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftyfmcg",
+   "label": "NIFTY FMCG",
+   "group": "sector",
+   "unit": "pts",
+   "value": 46833.55,
+   "chgPct": -0.01,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftyenergy",
+   "label": "NIFTY ENERGY",
+   "group": "sector",
+   "unit": "pts",
+   "value": 37399.05,
+   "chgPct": 0.03,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftyrealty",
+   "label": "NIFTY REALTY",
+   "group": "sector",
+   "unit": "pts",
+   "value": 921.25,
+   "chgPct": -1.39,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "psubank",
+   "label": "NIFTY PSU BANK",
+   "group": "sector",
+   "unit": "pts",
+   "value": 9258.6,
+   "chgPct": -0.51,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "pvtbank",
+   "label": "NIFTY PRIVATE BANK",
+   "group": "sector",
+   "unit": "pts",
+   "value": 29977.95,
+   "chgPct": -0.76,
+   "asOf": "2026-11-13T15:44:47+05:30",
+   "term": "Spot"
+  },
+  {
+   "id": "niftyiv",
+   "label": "NIFTY ATM implied vol",
+   "group": "nifty options",
+   "unit": "%",
+   "value": 13.365,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Implied volatility (IV)"
+  },
+  {
+   "id": "ivpct",
+   "label": "NIFTY IV percentile (1y)",
+   "group": "nifty options",
+   "unit": "pct",
+   "value": 67.9,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "IV percentile"
+  },
+  {
+   "id": "vixpct",
+   "label": "India VIX percentile (1y)",
+   "group": "nifty options",
+   "unit": "pct",
+   "value": 68.3,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "IV percentile"
+  },
+  {
+   "id": "pcr",
+   "label": "NIFTY put-call OI ratio",
+   "group": "nifty options",
+   "unit": "x",
+   "value": 0.782908893451699,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Put-call OI ratio"
+  },
+  {
+   "id": "putwall",
+   "label": "NIFTY put wall (strike)",
+   "group": "nifty options",
+   "unit": "pts",
+   "value": 24000.0,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Put wall"
+  },
+  {
+   "id": "callwall",
+   "label": "NIFTY call wall (strike)",
+   "group": "nifty options",
+   "unit": "pts",
+   "value": 26000.0,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Call wall"
+  },
+  {
+   "id": "maxpain",
+   "label": "NIFTY max pain (strike)",
+   "group": "nifty options",
+   "unit": "pts",
+   "value": 25100.0,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Max pain"
+  },
+  {
+   "id": "flip",
+   "label": "NIFTY gamma flip level",
+   "group": "nifty options",
+   "unit": "pts",
+   "value": 25589.0,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Gamma flip"
+  },
+  {
+   "id": "gold",
+   "label": "Gold (world, USD/oz)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 3886.300048828125,
+   "chgPct": 0.025738037923273005,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "goldmcx",
+   "label": "Gold (MCX, Rs/10g)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 136750.0,
+   "chgPct": 0.3854,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "goldiv",
+   "label": "Gold implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 24.588713372560715,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "goldivrank",
+   "label": "Gold IV rank (1y)",
+   "group": "commodity",
+   "unit": "pct",
+   "value": 21.822996751952704,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity IV rank"
+  },
+  {
+   "id": "silver",
+   "label": "Silver (world, USD/oz)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 49.12099838256836,
+   "chgPct": -1.7029571308395663,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "silvermcx",
+   "label": "Silver (MCX, Rs/kg)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 176543.0,
+   "chgPct": 0.1327,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "silveriv",
+   "label": "Silver implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 41.06,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "copper",
+   "label": "Copper (world, USD/lb)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 6.0904998779296875,
+   "chgPct": -1.488071319569062,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "coppermcx",
+   "label": "Copper (MCX, Rs/kg)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 1308.55,
+   "chgPct": 0.0115,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "copperiv",
+   "label": "Copper implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 29.09,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "crude",
+   "label": "Crude oil (world, USD/bbl)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 88.55999755859375,
+   "chgPct": -0.20284010537402475,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "crudemcx",
+   "label": "Crude oil (MCX, Rs/bbl)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 8372.0,
+   "chgPct": 0.8675,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "crudeiv",
+   "label": "Crude oil implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 52.736513291879824,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "crudeivrank",
+   "label": "Crude oil IV rank (1y)",
+   "group": "commodity",
+   "unit": "pct",
+   "value": 23.65149519446512,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity IV rank"
+  },
+  {
+   "id": "natgas",
+   "label": "Natural gas (world, USD/MMBtu)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 3.2300000190734863,
+   "chgPct": -3.2934101174425634,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "natgasmcx",
+   "label": "Natural gas (MCX, Rs/mmBtu)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 307.9,
+   "chgPct": -1.6608,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "natgasiv",
+   "label": "Natural gas implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 61.13,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "platinum",
+   "label": "Platinum (world, USD/oz)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 1489.699951171875,
+   "chgPct": -1.87076114029322,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "platinumiv",
+   "label": "Platinum implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 41.23,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "palladium",
+   "label": "Palladium (world, USD/oz)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 1007.5999755859375,
+   "chgPct": 1.8086251549082277,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "palladiumiv",
+   "label": "Palladium implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 54.02,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "aluminium",
+   "label": "Aluminium (world, USD/t)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 3120.0,
+   "chgPct": -1.2736334150779238,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "aluminiummcx",
+   "label": "Aluminium (MCX, Rs/kg)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 327.25,
+   "chgPct": -0.0916,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "zinc",
+   "label": "Zinc (world, USD per ETC unit)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 12.917499542236328,
+   "chgPct": -0.40478584203227364,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "zincmcx",
+   "label": "Zinc (MCX, Rs/kg)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 404.35,
+   "chgPct": 0.1362,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "lead",
+   "label": "Lead (world, USD per ETC unit)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 15.682499885559082,
+   "chgPct": 0.6256005593420655,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "leadmcx",
+   "label": "Lead (MCX, Rs/kg)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 194.4,
+   "chgPct": 0.103,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "nickel",
+   "label": "Nickel (world, USD per ETC unit)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 13.805000305175781,
+   "chgPct": -1.3576247369559091,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "nickelmcx",
+   "label": "Nickel (MCX, Rs/kg)",
+   "group": "commodity",
+   "unit": "inr",
+   "value": 1524.0,
+   "chgPct": 0.0263,
+   "asOf": "2026-11-13",
+   "term": "Commodity MCX price"
+  },
+  {
+   "id": "ironore",
+   "label": "Iron ore (world, USD/t)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 91.4800033569336,
+   "chgPct": -0.13099903841308214,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "brent",
+   "label": "Brent (world, USD/bbl)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 95.83999633789062,
+   "chgPct": 0.020868965904918824,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "brentiv",
+   "label": "Brent implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 44.11,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  },
+  {
+   "id": "heatingoil",
+   "label": "Heating oil (ULSD) (world, USD/gal)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 4.258500099182129,
+   "chgPct": -0.6532107332134718,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "gasoline",
+   "label": "Gasoline (RBOB) (world, USD/gal)",
+   "group": "commodity",
+   "unit": "usd",
+   "value": 2.589099884033203,
+   "chgPct": -3.059011812646273,
+   "asOf": "2026-11-13",
+   "term": "Commodity world price"
+  },
+  {
+   "id": "gasolineiv",
+   "label": "Gasoline (RBOB) implied vol",
+   "group": "commodity",
+   "unit": "%",
+   "value": 36.58,
+   "chgPct": null,
+   "asOf": "2026-11-13",
+   "term": "Commodity implied vol"
+  }
+ ]
+}

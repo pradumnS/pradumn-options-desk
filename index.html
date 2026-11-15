@@ -30029,6 +30029,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       ".ps-form label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--ink-3)}" +
       ".ps-form input,.ps-form select{background:var(--surface-2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:5px 8px;font:inherit;font-size:12.5px;min-width:84px}" +
       ".ps-form input.ps-wide{min-width:170px}" +
+      ".ma-form select{max-width:100%}.ma-form label{min-width:0;max-width:100%}.ma-note input{min-width:200px}" +
+      ".ma-cmd{font-family:var(--font-num);font-size:11.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;user-select:all;word-break:break-all}" +
       ".ps-msg{margin:0 14px 10px;font-size:12px;color:var(--ink-2)}" +
       ".ps-priv{margin:0 14px 12px;font-size:12px;color:var(--ink-3)}" +
       ".ps-ce{color:var(--calls)}.ps-pe{color:var(--puts)}" +
@@ -30443,12 +30445,193 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "</section>";
   }
 
+  /* ---------- My alerts: rules the viewer sets ----------
+     Numbers come from snapshot/alert_metrics.json (myalerts.py, every build
+     and every live poll). Rules made here live only in this browser and are
+     checked each time the page loads data; a browser notification fires
+     while the page is open. The same rule written as a Telegram command
+     (Copy) goes to the viewer's own bot, which the desk's PC checks with the
+     page closed. Latch rules match myalerts.py: fire when the condition
+     becomes true; once = then off; every = re-arm after it clears. */
+  var MA_KEY = "deskMyAlerts.v1", MA_METRICS = null, MA_MSG = "", MA_PICK = "nifty";
+  var MA_OPS = { above: "goes above", below: "goes below", move: "moves (% in a day, up or down)" };
+  function maRules() { var r = psJson(MA_KEY, []); return Array.isArray(r) ? r.filter(function (x) { return x && typeof x === "object"; }) : []; }
+  function maSave(r) { psSet(MA_KEY, JSON.stringify(r.slice(0, 100))); }
+  function maIdx() {
+    var o = {};
+    ((MA_METRICS && MA_METRICS.metrics) || []).forEach(function (m) { if (m && m.id) o[m.id] = m; });
+    return o;
+  }
+  function maFmt(v, unit) {
+    if (v == null || !isFinite(v)) return "&mdash;";
+    var a = Math.abs(v), s = a >= 10000 ? n0(v) : a >= 1 ? Number(v).toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 }) :
+      Number(v).toFixed(4);
+    return unit === "%" ? s + "%" : s;
+  }
+  function maCond(r, m) {
+    if (!m) return null;
+    if (r.op === "move") return m.chgPct == null || !isFinite(m.chgPct) ? null : Math.abs(m.chgPct) >= r.value;
+    if (m.value == null || !isFinite(m.value)) return null;
+    return r.op === "above" ? m.value >= r.value : m.value <= r.value;
+  }
+  function maDesc(r, m) {
+    var lab = (m && m.label) || r.metric;
+    return r.op === "move" ? lab + " moves " + maFmt(r.value) + "% or more in a day" :
+      lab + (r.op === "above" ? " at or above " : " at or below ") + maFmt(r.value, m && m.unit);
+  }
+  function maCmd(r) {
+    return "/alert " + r.metric + " " + r.op + " " + r.value + (r.repeat ? " every" : "") + (r.note ? " " + r.note : "");
+  }
+  /* Check every rule against the loaded numbers; notify what just fired. */
+  function maCheck() {
+    var rules = maRules(), idx = maIdx(), fired = [], changed = false;
+    rules.forEach(function (r) {
+      if (r.active === false) return;
+      var m = idx[r.metric], c = maCond(r, m);
+      if (c == null) return;
+      if (c && r.armed !== false) {
+        r.armed = false; r.fires = (r.fires || 0) + 1; r.fired = new Date().toISOString();
+        r.firedValue = r.op === "move" ? m.chgPct : m.value;
+        if (!r.repeat) r.active = false;
+        fired.push({ r: r, m: m }); changed = true;
+      } else if (!c && r.armed === false && r.repeat) { r.armed = true; changed = true; }
+    });
+    if (changed) maSave(rules);
+    if (fired.length) {
+      MA_MSG = "Fired: " + fired.map(function (f) { return maDesc(f.r, f.m); }).join("; ") + ".";
+      try {
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          fired.slice(0, 5).forEach(function (f) {
+            var nv = f.r.op === "move" ? f.m.chgPct : f.m.value;
+            new Notification("Desk alert: " + maDesc(f.r, f.m).replace("&mdash;", "-"), {
+              body: "Now " + f.m.label + " " + String(maFmt(nv, f.r.op === "move" ? "%" : f.m.unit)).replace("&mdash;", "-") +
+                (f.r.note ? " | " + f.r.note : ""), tag: "ma-" + f.r.id + "-" + f.r.fires });
+          });
+        }
+      } catch (e) { /* the card still shows it */ }
+    }
+    return fired;
+  }
+  getJson("alert_metrics.json").then(function (d) {
+    MA_METRICS = d && Array.isArray(d.metrics) ? d : null;
+    maCheck();
+    if (state.page === "india-index" && state.view === "pos") psRerender();
+  }).catch(function () { MA_METRICS = null; });
+
+  function maCard() {
+    var idx = maIdx(), ms = (MA_METRICS && MA_METRICS.metrics) || [], rules = maRules();
+    if (!idx[MA_PICK] && ms.length) MA_PICK = ms[0].id;
+    var groups = {}, order = [];
+    ms.forEach(function (m) { if (!groups[m.group]) { groups[m.group] = []; order.push(m.group); } groups[m.group].push(m); });
+    var opts = order.map(function (g) {
+      return '<optgroup label="' + esc(g) + '">' + groups[g].map(function (m) {
+        return '<option value="' + esc(m.id) + '"' + (m.id === MA_PICK ? " selected" : "") + ">" + esc(m.label) + " &middot; now " + maFmt(m.value, m.unit) + "</option>";
+      }).join("") + "</optgroup>";
+    }).join("");
+    var pm = idx[MA_PICK];
+    var form = !ms.length ? '<p class="ps-msg">The alert numbers (alert_metrics.json) are not loaded yet. They are written by myalerts.py with every build.</p>' :
+      '<div class="ps-form ma-form">' +
+      '<label>Watch <select id="maMetric">' + opts + "</select></label>" +
+      '<label>When it <select id="maOp">' + Object.keys(MA_OPS).map(function (k) { return '<option value="' + k + '">' + MA_OPS[k] + "</option>"; }).join("") + "</select></label>" +
+      '<label>Level <input id="maVal" type="number" step="any" inputmode="decimal" value="' + (pm && pm.value != null ? esc(String(Math.round(pm.value * 100) / 100)) : "") + '"></label>' +
+      '<label>How often <select id="maRep"><option value="0">Once, then switch off</option><option value="1">Every time it happens</option></select></label>' +
+      '<label class="ma-note">Note to yourself <input id="maNote" type="text" maxlength="100" placeholder="e.g. check my 25800 puts"></label>' +
+      '<button type="button" class="ps-btn ps-main" data-maadd="1">Add alert</button></div>' +
+      (pm ? '<p class="sub">' + esc(pm.label) + " now <b>" + maFmt(pm.value, pm.unit) + "</b>" + (pm.chgPct != null ? " (" + (pm.chgPct >= 0 ? "+" : "") + n2(pm.chgPct) + "% today)" : "") +
+        ' &middot; <span data-term="' + esc(pm.term || pm.label) + '">what this number means</span></p>' : "");
+    var rows = rules.map(function (r) {
+      var m = idx[r.metric], now = m ? (r.op === "move" ? m.chgPct : m.value) : null, gap = "";
+      if (m && r.op !== "move" && now != null && isFinite(now) && now !== 0) {
+        var d = r.value - now;
+        gap = (d >= 0 ? "+" : "") + maFmt(d) + " (" + (d >= 0 ? "+" : "") + n2(d / now * 100) + "%)";
+      }
+      var when = esc(String(r.fired || "").slice(0, 16).replace("T", " "));
+      var st = r.active === false ? '<span class="neg">Fired ' + when + " &middot; off</span>" :
+        r.armed === false ? "Fired " + when + " &middot; waiting for it to clear" :
+        !m ? "number not in this build" : maCond(r, m) ? '<span class="pos">true now: fires on next check</span>' : "watching";
+      return '<tr><td class="lft">' + esc(String(r.id)) + '</td><td class="lft"><b>' + esc(maDesc(r, m)) + "</b>" + (r.repeat ? " (every time)" : " (once)") +
+        (r.note ? '<br><span class="sub">' + esc(r.note) + "</span>" : "") + "</td><td>" + maFmt(now, r.op === "move" ? "%" : m && m.unit) +
+        "</td><td>" + (gap || "&mdash;") + '</td><td class="lft">' + st + '</td><td class="lft"><code class="ma-cmd">' + esc(maCmd(r)) +
+        '</code> <button type="button" class="ps-btn" data-macopy="' + esc(maCmd(r)) + '">Copy</button></td>' +
+        '<td><button type="button" class="ps-btn" data-madel="' + esc(String(r.id)) + '">Delete</button></td></tr>';
+    }).join("");
+    var notifyOn = psGet(PS_NOTE) === "on" && typeof Notification !== "undefined" && Notification.permission === "granted";
+    return '<section class="card" id="myAlerts"><div class="card-hd"><h2 data-term="My alerts">My alerts</h2><span class="sub">you choose the number and the level &middot; numbers from the ' +
+      esc(String((MA_METRICS && MA_METRICS.generatedAt) || "latest").slice(0, 16).replace("T", " ")) + " build</span>" +
+      '<div class="right">' + (typeof Notification === "undefined" ? "" :
+        '<button type="button" class="ps-btn" data-psnotify="1">' + (notifyOn ? "Turn off browser notifications" : "Enable browser notifications") + "</button>") + "</div></div>" +
+      '<div class="vp-say"><b>Tell the desk when you want to hear from it.</b> Pick a number (NIFTY, Bank NIFTY, India VIX, NIFTY implied vol, gold, silver, crude, Brent, gas, copper and more), ' +
+      "a level, and whether it should go above or below it. On this page: a pop-up while the page is open. On your phone: copy the command into your own Telegram bot " +
+      "(set-up below) and it works with the page closed.</div>" +
+      (MA_MSG ? '<p class="ps-msg"><b>' + esc(MA_MSG) + "</b></p>" : "") + form +
+      (rules.length ? '<div class="tablewrap"><table class="dt ps-wrap"><thead><tr><th class="lft">#</th><th class="lft">Rule</th><th>Now</th><th>Distance to level</th>' +
+        '<th class="lft">Status</th><th class="lft" data-term="Phone alert command">Phone command</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" :
+        '<p class="ps-msg">No alerts yet. Example: Watch NIFTY 50, goes below, 25800, once.</p>') +
+      dsMethod("How My alerts reach you",
+        "<b>1. On this page.</b> Your rules are saved only in this browser. Every time the page loads new numbers (it reloads itself through the NSE session) it checks them; " +
+        "press Enable browser notifications once so a pop-up appears even when the tab is in the background. Close the page and nothing is checked here. " +
+        "<br><b>2. On your phone (Telegram), with the page closed.</b> Set-up once: in Telegram open @BotFather, send /newbot and pick any name; it gives you a token. " +
+        "Open your new bot and send /start. On the desk PC run: python myalerts.py setup YOUR-TOKEN (it saves the token in the PC's private data folder, never on this site, and sends a test message). " +
+        "Then send your bot any command from the Phone command column, for example /alert nifty below 25800. Other commands: /alerts (your list), /delete 2, /metrics (every name with today's value), /help. " +
+        "The PC checks phone rules on every live poll (every couple of minutes while NSE is open) and every snapshot build, so it works only while the PC is on and the desk's jobs are running. " +
+        "<br><b>How fresh the numbers are.</b> NIFTY, Bank NIFTY, sector indices and India VIX update every couple of minutes in the NSE session. NIFTY implied vol, PCR and walls update with each intraday build. " +
+        "Commodity prices and implied vols update when the commodity job runs (around the daily settle), so a commodity rule is an end-of-day check, not a tick-by-tick one. " +
+        "<br><b>Rules of firing.</b> Once: fires the first time the condition is true, then switches off. Every time: fires, then waits until the number has gone back the other side before it can fire again, so you are not sent the same alert on every poll. " +
+        "Moves: compares today's % change (up or down) with your size, e.g. 3 means a 3% day. A rule that is already true when you make it fires on the next check.") +
+      "</section>";
+  }
+  document.addEventListener("change", function (ev) {
+    var t = ev.target;
+    if (t && t.id === "maMetric") { MA_PICK = t.value; MA_MSG = ""; psRerender(); }
+  });
+  function maSelect(btn) {
+    try {
+      var code = btn.parentNode.querySelector("code"), rg = document.createRange();
+      rg.selectNodeContents(code);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(rg);
+      btn.textContent = "Selected: press Ctrl+C";
+    } catch (e) { /* none */ }
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target && ev.target.closest ? ev.target.closest("[data-maadd],[data-madel],[data-macopy]") : null;
+    if (!t) return;
+    if (t.hasAttribute("data-macopy")) {
+      try {
+        navigator.clipboard.writeText(t.getAttribute("data-macopy")).then(function () { t.textContent = "Copied"; }, function () { maSelect(t); });
+      } catch (e) { maSelect(t); }
+      return;
+    }
+    var rules = maRules();
+    if (t.hasAttribute("data-madel")) {
+      var id = Number(t.getAttribute("data-madel"));
+      maSave(rules.filter(function (r) { return Number(r.id) !== id; }));
+      MA_MSG = "Alert " + id + " deleted from this browser. If you also sent it to your bot, send /delete there too.";
+    } else {
+      var g = function (i) { var el = document.getElementById(i); return el ? el.value : ""; };
+      var val = parseFloat(String(g("maVal")).replace(/,/g, "")), op = g("maOp"), metric = g("maMetric");
+      if (!isFinite(val)) { MA_MSG = "Type a number for the level."; psRerender(); return; }
+      if (op === "move" && val <= 0) { MA_MSG = "A move size must be above 0 (it is a % day change, e.g. 2)."; psRerender(); return; }
+      if (rules.length >= 100) { MA_MSG = "You have 100 alerts; delete some first."; psRerender(); return; }
+      var nid = rules.reduce(function (a, r) { return Math.max(a, Number(r.id) || 0); }, 0) + 1;
+      var note = String(g("maNote")).replace(/[^ -~]/g, "").trim().slice(0, 100);
+      var r = { id: nid, metric: metric, op: op, value: val, repeat: g("maRep") === "1", note: note,
+        created: new Date().toISOString(), armed: true, active: true, fires: 0 };
+      rules.push(r);
+      maSave(rules);
+      var m = maIdx()[metric];
+      var saved = "Alert " + nid + " saved: " + maDesc(r, m) + ".";
+      MA_MSG = saved;
+      if (maCheck().length) MA_MSG = saved + " It was already true, so it fired at once. " + MA_MSG;
+    }
+    psRerender();
+  });
+
   function nfxPos(m) {
     if (m && m.cfg && m.cfg.key && m.cfg.key !== "NIFTY") {
-      return '<div class="nfx-view"><section class="card"><div class="caution"><p>Position tracking is built for NIFTY options only.</p></div></section></div>';
+      return '<div class="nfx-view"><section class="card"><div class="caution"><p>Position tracking is built for NIFTY options only.</p></div></section>' + nfxSafe(maCard, m) + "</div>";
     }
     if (!psChain()) {
-      return '<div class="nfx-view"><section class="card"><div class="caution"><p>The option chain snapshot (watchlist.json) is not loaded yet, so positions cannot be marked.</p></div></section></div>';
+      return '<div class="nfx-view"><section class="card"><div class="caution"><p>The option chain snapshot (watchlist.json) is not loaded yet, so positions cannot be marked.</p></div></section>' + nfxSafe(maCard, m) + "</div>";
     }
     var P = psPositions(m), body = "";
     if (!P.length) {
@@ -30462,7 +30645,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       P.map(function (p) { return nfxSafe(function () { return psPosCard(p); }, m); }).join("") +
       (LP_PAPER ? nfxSafe(lpPaperRecordCard, m) : "") +
       nfxBand("Playbook and alerts", "which if-then branch is live, and what has fired") +
-      nfxSafe(psBranchCard, m) + nfxSafe(psAlertsCard, m) + "</div>";
+      nfxSafe(psBranchCard, m) + nfxSafe(psAlertsCard, m) +
+      nfxBand("My alerts", "your own levels: a pop-up here, or a Telegram message with the page closed") + nfxSafe(maCard, m) + "</div>";
   }
   RENDER.pos = nfxPos;
 
