@@ -617,6 +617,7 @@
 "No stop": "One change at a time",
 "No take profit": "Take profit",
 "Non-reportable (small traders)": "COT trader group",
+"Not gradable": "Commodity ledger status",
 "Not recovered": "Rule detail by model",
 "Note": "Walk forward",
 "Nov": "Seasonality evidence",
@@ -1132,7 +1133,7 @@
 "z now": "Reading CFTC positioning"
 },
 "count": 888,
-"generatedAt": "2026-11-15T06:30:43Z",
+"generatedAt": "2026-11-15T07:31:31Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",

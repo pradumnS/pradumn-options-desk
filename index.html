@@ -5364,16 +5364,18 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     render();
     window.scrollTo(0, y);
   });
-  function cmHN(v, rupee) {
+  /* Decimals follow the price level (ref), so a 1-point change on a 3,886
+     gold price reads "1.00", not "1.000". */
+  function cmHN(v, rupee, ref) {
     v = cmNum(v);
     if (v == null) return "&mdash;";
-    var a = Math.abs(v), d = rupee ? (a >= 1000 ? 0 : 2) : (a >= 10 ? 2 : a >= 1 ? 3 : 4);
+    var a = Math.abs(cmNum(ref) != null ? cmNum(ref) : v), d = rupee ? (a >= 1000 ? 0 : 2) : (a >= 10 ? 2 : a >= 1 ? 3 : 4);
     return v.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d });
   }
-  function cmHS(v, rupee) {
+  function cmHS(v, rupee, ref) {
     v = cmNum(v);
     if (v == null) return "<td>&mdash;</td>";
-    return '<td class="' + cls(v) + '">' + (v > 0 ? "+" : v < 0 ? "&minus;" : "") + cmHN(Math.abs(v), rupee) + "</td>";
+    return '<td class="' + cls(v) + '">' + (v > 0 ? "+" : v < 0 ? "&minus;" : "") + cmHN(Math.abs(v), rupee, ref) + "</td>";
   }
   function cmHistory(I) {
     I = cmO(I);
@@ -5405,16 +5407,16 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var o = cmNum(r[1]), h = cmNum(r[2]), l = cmNum(r[3]), c = cmNum(r[4]), pc = cmNum(r[5]);
       var chg = pc != null ? c - pc : null, chgP = pc ? (c / pc - 1) * 100 : null;
       var rng = h != null && l != null ? h - l : null;
-      var fl = r[9] === 1 ? '<span class="pill risk" data-tip="' + esc("Closed outside the 1-sigma band built from the prior close and the prior day's " + rvN + "-session realised vol") + '">outside</span>' :
-        r[9] === 0 ? '<span class="pill nx" data-tip="' + esc("Closed inside the prior day's 1-sigma band") + '">inside</span>' : "&mdash;";
+      var fl = r[9] === 1 ? '<span class="pill risk" data-term="Commodity session band break" data-tip="' + esc("Closed outside the 1-sigma band built from the prior close and the prior day's " + rvN + "-session realised vol") + '">outside</span>' :
+        r[9] === 0 ? '<span class="pill nx" data-term="Commodity session band break" data-tip="' + esc("Closed inside the prior day's 1-sigma band") + '">inside</span>' : "&mdash;";
       return "<tr>" + '<td class="lft">' + cmD(r[0]) + "</td>" +
         (rupee ? '<td class="lft">' + cmD(r[10]) + "</td>" : "") +
-        "<td>" + cmHN(o, rupee) + "</td><td>" + cmHN(h, rupee) + "</td><td>" + cmHN(l, rupee) + "</td>" +
-        '<td style="color:var(--ink)">' + cmHN(c, rupee) + "</td><td>" + cmHN(pc, rupee) + "</td>" +
-        cmHS(chg, rupee) + '<td class="' + cls(chgP || 0) + '">' + cmSg(chgP, 2) + (chgP == null ? "" : "%") + "</td>" +
-        cmHS(o != null && pc != null ? o - pc : null, rupee) + cmHS(o != null ? c - o : null, rupee) +
-        "<td>" + cmHN(l != null ? c - l : null, rupee) + "</td><td>" + cmHN(h != null ? h - c : null, rupee) + "</td>" +
-        "<td>" + cmHN(rng, rupee) + "</td><td>" + (rng != null && c ? cmPc(rng / c * 100, 2) : "&mdash;") + "</td>" +
+        "<td>" + cmHN(o, rupee, c) + "</td><td>" + cmHN(h, rupee, c) + "</td><td>" + cmHN(l, rupee, c) + "</td>" +
+        '<td style="color:var(--ink)">' + cmHN(c, rupee, c) + "</td><td>" + cmHN(pc, rupee, c) + "</td>" +
+        cmHS(chg, rupee, c) + '<td class="' + cls(chgP || 0) + '">' + cmSg(chgP, 2) + (chgP == null ? "" : "%") + "</td>" +
+        cmHS(o != null && pc != null ? o - pc : null, rupee, c) + cmHS(o != null ? c - o : null, rupee, c) +
+        "<td>" + cmHN(l != null ? c - l : null, rupee, c) + "</td><td>" + cmHN(h != null ? h - c : null, rupee, c) + "</td>" +
+        "<td>" + cmHN(rng, rupee, c) + "</td><td>" + (rng != null && c ? cmPc(rng / c * 100, 2) : "&mdash;") + "</td>" +
         "<td>" + cmPc(r[6], 1) + "</td>" +
         (hasIv ? "<td>" + cmFx(r[7], null, 2) + "</td>" : "") +
         (hasFx ? "<td>" + cmFx(r[8], null, 2) + "</td>" : "") +
@@ -36236,8 +36238,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     var rupee = cmStr(cmO(E).currency) === "INR";
     function row(r, j) {
       var p = keep[j + 1], pc = p ? p[1] : null, ch = pc != null ? r[1] - pc : null;
-      var dd = cmD(r[0]);
-      return '<tr><td class="lft">' + (dd === "&mdash;" ? esc(r[0]) : dd) + "</td><td>" + cmHN(r[1], rupee) + "</td><td>" + cmHN(pc, rupee) + "</td>" + cmHS(ch, rupee) +
+      return '<tr><td class="lft">' + esc(r[0]) + "</td><td>" + cmHN(r[1], rupee) + "</td><td>" + cmHN(pc, rupee) + "</td>" + cmHS(ch, rupee) +
         '<td class="' + cls(ch || 0) + '">' + (pc ? cmSg((r[1] / pc - 1) * 100, 2) + "%" : "&mdash;") + "</td></tr>";
     }
     var th = "<thead><tr>" + cmL("th", "Date", "Commodity session history", "lft") + cmL("th", "Close", "Commodity session OHLC") +
