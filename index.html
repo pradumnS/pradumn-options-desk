@@ -6564,7 +6564,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (typeof x.cur !== "number") return "";
     return simpleRangeHtml({ name: "India VIX", unit: "", lo: x.minAll, hi: x.maxAll, mid: x.median,
       lo1y: x.min1y, hi1y: x.max1y, now: x.cur, since: String(x.from || "").slice(0, 4),
-      note: "Below about 12 is calm and cheap; 12 to 20 is normal; above 20 is fearful and pays more, but moves are bigger too. The record 85 was March 2020." });
+      note: "The desk calls VIX low below 12.5: premium is thin. Above about 20 (a rule of thumb) the market is fearful: premium pays more, but moves are bigger too. The record 85 was March 2020." });
   });
   simpleLiveRegister("Implied volatility (IV)", function () {
     var x = ((VP || {}).rank || {}).iv || {};
