@@ -30545,7 +30545,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         var d = r.value - now;
         gap = (d >= 0 ? "+" : "") + maFmt(d) + " (" + (d >= 0 ? "+" : "") + n2(d / now * 100) + "%)";
       }
-      var when = esc(String(r.fired || "").slice(0, 16).replace("T", " "));
+      var when = "";
+      try { when = r.fired ? esc(new Date(r.fired).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })) : ""; } catch (e) { when = ""; }
       var st = r.active === false ? '<span class="neg">Fired ' + when + " &middot; off</span>" :
         r.armed === false ? "Fired " + when + " &middot; waiting for it to clear" :
         !m ? "number not in this build" : maCond(r, m) ? '<span class="pos">true now: fires on next check</span>' : "watching";
@@ -30817,6 +30818,16 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       plain: ["What has changed that a seller should know about: desk alerts from each snapshot build, and alerts on your own positions.",
         "Each fires once per crossing and re-arms when the condition clears."],
       how: psHow(function () { return ((ALERTS && ALERTS.alerts) || []).length + " desk alert(s) kept from the " + esc((ALERTS && ALERTS.builtIst) || "latest") + " build; " + ((ALERTS && ALERTS.watching) || []).length + " conditions watched."; })
+    },
+    "My alerts": {
+      plain: ["Alerts you set yourself: pick a number (NIFTY, India VIX, gold, crude and more), a level, and above, below or a % move in a day.",
+        "On this page they pop up while the page is open; sent to your own Telegram bot they reach your phone with the page closed."],
+      how: psHow(function () { var r = maRules(); return r.length + " alert(s) saved in this browser, " + r.filter(function (x) { return x.active !== false; }).length + " still watching; " + ((MA_METRICS && MA_METRICS.metrics) || []).length + " numbers can be watched in this build."; })
+    },
+    "Phone alert command": {
+      plain: ["The same rule written as a Telegram command, e.g. /alert nifty below 25800. Paste it into your own bot after the one-time set-up.",
+        "The desk PC checks it every couple of minutes in the NSE session and at every build, while the PC is on."],
+      how: psHow(function () { var r = maRules()[0]; return r ? "Your first rule as a command: " + esc(maCmd(r)) + "." : "No rule saved yet; an example is /alert nifty below 25800."; })
     },
     "Severity": {
       plain: ["act = something to do now (a level crossed, a stop or target reached); warn = worth checking; info = context.",
