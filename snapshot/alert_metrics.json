@@ -1,14 +1,14 @@
 {
- "generatedAt": "2026-11-19T14:47:17+05:30",
+ "generatedAt": "2026-11-19T14:57:22+05:30",
  "metrics": [
   {
    "id": "nifty",
    "label": "NIFTY 50",
    "group": "index",
    "unit": "pts",
-   "value": 25465.1,
+   "value": 25464.25,
    "chgPct": 0.94,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -16,9 +16,9 @@
    "label": "Bank NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 62941.05,
-   "chgPct": 1.45,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 62914.7,
+   "chgPct": 1.41,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -26,9 +26,9 @@
    "label": "FIN NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 28258.8,
-   "chgPct": 0.95,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 28244.8,
+   "chgPct": 0.9,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -36,9 +36,9 @@
    "label": "MIDCAP SELECT",
    "group": "index",
    "unit": "pts",
-   "value": 14176.0,
-   "chgPct": 0.66,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 14186.0,
+   "chgPct": 0.73,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -46,9 +46,9 @@
    "label": "NIFTY NEXT 50",
    "group": "index",
    "unit": "pts",
-   "value": 72614.65,
-   "chgPct": 1.25,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 72672.45,
+   "chgPct": 1.34,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -56,9 +56,9 @@
    "label": "GIFT NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 25503.5,
-   "chgPct": 1.21,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 25480.5,
+   "chgPct": 1.12,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -66,9 +66,9 @@
    "label": "India VIX",
    "group": "volatility",
    "unit": "pts",
-   "value": 16.71,
-   "chgPct": 7.34,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 16.56,
+   "chgPct": 6.4,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "India VIX"
   },
   {
@@ -76,9 +76,9 @@
    "label": "MIDCAP 100",
    "group": "index",
    "unit": "pts",
-   "value": 61483.15,
-   "chgPct": 0.83,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 61519.9,
+   "chgPct": 0.89,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -86,9 +86,9 @@
    "label": "SMALLCAP 100",
    "group": "index",
    "unit": "pts",
-   "value": 19427.4,
-   "chgPct": 0.5,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 19448.7,
+   "chgPct": 0.61,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -96,9 +96,9 @@
    "label": "NIFTY IT",
    "group": "sector",
    "unit": "pts",
-   "value": 30782.65,
-   "chgPct": -1.53,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 30793.45,
+   "chgPct": -1.5,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -106,9 +106,9 @@
    "label": "NIFTY PHARMA",
    "group": "sector",
    "unit": "pts",
-   "value": 28336.0,
-   "chgPct": 0.48,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 28359.35,
+   "chgPct": 0.56,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -116,9 +116,9 @@
    "label": "NIFTY AUTO",
    "group": "sector",
    "unit": "pts",
-   "value": 28463.6,
-   "chgPct": 3.9,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 28487.45,
+   "chgPct": 3.99,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -126,9 +126,9 @@
    "label": "NIFTY METAL",
    "group": "sector",
    "unit": "pts",
-   "value": 12263.0,
+   "value": 12262.8,
    "chgPct": 0.33,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -136,9 +136,9 @@
    "label": "NIFTY FMCG",
    "group": "sector",
    "unit": "pts",
-   "value": 48450.55,
-   "chgPct": 1.85,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 48477.9,
+   "chgPct": 1.91,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -146,9 +146,9 @@
    "label": "NIFTY ENERGY",
    "group": "sector",
    "unit": "pts",
-   "value": 37358.25,
-   "chgPct": 1.02,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 37370.15,
+   "chgPct": 1.06,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -156,9 +156,9 @@
    "label": "NIFTY REALTY",
    "group": "sector",
    "unit": "pts",
-   "value": 919.65,
-   "chgPct": 0.11,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 920.3,
+   "chgPct": 0.18,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -166,9 +166,9 @@
    "label": "NIFTY PSU BANK",
    "group": "sector",
    "unit": "pts",
-   "value": 9734.6,
-   "chgPct": 2.01,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 9735.85,
+   "chgPct": 2.02,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -176,9 +176,9 @@
    "label": "NIFTY PRIVATE BANK",
    "group": "sector",
    "unit": "pts",
-   "value": 30686.65,
-   "chgPct": 1.2,
-   "asOf": "2026-11-19T14:44:25+05:30",
+   "value": 30660.65,
+   "chgPct": 1.11,
+   "asOf": "2026-11-19T14:54:36+05:30",
    "term": "Spot"
   },
   {
@@ -186,7 +186,7 @@
    "label": "NIFTY ATM implied vol",
    "group": "nifty options",
    "unit": "%",
-   "value": 13.065,
+   "value": 12.68,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "Implied volatility (IV)"
@@ -206,7 +206,7 @@
    "label": "India VIX percentile (1y)",
    "group": "nifty options",
    "unit": "pct",
-   "value": 75.6,
+   "value": 74.0,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "IV percentile"
@@ -216,7 +216,7 @@
    "label": "NIFTY put-call OI ratio",
    "group": "nifty options",
    "unit": "x",
-   "value": 1.2725980227653813,
+   "value": 1.248655157699433,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "Put-call OI ratio"
@@ -256,7 +256,7 @@
    "label": "NIFTY gamma flip level",
    "group": "nifty options",
    "unit": "pts",
-   "value": 25911.0,
+   "value": 25906.0,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "Gamma flip"
