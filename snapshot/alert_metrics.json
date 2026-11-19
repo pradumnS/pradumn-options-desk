@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-19T17:45:13+05:30",
+ "generatedAt": "2026-11-19T18:45:16+05:30",
  "metrics": [
   {
    "id": "nifty",
@@ -276,8 +276,8 @@
    "label": "Gold (MCX, Rs/10g)",
    "group": "commodity",
    "unit": "inr",
-   "value": 128852.0,
-   "chgPct": -0.7411,
+   "value": 128892.0,
+   "chgPct": -0.7102,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
@@ -316,8 +316,8 @@
    "label": "Silver (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 159779.0,
-   "chgPct": -0.5941,
+   "value": 160290.0,
+   "chgPct": -0.2762,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
@@ -346,8 +346,8 @@
    "label": "Copper (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 1198.7,
-   "chgPct": -0.8847,
+   "value": 1198.75,
+   "chgPct": -0.8806,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
@@ -376,8 +376,8 @@
    "label": "Crude oil (MCX, Rs/bbl)",
    "group": "commodity",
    "unit": "inr",
-   "value": 7730.0,
-   "chgPct": 1.0854,
+   "value": 7789.0,
+   "chgPct": 1.8569,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
@@ -416,8 +416,8 @@
    "label": "Natural gas (MCX, Rs/mmBtu)",
    "group": "commodity",
    "unit": "inr",
-   "value": 317.5,
-   "chgPct": 1.3082,
+   "value": 311.2,
+   "chgPct": -0.702,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
@@ -476,8 +476,8 @@
    "label": "Aluminium (world, USD/t)",
    "group": "commodity",
    "unit": "usd",
-   "value": 2842.0,
-   "chgPct": -2.637889688249395,
+   "value": 2836.0,
+   "chgPct": -2.843439534087011,
    "asOf": "2026-11-19",
    "term": "Commodity world price"
   },
@@ -486,8 +486,8 @@
    "label": "Aluminium (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 312.9,
-   "chgPct": 0.0,
+   "value": 313.95,
+   "chgPct": 0.3356,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
@@ -506,8 +506,8 @@
    "label": "Zinc (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 391.85,
-   "chgPct": -0.1656,
+   "value": 392.05,
+   "chgPct": -0.1146,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
@@ -546,8 +546,8 @@
    "label": "Nickel (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 1488.0,
-   "chgPct": -1.7238,
+   "value": 1488.9,
+   "chgPct": -1.6644,
    "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
