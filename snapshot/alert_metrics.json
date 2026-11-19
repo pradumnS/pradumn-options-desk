@@ -1,14 +1,14 @@
 {
- "generatedAt": "2026-11-19T14:13:02+05:30",
+ "generatedAt": "2026-11-19T14:17:11+05:30",
  "metrics": [
   {
    "id": "nifty",
    "label": "NIFTY 50",
    "group": "index",
    "unit": "pts",
-   "value": 25438.3,
+   "value": 25436.15,
    "chgPct": 0.83,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -16,9 +16,9 @@
    "label": "Bank NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 62956.7,
-   "chgPct": 1.48,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 62935.35,
+   "chgPct": 1.45,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -26,9 +26,9 @@
    "label": "FIN NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 28245.9,
-   "chgPct": 0.91,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 28237.75,
+   "chgPct": 0.88,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -36,9 +36,9 @@
    "label": "MIDCAP SELECT",
    "group": "index",
    "unit": "pts",
-   "value": 14173.85,
-   "chgPct": 0.64,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 14179.6,
+   "chgPct": 0.68,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -46,9 +46,9 @@
    "label": "NIFTY NEXT 50",
    "group": "index",
    "unit": "pts",
-   "value": 72579.4,
+   "value": 72581.85,
    "chgPct": 1.21,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -56,9 +56,9 @@
    "label": "GIFT NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 25468.5,
+   "value": 25467.5,
    "chgPct": 1.07,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -66,9 +66,9 @@
    "label": "India VIX",
    "group": "volatility",
    "unit": "pts",
-   "value": 16.19,
-   "chgPct": 3.99,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 16.2,
+   "chgPct": 4.04,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "India VIX"
   },
   {
@@ -76,9 +76,9 @@
    "label": "MIDCAP 100",
    "group": "index",
    "unit": "pts",
-   "value": 61491.45,
-   "chgPct": 0.84,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 61497.3,
+   "chgPct": 0.85,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -86,9 +86,9 @@
    "label": "SMALLCAP 100",
    "group": "index",
    "unit": "pts",
-   "value": 19440.4,
+   "value": 19439.8,
    "chgPct": 0.56,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -96,9 +96,9 @@
    "label": "NIFTY IT",
    "group": "sector",
    "unit": "pts",
-   "value": 30773.55,
-   "chgPct": -1.56,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 30771.75,
+   "chgPct": -1.57,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -106,9 +106,9 @@
    "label": "NIFTY PHARMA",
    "group": "sector",
    "unit": "pts",
-   "value": 28337.25,
-   "chgPct": 0.48,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 28333.05,
+   "chgPct": 0.47,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -116,9 +116,9 @@
    "label": "NIFTY AUTO",
    "group": "sector",
    "unit": "pts",
-   "value": 28442.75,
-   "chgPct": 3.82,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 28432.95,
+   "chgPct": 3.79,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -126,9 +126,9 @@
    "label": "NIFTY METAL",
    "group": "sector",
    "unit": "pts",
-   "value": 12225.55,
-   "chgPct": 0.03,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 12223.75,
+   "chgPct": 0.01,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -136,9 +136,9 @@
    "label": "NIFTY FMCG",
    "group": "sector",
    "unit": "pts",
-   "value": 48444.15,
+   "value": 48446.5,
    "chgPct": 1.84,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -146,9 +146,9 @@
    "label": "NIFTY ENERGY",
    "group": "sector",
    "unit": "pts",
-   "value": 37316.9,
-   "chgPct": 0.91,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 37323.9,
+   "chgPct": 0.93,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -156,9 +156,9 @@
    "label": "NIFTY REALTY",
    "group": "sector",
    "unit": "pts",
-   "value": 921.2,
-   "chgPct": 0.28,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 921.15,
+   "chgPct": 0.27,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -166,9 +166,9 @@
    "label": "NIFTY PSU BANK",
    "group": "sector",
    "unit": "pts",
-   "value": 9754.25,
-   "chgPct": 2.22,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "value": 9744.35,
+   "chgPct": 2.11,
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -176,9 +176,9 @@
    "label": "NIFTY PRIVATE BANK",
    "group": "sector",
    "unit": "pts",
-   "value": 30661.55,
+   "value": 30660.6,
    "chgPct": 1.11,
-   "asOf": "2026-11-19T14:13:02+05:30",
+   "asOf": "2026-11-19T14:14:04+05:30",
    "term": "Spot"
   },
   {
@@ -186,9 +186,9 @@
    "label": "NIFTY ATM implied vol",
    "group": "nifty options",
    "unit": "%",
-   "value": 14.069082048877354,
+   "value": 12.625,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "Implied volatility (IV)"
   },
   {
@@ -196,9 +196,9 @@
    "label": "NIFTY IV percentile (1y)",
    "group": "nifty options",
    "unit": "pct",
-   "value": 71.7,
+   "value": 62.7,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "IV percentile"
   },
   {
@@ -206,9 +206,9 @@
    "label": "India VIX percentile (1y)",
    "group": "nifty options",
    "unit": "pct",
-   "value": 72.0,
+   "value": 72.4,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "IV percentile"
   },
   {
@@ -216,9 +216,9 @@
    "label": "NIFTY put-call OI ratio",
    "group": "nifty options",
    "unit": "x",
-   "value": 1.2089899056683207,
+   "value": 1.231940393360994,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "Put-call OI ratio"
   },
   {
@@ -226,9 +226,9 @@
    "label": "NIFTY put wall (strike)",
    "group": "nifty options",
    "unit": "pts",
-   "value": 24000.0,
+   "value": 25000.0,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "Put wall"
   },
   {
@@ -238,7 +238,7 @@
    "unit": "pts",
    "value": 26000.0,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "Call wall"
   },
   {
@@ -246,9 +246,9 @@
    "label": "NIFTY max pain (strike)",
    "group": "nifty options",
    "unit": "pts",
-   "value": 25050.0,
+   "value": 25300.0,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "Max pain"
   },
   {
@@ -256,9 +256,9 @@
    "label": "NIFTY gamma flip level",
    "group": "nifty options",
    "unit": "pts",
-   "value": 25711.0,
+   "value": 25876.0,
    "chgPct": null,
-   "asOf": "2026-11-18",
+   "asOf": "2026-11-19",
    "term": "Gamma flip"
   },
   {
