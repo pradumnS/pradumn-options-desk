@@ -1,14 +1,14 @@
 {
- "generatedAt": "2026-11-19T13:57:12+05:30",
+ "generatedAt": "2026-11-19T14:06:49+05:30",
  "metrics": [
   {
    "id": "nifty",
    "label": "NIFTY 50",
    "group": "index",
    "unit": "pts",
-   "value": 25387.2,
-   "chgPct": 0.63,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 25414.0,
+   "chgPct": 0.74,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -16,9 +16,9 @@
    "label": "Bank NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 62820.75,
-   "chgPct": 1.26,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 62916.95,
+   "chgPct": 1.42,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -26,9 +26,9 @@
    "label": "FIN NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 28187.9,
-   "chgPct": 0.7,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 28216.65,
+   "chgPct": 0.8,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -36,9 +36,9 @@
    "label": "MIDCAP SELECT",
    "group": "index",
    "unit": "pts",
-   "value": 14150.4,
-   "chgPct": 0.48,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 14161.35,
+   "chgPct": 0.55,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -46,9 +46,9 @@
    "label": "NIFTY NEXT 50",
    "group": "index",
    "unit": "pts",
-   "value": 72491.9,
-   "chgPct": 1.08,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 72547.25,
+   "chgPct": 1.16,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -56,9 +56,9 @@
    "label": "GIFT NIFTY",
    "group": "index",
    "unit": "pts",
-   "value": 25415.0,
-   "chgPct": 0.86,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 25457.5,
+   "chgPct": 1.03,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -68,7 +68,7 @@
    "unit": "pts",
    "value": 16.13,
    "chgPct": 3.61,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "India VIX"
   },
   {
@@ -76,9 +76,9 @@
    "label": "MIDCAP 100",
    "group": "index",
    "unit": "pts",
-   "value": 61417.2,
-   "chgPct": 0.72,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 61454.95,
+   "chgPct": 0.78,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -86,9 +86,9 @@
    "label": "SMALLCAP 100",
    "group": "index",
    "unit": "pts",
-   "value": 19426.85,
-   "chgPct": 0.49,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 19436.75,
+   "chgPct": 0.54,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -96,9 +96,9 @@
    "label": "NIFTY IT",
    "group": "sector",
    "unit": "pts",
-   "value": 30638.15,
-   "chgPct": -2.0,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 30676.75,
+   "chgPct": -1.87,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -106,9 +106,9 @@
    "label": "NIFTY PHARMA",
    "group": "sector",
    "unit": "pts",
-   "value": 28326.15,
+   "value": 28327.75,
    "chgPct": 0.45,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -116,9 +116,9 @@
    "label": "NIFTY AUTO",
    "group": "sector",
    "unit": "pts",
-   "value": 28437.85,
-   "chgPct": 3.81,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 28448.4,
+   "chgPct": 3.85,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -126,9 +126,9 @@
    "label": "NIFTY METAL",
    "group": "sector",
    "unit": "pts",
-   "value": 12217.3,
+   "value": 12217.8,
    "chgPct": -0.04,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -136,9 +136,9 @@
    "label": "NIFTY FMCG",
    "group": "sector",
    "unit": "pts",
-   "value": 48392.75,
-   "chgPct": 1.73,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 48437.15,
+   "chgPct": 1.82,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -146,9 +146,9 @@
    "label": "NIFTY ENERGY",
    "group": "sector",
    "unit": "pts",
-   "value": 37237.95,
-   "chgPct": 0.7,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 37291.45,
+   "chgPct": 0.84,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -158,7 +158,7 @@
    "unit": "pts",
    "value": 921.1,
    "chgPct": 0.27,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -166,9 +166,9 @@
    "label": "NIFTY PSU BANK",
    "group": "sector",
    "unit": "pts",
-   "value": 9727.2,
-   "chgPct": 1.93,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 9754.55,
+   "chgPct": 2.22,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -176,9 +176,9 @@
    "label": "NIFTY PRIVATE BANK",
    "group": "sector",
    "unit": "pts",
-   "value": 30613.65,
-   "chgPct": 0.96,
-   "asOf": "2026-11-19T13:54:02+05:30",
+   "value": 30641.5,
+   "chgPct": 1.05,
+   "asOf": "2026-11-19T14:03:47+05:30",
    "term": "Spot"
   },
   {
@@ -186,7 +186,7 @@
    "label": "NIFTY ATM implied vol",
    "group": "nifty options",
    "unit": "%",
-   "value": 12.5,
+   "value": 12.445,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "Implied volatility (IV)"
@@ -196,7 +196,7 @@
    "label": "NIFTY IV percentile (1y)",
    "group": "nifty options",
    "unit": "pct",
-   "value": 62.1,
+   "value": 61.4,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "IV percentile"
@@ -216,7 +216,7 @@
    "label": "NIFTY put-call OI ratio",
    "group": "nifty options",
    "unit": "x",
-   "value": 1.227789332767747,
+   "value": 1.1687441013868403,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "Put-call OI ratio"
@@ -256,7 +256,7 @@
    "label": "NIFTY gamma flip level",
    "group": "nifty options",
    "unit": "pts",
-   "value": 25862.0,
+   "value": 25850.0,
    "chgPct": null,
    "asOf": "2026-11-19",
    "term": "Gamma flip"
@@ -276,9 +276,9 @@
    "label": "Gold (MCX, Rs/10g)",
    "group": "commodity",
    "unit": "inr",
-   "value": 135680.0,
-   "chgPct": -0.7498,
-   "asOf": "2026-11-16",
+   "value": 129400.0,
+   "chgPct": -0.3189,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -316,9 +316,9 @@
    "label": "Silver (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 170741.0,
-   "chgPct": -3.1581,
-   "asOf": "2026-11-16",
+   "value": 160986.0,
+   "chgPct": 0.1568,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -346,9 +346,9 @@
    "label": "Copper (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 1287.1,
-   "chgPct": -1.6279,
-   "asOf": "2026-11-16",
+   "value": 1201.4,
+   "chgPct": -0.6615,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -376,9 +376,9 @@
    "label": "Crude oil (MCX, Rs/bbl)",
    "group": "commodity",
    "unit": "inr",
-   "value": 8249.0,
-   "chgPct": -0.3985,
-   "asOf": "2026-11-16",
+   "value": 7705.0,
+   "chgPct": 0.7585,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -416,9 +416,9 @@
    "label": "Natural gas (MCX, Rs/mmBtu)",
    "group": "commodity",
    "unit": "inr",
-   "value": 298.7,
-   "chgPct": -3.0195,
-   "asOf": "2026-11-16",
+   "value": 311.0,
+   "chgPct": -0.7658,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -486,9 +486,9 @@
    "label": "Aluminium (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 325.45,
-   "chgPct": -0.6411,
-   "asOf": "2026-11-16",
+   "value": 313.35,
+   "chgPct": 0.1438,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -506,9 +506,9 @@
    "label": "Zinc (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 395.6,
-   "chgPct": -2.0307,
-   "asOf": "2026-11-16",
+   "value": 391.45,
+   "chgPct": -0.2675,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -527,8 +527,8 @@
    "group": "commodity",
    "unit": "inr",
    "value": 193.7,
-   "chgPct": -0.2575,
-   "asOf": "2026-11-16",
+   "chgPct": 0.0,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
@@ -546,9 +546,9 @@
    "label": "Nickel (MCX, Rs/kg)",
    "group": "commodity",
    "unit": "inr",
-   "value": 1516.1,
-   "chgPct": -0.4923,
-   "asOf": "2026-11-16",
+   "value": 1502.0,
+   "chgPct": -0.7992,
+   "asOf": "2026-11-19",
    "term": "Commodity MCX price"
   },
   {
