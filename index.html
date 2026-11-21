@@ -14340,15 +14340,16 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         esc(n.step) + '</span><span class="rdr-nv">' + esc(n.label) + "</span><p>" + rdrText(n.text) + "</p></div>";
     };
     var landed = (R.landed || []).map(function (x) {
-      var dirCls = x.label === "USD/INR" ? cls(-(x.chg20 || 0)) : cls(x.chg20);
-      return '<div class="rdr-end"><span>' + esc(x.label) + '</span><b class="' + dirCls + '">' + rdrPct(x.chg20) + "</b></div>";
+      /* USD/INR falls when the rupee firms; show it the rupee's way round. */
+      var fx = x.label === "USD/INR", v = fx && x.chg20 != null ? -x.chg20 : x.chg20;
+      return '<div class="rdr-end"><span>' + (fx ? "Rupee vs dollar" : esc(x.label)) + '</span><b class="' + cls(v) + '">' + rdrPct(v) + "</b></div>";
     }).join("");
     return '<section class="card"><div class="card-hd"><h2 data-term="International radar">The chain</h2>' +
       '<span class="sub">one cause, many effects &middot; read left to right; each box is today&rsquo;s number</span></div>' +
       '<div class="rdr-pad"><div class="rdr-chain">' + (R.chain || []).map(node).join("") + "</div>" +
       '<div class="rdr-branch">' + node(R.second) +
       '<div><div class="rdr-h">Where it landed, last 20 sessions</div><div class="rdr-ends">' + landed +
-      '</div><div class="rdr-note">USD/INR is shown as the rupee: a rise here means a firmer rupee.</div></div></div></div></section>';
+      '</div><div class="rdr-note">The rupee is shown against the dollar: a rise means a firmer rupee.</div></div></div></div></section>';
   }
 
   function rdrCard(L) {
@@ -14360,7 +14361,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
             '<span class="rdr-src">' + esc(h.publisher) + " &middot; " + rdrD(h.date) + "</span></li>";
         }).join("") + "</ul>"
       : '<p class="rdr-note">No matching headline in the last 14 days.</p>';
-    var anchor = L.anchor && L.anchor.since && (L.anchor.headlines || []).length
+    /* The day-it-turned-on headlines only add something once that day is
+       past; on the first day they are the same list as above. */
+    var built = String((RADAR || {}).builtAt || "").slice(0, 10);
+    var anchor = L.anchor && L.anchor.since && L.anchor.since < built && (L.anchor.headlines || []).length
       ? '<div class="rdr-anchor"><b>When this light turned on (' + rdrD(L.anchor.since) + ") the news said:</b> " +
         L.anchor.headlines.slice(0, 2).map(function (h) { return esc(h.title) + " <i>(" + esc(h.publisher) + ")</i>"; }).join("; ") + "</div>"
       : "";

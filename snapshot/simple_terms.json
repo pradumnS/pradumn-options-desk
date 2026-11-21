@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 912,
-"generatedAt": "2026-11-21T19:18:02Z",
+"count": 921,
+"generatedAt": "2026-11-21T19:31:53Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -5152,6 +5152,14 @@
 "readIt": "When you see the verdict, trust only works. Weak means maybe luck.",
 "simple": "Fund extremes, EIA surprises and the cone verdict, each tested against a plain baseline. Each gets a one-word verdict: works, weak, does not work, or too few."
 },
+"Dollar direction and metals": {
+"example": "If the table says gold rose a median 1.4% after the dollar fell, and only 0.2% while the dollar was rising, then waiting for the dollar to turn is the useful signal.",
+"forYou": "It answers the question of whether a dollar near 103 or 104 keeps metals down by itself. It mostly does not; a dollar that keeps rising does.",
+"goodBad": "A median above 0 with a high up-share is good for metals.",
+"impact": "If today's row shows weak numbers: metals usually stay under pressure. If it moves to the falling-dollar row: metals usually recover.",
+"readIt": "When you see this table, find the highlighted row, which is today, and read the median move and how often it went up.",
+"simple": "A history table: what gold, silver, copper, crude and NIFTY did in the next month, depending on whether the dollar had been rising, flat or falling, and on how high it was."
+},
 "Dollar index": {
 "example": "Like a strong rupee making foreign goods cheaper for us but our exports dearer. At the 70th percentile or higher, this row votes -1 for all five markets.",
 "forYou": "If the dollar is surging, take extra care with short puts on gold.",
@@ -7414,6 +7422,14 @@
 "readIt": "When you see the playbook, read the starting position first, then the branches. Each branch is based on the daily close.",
 "simple": "A plan for the next few sessions, not one single trade. It has a starting position and branches. Branches cover a drift, a run to a ceiling, a break above it, or a fall to a floor."
 },
+"Impact map": {
+"example": "If the row for gold says -1.4% under 'Dollar +1%', then when the dollar rose 1% in a month, gold usually fell about 1.4% in the same month.",
+"forYou": "Before selling gold options, check the dollar link; before selling silver, check both the dollar and the tech link.",
+"goodBad": "Neither good nor bad: it measures how tightly markets move together.",
+"impact": "If a link is strong: that market will likely follow the driver. If it says no link: the driver tells you little about it.",
+"readIt": "When you see this table, read the number and its strength label together. Only 'strong' and 'medium' links are worth leaning on.",
+"simple": "A table of how much each market has usually moved when the dollar or US tech moved. It shows which links are strong and which are weak."
+},
 "Implied event move": {
 "example": "If insurers charge extra for one stormy day, that extra shows how big a storm they expect.",
 "forYou": "Compare it with the real past move to see if event risk is fairly priced.",
@@ -7676,6 +7692,14 @@
 "impact": "If MCX adds options: the market can get a trade plan. If there is no contract: there is nothing to trade here.",
 "readIt": "When you see this label, check options, futures only, or none. With no Indian contract, the desk always stands aside.",
 "simple": "Whether this market trades in India at all. MCX lists options on gold, silver, copper, zinc, crude and gas. Aluminium, lead and nickel have futures only."
+},
+"International radar": {
+"example": "Like a car dashboard. The oil light comes on before the engine breaks, so you can act early. Here, a hot US inflation number lights up first, and the dollar and gold lights follow.",
+"forYou": "Use it before choosing a side on gold, silver or NIFTY options. Several red lights together mean bigger moves, so sell premium further away or trade smaller.",
+"goodBad": "Green is calm, amber is a watch, red is a warning that its rule is met today.",
+"impact": "If more lights turn red: the world is in a risk-off mood, and metals and tech usually fall. If lights turn green: the pressure is easing.",
+"readIt": "When you see a red light, open its card. It says what we see, why (the news), what usually happened next in the past, where the impact lands, and which number would switch the light off.",
+"simple": "Six warning lights for what is coming from abroad. Each light watches one link in a chain: US prices, what people expect the US central bank to do, the dollar, metals, tech shares, and India."
 },
 "Iron condor / short strangle": {
 "example": "Betting the score stays between 150 and 200; the condor version also buys insurance past each side. If NIFTY is 25,000, sell 25,500 CE and 24,500 PE, and the condor also buys 25,700 CE and 24,300 PE.",
@@ -11034,6 +11058,219 @@
 ]
 },
 "simple": "RSI measures how strong recent up days were compared with down days, on a 0 to 100 scale over 14 days. Below 30 is called oversold: sellers have been very strong."
+},
+"Radar: AI and tech": {
+"example": "A share that went from Rs 200 to Rs 150 is 25% below its high. For a whole index of 100 big companies, 10% below is already called a correction.",
+"forYou": "A red tech light with a red dollar light is a double shock: expect bigger daily swings in silver and in NIFTY IT names.",
+"goodBad": "Close to the high is calm; far below it is a warning.",
+"impact": "If it falls further: silver, copper and NIFTY IT usually feel it, and investors get nervous worldwide. If it recovers: risk appetite returns.",
+"readIt": "When you see this number, read how far below the high it is: under 5% normal, 5 to 10% a dip, 10 to 20% a correction, over 20% a bear market.",
+"scale": {
+"hi": 40,
+"lo": 0,
+"quick": "Below the 1-year high: under 5% normal, 5-10% dip, 10-20% correction, over 20% bear market.",
+"range": "From 0% (at the high) to about 80% in the worst crashes. Most years see at least one dip of 10%.",
+"unit": "%",
+"zones": [
+{
+"label": "Normal",
+"means": "Near the high.",
+"to": 5,
+"tone": "good"
+},
+{
+"label": "Dip",
+"means": "An ordinary pullback.",
+"to": 10,
+"tone": "ok"
+},
+{
+"label": "Correction",
+"means": "A real sell-off.",
+"to": 20,
+"tone": "wait"
+},
+{
+"label": "Bear market",
+"means": "A deep and lasting fall.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "How far US tech shares and chip makers are below their highest price of the past year. This is where the AI boom lives, so a fall here means the AI trade is unwinding."
+},
+"Radar: Dollar index": {
+"example": "If the dollar index goes from 99 to 104, a European buyer needs about 5% more euros for the same gold bar, so buying slows.",
+"forYou": "A dollar still climbing in steps is a reason not to sell gold puts close to the price. A break below its 50-day average is the first sign the pressure is ending.",
+"goodBad": "For metals, a falling dollar is good and a rising dollar is bad. The level alone tells little.",
+"impact": "If it goes up: gold, silver and copper usually fall. If it goes down: they usually rise.",
+"readIt": "When you see this number, look at the 20-session change, not the level. Over +1.5% hurts metals; under -1.5% helps them.",
+"scale": {
+"hi": 4,
+"lo": -4,
+"quick": "20-session change: below -1.5% falling (helps metals), -1.5 to +0.5 flat, +0.5 to +1.5 firming, above +1.5% climbing (hurts metals).",
+"range": "The 20-session change usually sits between -4% and +4%. Over 10 years, metals did best after the dollar fell more than 1.5% and worst while it was still rising.",
+"unit": "%",
+"zones": [
+{
+"label": "Falling",
+"means": "Helps metals.",
+"to": -1.5,
+"tone": "good"
+},
+{
+"label": "Flat",
+"means": "No pressure either way.",
+"to": 0.5,
+"tone": "ok"
+},
+{
+"label": "Firming",
+"means": "Some pressure on metals.",
+"to": 1.5,
+"tone": "wait"
+},
+{
+"label": "Climbing",
+"means": "Clear pressure on metals.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "How strong the US dollar is against 6 big currencies, mostly the euro. When it climbs, things priced in dollars, like gold, cost more for everyone else."
+},
+"Radar: Fed expectations": {
+"example": "If the bank pays 3.9% today but lenders ask 4.8% to lend for 2 years, they expect rates to go up soon. That 0.9 gap is 90 basis points.",
+"forYou": "Before a Fed decision day with a wide gap, expect a large move in gold and the rupee. Size smaller and keep strikes further away.",
+"goodBad": "For metals, a low or negative gap is good and a high gap is bad.",
+"impact": "If it goes up: the dollar usually rises and gold falls. If it goes down: the dollar usually eases and gold gets support.",
+"readIt": "When you see this number, look at the gap in basis points (100 bp = 1%). Above +50 means hikes are expected; below 0 means cuts are expected.",
+"scale": {
+"hi": 150,
+"lo": -150,
+"quick": "Gap in bp: below 0 cuts expected, 0 to 25 steady, 25 to 50 leaning to a hike, above 50 hikes expected.",
+"range": "Over the last 10 years the gap has run from about -150 bp to about +150 bp. Near 0 is normal when the Fed is on hold.",
+"unit": "bp",
+"zones": [
+{
+"label": "Cuts expected",
+"means": "Markets expect lower US rates.",
+"to": 0,
+"tone": "good"
+},
+{
+"label": "Steady",
+"means": "Little change expected.",
+"to": 25,
+"tone": "ok"
+},
+{
+"label": "Leaning to a hike",
+"means": "Some chance of a hike.",
+"to": 50,
+"tone": "wait"
+},
+{
+"label": "Hikes expected",
+"means": "Markets are pricing rate hikes.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "Whether markets expect the US central bank (the Fed) to raise or cut its interest rate. We read it from the 2-year US government bond: its yield is the rate lenders ask for 2 years."
+},
+"Radar: India": {
+"example": "If US shares fall 9% in a month but NIFTY rises 13% and the rupee gets stronger, India is going its own way for now.",
+"forYou": "This is a watch, not a trade signal. Use the Nifty Index tab and the Morning brief for the actual call.",
+"goodBad": "Green is good for NIFTY; red is a warning.",
+"impact": "If it turns red: the world's selling has reached India; expect wider NIFTY ranges. If it stays green: local strength is winning.",
+"readIt": "When you see this light green, India is holding up. Red means NIFTY fell more than 3% in 20 sessions.",
+"simple": "Whether the world's shocks are reaching India: NIFTY over the last 20 sessions, NIFTY IT, and the rupee against the dollar."
+},
+"Radar: Metals": {
+"example": "If gold was 4,000 a month ago and is 3,500 now, it fell 12.5%. A fall of 5% in a month is already big for gold.",
+"forYou": "In a red metals light, selling puts close to the price is the risky side. The Metal tab gives the actual call; this light explains the world behind it.",
+"goodBad": "A small move is calm; a big fall is a warning.",
+"impact": "If it falls further: MCX gold and silver follow, softened a little when the rupee weakens. If it turns up: pressure is easing, usually after the dollar turns down.",
+"readIt": "When you see this number, check gold's 20-session change. 5% down or worse is red. Then read the dollar and Fed lights to see why.",
+"scale": {
+"hi": 10,
+"lo": -15,
+"quick": "Gold, 20 sessions: up is calm, 0 to -2% a dip, -2 to -5% under pressure, -5% or worse heavy pressure.",
+"range": "Gold's 20-session change usually stays between -8% and +8%. Silver moves about twice as much as gold.",
+"unit": "%",
+"zones": [
+{
+"label": "Heavy pressure",
+"means": "A big fall for gold in a month.",
+"to": -5,
+"tone": "bad"
+},
+{
+"label": "Under pressure",
+"means": "Falling more than usual.",
+"to": -2,
+"tone": "wait"
+},
+{
+"label": "Dip",
+"means": "A small fall.",
+"to": 0,
+"tone": "ok"
+},
+{
+"label": "Rising",
+"means": "No pressure.",
+"to": null,
+"tone": "good"
+}
+]
+},
+"simple": "How hard gold, silver and copper are falling over the last 20 sessions, about one month of trading."
+},
+"Radar: US inflation": {
+"example": "If a Rs 100 basket costs Rs 100.30 next month, prices rose 0.3% that month. Do that every month and in a year the basket costs about Rs 103.60.",
+"forYou": "A hot print is the first domino. On the next US inflation day, expect bigger moves in gold, silver and NIFTY, and avoid selling options too close.",
+"goodBad": "Low is calm, high is a warning.",
+"impact": "If it goes up: markets expect US rates to rise, the dollar firms and gold usually struggles. If it goes down: rate-hike fears fade and the dollar usually eases.",
+"readIt": "When you see this number, compare it with 0.17%, the monthly pace of the US central bank's 2% yearly goal. 0.3% or more is hot.",
+"scale": {
+"hi": 0.6,
+"lo": -0.1,
+"quick": "Monthly core: 0.1% or less calm, about 0.2% near the 2% goal, 0.3% or more hot (about 3.6% a year).",
+"range": "Usually between -0.1% and 0.5% a month. The US central bank aims for 2% a year, about 0.17% a month. Prints of 0.4% or more are rare and move markets.",
+"unit": "%",
+"zones": [
+{
+"label": "Calm",
+"means": "Prices rising slower than the goal.",
+"to": 0.1,
+"tone": "good"
+},
+{
+"label": "Near goal",
+"means": "In line with 2% a year.",
+"to": 0.2,
+"tone": "ok"
+},
+{
+"label": "Warm",
+"means": "A little above the goal; watch the next print.",
+"to": 0.29,
+"tone": "wait"
+},
+{
+"label": "Hot",
+"means": "Well above the goal; rate hikes become likely.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "How fast prices in the US are rising each month, leaving out food and fuel because they jump around."
 },
 "Ranked trades": {
 "example": "Like a list of all the shops you could rent, sorted by profit per rupee of rent. The top shop is the best use of your money.",
