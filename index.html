@@ -14878,9 +14878,16 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       }).join("");
       return '<tr><td class="lft">' + esc(region) + (rateSrc[region] ? '<div class="kpi-m">' + esc(rateSrc[region]) + "</div>" : "") + "</td>" + cells + "</tr>";
     }).join("");
+    var cnL = ASIA && ASIA.ready ? (ASIA.china || {}).latest || {} : {};
     var pmiRows = regions.map(function (region) {
+      var p = region === "China" ? cnL.pmi : null, s = region === "China" ? cnL.pmiServices : null;
+      if (p && p.value != null) {
+        return '<tr><td class="lft">' + esc(region) + "</td><td>" + p.value.toFixed(1) + (s && s.value != null ? " / " + s.value.toFixed(1) : "") +
+          '</td><td class="lft">Official NBS manufacturing / services PMI &middot; ' + esc(_asMon(p.period)) +
+          (p.link ? ' &middot; <a href="' + esc(p.link) + '" target="_blank" rel="noopener">release</a>' : "") + "</td></tr>";
+      }
       return '<tr><td class="lft">' + esc(region) + '</td><td><span class="source-unavailable">Not connected</span></td>' +
-        '<td class="lft">No verified release value/date in this snapshot</td></tr>';
+        '<td class="lft">' + (region === "Japan" ? "No free official feed; see headlines on the China &amp; Japan tab" : "No verified release value/date in this snapshot") + "</td></tr>";
     }).join("");
     var intro = pageIntro("International",
       "What is coming from abroad and where it lands: warning lights first, then rates, FX, crypto and positioning. Every figure shows its as-of date; feeds that are not connected say so.",
