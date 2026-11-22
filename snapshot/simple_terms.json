@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 927,
-"generatedAt": "2026-11-22T09:20:18Z",
+"count": 926,
+"generatedAt": "2026-11-22T10:30:30Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -4968,14 +4968,6 @@
 "impact": "If gamma at spot goes up (more long): hedging tends to dampen moves. If it goes down (more short): hedging tends to make moves bigger.",
 "readIt": "When you see this section, look for whether gamma at spot is long (calming) or short (amplifying), and where the flip level sits.",
 "simple": "This section shows how the people who sold options must hedge as NIFTY moves. Their hedging can calm price down near some strikes and push it harder near others."
-},
-"Decisions ahead": {
-"example": "Like the exam timetable pinned on a school board: you know which days need extra preparation. If the RBI meets on 5 Dec, that week NIFTY may move more than usual.",
-"forYou": "Avoid selling tight strikes just before a big decision; either widen the strikes or wait until after.",
-"goodBad": "Neither; it is a calendar.",
-"impact": "If a decision falls before your expiry: option premiums are usually higher, and the risk of a sudden move is too. If it falls after: your trade avoids that event.",
-"readIt": "When you see a date here, check if it falls before your option's expiry.",
-"simple": "A list of upcoming central-bank meetings and big data releases, with dates. Each date says whether it was confirmed by more than one source. These are the days markets often move most."
 },
 "Defined risk": {
 "example": "Like a safety net under a trapeze artist.",
