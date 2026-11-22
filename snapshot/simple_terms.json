@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 924,
-"generatedAt": "2026-11-22T08:15:58Z",
+"count": 927,
+"generatedAt": "2026-11-22T09:20:18Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -7783,6 +7783,41 @@
 },
 "simple": "A diary of every US inflation report since January 2025. For each one it shows how fast prices rose, and what gold, silver, Bitcoin and the dollar did the day before, on the day, and the day after."
 },
+"International headline strip": {
+"example": "On 20 Nov 2026 the strip showed the US 10-year yield at 4.92%, down 12 bp in a day, from the US Treasury. The Radar, the yield curve and the China & Japan tab all use that same 4.92%.",
+"forYou": "Check the strip before placing an option trade on gold, silver or crude. If a date is amber, the number is old: do not trade on it.",
+"goodBad": "Fresh dates are good; an amber date is bad because that feed has stopped updating.",
+"impact": "If the dollar and US yields are both rising: gold, silver and Asian currencies usually come under pressure. If both are falling: the pressure usually eases.",
+"readIt": "When you open International, read the strip left to right: dollar, US yields, Japan's yield, the three Asian currencies, then gold, oil and Bitcoin. Look at the small change under each number, then at the date.",
+"scale": {
+"hi": 8,
+"lo": 0,
+"quick": "Date age: 0 to 2 days fresh, 3 to 4 days fine over a weekend or holiday, more than 4 days stale.",
+"range": "Daily prices and yields are normally 0 to 3 days old; over 4 days means a feed problem.",
+"unit": " days",
+"zones": [
+{
+"label": "Fresh",
+"means": "Latest close.",
+"to": 2,
+"tone": "good"
+},
+{
+"label": "Weekend",
+"means": "Normal over a weekend or holiday.",
+"to": 4,
+"tone": "ok"
+},
+{
+"label": "Stale",
+"means": "The feed has stopped; do not rely on it.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "A row of the ten numbers that move the rest of the world, at the top of the International page. Each one comes from one source and shows its date, so every tab below agrees with it."
+},
 "International radar": {
 "example": "Like a car dashboard. The oil light comes on before the engine breaks, so you can act early. Here, a hot US inflation number lights up first, and the dollar and gold lights follow.",
 "forYou": "Use it before choosing a side on gold, silver or NIFTY options. Several red lights together mean bigger moves, so sell premium further away or trade smaller.",
@@ -7790,6 +7825,41 @@
 "impact": "If more lights turn red: the world is in a risk-off mood, and metals and tech usually fall. If lights turn green: the pressure is easing.",
 "readIt": "When you see a red light, open its card. It says what we see, why (the news), what usually happened next in the past, where the impact lands, and which number would switch the light off.",
 "simple": "Six warning lights for what is coming from abroad. Each light watches one link in a chain: US prices, what people expect the US central bank to do, the dollar, metals, tech shares, and India."
+},
+"International sources": {
+"example": "On 22 Nov 2026 the drawer showed CFTC positions dated 17 Nov against an 11-day limit: fine, because the CFTC publishes every Friday for the Tuesday before.",
+"forYou": "Before relying on a warning light or a positioning card, open the drawer once to confirm its inputs are fresh.",
+"goodBad": "All dates in normal colour is good; any amber date is bad.",
+"impact": "If an input goes stale: the cards using it still show the last value, so they can be out of date. If all dates are fresh: the page is up to date.",
+"readIt": "When you see a date in amber, that input is older than its limit. Check which input it is before trusting any card that uses it.",
+"scale": {
+"hi": 14,
+"lo": 0,
+"quick": "Limits: daily prices and yields 4 days, CFTC positions 11 days, expectations research 7 days, radar and headlines 2 days.",
+"range": "A healthy page has every input within its limit.",
+"unit": " days",
+"zones": [
+{
+"label": "Fresh",
+"means": "Daily inputs are current.",
+"to": 4,
+"tone": "good"
+},
+{
+"label": "Weekly",
+"means": "Fine for weekly CFTC data only.",
+"to": 11,
+"tone": "ok"
+},
+{
+"label": "Stale",
+"means": "A feed has stopped.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "A drawer at the bottom of every International tab that lists where each number comes from, how old it is, and how old it is allowed to get."
 },
 "Iron condor / short strangle": {
 "example": "Betting the score stays between 150 and 200; the condor version also buys insurance past each side. If NIFTY is 25,000, sell 25,500 CE and 24,500 PE, and the condor also buys 25,700 CE and 24,300 PE.",
@@ -10108,6 +10178,53 @@
 "range": "From 0 up to the spread width, in points per unit."
 },
 "simple": "This is what it would cost to close the position at that day's prices, in points per unit. Settled legs count at their intrinsic value."
+},
+"Positioning crowding": {
+"example": "On 17 Nov 2026 hedge funds were net short the euro and scored 1 out of 100: almost the most short they have been in 3 years. If the euro jumps, they may have to buy back quickly, which pushes it up faster.",
+"forYou": "Before selling options on gold, silver or crude, check its card. At an extreme, expect bigger moves than usual and keep strikes wider.",
+"goodBad": "A score between 30 and 70 is calm. Below 10 or above 90 is a warning that a sharp move can come.",
+"impact": "If a score is above 90 (crowded long) and bad news arrives: the price can fall fast as everyone sells. If a score is below 10 (crowded short) and good news arrives: the price can jump fast.",
+"readIt": "When you see a card, read the sentence first, then the score. Look at the 4-week change to see which way the group is heading, and the small line for the last 26 weeks.",
+"scale": {
+"hi": 100,
+"lo": 0,
+"quick": "0 to 10 most short in 3 years, 10 to 30 low end, 30 to 70 normal, 70 to 90 high end, 90 to 100 most long in 3 years.",
+"range": "Most weeks the score sits between 20 and 80; below 10 or above 90 happens a few times a year.",
+"unit": "",
+"zones": [
+{
+"label": "Crowded short",
+"means": "A surprise can force fast buying back.",
+"to": 10,
+"tone": "bad"
+},
+{
+"label": "Low end",
+"means": "Watch the direction.",
+"to": 30,
+"tone": "wait"
+},
+{
+"label": "Normal",
+"means": "Positioning gives no edge.",
+"to": 70,
+"tone": "good"
+},
+{
+"label": "High end",
+"means": "Watch the direction.",
+"to": 90,
+"tone": "wait"
+},
+{
+"label": "Crowded long",
+"means": "Bad news can trigger fast selling.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "Shows who is betting which way in futures (hedge funds, asset managers, producers), and whether that bet is at a 3-year extreme. A score of 0 means the most short in 3 years; 100 means the most long."
 },
 "Positioning decision log": {
 "example": "Like a diary where you guess tomorrow's vegetable price from today's arrivals, then check if you were right.",

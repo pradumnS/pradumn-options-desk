@@ -534,6 +534,46 @@ body {
 .idt-kpi { border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; display: grid; gap: 1px; }
 .idt-kpi span { font-size: 11px; color: var(--ink-3); }
 .idt-kpi b { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 17px; font-weight: 600; }
+/* International: headline strip, freshness chips, positioning cards */
+.int-strip .card-hd { padding-bottom: 6px; }
+@media (min-width: 1280px) { .int-ribbon { grid-template-columns: repeat(10, minmax(0, 1fr)); } .int-tile { padding: 10px 10px 11px; } }
+.int-ribbon { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--line-soft); border-top: 1px solid var(--line-soft); }
+.int-tile { display: grid; gap: 2px; text-align: left; background: var(--surface); border: 0; padding: 10px 13px 11px; font: inherit; color: var(--ink); cursor: pointer; }
+.int-tile:hover { background: var(--surface-2); }
+.int-tile:focus-visible { outline: 2px solid var(--calls); outline-offset: -2px; }
+.int-tl { font-size: 11px; color: var(--ink-3); letter-spacing: .02em; }
+.int-tile b { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 600; line-height: 1.25; }
+.int-tc { font-family: var(--font-num); font-size: 11.5px; color: var(--ink-3); }
+.int-ts { font-size: 10.5px; color: var(--ink-3); }
+.int-none { cursor: default; } .int-none b { color: var(--ink-3); }
+.int-old { box-shadow: inset 3px 0 0 var(--warn); }
+.int-fresh { white-space: nowrap; }
+.int-fresh.int-stale { color: var(--warn); font-weight: 600; }
+.dt tr.int-grp td { background: var(--surface-2); color: var(--ink-3); font-size: 11px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; padding-top: 6px; padding-bottom: 6px; }
+.int-golink { margin: 10px 0 0; }
+.int-link { font: inherit; font-size: 12.5px; background: none; border: 0; padding: 0; color: var(--calls); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.int-link:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
+.int-drawer { margin-top: 18px; }
+.pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; padding: 0 14px 4px; }
+.pos-card { border: 1px solid var(--line); border-radius: 6px; padding: 11px 13px; display: grid; gap: 8px; align-content: start; background: var(--surface); }
+.pos-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pos-hd h3 { margin: 0; font-size: 14.5px; }
+.pos-read { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+.pos-row { display: grid; gap: 3px; border-top: 1px solid var(--line-soft); padding-top: 7px; font-size: 12.5px; }
+.pos-meter { display: flex; align-items: center; gap: 10px; }
+.pos-gauge { position: relative; flex: 1; min-width: 80px; height: 8px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--down) 0 10%, var(--warn) 10% 30%, var(--surface-3) 30% 70%, var(--warn) 70% 90%, var(--down) 90% 100%); opacity: .9; }
+.pos-gauge i { position: absolute; top: -4px; width: 3px; height: 16px; margin-left: -1.5px; background: var(--ink); border-radius: 2px; }
+.pos-ix { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 650; min-width: 52px; text-align: right; }
+.pos-ix small { font-size: 10px; color: var(--ink-3); font-weight: 400; }
+.pos-ix.pos-x { color: var(--warn); }
+.pos-spark { flex: none; }
+.pos-spark polyline { fill: none; stroke: var(--calls); stroke-width: 1.5; }
+.pos-spark .pos-zero { stroke: var(--line); stroke-dasharray: 2 2; }
+.pos-z { color: var(--ink-3); font-size: 12px; }
+.pos-src { font-size: 11px; color: var(--ink-3); border-top: 1px solid var(--line-soft); padding-top: 6px; }
+.pos-legend { margin: 8px 0; }
+@media (max-width: 640px) { .int-ribbon { grid-template-columns: repeat(2, 1fr); } .pos-grid { grid-template-columns: 1fr; padding: 0 10px 4px; } .pos-spark { display: none; } }
 .idt-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-3); }
 .idt-bar button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
 .idt-bar button[aria-pressed=true] { border-color: var(--calls); color: var(--ink); background: var(--calls-dim); font-weight: 600; }
@@ -2929,6 +2969,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   function internationalMovesTable(symbols) {
     var rows = symbols.map(function (entry) {
+      if (entry[0] === null) return '<tr class="int-grp"><td class="lft" colspan="8">' + esc(entry[1]) + "</td></tr>";
       var item = intlItem(entry[0]) || { symbol: entry[0], kind: "fx", moves: {} };
       var quote = watchItem(entry[0]);
       var last = item.last != null ? item.last : quote && quote.last;
@@ -14314,35 +14355,31 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       esc(ANALYSIS.generatedAt || "") + "</span></div>" + pick + head +
       '<div class="ana-grid">' +
       '<div class="ana-block"><h3>Why it moved</h3>' + paras(r.why) + drv + "</div>" +
-      '<div class="ana-block"><h3>What could happen</h3>' + paras(r.next) + "<h3>Events ahead</h3>" + ev + "</div>" +
+      '<div class="ana-block"><h3>What could happen</h3>' + paras(r.next) + "<h3>Events ahead</h3>" + ev + intEventsLink("Every event with its expectations: Events page") + "</div>" +
       '<div class="ana-block"><h3>What the news says</h3>' + news + "</div>" +
       '<div class="ana-block"><h3>Sources and freshness</h3>' + fresh +
       '<p class="kpi-m">Rules: prices ' + (rules.priceDays || "?") + " days, CFTC " +
       (rules.positionsDays || "?") + " days, headlines " + (rules.newsHours || "?") +
       " hours. Tier is a reputation label for the publisher, not a filter; read the article before relying on it.</p></div>" +
-      "</div></section>" + analysisSourcesCard();
+      "</div></section>";
   }
-  function analysisSourcesCard() {
+  /* Each provider's last successful fetch; shown in International's
+     sources drawer. Central-bank dates and who confirms them are on the
+     Events page. */
+  function analysisProviders() {
     var src = (ANALYSIS && ANALYSIS.sources) || [];
-    var cal = (ANALYSIS && ANALYSIS.calendar) || [];
-    if (!src.length && !cal.length) return "";
-    return '<section class="card"><div class="card-hd"><h2>Calendar and source status</h2>' +
-      '<span class="sub">central-bank dates from the banks, cross-checked; every provider\u2019s last fetch</span></div>' +
-      '<div class="ana-grid"><div class="ana-block"><h3>Decisions ahead</h3><ul class="ana-news">' +
-      cal.map(function (e) {
-        return "<li><b>" + esc(e.date) + "</b> \u00b7 " + esc(e.label) + '<span class="ana-meta">' +
-          (e.confirmed ? "confirmed by " : e.official ? "official \u00b7 " : "single source \u00b7 ") +
-          esc((e.sources || []).map(function (s) { return s.name; }).join(", ")) +
-          (e.detail ? " \u00b7 " + esc(e.detail) : "") + "</span></li>";
-      }).join("") + "</ul></div>" +
-      '<div class="ana-block"><h3>Providers</h3><div class="tablewrap"><table class="dt"><thead><tr>' +
-      '<th class="lft">Provider</th><th class="lft">Kind</th><th>Items</th><th class="lft">Last success</th></tr></thead><tbody>' +
+    if (!src.length) return "";
+    var T = ' data-term="Market analysis"';
+    return '<section class="card"><div class="card-hd"><h2' + T + '>Providers</h2>' +
+      '<span class="sub">every news and calendar provider&rsquo;s last successful fetch</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr>' +
+      '<th class="lft"' + T + '>Provider</th><th class="lft"' + T + '>Kind</th><th' + T + '>Items</th><th class="lft"' + T + '>Last success</th></tr></thead><tbody>' +
       src.map(function (s) {
-        return '<tr><td class="lft" data-term="Market analysis">' + esc(s.provider) + '</td><td class="lft">' + esc(s.kind) +
+        return '<tr><td class="lft">' + esc(s.provider) + '</td><td class="lft">' + esc(s.kind) +
           "</td><td>" + (s.items == null ? "\u2014" : n0(s.items)) + '</td><td class="lft ' +
           (s.error ? "ana-stale" : "ana-ok") + '">' + esc(s.lastOk ? anaAge(s.lastOk) : "never") +
           (s.error ? " \u00b7 " + esc(s.error) : "") + "</td></tr>";
-      }).join("") + "</tbody></table></div></div></div></section>";
+      }).join("") + "</tbody></table></div></section>";
   }
 
   /* ---------- International radar (radar.json) ----------
@@ -14352,9 +14389,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
      where the impact lands, and which number confirms or cancels it.
      All text arrives assembled upstream from stored figures and escaped
      here; nothing is typed in by a user. */
-  var INT_TABS = [["radar", "Radar", "what is coming"], ["asia", "China &amp; Japan", "what matters for the world"], ["markets", "Markets", "prices, moves, inflation days"],
-    ["rates", "Rates", "US curve"], ["positioning", "Positioning", "CFTC"],
-    ["why", "Why it moved", "today"], ["sources", "Sources", ""]];
+  var INT_TABS = [["radar", "Radar", "what is coming"], ["asia", "China &amp; Japan", "what matters for the world"],
+    ["markets", "Markets &amp; rates", "prices, curves, inflation days"], ["positioning", "Positioning", "who is crowded"],
+    ["why", "Why it moved", "today"]];
   var RDR_TERM = { inflation: "Radar: US inflation", fed: "Radar: Fed expectations", dollar: "Radar: Dollar index",
     metals: "Radar: Metals", ai: "Radar: AI and tech", india: "Radar: India" };
   var RDR_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -14498,7 +14535,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<div class="rdr-pad rdr-cal">' + ev.map(function (e) {
         return '<div class="rdr-ev"><b class="rdr-num">' + rdrD(e.date) + "</b><span>" + esc(e.label) + '</span><span class="rdr-note">moves the ' +
           esc(title[e.light] || e.light) + " light</span></div>";
-      }).join("") + "</div></section>";
+      }).join("") + "</div>" + '<div class="rdr-pad">' + intEventsLink("Full calendar with every bank, poll and market expectation: Events page") + "</div></section>";
   }
 
   function radarView() {
@@ -14544,11 +14581,15 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (unit === "k") return n0(v) + "k";
     return v + (unit || "");
   }
+  function evDateSrc(e) {
+    var s = e.dateSources || [];
+    return s.length ? ' &middot; <span class="idt-mut">date ' + (e.dateConfirmed ? "confirmed by " : "from ") + esc(s.join(", ")) + "</span>" : "";
+  }
   function evCard(e) {
     var T = ' data-term="Events and expectations"';
     var d = new Date(e.date + "T00:00:00");
     var head = '<div class="ev-date"><b>' + (+e.date.slice(8, 10)) + "</b><span>" + RDR_MON[+e.date.slice(5, 7) - 1] + " &middot; " + EV_WD[d.getDay()] + "</span><small>" + evWhen(e) + "</small></div>";
-    var meta = '<span class="ev-cc ev-' + esc(e.country) + '">' + esc(e.country) + "</span> " + esc(e.category || "") + (e.time ? " &middot; " + esc(e.time) : "");
+    var meta = '<span class="ev-cc ev-' + esc(e.country) + '">' + esc(e.country) + "</span> " + esc(e.category || "") + (e.time ? " &middot; " + esc(e.time) : "") + evDateSrc(e);
     var prev = e.previous != null || e.previousNote
       ? '<p class="rdr-note">Last time: ' + (e.previous != null ? "<b>" + evVal(e.previous, e.unit) + "</b>" : "") + (e.previousNote ? (e.previous != null ? " &middot; " : "") + esc(e.previousNote) : "") + "</p>" : "";
     var S = e.summary;
@@ -14601,10 +14642,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       return '<div class="ev-week">' + k + "</div>" + weeks[k].map(evCard).join("");
     }).join("") || '<section class="card"><div class="rdr-pad">No events for this country in the next 5 weeks.</div></section>';
     var calRows = cal.map(function (e) {
-      return '<tr><td class="lft">' + rdrD(e.date) + "</td><td>" + esc(e.country) + '</td><td class="lft">' + esc(e.event) + "</td><td>" + evWhen(e) + "</td></tr>";
+      return '<tr><td class="lft">' + rdrD(e.date) + "</td><td>" + esc(e.country) + '</td><td class="lft">' + esc(e.event) + (e.detail ? ' <span class="idt-mut">' + esc(e.detail) + "</span>" : "") +
+        "</td><td>" + evWhen(e) + '</td><td class="lft">' + ((e.dateSources || []).length ? (e.dateConfirmed ? "confirmed: " : "") + esc(e.dateSources.join(", ")) : "&mdash;") + "</td></tr>";
     }).join("");
     var calCard = calRows ? '<section class="card"><div class="card-hd"><h2' + T + '>Also on the calendar</h2><span class="sub">from the desk calendar &middot; no expectations collected yet</span></div>' +
-      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>Date</th><th' + T + '>Country</th><th class="lft"' + T + '>Event</th><th' + T + '>When</th></tr></thead><tbody>' + calRows + "</tbody></table></div></section>" : "";
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>Date</th><th' + T + '>Country</th><th class="lft"' + T + '>Event</th><th' + T + '>When</th><th class="lft"' + T + '>Date from</th></tr></thead><tbody>' + calRows + "</tbody></table></div></section>" : "";
     var assets = [], byA = {};
     (D.outlooks || []).forEach(function (o) { if (!byA[o.asset]) { byA[o.asset] = []; assets.push(o.asset); } byA[o.asset].push(o); });
     var oRows = assets.map(function (a) {
@@ -14850,9 +14892,228 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   function intTabs() {
     return '<div class="rdr-tabs" role="tablist" aria-label="International view">' + INT_TABS.map(function (t) {
-      return '<button class="rdr-tab" role="tab" data-inttab="' + t[0] + '" aria-selected="' + (t[0] === (state.intTab || "radar")) + '">' +
+      return '<button class="rdr-tab" role="tab" data-inttab="' + t[0] + '" aria-selected="' + (t[0] === intTabKey()) + '">' +
         t[1] + (t[2] ? ' <small class="rdr-tsub">' + t[2] + "</small>" : "") + "</button>";
     }).join("") + "</div>";
+  }
+
+  /* ---------- International: headline strip, tabs, positioning, sources ----------
+     One number per market from one source, with its date. The strip at the
+     top is the reference; every tab below reads the same stored figures, so
+     "US 10-year" is the same value wherever it appears. Old addresses
+     (#international/rates, #international/sources) open the tab that now
+     holds that content. */
+  var INT_ALIAS = { rates: "markets", sources: "markets" };
+  function intTabKey() {
+    var t = INT_ALIAS[state.intTab] || state.intTab || "radar";
+    return INT_TABS.some(function (x) { return x[0] === t; }) ? t : "radar";
+  }
+  function intAge(iso) {
+    var t = Date.parse(String(iso || "").slice(0, 10) + "T00:00:00");
+    return isFinite(t) ? Math.floor((Date.now() - t) / 864e5) : null;
+  }
+  /* A date chip that turns amber once the input is older than its limit. */
+  function intFresh(iso, maxDays) {
+    var a = intAge(iso);
+    if (a == null) return '<span class="int-fresh int-stale">no date</span>';
+    var old = a > maxDays;
+    return '<span class="int-fresh ' + (old ? "int-stale" : "int-ok") + '" title="' + (old ? "Older than" : "Within") +
+      " the " + maxDays + '-day freshness limit">' + rdrD(iso) + (old ? " &middot; stale" : "") + "</span>";
+  }
+  function intTile(lab, val, chg, asOf, src, go) {
+    if (val == null) {
+      return '<div class="int-tile int-none"><span class="int-tl">' + esc(lab) + '</span><b>&mdash;</b><span class="int-ts">not in this snapshot</span></div>';
+    }
+    var age = intAge(asOf);
+    return '<button type="button" class="int-tile' + (age != null && age > 4 ? " int-old" : "") + '" data-inttab="' + go + '">' +
+      '<span class="int-tl">' + esc(lab) + "</span><b>" + val + '</b><span class="int-tc">' + (chg || "&nbsp;") + "</span>" +
+      '<span class="int-ts">' + intFresh(asOf, 4) + " &middot; " + esc(src) + "</span></button>";
+  }
+  function intRibbon() {
+    var T = ' data-term="International headline strip"';
+    var jg = ASIA && ASIA.ready ? (ASIA.japan || {}).jgb || null : null;
+    var tiles = [["Dollar index", "DX-Y.NYB"], ["US 2-year", "rate:2Y"], ["US 10-year", "rate:10Y"], ["Japan 10-year", "jgb"],
+      ["USD/JPY", "JPY=X"], ["USD/CNY", "CNY=X"], ["USD/INR", "INR=X"], ["Gold", "GC=F"], ["Brent", "BZ=F"], ["Bitcoin", "BTC-USD"]
+    ].map(function (t) {
+      var lab = t[0], key = t[1];
+      if (key.indexOf("rate:") === 0) {
+        var r = internationalRate("United States", key.slice(5));
+        if (!r) return intTile(lab, null);
+        var b = (r.changesBp || {})["1D"];
+        return intTile(lab, n2(r.yieldPct) + "%", b == null ? "" : '<span class="' + cls(b) + '">' + sgn(b, 0) + " bp</span> 1 day",
+          r.asOf, "US Treasury", "markets");
+      }
+      if (key === "jgb") {
+        if (!jg || jg.y10 == null) return intTile(lab, null);
+        return intTile(lab, n2(jg.y10) + "%", jg.chg20 == null ? "" : '<span class="' + cls(jg.chg20) + '">' + sgn(jg.chg20, 0) + " bp</span> 20 days",
+          jg.date, "Japan MoF", "asia");
+      }
+      var it = intlItem(key);
+      if (!it || it.last == null) return intTile(lab, null);
+      var p = ((it.moves || {})["1D"] || {}).percent;
+      return intTile(lab, intlPrice(it, it.last), p == null ? "" : '<span class="' + cls(p) + '">' + sgn(p, 2) + "%</span> 1 day",
+        it.asOf, "Yahoo Finance", "markets");
+    }).join("");
+    return '<section class="card int-strip"><div class="card-hd"><h2' + T + '>Headline numbers</h2>' +
+      '<span class="sub">one source and one date per number &middot; every tab below uses the same figures &middot; click a tile to open its tab</span></div>' +
+      '<div class="int-ribbon">' + tiles + "</div></section>";
+  }
+
+  /* Positioning: one card per market, in plain words. The crowding index
+     places this week's net position in its own 3-year range: 0 is the most
+     short it has been, 100 the most long. Extremes matter because a crowded
+     trade unwinds fast. The raw CFTC table stays below for the contracts. */
+  var POS_GROUPS = [
+    ["Rates", "US Treasury futures", ["042601", "044601", "043602", "020601"], "Asset Manager",
+      "Hedge-fund shorts in Treasury futures are mostly the basis trade: short the future, own the bond, earn the small gap between them. Their size says more about funding than about yields, so each card leads with asset managers, the cleaner read on direction."],
+    ["Currencies", "against the US dollar", ["097741", "099741"], "Leveraged Money",
+      "A long yen or euro position is a bet that the currency rises against the dollar."],
+    ["Commodities", "metals and oil", ["088691", "084691", "085692", "067651", "06765T"], "Managed Money",
+      "Producers and merchants sell ahead to lock in prices, so their line usually mirrors the funds'. The funds' line is the speculation."],
+    ["Crypto", "CME futures", ["133741"], "Leveraged Money",
+      "CME Bitcoin futures are a small, institutional slice of Bitcoin trading; offshore exchanges are not in this report."]
+  ];
+  var POS_WHO = { "Leveraged Money": "Hedge funds", "Managed Money": "Funds", "Asset Manager": "Asset managers", "Producer/Merchant": "Producers and merchants" };
+  var POS_NAME = { "042601": "US 2-year note", "044601": "US 5-year note", "043602": "US 10-year note", "020601": "US long bond",
+    "097741": "Japanese yen", "099741": "Euro", "088691": "Gold", "084691": "Silver", "085692": "Copper",
+    "067651": "WTI crude", "06765T": "Brent crude", "133741": "Bitcoin" };
+  function posZone(p) {
+    var ix = p.crowdIndex, longSide = (p.net || 0) >= 0;
+    if (ix == null) return { label: "not enough history", tone: "" };
+    if (ix >= 90) return { label: longSide ? "most long in 3 years" : "least short in 3 years", tone: longSide ? "pos-x" : "" };
+    if (ix >= 70) return { label: "high end of its 3-year range", tone: "" };
+    if (ix > 30) return { label: "middle of its 3-year range", tone: "" };
+    if (ix > 10) return { label: "low end of its 3-year range", tone: "" };
+    return { label: longSide ? "least long in 3 years" : "most short in 3 years", tone: longSide ? "" : "pos-x" };
+  }
+  function posSpark(xs) {
+    if (!xs || xs.length < 2) return "";
+    var lo = Math.min.apply(null, xs), hi = Math.max.apply(null, xs), w = 96, h = 24, span = hi - lo || 1;
+    var pts = xs.map(function (v, i) { return (i * w / (xs.length - 1)).toFixed(1) + "," + (h - (v - lo) / span * h).toFixed(1); }).join(" ");
+    var zero = lo < 0 && hi > 0 ? '<line x1="0" x2="' + w + '" y1="' + (h - (0 - lo) / span * h).toFixed(1) + '" y2="' + (h - (0 - lo) / span * h).toFixed(1) + '" class="pos-zero"/>' : "";
+    return '<svg class="pos-spark" viewBox="0 0 ' + w + " " + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">' + zero +
+      '<polyline points="' + pts + '"/></svg>';
+  }
+  function posLine(p) {
+    var z = posZone(p), side = (p.net || 0) >= 0 ? "long" : "short";
+    var w4 = p.net4w == null ? "" : '<span class="pos-4w">4 weeks: <b class="' + cls(p.net4w) + '">' + sgn(p.net4w, 0) + "</b> " +
+      (p.net4w >= 0 ? "toward long" : "toward short") + "</span>";
+    var ix = p.crowdIndex == null ? "&mdash;" : p.crowdIndex;
+    return '<div class="pos-row"><div class="pos-who"><b>' + esc(POS_WHO[p.category] || p.category) + "</b> net " + side + " " + n0(Math.abs(p.net || 0)) +
+      ' <span class="idt-mut">(' + (p.netPercentOfOi == null ? "&mdash;" : Math.abs(p.netPercentOfOi).toFixed(1)) + "% of open contracts)</span></div>" +
+      '<div class="pos-meter"><div class="pos-gauge" role="img" aria-label="crowding ' + ix + ' of 100"><i style="left:' + (p.crowdIndex == null ? 50 : p.crowdIndex) + '%"></i></div>' +
+      '<span class="pos-ix ' + z.tone + '">' + ix + "<small>/100</small></span>" + posSpark(p.trail) + "</div>" +
+      '<div class="pos-z">' + esc(z.label) + (w4 ? " &middot; " + w4 : "") + "</div></div>";
+  }
+  function posReading(lead) {
+    if (!lead || lead.crowdIndex == null) return "Not enough history yet to say whether this is crowded.";
+    var who = POS_WHO[lead.category] || lead.category, ix = lead.crowdIndex, longSide = (lead.net || 0) >= 0;
+    if (ix >= 90 && longSide) return "Crowded long: " + who.toLowerCase() + " hold more than at any point in 3 years. If the news disappoints, their selling can make the fall fast.";
+    if (ix <= 10 && !longSide) return "Crowded short: " + who.toLowerCase() + " are betting against it more than at any point in 3 years. A surprise can force them to buy back fast (a short squeeze).";
+    if (ix >= 90) return who + " have cut their bets against it to the least in 3 years: the selling pressure has eased.";
+    if (ix <= 10) return who + " are still long, but by the least in 3 years: support from them has faded.";
+    return "Not crowded: " + who.toLowerCase() + " sit inside their usual 3-year range, so positioning alone gives no edge.";
+  }
+  function positioningView() {
+    var T = ' data-term="Positioning crowding"';
+    var all = (INTERNATIONAL && INTERNATIONAL.positions) || [];
+    var asOf = all.length ? all[0].asOf : null;
+    var by = {};
+    all.forEach(function (p) { (by[p.contractCode] = by[p.contractCode] || []).push(p); });
+    var crowded = [];
+    var groups = POS_GROUPS.map(function (g) {
+      var cards = g[2].map(function (code) {
+        var rows = by[code];
+        if (!rows) return "";
+        var lead = rows.filter(function (p) { return p.category === g[3]; })[0] || rows[0];
+        var rest = rows.filter(function (p) { return p !== lead; });
+        var z = posZone(lead);
+        if (z.tone === "pos-x") crowded.push({ name: POS_NAME[code] || lead.market, label: z.label, who: POS_WHO[lead.category] || lead.category });
+        return '<article class="pos-card"><div class="pos-hd"><h3' + T + ">" + esc(POS_NAME[code] || lead.market) + "</h3>" +
+          (z.tone === "pos-x" ? '<span class="rdr-chip rdr-c-amber">Crowded</span>' : "") + "</div>" +
+          '<p class="pos-read">' + esc(posReading(lead)) + "</p>" + posLine(lead) + rest.map(posLine).join("") +
+          '<div class="pos-src">' + esc(lead.market) + " &middot; CFTC " + esc(lead.reportType) + " &middot; " + intFresh(lead.asOf, 11) + "</div></article>";
+      }).join("");
+      return cards ? '<section class="card"><div class="card-hd"><h2' + T + ">" + g[0] + '</h2><span class="sub">' + esc(g[1]) + "</span></div>" +
+        '<div class="pos-grid">' + cards + '</div><div class="rdr-pad rdr-note">' + esc(g[4]) + "</div></section>" : "";
+    }).join("");
+    var since = all.length && all[0].rangeSince ? rdrD(all[0].rangeSince) + " " + String(all[0].rangeSince).slice(0, 4) : "3 years ago";
+    var top = '<section class="card"><div class="card-hd"><h2' + T + ">Who is betting which way</h2>" +
+      '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports &middot; positions on ' + (asOf ? rdrD(asOf) : "&mdash;") +
+      " (a Tuesday), published the Friday after &middot; " + (asOf ? intFresh(asOf, 11) : "") + "</span></div>" +
+      '<div class="rdr-pad"><p class="rdr-line">' + (crowded.length
+        ? "Crowded today: " + crowded.map(function (c) { return "<b>" + esc(c.name) + "</b> (" + esc(c.who.toLowerCase()) + " " + esc(c.label) + ")"; }).join(", ") + "."
+        : "No market is at a 3-year extreme today.") + "</p>" +
+      '<div class="rdr-scale pos-legend"><span class="rdr-z-bad">0&ndash;10 most short in 3 years</span><span class="rdr-z-warn">10&ndash;30 low end</span>' +
+      '<span class="rdr-z-good">30&ndash;70 normal</span><span class="rdr-z-warn">70&ndash;90 high end</span><span class="rdr-z-bad">90&ndash;100 most long in 3 years</span></div>' +
+      '<p class="rdr-note">The crowding index puts this week&rsquo;s net position in its own range since ' + since + ": 0 is the most short it has been, 100 the most long. " +
+      "The extremes are the warning: when nearly everyone is on one side, there is no one left to join and a surprise sends them all for the exit. " +
+      "The line under the gauge is the last 26 weeks. Positions are contracts in the named group, not proof of anyone&rsquo;s intent.</p></div></section>";
+    var raw = '<details class="nfx-more"><summary>Full CFTC table, in contracts</summary><section class="card"><div class="card-hd"><h2' + T + ">Positioning, hedging &amp; build-up</h2>" +
+      '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports &middot; contracts, not intent</span></div>' +
+      internationalPositionsTable() +
+      '<div class="caution"><p><b>Coverage and interpretation.</b> CFTC reports are weekly Tuesday snapshots, usually published Friday. Weekly net changes are contract-count changes in the named trader category, not proof of hedging, covering or a directional view. The contracts shown cover selected CME/NYMEX markets; they are not spot USD/INR, USD/CNY or exchange-wide crypto positions. Missing rows mean no selected report observation is available.</p></div></section></details>';
+    return top + groups + raw;
+  }
+
+  /* One drawer at the foot of every International tab: how fresh each
+     input is, where it comes from, PMI coverage, the providers' last fetch,
+     and the background reading that used to fill its own tab. */
+  function intSourcesDrawer(pmiRows) {
+    var T = ' data-term="International sources"';
+    var jg = ASIA && ASIA.ready ? (ASIA.japan || {}).jgb || {} : {};
+    var r10 = internationalRate("United States", "10Y") || {};
+    var pos = ((INTERNATIONAL || {}).positions || [])[0] || {};
+    var cnP = ASIA && ASIA.ready ? ((ASIA.china || {}).latest || {}).pmi || {} : {};
+    var inp = [
+      ["Currencies, gold, oil, crypto prices", (INTERNATIONAL || {}).asOf, "Yahoo Finance daily closes", 4],
+      ["US Treasury yield curve", r10.asOf, "U.S. Treasury daily par yield curve", 4],
+      ["Japan government bond yields", jg.date, "Japan Ministry of Finance JGB curve", 4],
+      ["Futures positioning", pos.asOf, "CFTC Commitments of Traders (weekly)", 11],
+      ["Radar warning lights", (RADAR || {}).builtAt, "FRED, Treasury, Yahoo, headlines", 2],
+      ["Market analysis and headlines", (ANALYSIS || {}).generatedAt, "Google News, Bing News, FXStreet, ForexLive, Investing.com", 2],
+      ["Event expectations", (EXPECT || {}).updated, "Web research (Events page)", 7]
+    ];
+    var fresh = inp.map(function (x) {
+      return '<tr><td class="lft"' + T + ">" + esc(x[0]) + '</td><td class="lft">' + intFresh(x[1], x[3]) + '</td><td class="lft">' + esc(x[2]) + "</td><td>" + x[3] + " days</td></tr>";
+    }).join("") + '<tr><td class="lft"' + T + '>China activity and prices</td><td class="lft">' + (cnP.period ? esc(_asMon(cnP.period)) + " release" : "&mdash;") +
+      '</td><td class="lft">National Bureau of Statistics of China</td><td>monthly</td></tr>';
+    return '<details class="nfx-more int-drawer"><summary>Where these numbers come from: sources, freshness and background reading</summary>' +
+      '<section class="card"><div class="card-hd"><h2' + T + '>Freshness of every input</h2><span class="sub">a date turns amber once it is older than its limit</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + ">Input</th><th class=\"lft\"" + T + ">As of</th><th class=\"lft\"" + T + ">Source</th><th" + T + ">Limit</th></tr></thead><tbody>" +
+      fresh + "</tbody></table></div>" +
+      '<div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, commodities and BTC/ETH use saved Yahoo Finance observations; the US curve comes from the Treasury and the Japanese curve from the Ministry of Finance; weekly positions from the CFTC. The Radar&rsquo;s US yields are FRED&rsquo;s copy of the same Treasury series, topped up with the Treasury&rsquo;s newer day so every page shows one value. Central-bank dates come from the Fed, BoJ, ECB and RBI pages and are cross-checked on the Events page. India and euro-area curves, and PMIs outside China, are not connected yet; blank cells never mean zero.</div></section>' +
+      '<section class="card"><div class="card-hd"><h2' + T + ">Purchasing Managers&rsquo; Index</h2>" +
+      '<span class="sub">manufacturing / services &middot; China connected (NBS), others not yet</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + ">Region</th><th" + T + ">Latest PMI</th><th class=\"lft\"" + T + ">Release / source status</th></tr></thead><tbody>" +
+      pmiRows + "</tbody></table></div></section>" + analysisProviders() +
+      '<section class="card"><div class="card-hd"><h2' + T + '>Cross-asset research notes</h2><span class="sub">curated references &middot; item dates shown</span></div>' +
+      '<div class="research-feed">' +
+      '<article class="research-item"><div class="research-source">World Bank \u00b7 3 Nov 2026</div><div><h3' + T + '>Energy strengthened while metals weakened in October</h3>' +
+      '<p>Monthly commodity-index context: energy +7.1%, Brent +7%, metals \u22123.0%, precious metals \u22126.2%. Useful backdrop, but not a substitute for daily benchmark quotes. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">IEA \u00b7 solar PV supply chains</div><div><h3' + T + '>Solar is a long-run silver-demand catalyst; material intensity is part of the balance</h3>' +
+      '<p>The IEA\u2019s net-zero scenario highlighted potentially substantial solar-PV silver demand by 2030, while also documenting efficiency, concentration and trade risks in the supply chain. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Silver Institute \u00b7 2025 survey</div><div><h3' + T + '>Industrial demand can rise while total demand falls</h3>' +
+      '<p>Its 2024 summary reported record industrial demand but a 3% decline in total silver demand, with PV thrifting reducing silver loadings. Distinguish end-use growth from ounces demanded per panel. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
+      '<article class="research-item"><div class="research-source">Market attribution rule</div><div><h3' + T + '>The unexplained part of a move is stated, not filled in</h3>' +
+      '<p>The Market analysis card splits each move into what its drivers account for and what they do not. Headlines are aggregated, not a licensed real-time newswire, so open the article and check its timestamp against the move before treating it as the cause.</p></div></article>' +
+      "</div></section>" +
+      '<section class="card"><div class="card-hd"><h2' + T + '>Credible source network</h2><span class="sub">primary data, analysis and news</span></div><div class="source-list">' +
+      sourceItem("US Treasury \u00b7 daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields; source required for exact curve tenors.") +
+      sourceItem("Federal Reserve \u00b7 H.15 / H.10", "https://www.federalreserve.gov/releases/h15/", "US interest-rate statistics and foreign exchange releases.") +
+      sourceItem("RBI \u00b7 Database of Indian Economy", "https://dbie.rbi.org.in/DBIE/", "Official India macroeconomic, interest-rate and FX statistics.") +
+      sourceItem("ECB \u00b7 yield curves", "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_area_yield_curves/html/index.en.html", "Euro-area zero-coupon, forward and par yield curves; updated on TARGET business days.") +
+      sourceItem("Bank of Japan \u00b7 statistics", "https://www.boj.or.jp/en/statistics/", "Official market and monetary statistics; use released observation dates.") +
+      sourceItem("CFTC \u00b7 Commitments of Traders", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly aggregated futures positions; not a record of individual trade purpose.") +
+      sourceItem("People\u2019s Bank of China", "http://www.pbc.gov.cn/en/3688006/index.html", "Official monetary policy and financial statistics; market-yield series require a suitable published source.") +
+      sourceItem("S&P Global PMI", "https://www.pmi.spglobal.com/Public/Release/PressReleases", "Regional PMI release calendar and press releases; access may vary.") +
+      sourceItem("Reuters \u00b7 Markets", "https://www.reuters.com/markets/", "Fast global reporting; integration requires a permitted feed/license.") +
+      sourceItem("WSJ \u00b7 Markets", "https://www.wsj.com/market-data", "Market coverage and data; subscription and redistribution terms apply.") +
+      sourceItem("J.P. Morgan \u00b7 Global Research", "https://www.jpmorgan.com/insights/global-research", "Institutional macro/commodities research; client access may be required.") +
+      "</div></section></details>";
+  }
+  function intEventsLink(what) {
+    return '<p class="int-golink"><button type="button" class="int-link" data-page="events">' + esc(what) + " &rarr;</button></p>";
   }
 
   function viewInternational() {
@@ -14869,14 +15130,15 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         if (!item && region === "Japan" && jg && jgMap[tenor] != null) {
           item = { yieldPct: jgMap[tenor], asOf: jg.date, source: "Japan Ministry of Finance JGB curve" };
         }
-        if (item) rateSrc[region] = item.source || "official source";
+        if (item) rateSrc[region] = item;
         var value = item
-          ? n3(item.yieldPct) + "%" + '<div class="kpi-m">' + esc(item.asOf || "") + "</div>"
+          ? n3(item.yieldPct) + "%"
           : region === "Japan" && jg ? '<span class="source-unavailable">Not published</span>'
           : '<span class="source-unavailable">Not connected</span>';
         return "<td>" + value + "</td>";
       }).join("");
-      return '<tr><td class="lft">' + esc(region) + (rateSrc[region] ? '<div class="kpi-m">' + esc(rateSrc[region]) + "</div>" : "") + "</td>" + cells + "</tr>";
+      var s = rateSrc[region];
+      return '<tr><td class="lft">' + esc(region) + (s ? '<div class="kpi-m">' + esc(s.source || "official source") + " &middot; " + intFresh(s.asOf, 4) + "</div>" : "") + "</td>" + cells + "</tr>";
     }).join("");
     var cnL = ASIA && ASIA.ready ? (ASIA.china || {}).latest || {} : {};
     var pmiRows = regions.map(function (region) {
@@ -14890,62 +15152,31 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         '<td class="lft">' + (region === "Japan" ? "No free official feed; see headlines on the China &amp; Japan tab" : "No verified release value/date in this snapshot") + "</td></tr>";
     }).join("");
     var intro = pageIntro("International",
-      "What is coming from abroad and where it lands: warning lights first, then rates, FX, crypto and positioning. Every figure shows its as-of date; feeds that are not connected say so.",
+      "What is coming from abroad and where it lands. The headline numbers sit on top; the tabs below go deeper: warning lights, China and Japan, markets and rates, who is crowded, and why each market moved. Every figure shows its date; feeds that are not connected say so.",
       "Snapshot through " + esc((INTERNATIONAL && INTERNATIONAL.asOf) || "date unavailable"));
-    var markets = '<section class="card"><div class="card-hd"><h2>Cross-asset levels &amp; changes</h2>' +
-      '<span class="sub">how far each market moved &middot; FX and crypto in %, yields in basis points</span></div>' +
-      internationalMovesTable([["INR=X", "USD/INR"], ["EURUSD=X", "EUR/USD"],
-        ["JPY=X", "USD/JPY"], ["CNY=X", "USD/CNY"], ["DX-Y.NYB", "US Dollar Index"],
-        ["BTC-USD", "Bitcoin"], ["ETH-USD", "Ethereum"],
-        ["^IRX", "US 13-week bill yield"], ["^TNX", "US 10-year yield index"],
-        ["^TYX", "US 30-year yield index"]]) + "</section>" + inflDaysView() +
-      '<details class="nfx-more"><summary>Where these numbers come from, and how fresh they must be</summary><div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, selected US yield-index series and BTC/ETH use saved Yahoo Finance observations and history; the US curve and weekly positions use official Treasury and CFTC reports. Central-bank dates come from the Fed, BoJ, ECB and RBI pages and are cross-checked against ForexFactory and your own calendar. Headlines come from Google News and Bing News (thousands of publishers) plus FXStreet, ForexLive and Investing.com, each shown with its publisher, time and a reputation tier. India, euro-area, Japan and China curves and PMI values are still not connected. Every input below shows its as-of date; anything past its freshness limit is flagged stale.</div></details>';
-    var rates = '<section class="card"><div class="card-hd"><h2>Sovereign yield curve</h2>' +
-      '<span class="sub">Requested benchmark maturities \u00b7 yield levels, not bond prices</span></div>' +
+    var M = ' data-term="International headline strip"';
+    var markets = '<section class="card"><div class="card-hd"><h2' + M + ">Cross-asset levels &amp; changes</h2>" +
+      '<span class="sub">how far each market moved &middot; FX, commodities and crypto in %, yields in basis points</span></div>' +
+      internationalMovesTable([[null, "Currencies"], ["DX-Y.NYB", "US Dollar Index"], ["INR=X", "USD/INR"], ["EURUSD=X", "EUR/USD"],
+        ["JPY=X", "USD/JPY"], ["CNY=X", "USD/CNY"],
+        [null, "Commodities"], ["GC=F", "Gold"], ["SI=F", "Silver"], ["HG=F", "Copper"], ["BZ=F", "Brent crude"], ["CL=F", "WTI crude"],
+        [null, "Crypto"], ["BTC-USD", "Bitcoin"], ["ETH-USD", "Ethereum"],
+        [null, "US yields (market indexes)"], ["^IRX", "US 13-week bill yield"], ["^TNX", "US 10-year yield index"],
+        ["^TYX", "US 30-year yield index"]]) +
+      '<div class="rdr-pad rdr-note">The yield indexes are intraday market quotes and can differ by a few basis points from the Treasury&rsquo;s official end-of-day curve below, which is the figure the headline strip uses.</div></section>' +
+      '<section class="card"><div class="card-hd"><h2' + M + ">Sovereign yield curves</h2>" +
+      '<span class="sub">benchmark maturities &middot; yield levels, not bond prices &middot; source and date under each market</span></div>' +
       '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Market</th>' +
       tenors.map(function (t) { return "<th>" + t + "</th>"; }).join("") +
       "</tr></thead><tbody>" + rateRows + "</tbody></table></div>" +
       '<div class="mo-sub">United States \u00b7 official par-yield changes</div>' +
       internationalYieldMovesTable() +
-      '<div class="caution"><p><b>Coverage limit.</b> US tenors use the U.S. Treasury daily par-yield curve; Japan uses the Ministry of Finance JGB curve (1-year and longer). India, euro-area and China curves are not connected yet; blank cells do not imply zero movement.</p></div></section>';
-    var positioning = '<section class="card"><div class="card-hd"><h2>Positioning, hedging &amp; build-up</h2>' +
-      '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports \u00b7 contracts, not intent</span></div>' +
-      internationalPositionsTable() +
-      '<div class="caution"><p><b>Coverage and interpretation.</b> CFTC reports are weekly Tuesday snapshots, usually published Friday. Weekly net changes are contract-count changes in the named trader category, not proof of hedging, covering or a directional view. The contracts shown cover selected CME/NYMEX markets; they are not spot USD/INR, USD/CNY or exchange-wide crypto positions. Missing rows mean no selected report observation is available.</p></div></section>';
-    var sources = '<details class="nfx-more" open><summary>Background: PMI status, research notes and sources</summary>' +
-      '<section class="card"><div class="card-hd"><h2>Purchasing Managers\u2019 Index</h2>' +
-      '<span class="sub">manufacturing / services \u00b7 China connected (NBS), others not yet</span></div>' +
-      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft">Region</th>' +
-      "<th>Latest PMI</th><th class=\"lft\">Release / source status</th></tr></thead><tbody>" +
-      pmiRows + "</tbody></table></div></section>" +
-      '<section class="card"><div class="card-hd"><h2>Cross-asset research notes</h2><span class="sub">curated references \u00b7 item dates shown</span></div>' +
-      '<div class="research-feed">' +
-      '<article class="research-item"><div class="research-source">World Bank \u00b7 3 Nov 2026</div><div><h3>Energy strengthened while metals weakened in October</h3>' +
-      '<p>Monthly commodity-index context: energy +7.1%, Brent +7%, metals \u22123.0%, precious metals \u22126.2%. Useful backdrop, but not a substitute for daily benchmark quotes. <a href="https://www.worldbank.org/en/research/commodity-markets" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">IEA \u00b7 solar PV supply chains</div><div><h3>Solar is a long-run silver-demand catalyst; material intensity is part of the balance</h3>' +
-      '<p>The IEA\u2019s net-zero scenario highlighted potentially substantial solar-PV silver demand by 2030, while also documenting efficiency, concentration and trade risks in the supply chain. <a href="https://www.iea.org/reports/solar-pv-global-supply-chains/executive-summary" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">Silver Institute \u00b7 2025 survey</div><div><h3>Industrial demand can rise while total demand falls</h3>' +
-      '<p>Its 2024 summary reported record industrial demand but a 3% decline in total silver demand, with PV thrifting reducing silver loadings. Distinguish end-use growth from ounces demanded per panel. <a href="https://silverinstitute.org/silver-supply-demand/" target="_blank" rel="noopener">Open source</a>.</p></div></article>' +
-      '<article class="research-item"><div class="research-source">Market attribution rule</div><div><h3>The unexplained part of a move is stated, not filled in</h3>' +
-      '<p>The Market analysis card splits each move into what its drivers account for and what they do not. Headlines are aggregated, not a licensed real-time newswire, so open the article and check its timestamp against the move before treating it as the cause.</p></div></article>' +
-      "</div></section>" +
-      '<section class="card"><div class="card-hd"><h2>Credible source network</h2><span class="sub">primary data, analysis and news</span></div><div class="source-list">' +
-      sourceItem("US Treasury \u00b7 daily yield curve", "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve", "Official daily US Treasury par yields; source required for exact curve tenors.") +
-      sourceItem("Federal Reserve \u00b7 H.15 / H.10", "https://www.federalreserve.gov/releases/h15/", "US interest-rate statistics and foreign exchange releases.") +
-      sourceItem("RBI \u00b7 Database of Indian Economy", "https://dbie.rbi.org.in/DBIE/", "Official India macroeconomic, interest-rate and FX statistics.") +
-      sourceItem("ECB \u00b7 yield curves", "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_area_yield_curves/html/index.en.html", "Euro-area zero-coupon, forward and par yield curves; updated on TARGET business days.") +
-      sourceItem("Bank of Japan \u00b7 statistics", "https://www.boj.or.jp/en/statistics/", "Official market and monetary statistics; use released observation dates.") +
-      sourceItem("CFTC \u00b7 Commitments of Traders", "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm", "Weekly aggregated futures positions; not a record of individual trade purpose.") +
-      sourceItem("People\u2019s Bank of China", "http://www.pbc.gov.cn/en/3688006/index.html", "Official monetary policy and financial statistics; market-yield series require a suitable published source.") +
-      sourceItem("S&P Global PMI", "https://www.pmi.spglobal.com/Public/Release/PressReleases", "Regional PMI release calendar and press releases; access may vary.") +
-      sourceItem("Reuters \u00b7 Markets", "https://www.reuters.com/markets/", "Fast global reporting; integration requires a permitted feed/license.") +
-      sourceItem("WSJ \u00b7 Markets", "https://www.wsj.com/market-data", "Market coverage and data; subscription and redistribution terms apply.") +
-      sourceItem("J.P. Morgan \u00b7 Global Research", "https://www.jpmorgan.com/insights/global-research", "Institutional macro/commodities research; client access may be required.") +
-      "</div></section></details>";
-    var tab = state.intTab || "radar";
-    var body = tab === "markets" ? markets : tab === "rates" ? rates : tab === "positioning" ? positioning
-      : tab === "why" ? analysisSection() : tab === "sources" ? sources : tab === "asia" ? asiaView() : radarView();
-    return intro + intTabs() + body;
+      '<div class="caution"><p><b>Coverage limit.</b> US tenors use the U.S. Treasury daily par-yield curve; Japan uses the Ministry of Finance JGB curve (1-year and longer). India, euro-area and China curves are not connected yet; blank cells do not imply zero movement.</p></div></section>' +
+      inflDaysView();
+    var tab = intTabKey();
+    var body = tab === "markets" ? markets : tab === "positioning" ? positioningView()
+      : tab === "why" ? analysisSection() : tab === "asia" ? asiaView() : radarView();
+    return intro + intRibbon() + intTabs() + body + intSourcesDrawer(pmiRows);
   }
 
   /* The chain and the build-up were two tabs reading the same rows. Only
@@ -24163,6 +24394,21 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "The spread is the low, median and high of the views that carry a number and are no more than 21 days old. When the release is out, the actual sits beside it with whether it came in above, in line with or below the median.",
       "Views are gathered by web research and refreshed every 7 days; the desk's own calendar adds events in the next 35 days that nobody has published a view on yet, and a released event stays for 14 days. Asset outlooks older than 60 days are greyed. Nothing here is the desk's own forecast."
     ],
+    "International headline strip": [
+      "Ten numbers that move the rest of the world: the dollar index, the US 2-year and 10-year Treasury yields, Japan's 10-year yield, the yen, yuan and rupee against the dollar, gold, Brent oil and Bitcoin.",
+      "Each number has one source and one date. US yields are the Treasury's official end-of-day curve; Japan's comes from its Ministry of Finance; prices are Yahoo Finance daily closes. The Radar and every tab read the same stored figures, so a number never shows two values on two tabs.",
+      "The change beside each is over 1 day (20 days for Japan's yield, which updates in monthly files). A date turns amber once it is more than 4 days old, which means a feed has stopped, not that the market was quiet."
+    ],
+    "Positioning crowding": [
+      "From the CFTC's weekly Commitments of Traders: how many futures contracts each group (hedge funds, asset managers, funds, producers) holds long minus short in gold, oil, Treasuries, the yen, the euro and Bitcoin.",
+      "The crowding index puts this week's net position in its own range over the last 3 years (156 weeks): 0 is the most short the group has been, 100 the most long. Below 10 or above 90 is a 3-year extreme.",
+      "Extremes are the warning, not the direction: a crowded long can fall fast when holders sell, a crowded short can jump when they buy back. In Treasury futures, hedge-fund shorts are mostly the basis trade, so asset managers lead those cards. Positions are a Tuesday snapshot published the Friday after."
+    ],
+    "International sources": [
+      "Every input on the International page with its date, its source and how old it may get before it is flagged: 4 days for daily prices and yields, 11 days for weekly CFTC positions, 7 days for expectations research.",
+      "It also holds which PMIs are connected, each news and calendar provider's last successful fetch, curated research notes and the list of primary sources.",
+      "Blank or 'Not connected' cells never mean zero; they mean the desk has no verified feed for that number yet."
+    ],
     "China and Japan": [
       "Japan: Ministry of Finance daily JGB yields, METI industrial production, and from FRED the Bank of Japan call rate (monthly), Japan's reserves and its US Treasury holdings (US Treasury TIC data). Japan's CPI and PMI have no free official feed, so they appear as headlines.",
       "China: the National Bureau of Statistics releases, read from their text and tables: manufacturing and services PMI, CPI and core CPI, PPI, retail sales, industrial output, fixed-asset and property investment. Reserves come from FRED (IMF data, with a lag).",
@@ -25142,6 +25388,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Impact map": { deep: "Impact map", how: function () { return "Slopes over <b>20</b>-session windows, last <b>3</b> years."; } },
     "Dollar direction and metals": { deep: "Dollar direction and metals", how: function () { return "Buckets at <b>+/-1.5%</b> over <b>20</b> sessions, since 2016."; } },
     "Events and expectations": { deep: "Events and expectations", how: function () { return "Spread = low, median, high of views up to <b>21</b> days old; calendar <b>35</b> days ahead."; } },
+    "International headline strip": { deep: "International headline strip", how: function () { return "<b>10</b> numbers, one source each; amber after <b>4</b> days."; } },
+    "Positioning crowding": { deep: "Positioning crowding", how: function () { return "Index <b>0</b> to <b>100</b> over <b>156</b> weeks; extremes below <b>10</b> or above <b>90</b>."; } },
+    "International sources": { deep: "International sources", how: function () { return "Limits: prices <b>4</b> days, CFTC <b>11</b> days, research <b>7</b> days."; } },
     "China and Japan": { deep: "China and Japan", how: function () { return "Japan red at <b>2</b> flags, China red at <b>3</b>; PMI line at <b>50</b>."; } },
     "Inflation days": { deep: "Inflation days", how: function () { return "Core <b>0.3</b> a month = <b>3.6%</b> a year pace; Fed goal <b>2%</b>."; } },
     "Morning brief": {
@@ -28123,6 +28372,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Band width": "Band factor",
     "Overconfident above 85%": "Calibration (ECE)",
     "Calendar and source status": "Market analysis",
+    "Limit": "International sources",
+    "Headline numbers": "International headline strip",
+    "Who is betting which way": "Positioning crowding",
+    "Freshness of every input": "International sources",
     "Morning brief": "Morning brief",
     "International radar": "International radar",
     "Radar": "International radar",
@@ -28368,6 +28621,9 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Impact map": ["If the dollar or the Nasdaq moves, how much each market has usually moved with it.", "Strong links matter; weak ones do not."],
     "Dollar direction and metals": ["What metals did next, depending on whether the dollar was rising, flat or falling.", "Metals did best after the dollar turned down."],
     "Events and expectations": ["What is coming up, and what each bank, fund, poll or market expects from it.", "The actual sits next to the views once it is out."],
+    "International headline strip": ["The ten numbers to check first, each from one source with its date.", "Every tab below uses the same figures."],
+    "Positioning crowding": ["Who is betting which way in futures, and whether the bet is at a 3-year extreme.", "Below 10 or above 90 means crowded: moves can be sharp when they unwind."],
+    "International sources": ["Where every number comes from and how fresh it is.", "An amber date means a feed has stopped."],
     "China and Japan": ["What Japan's bond yields, yen and US bond holdings, and China's factories, shoppers and prices are doing.", "Japan moves world interest rates; China moves demand for metals and oil."],
     "Inflation days": ["Every US inflation report, and what gold, silver, Bitcoin and the dollar did the day before, of and after.", "Core 0.3 or more is hot: 3.6% a year against the Fed's 2% goal."],
     "Morning brief": [

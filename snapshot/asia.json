@@ -1,6 +1,6 @@
 {
  "ready": true,
- "builtAt": "2026-11-22T08:14:37+00:00",
+ "builtAt": "2026-11-22T09:17:40+00:00",
  "japan": {
   "state": "red",
   "headline": "Japan is adding pressure to US bond yields",
@@ -24,10 +24,10 @@
    }
   },
   "gap": {
-   "us10": 5.04,
-   "usDate": "2026-11-19",
+   "us10": 4.92,
+   "usDate": "2026-11-20",
    "jgb10": 2.87,
-   "bp": 217,
+   "bp": 205,
    "chg20": -2
   },
   "boj": {
