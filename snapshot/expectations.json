@@ -1,0 +1,780 @@
+{
+ "ready": true,
+ "builtAt": "2026-11-22T06:56:49+00:00",
+ "updated": "2026-11-22",
+ "researchAge": 0,
+ "about": "Published expectations for upcoming events and assets. Each entry names who said it, what kind of source it is, when it was published and a link. Collected by web research; refreshed by the weekly research run. Nothing here is the desk's own forecast.",
+ "countries": {
+  "US": "United States",
+  "CN": "China",
+  "JP": "Japan",
+  "IN": "India"
+ },
+ "events": [
+  {
+   "id": "cal-2026-11-23-US-US PMI",
+   "date": "2026-11-23",
+   "time": null,
+   "country": "US",
+   "countryName": "United States",
+   "category": "Calendar",
+   "event": "US PMI",
+   "metric": null,
+   "unit": null,
+   "previous": null,
+   "previousNote": null,
+   "why": null,
+   "days": 1,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": [],
+   "calendarOnly": true
+  },
+  {
+   "id": "cal-2026-11-24-US-US CB Consumer Confidence",
+   "date": "2026-11-24",
+   "time": null,
+   "country": "US",
+   "countryName": "United States",
+   "category": "Calendar",
+   "event": "US CB Consumer Confidence",
+   "metric": null,
+   "unit": null,
+   "previous": null,
+   "previousNote": null,
+   "why": null,
+   "days": 2,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": [],
+   "calendarOnly": true
+  },
+  {
+   "id": "us-gdp-2026q3-2",
+   "date": "2026-11-25",
+   "time": "8:30 am New York",
+   "country": "US",
+   "category": "Growth",
+   "event": "US GDP, July-September (second estimate)",
+   "metric": "GDP, annualised",
+   "unit": "%",
+   "previous": 3.4,
+   "previousNote": "Advance estimate 3.4%",
+   "why": "Strong growth gives the Fed room to keep raising rates.",
+   "countryName": "United States",
+   "days": 3,
+   "views": [
+    {
+     "source": "Bloomberg survey",
+     "type": "Poll of economists",
+     "view": "3.2% (made before the advance estimate)",
+     "value": 3.2,
+     "published": "2026-10",
+     "link": "https://www.dailysabah.com/business/economy/us-economy-grows-at-34-in-q3-beating-estimates/amp",
+     "stale": true,
+     "old": true
+    }
+   ],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Poll of economists"
+   ]
+  },
+  {
+   "id": "cal-2026-11-25-US-US Unemployment Claims",
+   "date": "2026-11-25",
+   "time": null,
+   "country": "US",
+   "countryName": "United States",
+   "category": "Calendar",
+   "event": "US Unemployment Claims",
+   "metric": null,
+   "unit": null,
+   "previous": null,
+   "previousNote": null,
+   "why": null,
+   "days": 3,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": [],
+   "calendarOnly": true
+  },
+  {
+   "id": "us-pce-2026-10",
+   "date": "2026-11-25",
+   "time": "8:30 am New York",
+   "country": "US",
+   "category": "Inflation",
+   "event": "US core PCE prices, October",
+   "metric": "Core PCE, month on month",
+   "unit": "%",
+   "previous": 0.3,
+   "previousNote": "September: 0.3 m/m, 3.1% y/y",
+   "why": "The Fed's own preferred inflation gauge. Another 0.3 keeps the December hike locked in.",
+   "countryName": "United States",
+   "days": 3,
+   "views": [
+    {
+     "source": "Kalshi",
+     "type": "Prediction market",
+     "view": "81% chance it is above 0.1%",
+     "published": "2026-11-21",
+     "link": "https://kalshi.com/markets/kxpcecore/us-core-pce-inflation/kxpcecore-26oct",
+     "old": false
+    },
+    {
+     "source": "Oxford Economics",
+     "type": "Research house",
+     "view": "Headline PCE rises to 3.8% a year from 3.6%; energy feeding into core",
+     "published": "2026-11",
+     "link": "https://www.oxfordeconomics.com/resource/us-pce-nowcast-broadening-pressures-lock-in-december-rate-hike/",
+     "old": false
+    }
+   ],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Prediction market",
+    "Research house"
+   ]
+  },
+  {
+   "id": "jp-tokyo-cpi-2026-11",
+   "date": "2026-11-26",
+   "time": "23:30 GMT (27 Nov in Tokyo)",
+   "country": "JP",
+   "category": "Inflation",
+   "event": "Tokyo consumer prices, November",
+   "metric": "Tokyo core CPI, year on year",
+   "unit": "%",
+   "previous": 2.6,
+   "previousNote": "October 2.6%",
+   "why": "The first look at Japan's November inflation, three weeks before the Bank of Japan meets.",
+   "countryName": "Japan",
+   "days": 4,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": []
+  },
+  {
+   "id": "cn-pmi-2026-11",
+   "date": "2026-11-30",
+   "time": "9:30 am Beijing",
+   "country": "CN",
+   "category": "Activity",
+   "event": "China official PMI, November",
+   "metric": "Manufacturing PMI",
+   "unit": "",
+   "previous": 49.3,
+   "previousNote": null,
+   "why": "Below 50 means factories are shrinking: less demand for copper, silver and oil.",
+   "countryName": "China",
+   "days": 8,
+   "views": [
+    {
+     "source": "Reuters poll (for October)",
+     "type": "Poll of economists",
+     "view": "October poll expected 50.0; the outcome was 49.3. No November poll yet.",
+     "published": "2026-10-30",
+     "link": "https://investinglive.com/news/china-s-factory-and-services-pmi-gauges-both-drop-below-50-as-fourth-quarter-starts-on-a-weak-note/",
+     "stale": true,
+     "old": true
+    }
+   ],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Poll of economists"
+   ]
+  },
+  {
+   "id": "in-gdp-2026q3",
+   "date": "2026-11-30",
+   "time": "4:00 pm India",
+   "country": "IN",
+   "category": "Growth",
+   "event": "India GDP, July-September (Q2 FY27)",
+   "metric": "Real GDP, year on year",
+   "unit": "%",
+   "previous": null,
+   "previousNote": null,
+   "why": "Strong growth with inflation above 6% strengthens the case for an RBI hike on 4 December.",
+   "countryName": "India",
+   "days": 8,
+   "views": [
+    {
+     "source": "SBI Research",
+     "type": "Bank",
+     "view": "7.8%",
+     "value": 7.8,
+     "published": "2026-11",
+     "link": "https://www.devdiscourse.com/article/business/4005076-indias-q2-fy27-gdp-growth-pegged-at-78-gva-growth-seen-at-8-82-sbi-research",
+     "old": false
+    },
+    {
+     "source": "ICRA",
+     "type": "Rating agency",
+     "view": "7.5%, a five-quarter low",
+     "value": 7.5,
+     "published": "2026-11-13",
+     "link": "https://www.businesstoday.in/india/story/indias-growth-engine-holds-firm-q2-gdp-seen-at-7-5-567277-2026-11-13",
+     "old": false
+    },
+    {
+     "source": "Ministry of Finance (DEA) nowcast",
+     "type": "Government",
+     "view": "7.35%",
+     "value": 7.35,
+     "published": "2026-10",
+     "link": "https://www.newsbytesapp.com/news/business/india-s-q2-growth-pegged-at-7-35/story",
+     "old": true
+    },
+    {
+     "source": "Reserve Bank of India projection",
+     "type": "Central bank",
+     "view": "7.2%",
+     "value": 7.2,
+     "published": "2026-10",
+     "link": "https://www.businesstoday.in/india/story/indias-growth-engine-holds-firm-q2-gdp-seen-at-7-5-567277-2026-11-13",
+     "old": true
+    },
+    {
+     "source": "Brickwork Ratings",
+     "type": "Rating agency",
+     "view": "7.0%",
+     "value": 7.0,
+     "published": "2026-11",
+     "link": "https://asianews.network/?p=315900",
+     "old": false
+    }
+   ],
+   "summary": {
+    "n": 3,
+    "low": 7.0,
+    "high": 7.8,
+    "median": 7.5
+   },
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Bank",
+    "Central bank",
+    "Government",
+    "Rating agency"
+   ]
+  },
+  {
+   "id": "in-rbi-2026-12",
+   "date": "2026-12-04",
+   "time": "10:00 am India",
+   "country": "IN",
+   "category": "Central bank",
+   "event": "RBI policy decision",
+   "metric": "Repo rate change",
+   "unit": "bp",
+   "previous": null,
+   "previousNote": null,
+   "why": "October inflation was 6.09%, above the RBI's 6% ceiling. A hike would support the rupee but weigh on NIFTY rate-sensitive stocks.",
+   "countryName": "India",
+   "days": 12,
+   "views": [
+    {
+     "source": "Economists quoted by ThePrint",
+     "type": "Poll of economists",
+     "view": "At least six expect a 0.25 point hike",
+     "value": 25,
+     "published": "2026-11-13",
+     "link": "https://theprint.in/economy/indias-october-retail-inflation-breaches-rbis-6-ceiling-odds-of-december-repo-rate-hike-rise/3097181/",
+     "old": false
+    },
+    {
+     "source": "5paisa research",
+     "type": "Media",
+     "view": "Economists expect a December hike after the 6.09% print",
+     "published": "2026-11",
+     "link": "https://www.5paisa.com/blog/october-inflation-6-09-percent-december-rate-hike-expectations",
+     "old": false
+    }
+   ],
+   "summary": {
+    "n": 1,
+    "low": 25,
+    "high": 25,
+    "median": 25
+   },
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Media",
+    "Poll of economists"
+   ]
+  },
+  {
+   "id": "us-jobs-2026-11",
+   "date": "2026-12-04",
+   "time": "8:30 am New York",
+   "country": "US",
+   "category": "Jobs",
+   "event": "US jobs report, November",
+   "metric": "Non-farm payrolls",
+   "unit": "k",
+   "previous": null,
+   "previousNote": null,
+   "why": "Strong hiring plus hot inflation is the mix that makes the Fed keep raising rates.",
+   "countryName": "United States",
+   "days": 12,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": []
+  },
+  {
+   "id": "us-fomc-2026-12",
+   "date": "2026-12-09",
+   "time": "2:00 pm New York",
+   "country": "US",
+   "category": "Central bank",
+   "event": "Fed rate decision",
+   "metric": "Fed funds rate change",
+   "unit": "bp",
+   "previous": null,
+   "previousNote": "Target 3.75-4.00% after the September hike",
+   "why": "A hike is priced in; the dollar and gold will move on what the Fed signals for 2027.",
+   "countryName": "United States",
+   "days": 17,
+   "views": [
+    {
+     "source": "CME FedWatch",
+     "type": "Market pricing",
+     "view": "91.5% chance of +0.25 point; the rest on +0.50",
+     "value": 25,
+     "published": "2026-11-22",
+     "link": "https://finance.biggo.com/news/434931a6-db33-4ffc-8083-7d5e02ae395d",
+     "old": false
+    },
+    {
+     "source": "CME FedWatch",
+     "type": "Market pricing",
+     "view": "95.7% chance of +0.25 point, 4.3% of +0.50",
+     "value": 25,
+     "published": "2026-11-19",
+     "link": "https://en.sedaily.com/society/2026/11/19/us-dec-rate-hike-odds-at-957-percent-as-fed-resists-bigger",
+     "old": false
+    },
+    {
+     "source": "Christopher Waller, Fed governor",
+     "type": "Central bank",
+     "view": "Argues for a 0.50 point hike",
+     "value": 50,
+     "published": "2026-11-19",
+     "link": "https://en.sedaily.com/society/2026/11/19/us-dec-rate-hike-odds-at-957-percent-as-fed-resists-bigger",
+     "old": false
+    },
+    {
+     "source": "John Williams, New York Fed",
+     "type": "Central bank",
+     "view": "Ruled out a 0.50 point move",
+     "value": 25,
+     "published": "2026-11-19",
+     "link": "https://en.sedaily.com/society/2026/11/19/us-dec-rate-hike-odds-at-957-percent-as-fed-resists-bigger",
+     "old": false
+    }
+   ],
+   "summary": {
+    "n": 4,
+    "low": 25,
+    "high": 50,
+    "median": 25.0
+   },
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Central bank",
+    "Market pricing"
+   ]
+  },
+  {
+   "id": "us-cpi-2026-11",
+   "date": "2026-12-10",
+   "time": "8:30 am New York",
+   "country": "US",
+   "category": "Inflation",
+   "event": "US consumer prices, November",
+   "metric": "Core CPI, month on month",
+   "unit": "%",
+   "previous": 0.3,
+   "previousNote": "Three 0.3 readings in a row",
+   "why": "A fourth 0.3 supports the dollar's path to 105; a 0.2 or lower is the likeliest trigger for a turn.",
+   "countryName": "United States",
+   "days": 18,
+   "views": [
+    {
+     "source": "Kalshi",
+     "type": "Prediction market",
+     "view": "Median 0.2% m/m core, 2.9% y/y; headline -0.1% m/m, 3.7% y/y",
+     "value": 0.2,
+     "published": "2026-11-18",
+     "link": "https://kalshi.com/economics/cpi-predictions",
+     "old": false
+    }
+   ],
+   "summary": {
+    "n": 1,
+    "low": 0.2,
+    "high": 0.2,
+    "median": 0.2
+   },
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Prediction market"
+   ]
+  },
+  {
+   "id": "in-cpi-2026-11",
+   "date": "2026-12-12",
+   "time": "4:00 pm India (12 Dec is a Saturday; check the MoSPI calendar)",
+   "country": "IN",
+   "category": "Inflation",
+   "event": "India consumer prices, November",
+   "metric": "CPI, year on year",
+   "unit": "%",
+   "previous": 6.09,
+   "previousNote": "October 6.09%, above the RBI's 6% ceiling",
+   "why": "Decides whether the RBI keeps hiking in February.",
+   "countryName": "India",
+   "days": 20,
+   "views": [
+    {
+     "source": "SBI Research",
+     "type": "Bank",
+     "view": "Above 6.5% in October-November, easing below 6% in early 2027",
+     "value": 6.5,
+     "published": "2026-10-03",
+     "link": "https://www.businesstoday.in/latest/economy/story/inflation-may-cross-6-in-october-november-sbi-research-warns-of-temporary-spike-548877-2026-08-12",
+     "old": true
+    },
+    {
+     "source": "Bank of Baroda",
+     "type": "Bank",
+     "view": "Food inflation above 8%; edible oil, tomatoes and pulses getting entrenched",
+     "published": "2026-11",
+     "link": "https://www.devdiscourse.com/article/business/4003917-cpi-expected-around-6-in-october-amid-food-price-pressures-bank-of-baroda",
+     "old": false
+    },
+    {
+     "source": "Reserve Bank of India",
+     "type": "Central bank",
+     "view": "Projects 6.0% average for October-December",
+     "value": 6.0,
+     "published": "2026-10",
+     "link": "https://www.5paisa.com/blog/october-inflation-6-09-percent-december-rate-hike-expectations",
+     "old": true
+    }
+   ],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Bank",
+    "Central bank"
+   ]
+  },
+  {
+   "id": "jp-boj-2026-12",
+   "date": "2026-12-18",
+   "time": "around noon Tokyo",
+   "country": "JP",
+   "category": "Central bank",
+   "event": "Bank of Japan rate decision",
+   "metric": "Policy rate change",
+   "unit": "bp",
+   "previous": null,
+   "previousNote": "Policy rate 1.25% after September",
+   "why": "A hike lifts Japan's yields, can pull Japanese money out of US bonds and firms the yen.",
+   "countryName": "Japan",
+   "days": 26,
+   "views": [
+    {
+     "source": "Reuters poll (71 economists)",
+     "type": "Poll of economists",
+     "view": "86% expect +0.25 point to 1.50%, and another hike by end-March",
+     "value": 25,
+     "published": "2026-11-20",
+     "link": "https://investinglive.com/central-banks/boj-tipped-to-hike-to-1-50-in-december-its-first-three-hike-year-in-37-years/",
+     "old": false
+    },
+    {
+     "source": "Daiwa Securities",
+     "type": "Bank",
+     "view": "Hike in December, again in April 2027, peak around 2%",
+     "value": 25,
+     "published": "2026-11",
+     "link": "https://investinglive.com/central-banks/daiwa-sees-next-boj-rate-hike-in-december-as-ueda-signals-shift-in-policy-phase/",
+     "old": false
+    }
+   ],
+   "summary": {
+    "n": 2,
+    "low": 25,
+    "high": 25,
+    "median": 25.0
+   },
+   "actual": null,
+   "verdict": null,
+   "types": [
+    "Bank",
+    "Poll of economists"
+   ]
+  }
+ ],
+ "outlooks": [
+  {
+   "asset": "Gold",
+   "horizon": "2027 average",
+   "source": "CIBC",
+   "type": "Bank",
+   "view": "$5,200 (Q4 2026 cut to $4,500)",
+   "value": 5200,
+   "published": "2026-10-20",
+   "link": "https://www.kitco.com/news/article/2026-10-20/cibc-slashes-gold-price-forecasts-sees-recovery-5200-2027-central-bank",
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "2027 average",
+   "source": "Metals Focus",
+   "type": "Research house",
+   "view": "$5,330",
+   "value": 5330,
+   "published": "2026",
+   "link": "https://news.metal.com/newscontent/HOQVH2TFYYSPYWIWP7N2TKP75PIAWR3QR5VQGFQ-gold-at-usd-6000-silver-at-usd-90-metals-focus-remains-bullish-for-2027",
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "Mid-2027",
+   "source": "J.P. Morgan",
+   "type": "Bank",
+   "view": "$5,000",
+   "value": 5000,
+   "published": "2026-09-19",
+   "link": "https://www.businesstoday.in/personal-finance/story/gold-at-5000-by-mid-2027-the-forces-behind-the-longer-term-outlook-556603-2026-09-19",
+   "old": true
+  },
+  {
+   "asset": "Gold",
+   "horizon": "First half 2027",
+   "source": "UBS",
+   "type": "Bank",
+   "view": "Challenging $5,000",
+   "value": 5000,
+   "published": "2026-08-13",
+   "link": "https://www.kitco.com/news/article/2026-08-13/ubs-sees-gold-price-challenging-5000oz-h1-2027-lower-real-rates-softer-usd",
+   "old": true
+  },
+  {
+   "asset": "Gold",
+   "horizon": "2027",
+   "source": "HSBC",
+   "type": "Bank",
+   "view": "$4,925",
+   "value": 4925,
+   "published": "2026",
+   "link": "https://channel8.com/english/news/61694",
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "2027",
+   "source": "Barclays",
+   "type": "Bank",
+   "view": "$4,900",
+   "value": 4900,
+   "published": "2026-06-16",
+   "link": "https://www.kitco.com/news/article/2026-06-16/barclays-sees-gold-hitting-4791-2026-4900-2027-iran-correction-fades",
+   "old": true
+  },
+  {
+   "asset": "Gold",
+   "horizon": "2027 average",
+   "source": "Kitco poll of analysts",
+   "type": "Poll of economists",
+   "view": "$4,610 (down from $5,100)",
+   "value": 4610,
+   "published": "2026-07-29",
+   "link": "https://www.kitco.com/news/off-the-wire/2026-07-29/gold-forecasts-fall-central-bank-buying-expected-cushion-retreat",
+   "old": true
+  },
+  {
+   "asset": "Gold",
+   "horizon": "2027 average",
+   "source": "RBC (low case)",
+   "type": "Bank",
+   "view": "$3,661 low case; $5,296 high case",
+   "value": 3661,
+   "published": "2026-08",
+   "link": "https://news.metal.com/newscontent/104042605-gold-price-forecast-predictions-2026-2027-rbc-sees-bullion-reaching-5321",
+   "old": true
+  },
+  {
+   "asset": "Brent crude",
+   "horizon": "2027 average",
+   "source": "Goldman Sachs",
+   "type": "Bank",
+   "view": "$88 (raised from $80); end-2027 $78",
+   "value": 88,
+   "published": "2026-11-17",
+   "link": "https://www.newkerala.com/news/a/goldman-sachs-sees-brent-oil-averaging-usd-88-398.htm",
+   "old": false
+  },
+  {
+   "asset": "Brent crude",
+   "horizon": "December 2026",
+   "source": "Goldman Sachs",
+   "type": "Bank",
+   "view": "$105",
+   "value": 105,
+   "published": "2026-11",
+   "link": "https://investinglive.com/commodities/goldman-lifts-december-brent-forecast-to-105-on-middle-east-and-russia-supply-risks/",
+   "old": false
+  },
+  {
+   "asset": "Brent crude",
+   "horizon": "December 2026",
+   "source": "UBS",
+   "type": "Bank",
+   "view": "$110 (from $100)",
+   "value": 110,
+   "published": "2026-10-29",
+   "link": "https://www.thestar.com.my/business/business-news/2026/10/29/brent-crude-oil-prices-expected-to-average-us80-us95-per-barrel-in-2027---analysts",
+   "old": false
+  },
+  {
+   "asset": "Brent crude",
+   "horizon": "2027 average",
+   "source": "S&P Global",
+   "type": "Research house",
+   "view": "$86",
+   "value": 86,
+   "published": "2026-10-29",
+   "link": "https://www.thestar.com.my/business/business-news/2026/10/29/brent-crude-oil-prices-expected-to-average-us80-us95-per-barrel-in-2027---analysts",
+   "old": false
+  },
+  {
+   "asset": "Brent crude",
+   "horizon": "2027 average",
+   "source": "BMI (Fitch)",
+   "type": "Research house",
+   "view": "$81, falling to about $67 by Q4 2027",
+   "value": 81,
+   "published": "2026-11-16",
+   "link": "https://www.businesstoday.com.my/2026/11/16/brent-crude-could-fall-to-us67-by-end-2027-as-global-oil-market-swings-to-surplus/",
+   "old": false
+  },
+  {
+   "asset": "Dollar index",
+   "horizon": "Into Q1 2027",
+   "source": "ING",
+   "type": "Bank",
+   "view": "A hawkish Fed supports the dollar until inflation falls in Q2",
+   "published": "2026-11-10",
+   "link": "https://www.fxstreet.com/news/what-will-flip-the-us-dollars-trajectory-as-inflation-cools-toward-the-feds-2-target-in-2027-202611101205",
+   "old": false
+  },
+  {
+   "asset": "Dollar index",
+   "horizon": "Near term",
+   "source": "DBS",
+   "type": "Bank",
+   "view": "Risk repricing caps the upside",
+   "published": "2026-11-06",
+   "link": "https://www.mitrade.com/insights/news/live-news/article-4-2237250-20261106",
+   "old": false
+  },
+  {
+   "asset": "Bitcoin",
+   "horizon": "Model target",
+   "source": "Citi",
+   "type": "Bank",
+   "view": "About $82,000 (set before the November drop)",
+   "value": 82000,
+   "published": "2026-11",
+   "link": "https://www.webull.com/news/15935352413548544",
+   "old": false
+  },
+  {
+   "asset": "Fed rate path",
+   "horizon": "End 2026",
+   "source": "Federal Reserve, September projections",
+   "type": "Central bank",
+   "view": "Most officials expected the rate to end 2026 higher",
+   "published": "2026-09",
+   "link": "https://www.schwab.com/learn/story/fomc-meeting",
+   "old": true
+  },
+  {
+   "asset": "Bank of Japan rate",
+   "horizon": "2027",
+   "source": "Daiwa Securities",
+   "type": "Bank",
+   "view": "Hikes in December and April 2027; peak near 2%",
+   "value": 2.0,
+   "published": "2026-11",
+   "link": "https://investinglive.com/central-banks/daiwa-sees-next-boj-rate-hike-in-december-as-ueda-signals-shift-in-policy-phase/",
+   "old": false
+  },
+  {
+   "asset": "India GDP",
+   "horizon": "FY27",
+   "source": "ICRA",
+   "type": "Rating agency",
+   "view": "7.1%",
+   "value": 7.1,
+   "published": "2026-11-13",
+   "link": "https://www.businesstoday.in/india/story/indias-growth-engine-holds-firm-q2-gdp-seen-at-7-5-567277-2026-11-13",
+   "old": false
+  },
+  {
+   "asset": "India GDP",
+   "horizon": "FY27",
+   "source": "Ministry of Finance (DEA)",
+   "type": "Government",
+   "view": "7.3%",
+   "value": 7.3,
+   "published": "2026-10",
+   "link": "https://www.outlookindia.com/national/indias-q2-gdp-growth-seen-at-73-by-finance-ministry-ahead-of-rbi-estimate",
+   "old": false
+  }
+ ],
+ "byType": {
+  "Bank": 17,
+  "Poll of economists": 5,
+  "Central bank": 5,
+  "Research house": 4,
+  "Rating agency": 3,
+  "Prediction market": 2,
+  "Government": 2,
+  "Market pricing": 2,
+  "Media": 1
+ },
+ "counts": {
+  "events": 14,
+  "withViews": 9,
+  "views": 21,
+  "outlooks": 20
+ }
+}

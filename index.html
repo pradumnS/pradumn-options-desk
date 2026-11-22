@@ -550,6 +550,30 @@ table.idt td.lft small { display: block; color: var(--ink-3); font-size: 10.5px;
 table.idt tr.idt-gap td { color: var(--ink-3); font-style: italic; white-space: normal; }
 table.idt tr.idt-next td { color: var(--calls); white-space: normal; }
 .idt-mut { color: var(--ink-3); }
+.ev-card { padding: 0; }
+.ev-hd { display: grid; grid-template-columns: 74px minmax(0, 1fr) minmax(0, 220px); gap: 14px; padding: 12px 14px; align-items: start; }
+@media (max-width: 760px) { .ev-hd { grid-template-columns: 62px minmax(0, 1fr); } .ev-side { grid-column: 1 / -1; } }
+.ev-date { display: grid; text-align: center; border: 1px solid var(--line); border-radius: 6px; padding: 6px 4px; }
+.ev-date b { font-family: var(--font-num); font-size: 22px; line-height: 1.1; }
+.ev-date span { font-size: 11px; color: var(--ink-2); }
+.ev-date small { font-size: 10.5px; color: var(--calls); margin-top: 2px; }
+.ev-main { display: grid; gap: 3px; min-width: 0; }
+.ev-main h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.ev-meta { font-size: 11.5px; color: var(--ink-3); }
+.ev-metric { font-size: 12.5px; color: var(--ink-2); }
+.ev-why { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-2); }
+.ev-cc { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 0 6px; border-radius: 3px; border: 1px solid var(--line); color: var(--ink); }
+.ev-side { display: grid; gap: 6px; }
+.ev-spread, .ev-actual { border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; display: grid; gap: 1px; font-size: 11.5px; color: var(--ink-3); }
+.ev-spread b, .ev-actual b { font-family: var(--font-num); font-size: 16px; color: var(--ink); }
+.ev-actual { border-left: 3px solid var(--calls); }
+.ev-actual a { color: var(--calls); }
+table.ev-t td.lft { white-space: normal; }
+table.ev-t a { color: var(--ink); }
+tr.ev-old td { color: var(--ink-3); }
+tr.ev-grp td { background: var(--surface-2); }
+.ev-week { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 14px 2px 6px; }
+.ev-types { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-3); }
 .brf-pad { padding: 12px 14px; display: grid; gap: 10px; }
 .brf-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 @media (max-width: 760px) { .brf-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -2152,6 +2176,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   var RADAR = {};            /* radar.json -- International radar warning lights */
   var INFL = {};             /* inflation_days.json -- International > Markets: Inflation days */
   var ASIA = {};             /* asia.json -- International > China & Japan */
+  var EXPECT = {};           /* expectations.json -- Events page: upcoming events and who expects what */
   var SIMPLE = { terms: {}, alias: {} };  /* simple_terms.json -- simple-language layer of every card */
   var LEARN_MODE = false;    /* Learn mode: glossary marks stand out, hover shows the simple line */
 
@@ -2175,7 +2200,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     { key:"metal-index", label:"Metal Index", mark:"MT" },
     { key:"energy-index", label:"Energy Index", mark:"EN" },
     { key:"agri-index", label:"Agri Index", mark:"AG" },
-    { key:"international", label:"International", mark:"GL" }
+    { key:"international", label:"International", mark:"GL" },
+    { key:"events", label:"Events", mark:"EV" }
   ];
 
   var VIEWS = [
@@ -2427,6 +2453,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   if (PAGES.some(function (p) { return p.key === NAV_HASH.page; })) {
     state.page = NAV_HASH.page;
     if (state.page === "india-index" && NAV_HASH.sub) state.view = NAV_HASH.sub;
+    /* #international/<tab> opens that International tab (radar, asia, markets...). */
+    if (state.page === "international" && /^[a-z]+$/.test(NAV_HASH.sub)) state.intTab = NAV_HASH.sub;
     /* #india-index/learning/<tab> reopens the Learning sub-tab. */
     if (state.page === "india-index" && state.view === "learning" && NAV_HASH.exp) state.lcTab = NAV_HASH.exp;
   } else if (NAV_HASH.page === "learning") {
@@ -14499,6 +14527,101 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return verdict + rdrChain(R) + cards + rdrMatrix(R) + rdrBuckets(R) + rdrCalendar(R) + how;
   }
 
+  /* Events (its own page): the market-moving events coming up in the US,
+     China, Japan and India; every published expectation for each, with who
+     said it and what kind of source it is; and the actual once it is out.
+     Built by expectations.py from expectations/expectations.json (web
+     research) plus the desk calendar for events nobody has a view on yet. */
+  var EV_WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  function evWhen(e) {
+    if (e.actual) return "released";
+    if (e.days == null) return "";
+    return e.days === 0 ? "today" : e.days === 1 ? "tomorrow" : e.days < 0 ? Math.abs(e.days) + " days ago" : "in " + e.days + " days";
+  }
+  function evVal(v, unit) {
+    if (v == null || !isFinite(v)) return "&mdash;";
+    if (unit === "bp") return (v > 0 ? "+" : "") + v + " bp";
+    if (unit === "k") return n0(v) + "k";
+    return v + (unit || "");
+  }
+  function evCard(e) {
+    var T = ' data-term="Events and expectations"';
+    var d = new Date(e.date + "T00:00:00");
+    var head = '<div class="ev-date"><b>' + (+e.date.slice(8, 10)) + "</b><span>" + RDR_MON[+e.date.slice(5, 7) - 1] + " &middot; " + EV_WD[d.getDay()] + "</span><small>" + evWhen(e) + "</small></div>";
+    var meta = '<span class="ev-cc ev-' + esc(e.country) + '">' + esc(e.country) + "</span> " + esc(e.category || "") + (e.time ? " &middot; " + esc(e.time) : "");
+    var prev = e.previous != null || e.previousNote
+      ? '<p class="rdr-note">Last time: ' + (e.previous != null ? "<b>" + evVal(e.previous, e.unit) + "</b>" : "") + (e.previousNote ? (e.previous != null ? " &middot; " : "") + esc(e.previousNote) : "") + "</p>" : "";
+    var S = e.summary;
+    var spread = S ? '<div class="ev-spread"><span>Spread of views with a number</span><b>' + (S.low === S.high ? evVal(S.low, e.unit) : evVal(S.low, e.unit) + " to " + evVal(S.high, e.unit)) +
+      "</b><span>median " + evVal(S.median, e.unit) + " &middot; " + S.n + " view" + (S.n > 1 ? "s" : "") + "</span></div>" : "";
+    var act = e.actual
+      ? '<div class="ev-actual"><span>Actual</span><b>' + evVal(e.actual.value, e.unit) + "</b><span>" + (e.verdict ? esc(e.verdict) + " &middot; " : "") +
+        (e.actual.link ? '<a href="' + esc(e.actual.link) + '" target="_blank" rel="noopener">' + esc(e.actual.source) + "</a>" : esc(e.actual.source || "")) + "</span></div>" : "";
+    var rows = (e.views || []).map(function (v) {
+      return '<tr' + (v.old ? ' class="ev-old"' : "") + '><td class="lft"><a href="' + esc(v.link) + '" target="_blank" rel="noopener">' + esc(v.source) + "</a></td><td>" + esc(v.type) +
+        '</td><td class="lft">' + esc(v.view) + "</td><td>" + esc(v.published || "") + (v.old ? ' <span class="idt-mut">old</span>' : "") + "</td></tr>";
+    }).join("");
+    var table = rows
+      ? '<div class="tablewrap"><table class="dt ev-t"><thead><tr><th class="lft"' + T + '>Who</th><th' + T + '>Type</th><th class="lft"' + T + '>Expects</th><th' + T + '>Published</th></tr></thead><tbody>' + rows + "</tbody></table></div>"
+      : '<div class="rdr-pad rdr-note">No published expectation found yet. Forecasts usually appear in the week before the release; the weekly research run adds them.</div>';
+    return '<article class="card ev-card"><div class="ev-hd">' + head + '<div class="ev-main"><div class="ev-meta">' + meta + "</div><h3" + T + ">" + esc(e.event) + "</h3>" +
+      (e.metric ? '<div class="ev-metric">' + esc(e.metric) + "</div>" : "") + prev + (e.why ? '<p class="ev-why">' + esc(e.why) + "</p>" : "") + "</div>" +
+      '<div class="ev-side">' + act + spread + "</div></div>" + table + "</article>";
+  }
+  function viewEvents() {
+    var D = EXPECT || {};
+    var T = ' data-term="Events and expectations"';
+    var intro = pageIntro("Events &amp; expectations",
+      "What is coming up in the US, China, Japan and India, what banks, funds, prediction markets, polls, models and officials expect from each, and what actually came out. Every view names its source.",
+      D.updated ? "Research updated " + rdrD(D.updated) + (D.researchAge != null ? " &middot; " + D.researchAge + " days ago" : "") : "");
+    if (!D.ready) {
+      return intro + '<section class="card"><div class="card-hd"><h2' + T + '>Events &amp; expectations</h2></div><div class="rdr-pad">Built by <b>expectations.py</b> during export_snapshot.py; not in this snapshot yet.</div></section>';
+    }
+    var c = state.evCountry || "all";
+    var evs = (D.events || []).filter(function (e) { return c === "all" || e.country === c; });
+    var main = evs.filter(function (e) { return !e.calendarOnly; }), cal = evs.filter(function (e) { return e.calendarOnly; });
+    var C = D.counts || {};
+    var stale = D.researchAge != null && D.researchAge > 7;
+    var top = '<section class="card"><div class="card-hd"><h2' + T + '>Events &amp; expectations</h2><span class="sub">' + n0(C.events || 0) + " events in the next 5 weeks &middot; " +
+      n0(C.views || 0) + " event views &middot; " + n0(C.outlooks || 0) + " asset outlooks</span></div><div class=\"rdr-pad\">" +
+      (stale ? '<div class="caution"><p><b>Research is ' + D.researchAge + " days old.</b> Expectations change quickly before a release; treat older views with care.</p></div>" : "") +
+      '<div class="idt-bar"><span>Country</span>' + [["all", "All"], ["US", "United States"], ["CN", "China"], ["JP", "Japan"], ["IN", "India"]].map(function (x) {
+        return '<button type="button" data-evc="' + x[0] + '" aria-pressed="' + (c === x[0]) + '">' + x[1] + "</button>";
+      }).join("") + "</div>" +
+      '<div class="ev-types"><span>Who the views come from:</span>' + Object.keys(D.byType || {}).map(function (k) {
+        return '<span class="rdr-land">' + esc(k) + " <b>" + D.byType[k] + "</b></span>";
+      }).join("") + "</div></div></section>";
+    var weeks = {}, order = [];
+    main.forEach(function (e) {
+      var k = e.days < 0 ? "Released" : e.days < 7 ? "This week" : e.days < 14 ? "Next week" : "Later";
+      if (!weeks[k]) { weeks[k] = []; order.push(k); }
+      weeks[k].push(e);
+    });
+    var body = ["Released", "This week", "Next week", "Later"].filter(function (k) { return weeks[k]; }).map(function (k) {
+      return '<div class="ev-week">' + k + "</div>" + weeks[k].map(evCard).join("");
+    }).join("") || '<section class="card"><div class="rdr-pad">No events for this country in the next 5 weeks.</div></section>';
+    var calRows = cal.map(function (e) {
+      return '<tr><td class="lft">' + rdrD(e.date) + "</td><td>" + esc(e.country) + '</td><td class="lft">' + esc(e.event) + "</td><td>" + evWhen(e) + "</td></tr>";
+    }).join("");
+    var calCard = calRows ? '<section class="card"><div class="card-hd"><h2' + T + '>Also on the calendar</h2><span class="sub">from the desk calendar &middot; no expectations collected yet</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>Date</th><th' + T + '>Country</th><th class="lft"' + T + '>Event</th><th' + T + '>When</th></tr></thead><tbody>' + calRows + "</tbody></table></div></section>" : "";
+    var assets = [], byA = {};
+    (D.outlooks || []).forEach(function (o) { if (!byA[o.asset]) { byA[o.asset] = []; assets.push(o.asset); } byA[o.asset].push(o); });
+    var oRows = assets.map(function (a) {
+      var xs = byA[a], nums = xs.filter(function (o) { return typeof o.value === "number"; }).map(function (o) { return o.value; });
+      var rng = nums.length > 1 ? " &middot; range " + n0(Math.min.apply(null, nums)) + " to " + n0(Math.max.apply(null, nums)) : "";
+      return '<tr class="ev-grp"><td class="lft" colspan="5"><b>' + esc(a) + "</b> <span class=\"idt-mut\">" + xs.length + " view" + (xs.length > 1 ? "s" : "") + rng + "</span></td></tr>" + xs.map(function (o) {
+        return '<tr' + (o.old ? ' class="ev-old"' : "") + '><td class="lft"><a href="' + esc(o.link) + '" target="_blank" rel="noopener">' + esc(o.source) + "</a></td><td>" + esc(o.type) +
+          "</td><td>" + esc(o.horizon) + '</td><td class="lft">' + esc(o.view) + "</td><td>" + esc(o.published || "") + (o.old ? ' <span class="idt-mut">old</span>' : "") + "</td></tr>";
+      }).join("");
+    }).join("");
+    var outl = '<section class="card"><div class="card-hd"><h2' + T + '>Asset outlooks</h2><span class="sub">published targets for gold, oil, the dollar, Bitcoin and rates &middot; views older than 60 days are greyed</span></div>' +
+      '<div class="tablewrap"><table class="dt ev-t"><thead><tr><th class="lft"' + T + '>Who</th><th' + T + '>Type</th><th' + T + '>Horizon</th><th class="lft"' + T + '>Expects</th><th' + T + '>Published</th></tr></thead><tbody>' + oRows + "</tbody></table></div></section>";
+    var how = '<details class="nfx-more"><summary>How this page is built</summary><div class="coverage-note">' + esc(D.about || "") +
+      " A view older than 21 days is marked old and left out of the spread. Actuals fill in automatically for US CPI and China&rsquo;s PMI and prices; the others are added after each release. The desk&rsquo;s own calendar adds events that nobody has published a view on yet.</div></details>";
+    return intro + top + body + calCard + outl + how;
+  }
+
   /* China & Japan (International > China & Japan). Japan reaches world
      markets through money (its bond yields, the yen, its US bond holdings);
      China through demand (factories, shoppers, property). Built by asia.py
@@ -23927,6 +24050,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "energy-index": viewEnergyIndex,
     "agri-index": viewAgriIndex,
     international: viewInternational,
+    events: viewEvents,
     model: viewModelData,
     metoil: viewMetOil,
     /* Merged away, kept as aliases so a saved view key still resolves. */
@@ -24017,6 +24141,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "For each asset, its 20-session move regressed on the dollar's 20-session move and on the Nasdaq-100's, over the last 3 years (about 750 sessions).",
       "The dollar column is the slope for a 1% dollar rise; the Nasdaq column is the slope times a 5% fall. Strength comes from the correlation: 0.45 or more strong, 0.30 medium, 0.15 weak, below that no link.",
       "The windows overlap, so the links are smoother than any single month. A month with two shocks at once moves far more than the map predicts."
+    ],
+    "Events and expectations": [
+      "Each upcoming event lists every published expectation we found: who said it, what kind of source it is (bank, asset manager, hedge fund, research house, rating agency, prediction market, market pricing, poll of economists, government, central bank, model, university, independent analyst or media), when, and a link.",
+      "The spread is the low, median and high of the views that carry a number and are no more than 21 days old. When the release is out, the actual sits beside it with whether it came in above, in line with or below the median.",
+      "Views are gathered by web research and refreshed every 7 days; the desk's own calendar adds events in the next 35 days that nobody has published a view on yet, and a released event stays for 14 days. Asset outlooks older than 60 days are greyed. Nothing here is the desk's own forecast."
     ],
     "China and Japan": [
       "Japan: Ministry of Finance daily JGB yields, METI industrial production, and from FRED the Bank of Japan call rate (monthly), Japan's reserves and its US Treasury holdings (US Treasury TIC data). Japan's CPI and PMI have no free official feed, so they appear as headlines.",
@@ -24996,6 +25125,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": { deep: "Radar: India", how: function () { return "Red when NIFTY is down more than <b>3%</b> in 20 sessions."; } },
     "Impact map": { deep: "Impact map", how: function () { return "Slopes over <b>20</b>-session windows, last <b>3</b> years."; } },
     "Dollar direction and metals": { deep: "Dollar direction and metals", how: function () { return "Buckets at <b>+/-1.5%</b> over <b>20</b> sessions, since 2016."; } },
+    "Events and expectations": { deep: "Events and expectations", how: function () { return "Spread = low, median, high of views up to <b>21</b> days old; calendar <b>35</b> days ahead."; } },
     "China and Japan": { deep: "China and Japan", how: function () { return "Japan red at <b>2</b> flags, China red at <b>3</b>; PMI line at <b>50</b>."; } },
     "Inflation days": { deep: "Inflation days", how: function () { return "Core <b>0.3</b> a month = <b>3.6%</b> a year pace; Fed goal <b>2%</b>."; } },
     "Morning brief": {
@@ -28221,6 +28351,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": ["Whether the world's shocks are reaching NIFTY and the rupee.", "Green means India is holding up."],
     "Impact map": ["If the dollar or the Nasdaq moves, how much each market has usually moved with it.", "Strong links matter; weak ones do not."],
     "Dollar direction and metals": ["What metals did next, depending on whether the dollar was rising, flat or falling.", "Metals did best after the dollar turned down."],
+    "Events and expectations": ["What is coming up, and what each bank, fund, poll or market expects from it.", "The actual sits next to the views once it is out."],
     "China and Japan": ["What Japan's bond yields, yen and US bond holdings, and China's factories, shoppers and prices are doing.", "Japan moves world interest rates; China moves demand for metals and oil."],
     "Inflation days": ["Every US inflation report, and what gold, silver, Bitcoin and the dollar did the day before, of and after.", "Core 0.3 or more is hot: 3.6% a year against the Fed's 2% goal."],
     "Morning brief": [
@@ -36060,6 +36191,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         ASIA = d || {};
         if (state.page === "international") render();
       }).catch(function () { ASIA = {}; });
+      getJson("expectations.json").then(function (d) {
+        EXPECT = d || {};
+        if (state.page === "events") render();
+      }).catch(function () { EXPECT = {}; });
       var m = MODEL[state.idx];
       var fr = freshness(m, MANIFEST);
       setFresh(fr.tag, fr.msg, fr.state, fr.age);
@@ -36230,6 +36365,8 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
     var itab = e.target.closest("[data-inttab]");
     if (itab) { state.intTab = itab.getAttribute("data-inttab"); render(); return; }
+    var evc = e.target.closest("[data-evc]");
+    if (evc) { state.evCountry = evc.getAttribute("data-evc"); render(); return; }
     var asg = e.target.closest("[data-asgo]");
     if (asg) {
       var ac = document.getElementById("as-" + asg.getAttribute("data-asgo"));
