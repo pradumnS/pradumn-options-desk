@@ -1,0 +1,454 @@
+{
+ "ready": true,
+ "builtAt": "2026-11-22T06:36:24+00:00",
+ "japan": {
+  "state": "red",
+  "headline": "Japan is adding pressure to US bond yields",
+  "flags": [
+   "Japan has cut its US bond holdings 5 months in a row",
+   "the yen is weak at 159.7 per dollar, near where Japan has stepped in before"
+  ],
+  "jgb": {
+   "date": "2026-11-19",
+   "y2": 1.853,
+   "y10": 2.87,
+   "y30": 4.03,
+   "chg20": -5,
+   "chg250": 118,
+   "high60": {
+    "level": 3.11,
+    "since": "1996-08-27",
+    "sinceLevel": 3.18,
+    "months": 363
+   }
+  },
+  "gap": {
+   "us10": 5.04,
+   "usDate": "2026-11-19",
+   "jgb10": 2.87,
+   "bp": 217,
+   "chg20": -2
+  },
+  "boj": {
+   "rate": 1.227,
+   "month": "2026-10-01"
+  },
+  "yen": {
+   "last": 159.71,
+   "chg20": 2.05,
+   "high1y": 163.86,
+   "date": "2026-11-20"
+  },
+  "nikkei": {
+   "chg20": -10.29
+  },
+  "ust": {
+   "month": "2026-09-01",
+   "bn": 1063.1,
+   "chg1": -5.1,
+   "chg12": -126.1,
+   "streak": 5,
+   "peak": 1325.5,
+   "peakMonth": "2021-11-01"
+  },
+  "reserves": {
+   "month": "2026-10-01",
+   "bn": 1072.9,
+   "chg1": 8.1
+  },
+  "ip": {
+   "month": "2026-09",
+   "mom": 2.0,
+   "yoy": 1.7,
+   "link": "https://www.meti.go.jp/english/statistics/tyo/iip/index.html"
+  },
+  "heads": [
+   {
+    "title": "Japan core inflation soars to highest this year as energy subsidy expiry pushes up consumer prices",
+    "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE5Td0IxNEt0TEVvZ0JXcUNTTmpma3BSZ0JIUF9fdXl5R0hjMUhqUVpxTHYtWmpOLW5WcTJtaEE4YUdlQkZjUjhCRjdWRFBISHpnWjFOSW1md2N6VzFsXzR2MWl5V3lKMWZzZWhzUGtmSG9VUdIBd0FVX3lxTE5OUm5oSTVYNXI0aUxZSTNYcU9td0RYeHBOZVlUMEw2bEs3OGxfZjlKZDFZLTgxVVBvMXhYc25aZVNySW5QTFdGbHVuZHdlbTNQM3p5cDJtYndZMmhtQ0xLM2xvZTBmbVVKVnFKR29JbkhoQm1nd1Rr?oc=5",
+    "publisher": "CNBC",
+    "date": "2026-11-19",
+    "tier": 1
+   },
+   {
+    "title": "Dollar set for 4-week win streak; yen jumps on safe-haven bid, hot inflation data",
+    "link": "https://www.investing.com/news/forex-news/asia-fx-struggles-as-dollar-holds-near-19mth-high-aussie-hits-11month-low-5040667",
+    "publisher": "Investing.com",
+    "date": "2026-11-20",
+    "tier": 2
+   },
+   {
+    "title": "Japanese Yen outperforms as global stock sell-off lifts safe-haven demand",
+    "link": "https://www.fxstreet.com/news/japanese-yen-outperforms-as-global-stock-sell-off-lifts-safe-haven-demand-202611201348",
+    "publisher": "FXStreet",
+    "date": "2026-11-20",
+    "tier": 2
+   },
+   {
+    "title": "Japan bond yields fall as US Treasury yields decline; foreign investors drive JGB buying",
+    "link": "https://news.google.com/rss/articles/CBMiiAJBVV95cUxQU0NqMUtBdkZtMjVxc3hOdmtRZEhYRllBVlplNjBwWF9rR1VDNlVXMXJJTHlrNnpvbTBJdVJtRFlLZWRfbkdHZWtOUjFoeGlaNHpFSDBuV25RdnVJRmN0bkF6NDNPa1FUTzZjWHYzemhSeXhCcmtLVjUwbDFXQjQ3YTZmdWNIdDN5aF94SzNsRThNU0pXb2MyYWVKQkl2aGhwZmxuNFJ6VEhoYjlraW1IX3pKV3VNZkdVbTN1SllNd283Sjc2elNFazdwcERWVEJ3X1RVLXlnUEpPT2p1alFZU2ZGZmNHR2xDWVU3MWRIV1JHdzZ2VFlrUGNRa0pfT0tLQWk2NXlSdELSAY4CQVVfeXFMT1VxT0oxbWh6V1JOdmtCMEdUM1hOTDZjRFRkQ2tJWEtOMjhrem1TQ0hxSUp5TmF5ZFJGU1dFbTBtVGhHejRzM2pXTTNaRGJtQXc3aGIxWi1GV2p1NGVTQXdQZi12bUVXbFFWMW9Iejh1bHdFSDhiMlZLUlNEeFRkWDFEOTgxajlraENVNTh1U0toQmRkTjFob0taSWZMYktxWUN4Wk9GcUhROVNwdDhnZVpBMzB0UnpJWTItNG1zMVBSaGVUNF85TlRhY0p6dVJKLVVDSVRTWm9Cc1ZkVm9BcjJFWm9NUlJXSkhubTUxV2pkY3dpbDh3Rk91TW1ub3V4ZHc1dXJ0ckh2MjdGZHNn?oc=5",
+    "publisher": "The Economic Times",
+    "date": "2026-11-20",
+    "tier": 2
+   },
+   {
+    "title": "Japan inflation picks up less than forecast as core-core slows to 2.2%",
+    "link": "https://investinglive.com/news/japan-inflation-picks-up-but-misses-forecasts-as-core-core-slows-to-2-2/",
+    "publisher": "ForexLive",
+    "date": "2026-11-19",
+    "tier": 2
+   }
+  ],
+  "means": [
+   "When Japan's yields rise, Japanese investors can earn more at home, so they sell US bonds and bring money back. That pushes US yields up, which weighs on gold, Bitcoin and tech shares.",
+   "The same move makes the yen stronger. The yen is 13.6% of the dollar index, so a firmer yen pulls the dollar index down a little.",
+   "A Bank of Japan rate hike is the event that can trigger both at once."
+  ]
+ },
+ "china": {
+  "state": "red",
+  "headline": "China's home demand is weak",
+  "flags": [
+   "factory activity (PMI) is below 50 at 49.3",
+   "shop sales are growing only 0.4% a year",
+   "core inflation is just 0.8%, a sign of weak demand at home",
+   "property investment is down 21.6% this year"
+  ],
+  "latest": {
+   "pmi": {
+    "period": "2026-10",
+    "value": 49.3,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261103_1965735.html"
+   },
+   "pmiServices": {
+    "period": "2026-10",
+    "value": 49.7,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261103_1965735.html"
+   },
+   "cpi": {
+    "period": "2026-10",
+    "value": 0.7,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261111_1965808.html"
+   },
+   "core": {
+    "period": "2026-10",
+    "value": 0.8,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261111_1965808.html"
+   },
+   "ppi": {
+    "period": "2026-10",
+    "value": 5.7,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261111_1965806.html"
+   },
+   "retail": {
+    "period": "2026-10",
+    "value": 0.4,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261117_1965878.html"
+   },
+   "ip": {
+    "period": "2026-10",
+    "value": 4.8,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261117_1965883.html"
+   },
+   "fai": {
+    "period": "2026-10",
+    "value": -8.1,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261117_1965880.html"
+   },
+   "property": {
+    "period": "2026-10",
+    "value": -21.6,
+    "link": "https://www.stats.gov.cn/english/PressRelease/202611/t20261117_1965879.html"
+   }
+  },
+  "history": [
+   {
+    "period": "2026-10",
+    "pmi_mfg": 49.3,
+    "pmi_nonmfg": 49.7,
+    "cpi_yoy": 0.7,
+    "core_yoy": 0.8,
+    "ppi_yoy": 5.7,
+    "retail_yoy": 0.4,
+    "ip_yoy": 4.8
+   },
+   {
+    "period": "2026-09",
+    "pmi_mfg": 50.1,
+    "pmi_nonmfg": 50.2,
+    "cpi_yoy": 0.9,
+    "core_yoy": 1.0,
+    "ppi_yoy": 5.0,
+    "retail_yoy": 1.1,
+    "ip_yoy": 5.5
+   },
+   {
+    "period": "2026-08",
+    "pmi_mfg": 49.8,
+    "pmi_nonmfg": 49.0,
+    "cpi_yoy": 0.8,
+    "core_yoy": 1.0,
+    "ppi_yoy": 3.8,
+    "retail_yoy": 0.4,
+    "ip_yoy": 5.2
+   },
+   {
+    "period": "2026-07",
+    "pmi_mfg": 49.2,
+    "pmi_nonmfg": 49.0,
+    "cpi_yoy": 0.5,
+    "core_yoy": 0.9,
+    "ppi_yoy": 3.5,
+    "retail_yoy": 0.6,
+    "ip_yoy": 4.5
+   },
+   {
+    "period": "2026-06",
+    "pmi_mfg": 50.3,
+    "pmi_nonmfg": 50.2,
+    "cpi_yoy": 1.0,
+    "core_yoy": 1.0,
+    "ppi_yoy": 4.1,
+    "retail_yoy": null,
+    "ip_yoy": 5.3
+   },
+   {
+    "period": "2026-05",
+    "pmi_mfg": 50.0,
+    "pmi_nonmfg": 50.1,
+    "cpi_yoy": 1.2,
+    "core_yoy": 1.1,
+    "ppi_yoy": 3.9,
+    "retail_yoy": -0.6,
+    "ip_yoy": 4.5
+   },
+   {
+    "period": "2026-04",
+    "pmi_mfg": 50.3,
+    "pmi_nonmfg": 49.4,
+    "cpi_yoy": 1.2,
+    "core_yoy": 1.2,
+    "ppi_yoy": 2.8,
+    "retail_yoy": 0.2,
+    "ip_yoy": 4.1
+   },
+   {
+    "period": "2026-03",
+    "pmi_mfg": null,
+    "pmi_nonmfg": null,
+    "cpi_yoy": null,
+    "core_yoy": null,
+    "ppi_yoy": null,
+    "retail_yoy": 1.7,
+    "ip_yoy": 5.7
+   }
+  ],
+  "yuan": {
+   "last": 6.6665,
+   "chg20": -0.17,
+   "date": "2026-11-20"
+  },
+  "stocks": {
+   "shanghai": -4.25,
+   "hangseng": -2.96
+  },
+  "ust": {
+   "month": "2026-09-01",
+   "bn": 563.9,
+   "chg12": -135.3
+  },
+  "reserves": {
+   "month": "2026-06-01",
+   "bn": 3482.4
+  },
+  "heads": [
+   {
+    "title": "Chinese Yuan: Brief dip against US Dollar prompts controls - Commerzbank",
+    "link": "https://www.fxstreet.com/news/chinese-yuan-brief-dip-against-us-dollar-prompts-controls-commerzbank-202611202002",
+    "publisher": "FXStreet",
+    "date": "2026-11-20",
+    "tier": 2
+   },
+   {
+    "title": "Chinese Yuan: Gradual appreciation under tight management \u2013 BNY",
+    "link": "https://www.fxstreet.com/news/chinese-yuan-gradual-appreciation-under-tight-management-bny-202611201837",
+    "publisher": "FXStreet",
+    "date": "2026-11-20",
+    "tier": 2
+   },
+   {
+    "title": "Greer says US-China trade truce extension hinges on rare earths",
+    "link": "https://investinglive.com/news/greer-says-us-china-trade-truce-extension-hinges-on-rare-earths/",
+    "publisher": "ForexLive",
+    "date": "2026-11-20",
+    "tier": 2
+   },
+   {
+    "title": "China: Policy backstop offsets weak macro \u2013 BNY",
+    "link": "https://www.fxstreet.com/news/china-policy-backstop-offsets-weak-macro-bny-202611201333",
+    "publisher": "FXStreet",
+    "date": "2026-11-20",
+    "tier": 2
+   },
+   {
+    "title": "US approved nearly 900,000 Nvidia and AMD AI chips for China. Raises more questions than answers.",
+    "link": "https://investinglive.com/news/us-approved-nearly-900-000-nvidia-and-amd-ai-chips-for-china-raises-more-questions-than-answers/",
+    "publisher": "ForexLive",
+    "date": "2026-11-20",
+    "tier": 2
+   }
+  ],
+  "means": [
+   "China buys about half the world's copper and a large share of its silver, iron ore and oil. Weak factories and shoppers there mean less demand for these.",
+   "Factory prices (PPI) rising while consumer prices stay low means costs are going up faster than shoppers can pay: profits get squeezed, and China's exports get dearer abroad.",
+   "A weaker yuan makes Chinese goods cheaper worldwide and usually comes with a firmer dollar."
+  ]
+ },
+ "links": {
+  "cols": [
+   "US 10-year yield",
+   "Dollar index",
+   "Gold",
+   "Copper",
+   "NIFTY 50"
+  ],
+  "rows": [
+   {
+    "key": "JGB10Y",
+    "label": "Japan 10-year yield",
+    "cells": [
+     {
+      "corr": 0.35,
+      "strength": "medium"
+     },
+     {
+      "corr": 0.14,
+      "strength": "no link"
+     },
+     {
+      "corr": 0.0,
+      "strength": "no link"
+     },
+     {
+      "corr": 0.33,
+      "strength": "medium"
+     },
+     {
+      "corr": -0.31,
+      "strength": "medium"
+     }
+    ]
+   },
+   {
+    "key": "JPY=X",
+    "label": "USD/JPY",
+    "cells": [
+     {
+      "corr": 0.67,
+      "strength": "strong"
+     },
+     {
+      "corr": 0.79,
+      "strength": "strong"
+     },
+     {
+      "corr": -0.35,
+      "strength": "medium"
+     },
+     {
+      "corr": -0.09,
+      "strength": "no link"
+     },
+     {
+      "corr": -0.15,
+      "strength": "weak"
+     }
+    ]
+   },
+   {
+    "key": "CNY=X",
+    "label": "USD/CNY",
+    "cells": [
+     {
+      "corr": 0.59,
+      "strength": "strong"
+     },
+     {
+      "corr": 0.57,
+      "strength": "strong"
+     },
+     {
+      "corr": -0.34,
+      "strength": "medium"
+     },
+     {
+      "corr": -0.3,
+      "strength": "weak"
+     },
+     {
+      "corr": -0.02,
+      "strength": "no link"
+     }
+    ]
+   },
+   {
+    "key": "^N225",
+    "label": "Nikkei 225",
+    "cells": [
+     {
+      "corr": -0.05,
+      "strength": "no link"
+     },
+     {
+      "corr": 0.04,
+      "strength": "no link"
+     },
+     {
+      "corr": 0.07,
+      "strength": "no link"
+     },
+     {
+      "corr": 0.19,
+      "strength": "weak"
+     },
+     {
+      "corr": 0.24,
+      "strength": "weak"
+     }
+    ]
+   },
+   {
+    "key": "000001.SS",
+    "label": "Shanghai Composite",
+    "cells": [
+     {
+      "corr": -0.06,
+      "strength": "no link"
+     },
+     {
+      "corr": -0.12,
+      "strength": "no link"
+     },
+     {
+      "corr": 0.39,
+      "strength": "medium"
+     },
+     {
+      "corr": 0.31,
+      "strength": "medium"
+     },
+     {
+      "corr": -0.08,
+      "strength": "no link"
+     }
+    ]
+   }
+  ],
+  "n": 756,
+  "since": "2022-09-07"
+ },
+ "notes": {
+  "sources": "China: National Bureau of Statistics releases (PMI, CPI, PPI, retail sales, industrial output, investment, property). Japan: Ministry of Finance JGB yield curve, METI industrial production; Bank of Japan call rate, reserves and US Treasury holdings via FRED. Japan CPI and PMI come from headlines. Prices from Yahoo daily closes.",
+  "links": "Correlation of 20-session changes over the last 3 years; yields in basis points, prices in %. 0.45 or more strong, 0.30 medium, 0.15 weak."
+ }
+}

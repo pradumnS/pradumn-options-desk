@@ -2151,6 +2151,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   var BRIEF = {};            /* brief.json -- the morning brief on the Overview */
   var RADAR = {};            /* radar.json -- International radar warning lights */
   var INFL = {};             /* inflation_days.json -- International > Markets: Inflation days */
+  var ASIA = {};             /* asia.json -- International > China & Japan */
   var SIMPLE = { terms: {}, alias: {} };  /* simple_terms.json -- simple-language layer of every card */
   var LEARN_MODE = false;    /* Learn mode: glossary marks stand out, hover shows the simple line */
 
@@ -14323,7 +14324,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
      where the impact lands, and which number confirms or cancels it.
      All text arrives assembled upstream from stored figures and escaped
      here; nothing is typed in by a user. */
-  var INT_TABS = [["radar", "Radar", "what is coming"], ["markets", "Markets", "prices, moves, inflation days"],
+  var INT_TABS = [["radar", "Radar", "what is coming"], ["asia", "China &amp; Japan", "what matters for the world"], ["markets", "Markets", "prices, moves, inflation days"],
     ["rates", "Rates", "US curve"], ["positioning", "Positioning", "CFTC"],
     ["why", "Why it moved", "today"], ["sources", "Sources", ""]];
   var RDR_TERM = { inflation: "Radar: US inflation", fed: "Radar: Fed expectations", dollar: "Radar: Dollar index",
@@ -14496,6 +14497,119 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       " <b>Rules.</b> Each light turns on the day its rule is met and says which level cancels it. <b>History.</b> Every &ldquo;usually follows&rdquo; is measured on stored prices and shows its sample size. " +
       esc(notes.cpiDates || "") + "</div></details>";
     return verdict + rdrChain(R) + cards + rdrMatrix(R) + rdrBuckets(R) + rdrCalendar(R) + how;
+  }
+
+  /* China & Japan (International > China & Japan). Japan reaches world
+     markets through money (its bond yields, the yen, its US bond holdings);
+     China through demand (factories, shoppers, property). Built by asia.py
+     from NBS, Japan's Ministry of Finance and METI, and FRED; every value
+     shows its month and source. */
+  function asTile(label, value, sub, tone) {
+    return '<div class="idt-kpi"><span>' + label + '</span><b' + (tone ? ' class="' + tone + '"' : "") + ">" + value + "</b><span>" + (sub || "") + "</span></div>";
+  }
+  function asBn(v) { return v == null ? "&mdash;" : "$" + n0(Math.round(v)) + " bn"; }
+  function asHeads(hs) {
+    return (hs || []).length
+      ? '<ul class="rdr-heads">' + hs.map(function (h) {
+          return '<li><a href="' + esc(h.link) + '" target="_blank" rel="noopener">' + esc(h.title) + "</a>" +
+            '<span class="rdr-src">' + esc(h.publisher) + " &middot; " + rdrD(h.date) + "</span></li>";
+        }).join("") + "</ul>"
+      : '<p class="rdr-note">No matching headline in the last 14 days.</p>';
+  }
+  function asBoj() {
+    var ev = ((RADAR || {}).calendar || []).filter(function (e) { return /boj|bank of japan/i.test(e.label || ""); })[0];
+    return ev ? rdrD(ev.date) : null;
+  }
+  function asCard(id, title, P, see, extra) {
+    var T = ' data-term="China and Japan"';
+    var flags = (P.flags || []).length ? "<ul>" + P.flags.map(function (f) { return "<li>" + esc(f.charAt(0).toUpperCase() + f.slice(1)) + ".</li>"; }).join("") + "</ul>"
+      : '<p class="rdr-note">No warning signs on our rules today.</p>';
+    return '<article class="card rdr-card" id="as-' + id + '"><div class="card-hd"><span class="rdr-chip rdr-c-' + esc(P.state) + '">' + rdrState(P.state) + "</span>" +
+      "<h2" + T + ">" + title + '</h2><span class="sub">' + esc(P.headline) + "</span></div>" +
+      '<div class="rdr-pad">' + see + "</div>" +
+      '<div class="rdr-grid">' +
+      '<div class="rdr-cell"><h3' + T + ">Why it is flagged</h3>" + flags + "</div>" +
+      '<div class="rdr-cell"><h3' + T + ">Why it matters for markets</h3><ul>" + (P.means || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>" +
+      '<div class="rdr-cell"><h3' + T + ">Latest headlines</h3>" + asHeads(P.heads) + "</div>" +
+      '<div class="rdr-cell"><h3' + T + ">Watch next</h3>" + extra + "</div></div></article>";
+  }
+  function asiaView() {
+    var D = ASIA || {};
+    var T = ' data-term="China and Japan"';
+    if (!D.ready) {
+      return '<section class="card"><div class="card-hd"><h2' + T + '>China &amp; Japan</h2><span class="sub">what matters for the world</span></div><div class="rdr-pad">' +
+        (D.missing ? "Waiting for inputs: <b>" + esc(D.missing.join(", ")) + "</b>." : "Built by <b>asia.py</b> during export_snapshot.py; not in this snapshot yet.") + "</div></section>";
+    }
+    var J = D.japan, C = D.china, g = J.jgb || {}, h60 = g.high60 || {}, gp = J.gap || {}, u = J.ust || {}, y = J.yen || {};
+    var top = '<section class="card rdr-verdict"><div class="card-hd"><h2' + T + '>China &amp; Japan</h2><span class="sub">built ' + rdrD(D.builtAt) +
+      " &middot; Japan through money, China through demand</span></div><div class=\"rdr-pad\"><section class=\"rdr-lights\">" +
+      '<button type="button" class="rdr-light rdr-' + esc(J.state) + '" data-asgo="japan"><span class="rdr-lk"><span class="rdr-dot"></span>Japan</span><span class="rdr-lv">' +
+      (g.y10 != null ? g.y10.toFixed(2) + "%" : "&mdash;") + '</span><span class="rdr-ls">10-year bond yield &middot; ' + esc(J.headline) + "</span></button>" +
+      '<button type="button" class="rdr-light rdr-' + esc(C.state) + '" data-asgo="china"><span class="rdr-lk"><span class="rdr-dot"></span>China</span><span class="rdr-lv">' +
+      (C.latest.pmi.value != null ? C.latest.pmi.value.toFixed(1) : "&mdash;") + '</span><span class="rdr-ls">factory PMI &middot; ' + esc(C.headline) + "</span></button></section>" +
+      '<p class="rdr-note">Japan is the largest foreign holder of US government bonds: when its yields rise, money goes home and US yields rise. China buys about half the world&rsquo;s copper: its factories and shoppers set demand for metals and oil.</p></div></section>';
+
+    var jSee = '<div class="idt-kpis">' +
+      asTile("Japan 10-year yield", g.y10 != null ? g.y10.toFixed(2) + "%" : "&mdash;",
+        (g.chg250 != null ? idNum(g.chg250, 0) + " bp in a year" : "") + (h60.since ? " &middot; 3-month high " + h60.level.toFixed(2) + "%, highest since " + rdrD(h60.since) + " " + String(h60.since).slice(0, 4) : "")) +
+      asTile("2-year / 30-year", (g.y2 != null ? g.y2.toFixed(2) : "&mdash;") + "% / " + (g.y30 != null ? g.y30.toFixed(2) : "&mdash;") + "%", "Ministry of Finance &middot; " + rdrD(g.date)) +
+      asTile("US minus Japan, 10-year", gp.bp != null ? n0(gp.bp) + " bp" : "&mdash;", (gp.chg20 != null ? idNum(gp.chg20, 0) + " bp in 20 sessions &middot; " : "") + "a narrower gap pulls money home to Japan") +
+      asTile("Bank of Japan call rate", J.boj.rate != null ? J.boj.rate.toFixed(2) + "%" : "&mdash;", "monthly average &middot; " + esc(_asMon(J.boj.month))) +
+      asTile("USD/JPY", y.last != null ? y.last.toFixed(2) : "&mdash;", (y.chg20 != null ? idNum(y.chg20) + "% in 20 sessions &middot; " : "") + "1-year high " + (y.high1y != null ? y.high1y.toFixed(2) : "&mdash;"), y.last >= 155 ? "idt-hot" : "") +
+      asTile("Japan&rsquo;s US government bonds", asBn(u.bn), esc(_asMon(u.month)) + " &middot; " + (u.chg12 != null ? idNum(u.chg12, 0) + " bn in a year" : "") + (u.streak ? " &middot; down " + u.streak + " months in a row" : ""), u.streak >= 3 ? "idt-hot" : "") +
+      asTile("Japan reserves", asBn(J.reserves.bn), esc(_asMon(J.reserves.month)) + (J.reserves.chg1 != null ? " &middot; " + idNum(J.reserves.chg1, 0) + " bn in a month" : "")) +
+      asTile("Industrial output", J.ip.mom != null ? idNum(J.ip.mom) + "%" : "&mdash;", "month on month &middot; " + esc(_asMon(J.ip.month)) + (J.ip.yoy != null ? " &middot; " + idNum(J.ip.yoy) + "% in a year" : "") + " &middot; METI") +
+      asTile("Nikkei 225", J.nikkei.chg20 != null ? idNum(J.nikkei.chg20) + "%" : "&mdash;", "last 20 sessions") + "</div>" +
+      '<p class="rdr-note">Peak holdings were ' + asBn(u.peak) + " in " + esc(_asMon(u.peakMonth)) + ". Japan&rsquo;s inflation and PMI have no free official data feed; they appear in the headlines below.</p>";
+    var boj = asBoj();
+    var jWatch = '<div class="rdr-watch"><div class="rdr-trig rdr-confirm"><span>Adds pressure</span>' + (boj ? "A Bank of Japan hike on " + boj + ", " : "A Bank of Japan hike, ") +
+      "or the 10-year yield back above " + (h60.level != null ? h60.level.toFixed(2) + "%" : "its recent high") + ". Holdings data falling again in the next US Treasury report.</div>" +
+      '<div class="rdr-trig rdr-cancel"><span>Eases it</span>The Bank of Japan holds and signals patience; USD/JPY settles below 155; Japan&rsquo;s US bond holdings stop falling.</div></div>';
+
+    var L = C.latest, cv = function (k, suf) { var x = L[k] || {}; return x.value == null ? "&mdash;" : (suf === "" ? x.value.toFixed(1) : idNum(x.value) + "%"); };
+    var cm = function (k) { var x = L[k] || {}; return esc(_asMon(x.period)) + (x.link ? ' &middot; <a href="' + esc(x.link) + '" target="_blank" rel="noopener">NBS</a>' : ""); };
+    var pmiTone = (L.pmi || {}).value < 50 ? "idt-hot" : "idt-cool";
+    var cSee = '<div class="idt-kpis">' +
+      asTile("Factory PMI", cv("pmi", ""), "50 is the line: below means shrinking &middot; " + cm("pmi"), pmiTone) +
+      asTile("Services PMI", cv("pmiServices", ""), cm("pmiServices"), (L.pmiServices || {}).value < 50 ? "idt-hot" : "idt-cool") +
+      asTile("Consumer prices", cv("cpi"), "in a year &middot; " + cm("cpi")) +
+      asTile("Core prices", cv("core"), "no food, no fuel &middot; " + cm("core"), (L.core || {}).value < 1 ? "idt-hot" : "") +
+      asTile("Factory prices (PPI)", cv("ppi"), "in a year &middot; " + cm("ppi")) +
+      asTile("Retail sales", cv("retail"), "in a year &middot; " + cm("retail"), (L.retail || {}).value < 3 ? "idt-hot" : "") +
+      asTile("Industrial output", cv("ip"), "in a year &middot; " + cm("ip")) +
+      asTile("Investment", cv("fai"), "this year so far &middot; " + cm("fai")) +
+      asTile("Property investment", cv("property"), "this year so far &middot; " + cm("property"), (L.property || {}).value < -10 ? "idt-hot" : "") +
+      asTile("USD/CNY", C.yuan.last != null ? C.yuan.last.toFixed(4) : "&mdash;", (C.yuan.chg20 != null ? idNum(C.yuan.chg20) + "% in 20 sessions" : "")) +
+      asTile("Shanghai / Hang Seng", idNum(C.stocks.shanghai) + "% / " + idNum(C.stocks.hangseng) + "%", "last 20 sessions") +
+      asTile("China&rsquo;s US government bonds", asBn(C.ust.bn), esc(_asMon(C.ust.month)) + (C.ust.chg12 != null ? " &middot; " + idNum(C.ust.chg12, 0) + " bn in a year" : "")) +
+      asTile("China reserves", asBn(C.reserves.bn), esc(_asMon(C.reserves.month)) + " &middot; IMF data, reported with a lag") + "</div>";
+    var hist = '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>Month</th><th' + T + '>Factory PMI</th><th' + T + '>Services PMI</th><th' + T + '>Consumer prices</th>' +
+      "<th" + T + ">Core prices</th><th" + T + ">Factory prices</th><th" + T + ">Retail sales</th><th" + T + ">Industrial output</th></tr></thead><tbody>" +
+      (C.history || []).map(function (r) {
+        var p = function (v, pm) { return v == null ? '<span class="idt-mut">&mdash;</span>' : pm ? '<span class="' + (v < 50 ? "idt-hot" : "idt-cool") + '">' + v.toFixed(1) + "</span>" : idNum(v) + "%"; };
+        return '<tr><td class="lft">' + esc(_asMon(r.period)) + "</td><td>" + p(r.pmi_mfg, 1) + "</td><td>" + p(r.pmi_nonmfg, 1) + "</td><td>" + p(r.cpi_yoy) + "</td><td>" + p(r.core_yoy) +
+          "</td><td>" + p(r.ppi_yoy) + "</td><td>" + p(r.retail_yoy) + "</td><td>" + p(r.ip_yoy) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+    var cWatch = '<div class="rdr-watch"><div class="rdr-trig rdr-confirm"><span>Weaker</span>Factory PMI below 50 again (released on the last day of each month), retail sales under 1%, more property declines.</div>' +
+      '<div class="rdr-trig rdr-cancel"><span>Stronger</span>Factory PMI back above 50, retail sales picking up, or a large stimulus announcement from Beijing.</div></div>';
+
+    var LK = D.links || {};
+    var links = '<section class="card"><div class="card-hd"><h2' + T + '>How they move with world markets</h2><span class="sub">correlation of 20-session changes, last 3 years &middot; yields in basis points, prices in %</span></div>' +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>When this moves</th>' + (LK.cols || []).map(function (c) { return "<th" + T + ">" + esc(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      (LK.rows || []).map(function (r) {
+        return '<tr><td class="lft">' + esc(r.label) + "</td>" + r.cells.map(function (c) {
+          return c ? '<td><span class="' + cls(c.corr) + '">' + (c.corr > 0 ? "+" : "") + c.corr.toFixed(2) + '</span><span class="rdr-str">' + esc(c.strength) + "</span></td>" : "<td>&mdash;</td>";
+        }).join("") + "</tr>";
+      }).join("") + "</tbody></table></div>" +
+      '<div class="rdr-pad rdr-note">How to read it: +1 means they always moved together, &minus;1 always opposite, 0 no link. Only strong and medium links are worth leaning on. Example: a positive number for USD/JPY against the US 10-year yield means a weaker yen has come with higher US yields. ' +
+      esc((D.notes || {}).links || "") + "</div></section>";
+    var how = '<details class="nfx-more"><summary>Where these numbers come from</summary><div class="coverage-note">' + esc((D.notes || {}).sources || "") + "</div></details>";
+    return top + asCard("japan", "Japan", J, jSee, jWatch) +
+      asCard("china", "China", C, cSee + '<div class="rdr-h" style="margin-top:6px">Last 12 months</div>' + hist, cWatch) + links + how;
+  }
+  function _asMon(p) {
+    var m = /^(\d{4})-(\d{2})/.exec(String(p || ""));
+    return m ? RDR_MON[+m[2] - 1] + " " + m[1] : "";
   }
 
   /* Inflation days (International > Markets): one row per US CPI report since
@@ -14691,7 +14805,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "</div></section></details>";
     var tab = state.intTab || "radar";
     var body = tab === "markets" ? markets : tab === "rates" ? rates : tab === "positioning" ? positioning
-      : tab === "why" ? analysisSection() : tab === "sources" ? sources : radarView();
+      : tab === "why" ? analysisSection() : tab === "sources" ? sources : tab === "asia" ? asiaView() : radarView();
     return intro + intTabs() + body;
   }
 
@@ -23904,6 +24018,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "The dollar column is the slope for a 1% dollar rise; the Nasdaq column is the slope times a 5% fall. Strength comes from the correlation: 0.45 or more strong, 0.30 medium, 0.15 weak, below that no link.",
       "The windows overlap, so the links are smoother than any single month. A month with two shocks at once moves far more than the map predicts."
     ],
+    "China and Japan": [
+      "Japan: Ministry of Finance daily JGB yields, METI industrial production, and from FRED the Bank of Japan call rate (monthly), Japan's reserves and its US Treasury holdings (US Treasury TIC data). Japan's CPI and PMI have no free official feed, so they appear as headlines.",
+      "China: the National Bureau of Statistics releases, read from their text and tables: manufacturing and services PMI, CPI and core CPI, PPI, retail sales, industrial output, fixed-asset and property investment. Reserves come from FRED (IMF data, with a lag).",
+      "Each country's light follows written rules. Japan is flagged for a 10-year yield up 10 bp or more in 20 sessions, US bond holdings down 3 months in a row, or USD/JPY at 155 or higher; two flags make it red. China is flagged for a PMI below 50, retail sales under 3%, core inflation under 1% and property investment down more than 10%; three flags make it red. The link table is the correlation of 20-session changes over 3 years."
+    ],
     "Inflation days": [
       "One row per US CPI report since January 2025 (the December 2024 prices). Core, headline, energy and food are BLS indexes stored from FRED and checked against the BLS data service; the monthly change is seasonally adjusted and the 12-month change is not, as BLS prints them.",
       "Yearly pace is the monthly change times 12. Prices are daily closes on the trading day before the report, the report day and the trading day after; Move is day before to day after.",
@@ -24877,6 +24996,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": { deep: "Radar: India", how: function () { return "Red when NIFTY is down more than <b>3%</b> in 20 sessions."; } },
     "Impact map": { deep: "Impact map", how: function () { return "Slopes over <b>20</b>-session windows, last <b>3</b> years."; } },
     "Dollar direction and metals": { deep: "Dollar direction and metals", how: function () { return "Buckets at <b>+/-1.5%</b> over <b>20</b> sessions, since 2016."; } },
+    "China and Japan": { deep: "China and Japan", how: function () { return "Japan red at <b>2</b> flags, China red at <b>3</b>; PMI line at <b>50</b>."; } },
     "Inflation days": { deep: "Inflation days", how: function () { return "Core <b>0.3</b> a month = <b>3.6%</b> a year pace; Fed goal <b>2%</b>."; } },
     "Morning brief": {
       deep: "Morning brief",
@@ -28101,6 +28221,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": ["Whether the world's shocks are reaching NIFTY and the rupee.", "Green means India is holding up."],
     "Impact map": ["If the dollar or the Nasdaq moves, how much each market has usually moved with it.", "Strong links matter; weak ones do not."],
     "Dollar direction and metals": ["What metals did next, depending on whether the dollar was rising, flat or falling.", "Metals did best after the dollar turned down."],
+    "China and Japan": ["What Japan's bond yields, yen and US bond holdings, and China's factories, shoppers and prices are doing.", "Japan moves world interest rates; China moves demand for metals and oil."],
     "Inflation days": ["Every US inflation report, and what gold, silver, Bitcoin and the dollar did the day before, of and after.", "Core 0.3 or more is hot: 3.6% a year against the Fed's 2% goal."],
     "Morning brief": [
       "Read this first: why each market moved, what the desk would do today, and how yesterday's call turned out.",
@@ -35935,6 +36056,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         INFL = d || {};
         if (state.page === "international") render();
       }).catch(function () { INFL = {}; });
+      getJson("asia.json").then(function (d) {
+        ASIA = d || {};
+        if (state.page === "international") render();
+      }).catch(function () { ASIA = {}; });
       var m = MODEL[state.idx];
       var fr = freshness(m, MANIFEST);
       setFresh(fr.tag, fr.msg, fr.state, fr.age);
@@ -36105,6 +36230,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
     var itab = e.target.closest("[data-inttab]");
     if (itab) { state.intTab = itab.getAttribute("data-inttab"); render(); return; }
+    var asg = e.target.closest("[data-asgo]");
+    if (asg) {
+      var ac = document.getElementById("as-" + asg.getAttribute("data-asgo"));
+      if (ac && ac.scrollIntoView) ac.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
     var idf = e.target.closest("[data-idf]");
     if (idf) { state.idFilter = idf.getAttribute("data-idf"); render(); return; }
     var idv = e.target.closest("[data-idv]");
