@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 922,
-"generatedAt": "2026-11-22T06:17:09Z",
+"count": 924,
+"generatedAt": "2026-11-22T07:16:50Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -3550,6 +3550,47 @@
 "readIt": "When you see this row, compare its move with an ordinary day's move and check whether Counts says yes.",
 "simple": "This is China's official monthly survey of factory managers, released on the last day of each month. Above 50 means factories are growing, below 50 means shrinking."
 },
+"China and Japan": {
+"example": "If Japan's own bonds start paying 3% instead of 1%, a Japanese pension fund can sell US bonds and buy at home. Selling US bonds pushes US yields up, and gold usually falls.",
+"forYou": "Before selling silver or copper options, check China's PMI. Before a Bank of Japan meeting, expect bigger moves in the yen, US yields and gold.",
+"goodBad": "For metals, a strong China and calm Japanese yields are good; a weak China and fast-rising Japanese yields are bad.",
+"impact": "If Japan's yields keep rising: US yields rise too, the yen firms, and gold and tech shares come under pressure. If China's PMI stays below 50: copper, silver and oil usually struggle.",
+"readIt": "When you see this page, check the two lights first. For Japan, read the 10-year yield, USD/JPY and whether its US bond holdings are falling. For China, read the factory PMI (above 50 is growing) and retail sales.",
+"scale": {
+"hi": 54,
+"lo": 46,
+"quick": "China factory PMI: above 52 strong, 50 to 52 growing, 49 to 50 slightly shrinking, below 49 shrinking.",
+"range": "China's factory PMI usually sits between 48 and 52. 50 is the line between growing and shrinking.",
+"unit": "",
+"zones": [
+{
+"label": "Shrinking",
+"means": "Factories are cutting output.",
+"to": 49,
+"tone": "bad"
+},
+{
+"label": "Slightly shrinking",
+"means": "Just below the line.",
+"to": 50,
+"tone": "wait"
+},
+{
+"label": "Growing",
+"means": "Factories are expanding.",
+"to": 52,
+"tone": "ok"
+},
+{
+"label": "Strong",
+"means": "A clear boom in orders.",
+"to": null,
+"tone": "good"
+}
+]
+},
+"simple": "Two countries that move world markets in different ways. Japan moves interest rates and money: it owns over a trillion dollars of US government bonds. China moves demand: its factories and shoppers buy a huge share of the world's copper, silver and oil."
+},
 "China wholesale price index": {
 "example": "111 means food in China's wholesale markets is about 11% dearer than in 2015.",
 "forYou": "It is background only; it gives no price per kg.",
@@ -5787,6 +5828,14 @@
 ]
 },
 "simple": "How much NIFTY moved on each past RBI decision, FOMC decision, US CPI day and Budget. It is compared with an ordinary day. It shows which events really move NIFTY."
+},
+"Events and expectations": {
+"example": "Before the 10 Dec US inflation report, a prediction market expected core prices to rise 0.2%. If the report shows 0.3%, it came in above expectations, and markets usually react to that surprise.",
+"forYou": "Before an event with a wide spread of views, expect a bigger move and keep option strikes further away, or wait for the result.",
+"goodBad": "Neither good nor bad: it shows how much the market already expects, so you can judge the surprise.",
+"impact": "If a result comes in above expectations on inflation or rates: the dollar usually firms and gold usually falls. If below: the opposite.",
+"readIt": "When you see an event, read the spread of views first, then the actual once it is out. A result far from the middle of the views is a surprise and usually moves prices the most.",
+"simple": "A list of the big announcements coming up, like US inflation or a central-bank decision, with what banks, funds, betting markets and economists expect each one to show."
 },
 "Every expiry": {
 "example": "Like comparing train fares for this week, next week and next month before booking. A weekly might pay little while the monthly pays well.",

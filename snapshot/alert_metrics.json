@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-22T11:47:09+05:30",
+ "generatedAt": "2026-11-22T12:46:50+05:30",
  "metrics": [
   {
    "id": "nifty",
@@ -296,8 +296,8 @@
    "label": "Silver (world, USD/oz)",
    "group": "commodity",
    "unit": "usd",
-   "value": 41.03499984741211,
-   "chgPct": -7.407827264919431,
+   "value": 41.06999969482422,
+   "chgPct": -7.32885292766261,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -326,8 +326,8 @@
    "label": "Copper (world, USD/lb)",
    "group": "commodity",
    "unit": "usd",
-   "value": 5.4770002365112305,
-   "chgPct": -2.631106906467018,
+   "value": 5.485000133514404,
+   "chgPct": -2.488886515299482,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -356,8 +356,8 @@
    "label": "Crude oil (world, USD/bbl)",
    "group": "commodity",
    "unit": "usd",
-   "value": 83.9800033569336,
-   "chgPct": 0.9253746916632499,
+   "value": 83.41000366210938,
+   "chgPct": 0.2403612304257896,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -376,7 +376,7 @@
    "label": "Crude oil implied vol",
    "group": "commodity",
    "unit": "%",
-   "value": 56.55586837772064,
+   "value": 56.55835755521315,
    "chgPct": null,
    "asOf": "2026-11-20",
    "term": "Commodity implied vol"
@@ -396,8 +396,8 @@
    "label": "Natural gas (world, USD/MMBtu)",
    "group": "commodity",
    "unit": "usd",
-   "value": 3.4110000133514404,
-   "chgPct": 4.375768996610119,
+   "value": 3.747999906539917,
+   "chgPct": 14.687883586361261,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -426,8 +426,8 @@
    "label": "Platinum (world, USD/oz)",
    "group": "commodity",
    "unit": "usd",
-   "value": 1289.4000244140625,
-   "chgPct": -4.318785413050308,
+   "value": 1289.5999755859375,
+   "chgPct": -4.303947836952249,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -446,8 +446,8 @@
    "label": "Palladium (world, USD/oz)",
    "group": "commodity",
    "unit": "usd",
-   "value": 891.7000122070312,
-   "chgPct": -2.727173521009385,
+   "value": 893.0999755859375,
+   "chgPct": -2.5744557987159467,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -466,8 +466,8 @@
    "label": "Aluminium (world, USD/t)",
    "group": "commodity",
    "unit": "usd",
-   "value": 2860.0,
-   "chgPct": 0.7219580912132484,
+   "value": 2789.5,
+   "chgPct": -1.760873393203033,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -556,8 +556,8 @@
    "label": "Brent (world, USD/bbl)",
    "group": "commodity",
    "unit": "usd",
-   "value": 92.56999969482422,
-   "chgPct": 0.6414397872993138,
+   "value": 89.94999694824219,
+   "chgPct": -2.207008409005873,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -576,8 +576,8 @@
    "label": "Heating oil (ULSD) (world, USD/gal)",
    "group": "commodity",
    "unit": "usd",
-   "value": 3.921600103378296,
-   "chgPct": -0.7541615095490783,
+   "value": 3.8473000526428223,
+   "chgPct": -2.634508980157513,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
@@ -586,8 +586,8 @@
    "label": "Gasoline (RBOB) (world, USD/gal)",
    "group": "commodity",
    "unit": "usd",
-   "value": 2.502700090408325,
-   "chgPct": 0.30459977479664335,
+   "value": 2.478800058364868,
+   "chgPct": -0.6532789410396811,
    "asOf": "2026-11-20",
    "term": "Commodity world price"
   },
