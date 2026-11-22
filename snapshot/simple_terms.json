@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 921,
-"generatedAt": "2026-11-22T05:17:43Z",
+"count": 922,
+"generatedAt": "2026-11-22T06:17:09Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -7692,6 +7692,47 @@
 "impact": "If MCX adds options: the market can get a trade plan. If there is no contract: there is nothing to trade here.",
 "readIt": "When you see this label, check options, futures only, or none. With no Indian contract, the desk always stands aside.",
 "simple": "Whether this market trades in India at all. MCX lists options on gold, silver, copper, zinc, crude and gas. Aluminium, lead and nickel have futures only."
+},
+"Inflation days": {
+"example": "On 10 Nov 2026 core inflation came in at 0.3%. Gold closed at $4,115 the day before, $4,030 on the day and $4,001 the day after: a 2.8% fall across the report.",
+"forYou": "Before a report day, look up how the last few hot and cool reports moved gold and silver. Expect a similar size of move and keep option strikes outside it.",
+"goodBad": "For gold and silver, a cool core reading is good and a hot one is bad.",
+"impact": "If hot reports keep coming: the dollar usually firms and gold and Bitcoin usually struggle around the report. If core cools to 0.2 or less: the pressure usually eases.",
+"readIt": "When you see a row, look at the core number first (0.3 or more is hot), then the Move column for each market. Check Fed gap and Dollar 20d to see whether the market was already expecting rate hikes.",
+"scale": {
+"hi": 0.6,
+"lo": -0.1,
+"quick": "Core per month: 0.1 or less calm (1.2% a year), 0.2 a little above goal (2.4%), 0.3 or more hot (3.6% or more).",
+"range": "Core usually prints between 0.0% and 0.5% a month. The Fed aims for 2% a year, about 0.17% a month.",
+"unit": "%",
+"zones": [
+{
+"label": "Calm",
+"means": "Below the Fed's goal pace.",
+"to": 0.1,
+"tone": "good"
+},
+{
+"label": "Near goal",
+"means": "A little above 2% a year.",
+"to": 0.2,
+"tone": "ok"
+},
+{
+"label": "Warm",
+"means": "Watch the next report.",
+"to": 0.29,
+"tone": "wait"
+},
+{
+"label": "Hot",
+"means": "Rate hikes become likely.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "A diary of every US inflation report since January 2025. For each one it shows how fast prices rose, and what gold, silver, Bitcoin and the dollar did the day before, on the day, and the day after."
 },
 "International radar": {
 "example": "Like a car dashboard. The oil light comes on before the engine breaks, so you can act early. Here, a hot US inflation number lights up first, and the dollar and gold lights follow.",

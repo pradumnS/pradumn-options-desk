@@ -1,0 +1,1424 @@
+{
+ "ready": true,
+ "builtAt": "2026-11-22T06:15:04+00:00",
+ "from": "2024-12",
+ "assets": [
+  {
+   "sym": "GC=F",
+   "label": "Gold"
+  },
+  {
+   "sym": "SI=F",
+   "label": "Silver"
+  },
+  {
+   "sym": "BTC-USD",
+   "label": "Bitcoin"
+  },
+  {
+   "sym": "DX-Y.NYB",
+   "label": "Dollar index"
+  }
+ ],
+ "rows": [
+  {
+   "month": "2026-10",
+   "release": "2026-11-10",
+   "head": 0.4,
+   "headY": null,
+   "core": 0.3,
+   "coreY": null,
+   "energy": 0.7,
+   "food": 0.5,
+   "tag": "hot",
+   "headPace": 4.8,
+   "corePace": 3.6,
+   "note": "No 12-month change: the same month a year earlier has no data.",
+   "days": [
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-11"
+   ],
+   "fedGap": 68,
+   "dollar20": -0.9,
+   "px": {
+    "GC=F": {
+     "p": [
+      4114.5,
+      4030.2,
+      4000.5
+     ],
+     "day": -2.05,
+     "move": -2.77
+    },
+    "SI=F": {
+     "p": [
+      52.56,
+      51.1,
+      51.88
+     ],
+     "day": -2.78,
+     "move": -1.29
+    },
+    "BTC-USD": {
+     "p": [
+      75223.15,
+      73720.12,
+      73964.47
+     ],
+     "day": -2.0,
+     "move": -1.67
+    },
+    "DX-Y.NYB": {
+     "p": [
+      101.65,
+      102.23,
+      102.91
+     ],
+     "day": 0.57,
+     "move": 1.24
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-09",
+   "release": "2026-10-14",
+   "head": 0.6,
+   "headY": 3.7,
+   "core": 0.3,
+   "coreY": 2.6,
+   "energy": 5.2,
+   "food": 0.0,
+   "tag": "hot",
+   "headPace": 7.2,
+   "corePace": 3.6,
+   "days": [
+    "2026-10-13",
+    "2026-10-14",
+    "2026-10-15"
+   ],
+   "fedGap": 91,
+   "dollar20": 2.5,
+   "px": {
+    "GC=F": {
+     "p": [
+      4177.3,
+      4107.9,
+      4170.1
+     ],
+     "day": -1.66,
+     "move": -0.17
+    },
+    "SI=F": {
+     "p": [
+      59.16,
+      55.55,
+      56.84
+     ],
+     "day": -6.1,
+     "move": -3.92
+    },
+    "BTC-USD": {
+     "p": [
+      83095.12,
+      81562.49,
+      82141.46
+     ],
+     "day": -1.84,
+     "move": -1.15
+    },
+    "DX-Y.NYB": {
+     "p": [
+      102.18,
+      102.55,
+      102.0
+     ],
+     "day": 0.36,
+     "move": -0.18
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-08",
+   "release": "2026-09-11",
+   "head": 0.4,
+   "headY": 3.4,
+   "core": 0.3,
+   "coreY": 2.4,
+   "energy": 2.1,
+   "food": 0.1,
+   "tag": "hot",
+   "headPace": 4.8,
+   "corePace": 3.6,
+   "days": [
+    "2026-09-10",
+    "2026-09-11",
+    "2026-09-14"
+   ],
+   "fedGap": 93,
+   "dollar20": -0.9,
+   "px": {
+    "GC=F": {
+     "p": [
+      4407.3,
+      4408.9,
+      4351.9
+     ],
+     "day": 0.04,
+     "move": -1.26
+    },
+    "SI=F": {
+     "p": [
+      64.28,
+      64.55,
+      63.51
+     ],
+     "day": 0.42,
+     "move": -1.2
+    },
+    "BTC-USD": {
+     "p": [
+      76568.12,
+      77173.8,
+      78163.38
+     ],
+     "day": 0.79,
+     "move": 2.08
+    },
+    "DX-Y.NYB": {
+     "p": [
+      99.09,
+      99.12,
+      99.46
+     ],
+     "day": 0.03,
+     "move": 0.37
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-07",
+   "release": "2026-08-12",
+   "head": 0.1,
+   "headY": 3.4,
+   "core": 0.2,
+   "coreY": 2.5,
+   "energy": -1.5,
+   "food": 0.1,
+   "tag": "warm",
+   "headPace": 1.2,
+   "corePace": 2.4,
+   "days": [
+    "2026-08-11",
+    "2026-08-12",
+    "2026-08-13"
+   ],
+   "fedGap": 59,
+   "dollar20": -1.1,
+   "px": {
+    "GC=F": {
+     "p": [
+      4441.1,
+      4467.5,
+      4420.4
+     ],
+     "day": 0.59,
+     "move": -0.47
+    },
+    "SI=F": {
+     "p": [
+      64.77,
+      65.56,
+      64.87
+     ],
+     "day": 1.22,
+     "move": 0.15
+    },
+    "BTC-USD": {
+     "p": [
+      63551.88,
+      63402.43,
+      63402.17
+     ],
+     "day": -0.24,
+     "move": -0.24
+    },
+    "DX-Y.NYB": {
+     "p": [
+      99.82,
+      100.01,
+      99.96
+     ],
+     "day": 0.19,
+     "move": 0.14
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-06",
+   "release": "2026-07-14",
+   "head": -0.4,
+   "headY": 3.5,
+   "core": 0.0,
+   "coreY": 2.6,
+   "energy": -5.7,
+   "food": 0.2,
+   "tag": "cool",
+   "headPace": -4.8,
+   "corePace": 0.0,
+   "days": [
+    "2026-07-13",
+    "2026-07-14",
+    "2026-07-15"
+   ],
+   "fedGap": 64,
+   "dollar20": 1.4,
+   "px": {
+    "GC=F": {
+     "p": [
+      4005.7,
+      4069.7,
+      4051.8
+     ],
+     "day": 1.6,
+     "move": 1.15
+    },
+    "SI=F": {
+     "p": [
+      57.63,
+      58.77,
+      57.11
+     ],
+     "day": 1.98,
+     "move": -0.9
+    },
+    "BTC-USD": {
+     "p": [
+      62239.12,
+      64956.11,
+      64712.38
+     ],
+     "day": 4.37,
+     "move": 3.97
+    },
+    "DX-Y.NYB": {
+     "p": [
+      101.28,
+      100.94,
+      100.5
+     ],
+     "day": -0.34,
+     "move": -0.77
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-05",
+   "release": "2026-06-10",
+   "head": 0.5,
+   "headY": 4.2,
+   "core": 0.2,
+   "coreY": 2.9,
+   "energy": 3.9,
+   "food": 0.2,
+   "tag": "warm",
+   "headPace": 6.0,
+   "corePace": 2.4,
+   "days": [
+    "2026-06-09",
+    "2026-06-10",
+    "2026-06-11"
+   ],
+   "fedGap": 51,
+   "dollar20": 2.0,
+   "px": {
+    "GC=F": {
+     "p": [
+      4286.4,
+      4133.3,
+      4114.0
+     ],
+     "day": -3.57,
+     "move": -4.02
+    },
+    "SI=F": {
+     "p": [
+      65.09,
+      64.6,
+      63.88
+     ],
+     "day": -0.75,
+     "move": -1.86
+    },
+    "BTC-USD": {
+     "p": [
+      61643.78,
+      61449.29,
+      63561.05
+     ],
+     "day": -0.32,
+     "move": 3.11
+    },
+    "DX-Y.NYB": {
+     "p": [
+      99.91,
+      99.95,
+      99.86
+     ],
+     "day": 0.04,
+     "move": -0.05
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-04",
+   "release": "2026-05-12",
+   "head": 0.6,
+   "headY": 3.8,
+   "core": 0.4,
+   "coreY": 2.8,
+   "energy": 3.8,
+   "food": 0.5,
+   "tag": "hot",
+   "headPace": 7.2,
+   "corePace": 4.8,
+   "days": [
+    "2026-05-11",
+    "2026-05-12",
+    "2026-05-13"
+   ],
+   "fedGap": 32,
+   "dollar20": -0.4,
+   "px": {
+    "GC=F": {
+     "p": [
+      4728.7,
+      4686.7,
+      4706.7
+     ],
+     "day": -0.89,
+     "move": -0.47
+    },
+    "SI=F": {
+     "p": [
+      85.49,
+      85.13,
+      88.89
+     ],
+     "day": -0.42,
+     "move": 3.98
+    },
+    "BTC-USD": {
+     "p": [
+      81728.3,
+      80477.49,
+      79277.12
+     ],
+     "day": -1.53,
+     "move": -3.0
+    },
+    "DX-Y.NYB": {
+     "p": [
+      97.94,
+      98.29,
+      98.48
+     ],
+     "day": 0.36,
+     "move": 0.55
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-03",
+   "release": "2026-04-10",
+   "head": 0.9,
+   "headY": 3.3,
+   "core": 0.2,
+   "coreY": 2.6,
+   "energy": 10.9,
+   "food": 0.0,
+   "tag": "warm",
+   "headPace": 10.8,
+   "corePace": 2.4,
+   "days": [
+    "2026-04-09",
+    "2026-04-10",
+    "2026-04-13"
+   ],
+   "fedGap": 14,
+   "dollar20": -0.4,
+   "px": {
+    "GC=F": {
+     "p": [
+      4818.0,
+      4787.4,
+      4767.4
+     ],
+     "day": -0.64,
+     "move": -1.05
+    },
+    "SI=F": {
+     "p": [
+      76.28,
+      76.32,
+      75.52
+     ],
+     "day": 0.05,
+     "move": -1.0
+    },
+    "BTC-USD": {
+     "p": [
+      71767.83,
+      72979.05,
+      74484.64
+     ],
+     "day": 1.69,
+     "move": 3.79
+    },
+    "DX-Y.NYB": {
+     "p": [
+      98.82,
+      98.65,
+      98.37
+     ],
+     "day": -0.17,
+     "move": -0.46
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-02",
+   "release": "2026-03-11",
+   "head": 0.3,
+   "headY": 2.4,
+   "core": 0.2,
+   "coreY": 2.5,
+   "energy": 0.6,
+   "food": 0.4,
+   "tag": "warm",
+   "headPace": 3.6,
+   "corePace": 2.4,
+   "days": [
+    "2026-03-10",
+    "2026-03-11",
+    "2026-03-12"
+   ],
+   "fedGap": -7,
+   "dollar20": 2.1,
+   "px": {
+    "GC=F": {
+     "p": [
+      5242.1,
+      5179.1,
+      5125.8
+     ],
+     "day": -1.2,
+     "move": -2.22
+    },
+    "SI=F": {
+     "p": [
+      89.08,
+      85.07,
+      84.67
+     ],
+     "day": -4.5,
+     "move": -4.95
+    },
+    "BTC-USD": {
+     "p": [
+      69926.92,
+      70204.88,
+      70493.46
+     ],
+     "day": 0.4,
+     "move": 0.81
+    },
+    "DX-Y.NYB": {
+     "p": [
+      98.83,
+      99.23,
+      99.74
+     ],
+     "day": 0.4,
+     "move": 0.92
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2026-01",
+   "release": "2026-02-13",
+   "head": 0.2,
+   "headY": 2.4,
+   "core": 0.3,
+   "coreY": 2.5,
+   "energy": -1.5,
+   "food": 0.2,
+   "tag": "hot",
+   "headPace": 2.4,
+   "corePace": 3.6,
+   "days": [
+    "2026-02-12",
+    "2026-02-13",
+    "2026-02-17"
+   ],
+   "fedGap": -17,
+   "dollar20": -2.2,
+   "px": {
+    "GC=F": {
+     "p": [
+      4948.4,
+      5046.3,
+      4905.9
+     ],
+     "day": 1.98,
+     "move": -0.86
+    },
+    "SI=F": {
+     "p": [
+      75.55,
+      77.85,
+      73.45
+     ],
+     "day": 3.04,
+     "move": -2.78
+    },
+    "BTC-USD": {
+     "p": [
+      66221.84,
+      68857.84,
+      67494.22
+     ],
+     "day": 3.98,
+     "move": 1.92
+    },
+    "DX-Y.NYB": {
+     "p": [
+      96.93,
+      96.88,
+      97.16
+     ],
+     "day": -0.05,
+     "move": 0.24
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-12",
+   "release": "2026-01-13",
+   "head": 0.3,
+   "headY": 2.7,
+   "core": 0.2,
+   "coreY": 2.6,
+   "energy": 0.3,
+   "food": 0.7,
+   "tag": "warm",
+   "headPace": 3.6,
+   "corePace": 2.4,
+   "days": [
+    "2026-01-12",
+    "2026-01-13",
+    "2026-01-14"
+   ],
+   "fedGap": -10,
+   "dollar20": 0.5,
+   "px": {
+    "GC=F": {
+     "p": [
+      4614.7,
+      4599.1,
+      4635.7
+     ],
+     "day": -0.34,
+     "move": 0.46
+    },
+    "SI=F": {
+     "p": [
+      84.61,
+      85.88,
+      90.87
+     ],
+     "day": 1.5,
+     "move": 7.4
+    },
+    "BTC-USD": {
+     "p": [
+      91192.99,
+      95321.78,
+      96929.33
+     ],
+     "day": 4.53,
+     "move": 6.29
+    },
+    "DX-Y.NYB": {
+     "p": [
+      98.86,
+      99.13,
+      99.13
+     ],
+     "day": 0.27,
+     "move": 0.27
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-11",
+   "release": "2025-12-18",
+   "head": null,
+   "headY": 2.7,
+   "core": null,
+   "coreY": 2.6,
+   "energy": null,
+   "food": null,
+   "tag": null,
+   "headPace": null,
+   "corePace": null,
+   "note": "No monthly change: the month before has no data.",
+   "days": [
+    "2025-12-17",
+    "2025-12-18",
+    "2025-12-19"
+   ],
+   "fedGap": -15,
+   "dollar20": -1.2,
+   "px": {
+    "GC=F": {
+     "p": [
+      4373.9,
+      4364.5,
+      4387.3
+     ],
+     "day": -0.21,
+     "move": 0.31
+    },
+    "SI=F": {
+     "p": [
+      66.24,
+      64.59,
+      66.85
+     ],
+     "day": -2.49,
+     "move": 0.92
+    },
+    "BTC-USD": {
+     "p": [
+      86143.76,
+      85462.51,
+      88103.38
+     ],
+     "day": -0.79,
+     "move": 2.27
+    },
+    "DX-Y.NYB": {
+     "p": [
+      98.37,
+      98.43,
+      98.6
+     ],
+     "day": 0.06,
+     "move": 0.23
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-10",
+   "release": null,
+   "gap": "No report: the US government shutdown stopped price collection and BLS cancelled it."
+  },
+  {
+   "month": "2025-09",
+   "release": "2025-10-24",
+   "head": 0.3,
+   "headY": 3.0,
+   "core": 0.2,
+   "coreY": 3.0,
+   "energy": 1.4,
+   "food": 0.2,
+   "tag": "warm",
+   "headPace": 3.6,
+   "corePace": 2.4,
+   "days": [
+    "2025-10-23",
+    "2025-10-24",
+    "2025-10-27"
+   ],
+   "fedGap": -63,
+   "dollar20": 0.4,
+   "px": {
+    "GC=F": {
+     "p": [
+      4145.6,
+      4137.8,
+      4019.7
+     ],
+     "day": -0.19,
+     "move": -3.04
+    },
+    "SI=F": {
+     "p": [
+      48.48,
+      48.38,
+      46.56
+     ],
+     "day": -0.21,
+     "move": -3.96
+    },
+    "BTC-USD": {
+     "p": [
+      110069.73,
+      111033.92,
+      114119.33
+     ],
+     "day": 0.88,
+     "move": 3.68
+    },
+    "DX-Y.NYB": {
+     "p": [
+      98.94,
+      98.95,
+      98.78
+     ],
+     "day": 0.01,
+     "move": -0.16
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-08",
+   "release": "2025-09-11",
+   "head": 0.3,
+   "headY": 2.9,
+   "core": 0.3,
+   "coreY": 3.1,
+   "energy": 0.7,
+   "food": 0.4,
+   "tag": "hot",
+   "headPace": 3.6,
+   "corePace": 3.6,
+   "days": [
+    "2025-09-10",
+    "2025-09-11",
+    "2025-09-12"
+   ],
+   "fedGap": -79,
+   "dollar20": -0.3,
+   "px": {
+    "GC=F": {
+     "p": [
+      3682.0,
+      3673.6,
+      3686.4
+     ],
+     "day": -0.23,
+     "move": 0.12
+    },
+    "SI=F": {
+     "p": [
+      41.13,
+      41.7,
+      42.39
+     ],
+     "day": 1.39,
+     "move": 3.06
+    },
+    "BTC-USD": {
+     "p": [
+      113955.36,
+      115507.54,
+      116101.58
+     ],
+     "day": 1.36,
+     "move": 1.88
+    },
+    "DX-Y.NYB": {
+     "p": [
+      97.78,
+      97.54,
+      97.55
+     ],
+     "day": -0.25,
+     "move": -0.24
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-07",
+   "release": "2025-08-12",
+   "head": 0.2,
+   "headY": 2.7,
+   "core": 0.3,
+   "coreY": 3.1,
+   "energy": -0.6,
+   "food": 0.1,
+   "tag": "hot",
+   "headPace": 2.4,
+   "corePace": 3.6,
+   "days": [
+    "2025-08-11",
+    "2025-08-12",
+    "2025-08-13"
+   ],
+   "fedGap": -57,
+   "dollar20": 0.4,
+   "px": {
+    "GC=F": {
+     "p": [
+      3404.7,
+      3399.0,
+      3408.3
+     ],
+     "day": -0.17,
+     "move": 0.11
+    },
+    "SI=F": {
+     "p": [
+      37.66,
+      37.9,
+      38.5
+     ],
+     "day": 0.64,
+     "move": 2.23
+    },
+    "BTC-USD": {
+     "p": [
+      118731.45,
+      120172.91,
+      123344.06
+     ],
+     "day": 1.21,
+     "move": 3.88
+    },
+    "DX-Y.NYB": {
+     "p": [
+      98.52,
+      98.1,
+      97.84
+     ],
+     "day": -0.43,
+     "move": -0.69
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-06",
+   "release": "2025-07-15",
+   "head": 0.3,
+   "headY": 2.7,
+   "core": 0.2,
+   "coreY": 2.9,
+   "energy": 0.4,
+   "food": 0.3,
+   "tag": "warm",
+   "headPace": 3.6,
+   "corePace": 2.4,
+   "days": [
+    "2025-07-14",
+    "2025-07-15",
+    "2025-07-16"
+   ],
+   "fedGap": -43,
+   "dollar20": 0.2,
+   "px": {
+    "GC=F": {
+     "p": [
+      3359.1,
+      3336.7,
+      3359.1
+     ],
+     "day": -0.67,
+     "move": 0.0
+    },
+    "SI=F": {
+     "p": [
+      38.46,
+      37.83,
+      37.85
+     ],
+     "day": -1.64,
+     "move": -1.59
+    },
+    "BTC-USD": {
+     "p": [
+      119849.7,
+      117777.19,
+      118738.51
+     ],
+     "day": -1.73,
+     "move": -0.93
+    },
+    "DX-Y.NYB": {
+     "p": [
+      98.08,
+      98.62,
+      98.39
+     ],
+     "day": 0.55,
+     "move": 0.32
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-05",
+   "release": "2025-06-11",
+   "head": 0.1,
+   "headY": 2.4,
+   "core": 0.1,
+   "coreY": 2.8,
+   "energy": -0.7,
+   "food": 0.3,
+   "tag": "cool",
+   "headPace": 1.2,
+   "corePace": 1.2,
+   "days": [
+    "2025-06-10",
+    "2025-06-11",
+    "2025-06-12"
+   ],
+   "fedGap": -32,
+   "dollar20": -1.9,
+   "px": {
+    "GC=F": {
+     "p": [
+      3343.4,
+      3343.7,
+      3402.4
+     ],
+     "day": 0.01,
+     "move": 1.76
+    },
+    "SI=F": {
+     "p": [
+      36.54,
+      36.17,
+      36.21
+     ],
+     "day": -1.01,
+     "move": -0.9
+    },
+    "BTC-USD": {
+     "p": [
+      110257.23,
+      108686.62,
+      105929.05
+     ],
+     "day": -1.42,
+     "move": -3.93
+    },
+    "DX-Y.NYB": {
+     "p": [
+      99.05,
+      98.63,
+      97.92
+     ],
+     "day": -0.42,
+     "move": -1.14
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-04",
+   "release": "2025-05-13",
+   "head": 0.2,
+   "headY": 2.3,
+   "core": 0.2,
+   "coreY": 2.8,
+   "energy": -0.6,
+   "food": 0.0,
+   "tag": "warm",
+   "headPace": 2.4,
+   "corePace": 2.4,
+   "days": [
+    "2025-05-12",
+    "2025-05-13",
+    "2025-05-14"
+   ],
+   "fedGap": -35,
+   "dollar20": 2.0,
+   "px": {
+    "GC=F": {
+     "p": [
+      3228.0,
+      3247.8,
+      3188.3
+     ],
+     "day": 0.61,
+     "move": -1.23
+    },
+    "SI=F": {
+     "p": [
+      32.39,
+      32.87,
+      32.23
+     ],
+     "day": 1.48,
+     "move": -0.49
+    },
+    "BTC-USD": {
+     "p": [
+      102812.95,
+      104169.81,
+      103539.41
+     ],
+     "day": 1.32,
+     "move": 0.71
+    },
+    "DX-Y.NYB": {
+     "p": [
+      101.79,
+      101.0,
+      101.04
+     ],
+     "day": -0.78,
+     "move": -0.74
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-03",
+   "release": "2025-04-10",
+   "head": 0.0,
+   "headY": 2.4,
+   "core": 0.1,
+   "coreY": 2.8,
+   "energy": -1.1,
+   "food": 0.4,
+   "tag": "cool",
+   "headPace": 0.0,
+   "corePace": 1.2,
+   "days": [
+    "2025-04-09",
+    "2025-04-10",
+    "2025-04-11"
+   ],
+   "fedGap": -42,
+   "dollar20": -0.7,
+   "px": {
+    "GC=F": {
+     "p": [
+      3079.4,
+      3177.5,
+      3244.6
+     ],
+     "day": 3.19,
+     "move": 5.36
+    },
+    "SI=F": {
+     "p": [
+      30.32,
+      30.67,
+      31.82
+     ],
+     "day": 1.15,
+     "move": 4.95
+    },
+    "BTC-USD": {
+     "p": [
+      82573.95,
+      79626.14,
+      83404.84
+     ],
+     "day": -3.57,
+     "move": 1.01
+    },
+    "DX-Y.NYB": {
+     "p": [
+      102.9,
+      100.87,
+      99.78
+     ],
+     "day": -1.97,
+     "move": -3.03
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-02",
+   "release": "2025-03-12",
+   "head": 0.2,
+   "headY": 2.8,
+   "core": 0.3,
+   "coreY": 3.1,
+   "energy": -0.1,
+   "food": 0.2,
+   "tag": "hot",
+   "headPace": 2.4,
+   "corePace": 3.6,
+   "days": [
+    "2025-03-11",
+    "2025-03-12",
+    "2025-03-13"
+   ],
+   "fedGap": -39,
+   "dollar20": -4.5,
+   "px": {
+    "GC=F": {
+     "p": [
+      2920.9,
+      2946.8,
+      2991.3
+     ],
+     "day": 0.89,
+     "move": 2.41
+    },
+    "SI=F": {
+     "p": [
+      32.89,
+      33.48,
+      34.05
+     ],
+     "day": 1.79,
+     "move": 3.53
+    },
+    "BTC-USD": {
+     "p": [
+      82862.21,
+      83722.36,
+      81066.7
+     ],
+     "day": 1.04,
+     "move": -2.17
+    },
+    "DX-Y.NYB": {
+     "p": [
+      103.44,
+      103.61,
+      103.83
+     ],
+     "day": 0.16,
+     "move": 0.38
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2025-01",
+   "release": "2025-02-12",
+   "head": 0.4,
+   "headY": 3.0,
+   "core": 0.4,
+   "coreY": 3.3,
+   "energy": 0.9,
+   "food": 0.3,
+   "tag": "hot",
+   "headPace": 4.8,
+   "corePace": 4.8,
+   "days": [
+    "2025-02-11",
+    "2025-02-12",
+    "2025-02-13"
+   ],
+   "fedGap": -4,
+   "dollar20": -1.8,
+   "px": {
+    "GC=F": {
+     "p": [
+      2932.6,
+      2928.7,
+      2945.4
+     ],
+     "day": -0.13,
+     "move": 0.44
+    },
+    "SI=F": {
+     "p": [
+      32.23,
+      32.69,
+      32.65
+     ],
+     "day": 1.43,
+     "move": 1.3
+    },
+    "BTC-USD": {
+     "p": [
+      95747.43,
+      97885.86,
+      96623.87
+     ],
+     "day": 2.23,
+     "move": 0.92
+    },
+    "DX-Y.NYB": {
+     "p": [
+      107.96,
+      107.94,
+      107.31
+     ],
+     "day": -0.02,
+     "move": -0.6
+    }
+   },
+   "pending": false
+  },
+  {
+   "month": "2024-12",
+   "release": "2025-01-15",
+   "head": 0.3,
+   "headY": 2.9,
+   "core": 0.2,
+   "coreY": 3.2,
+   "energy": 2.4,
+   "food": 0.3,
+   "tag": "warm",
+   "headPace": 3.6,
+   "corePace": 2.4,
+   "days": [
+    "2025-01-14",
+    "2025-01-15",
+    "2025-01-16"
+   ],
+   "fedGap": 4,
+   "dollar20": 2.1,
+   "px": {
+    "GC=F": {
+     "p": [
+      2682.3,
+      2717.8,
+      2750.9
+     ],
+     "day": 1.32,
+     "move": 2.56
+    },
+    "SI=F": {
+     "p": [
+      30.13,
+      31.32,
+      31.52
+     ],
+     "day": 3.95,
+     "move": 4.61
+    },
+    "BTC-USD": {
+     "p": [
+      96534.05,
+      100504.49,
+      99756.91
+     ],
+     "day": 4.11,
+     "move": 3.34
+    },
+    "DX-Y.NYB": {
+     "p": [
+      109.27,
+      109.09,
+      108.96
+     ],
+     "day": -0.16,
+     "move": -0.28
+    }
+   },
+   "pending": false
+  }
+ ],
+ "summary": [
+  {
+   "key": "hot",
+   "label": "Core 0.3 or more",
+   "n": 9,
+   "GC=F": {
+    "n": 9,
+    "avg": -0.27,
+    "up": 44
+   },
+   "SI=F": {
+    "n": 9,
+    "avg": 0.55,
+    "up": 56
+   },
+   "BTC-USD": {
+    "n": 9,
+    "avg": 0.3,
+    "up": 56
+   },
+   "DX-Y.NYB": {
+    "n": 9,
+    "avg": 0.12,
+    "up": 56
+   }
+  },
+  {
+   "key": "warm",
+   "label": "Core 0.2",
+   "n": 9,
+   "GC=F": {
+    "n": 9,
+    "avg": -1.0,
+    "up": 22
+   },
+   "SI=F": {
+    "n": 9,
+    "avg": -0.19,
+    "up": 33
+   },
+   "BTC-USD": {
+    "n": 9,
+    "avg": 2.28,
+    "up": 78
+   },
+   "DX-Y.NYB": {
+    "n": 9,
+    "avg": -0.0,
+    "up": 44
+   }
+  },
+  {
+   "key": "cool",
+   "label": "Core 0.1 or less",
+   "n": 3,
+   "GC=F": {
+    "n": 3,
+    "avg": 2.76,
+    "up": 100
+   },
+   "SI=F": {
+    "n": 3,
+    "avg": 1.05,
+    "up": 33
+   },
+   "BTC-USD": {
+    "n": 3,
+    "avg": 0.35,
+    "up": 67
+   },
+   "DX-Y.NYB": {
+    "n": 3,
+    "avg": -1.65,
+    "up": 0
+   }
+  }
+ ],
+ "next": {
+  "month": "2026-11",
+  "release": "2026-12-10"
+ },
+ "latest": {
+  "month": "2026-10",
+  "core": 0.3,
+  "corePace": 3.6,
+  "coreY": null,
+  "hotStreak": 3
+ },
+ "notes": {
+  "source": "US Bureau of Labor Statistics indexes via FRED (St. Louis Fed), checked against the BLS data service. Monthly change is seasonally adjusted; the 12-month change is not, as BLS prints them. BLS revises seasonal factors each February, so a few monthly figures before the latest year can differ by 0.1 from the day they were printed.",
+  "dates": "Release dates from the BLS release schedule (September 2025 was delayed to 24 Oct by the shutdown).",
+  "prices": "Daily closes: COMEX gold and silver futures, BTC-USD, ICE dollar index. The report is out at 8:30 am New York time (7 pm India), so the report-day close includes the reaction.",
+  "context": "Fed gap: the 2-year Treasury yield minus the Fed's rate on the day before, in basis points. Above +25 means the market expected hikes; below 0, cuts. Dollar trend: its change over the 20 sessions before the report."
+ }
+}

@@ -530,6 +530,26 @@ body {
 .rdr-cal { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 .rdr-ev { border: 1px solid var(--line); border-radius: 5px; padding: 7px 9px; display: grid; gap: 1px; font-size: 12.5px; }
 .rdr-num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.idt-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.idt-kpi { border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; display: grid; gap: 1px; }
+.idt-kpi span { font-size: 11px; color: var(--ink-3); }
+.idt-kpi b { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 17px; font-weight: 600; }
+.idt-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-3); }
+.idt-bar button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.idt-bar button[aria-pressed=true] { border-color: var(--calls); color: var(--ink); background: var(--calls-dim); font-weight: 600; }
+.idt-bar button:focus-visible { outline: 2px solid var(--calls); outline-offset: 2px; }
+.idt-chip { display: inline-block; min-width: 34px; text-align: center; padding: 0 6px; border-radius: 999px; font-family: var(--font-num); font-weight: 600; border: 1px solid currentColor; }
+.idt-hot { color: var(--down); } .idt-warm { color: var(--warn); } .idt-cool { color: var(--up); }
+table.idt { white-space: nowrap; }
+table.idt th, table.idt td { padding: 5px 8px; }
+table.idt .idt-sep { border-left: 1px solid var(--line); }
+table.idt .idt-grp th { text-align: center; color: var(--ink-2); border-bottom: 0; }
+table.idt td.idt-rd { background: var(--calls-dim); }
+table.idt td.lft, table.idt th.lft { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+table.idt td.lft small { display: block; color: var(--ink-3); font-size: 10.5px; }
+table.idt tr.idt-gap td { color: var(--ink-3); font-style: italic; white-space: normal; }
+table.idt tr.idt-next td { color: var(--calls); white-space: normal; }
+.idt-mut { color: var(--ink-3); }
 .brf-pad { padding: 12px 14px; display: grid; gap: 10px; }
 .brf-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 @media (max-width: 760px) { .brf-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -2130,6 +2150,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   var ANALYSIS = {};         /* analysis.json -- why markets moved, sources */
   var BRIEF = {};            /* brief.json -- the morning brief on the Overview */
   var RADAR = {};            /* radar.json -- International radar warning lights */
+  var INFL = {};             /* inflation_days.json -- International > Markets: Inflation days */
   var SIMPLE = { terms: {}, alias: {} };  /* simple_terms.json -- simple-language layer of every card */
   var LEARN_MODE = false;    /* Learn mode: glossary marks stand out, hover shows the simple line */
 
@@ -14302,7 +14323,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
      where the impact lands, and which number confirms or cancels it.
      All text arrives assembled upstream from stored figures and escaped
      here; nothing is typed in by a user. */
-  var INT_TABS = [["radar", "Radar", "what is coming"], ["markets", "Markets", "prices and moves"],
+  var INT_TABS = [["radar", "Radar", "what is coming"], ["markets", "Markets", "prices, moves, inflation days"],
     ["rates", "Rates", "US curve"], ["positioning", "Positioning", "CFTC"],
     ["why", "Why it moved", "today"], ["sources", "Sources", ""]];
   var RDR_TERM = { inflation: "Radar: US inflation", fed: "Radar: Fed expectations", dollar: "Radar: Dollar index",
@@ -14477,6 +14498,119 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return verdict + rdrChain(R) + cards + rdrMatrix(R) + rdrBuckets(R) + rdrCalendar(R) + how;
   }
 
+  /* Inflation days (International > Markets): one row per US CPI report since
+     January 2025, with gold, silver, Bitcoin and the dollar index on the
+     trading day before, the report day and the day after. Core leads because
+     it is what markets trade and the Fed steers by. Built by
+     inflation_days.py; every number here is read from that file. */
+  function idNum(v, k) {
+    if (v == null || !isFinite(v)) return '<span class="idt-mut">&mdash;</span>';
+    return (v > 0 ? "+" : v < 0 ? "&minus;" : "") + Math.abs(v).toFixed(k == null ? 1 : k);
+  }
+  function idChip(v) {
+    if (v == null) return '<span class="idt-mut">&mdash;</span>';
+    var c = v >= 0.3 ? "idt-hot" : v <= 0.1 ? "idt-cool" : "idt-warm";
+    return '<span class="idt-chip ' + c + '">' + idNum(v) + "</span>";
+  }
+  function idPace(v) {
+    if (v == null) return '<span class="idt-mut">&mdash;</span>';
+    var c = v >= 3.6 ? "idt-hot" : v <= 1.2 ? "idt-cool" : "idt-warm";
+    return '<span class="' + c + '">' + v.toFixed(1) + "%</span>";
+  }
+  function idPx(v, sym) {
+    if (v == null) return '<span class="idt-mut">&mdash;</span>';
+    var dp = sym === "SI=F" || sym === "DX-Y.NYB" ? 2 : 0;
+    return (sym === "DX-Y.NYB" ? "" : "$") + v.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  }
+  function idMonth(m) { var p = String(m).split("-"); return RDR_MON[+p[1] - 1] + " " + p[0]; }
+
+  function inflDaysView() {
+    var D = INFL || {};
+    var T = ' data-term="Inflation days"';
+    if (!D.ready || !(D.rows || []).length) {
+      return '<section class="card"><div class="card-hd"><h2' + T + '>Inflation days</h2><span class="sub">US inflation reports and what markets did</span></div>' +
+        '<div class="rdr-pad">' + (D.missing ? "Waiting for inputs: <b>" + esc(D.missing.join(", ")) + "</b>." :
+          "Built by <b>inflation_days.py</b> during export_snapshot.py; not in this snapshot yet.") + "</div></section>";
+    }
+    var A = D.assets || [], f = state.idFilter || "all", v = state.idView || "prices";
+    var year = String((D.rows.filter(function (r) { return r.release; })[0] || {}).release || "").slice(0, 4);
+    var rows = D.rows.filter(function (r) {
+      if (f === "hot") return r.tag === "hot";
+      if (f === "recent") return String(r.release || r.month).slice(0, 4) === year;
+      return true;
+    });
+    var L = D.latest || {}, N = D.next;
+    var days = N && N.release ? Math.round((Date.parse(N.release) - Date.now()) / 86400000) : null;
+    var kpis = '<div class="idt-kpis">' +
+      '<div class="idt-kpi"><span>Latest core, ' + esc(idMonth(L.month)) + "</span><b>" + idChip(L.core) + "</b><span>" + (L.corePace != null ? L.corePace.toFixed(1) + "% a year pace &middot; Fed goal 2%" : "") + "</span></div>" +
+      '<div class="idt-kpi"><span>Hot reports in a row</span><b>' + n0(L.hotStreak || 0) + "</b><span>core 0.3 or more</span></div>" +
+      '<div class="idt-kpi"><span>Core, last 12 months</span><b>' + (L.coreY != null ? L.coreY.toFixed(1) + "%" : "&mdash;") + "</b><span>" + (L.coreY == null ? "BLS published none (Oct 2025 missing)" : "actual rise") + "</span></div>" +
+      '<div class="idt-kpi"><span>Next report</span><b>' + (N ? rdrD(N.release) : "&mdash;") + "</b><span>" + (N ? esc(idMonth(N.month)) + " prices" + (days != null && days >= 0 ? " &middot; in " + days + " days" : "") : "date not in the schedule yet") + "</span></div></div>";
+    var sumHead = '<tr><th class="lft"' + T + '>Core that month</th><th' + T + '>Reports</th>' + A.map(function (a) { return "<th" + T + ">" + esc(a.label) + "</th>"; }).join("") + "</tr>";
+    var sumRows = (D.summary || []).map(function (s) {
+      return '<tr><td class="lft">' + esc(s.label) + "</td><td>" + n0(s.n) + "</td>" + A.map(function (a) {
+        var c = s[a.sym] || {};
+        return "<td>" + (c.avg == null ? '<span class="idt-mut">&mdash;</span>' : '<span class="' + cls(c.avg) + '">' + idNum(c.avg, 2) + "%</span> &middot; " + c.up + "% up") + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+    var bar = '<div class="idt-bar"><span>Show</span>' +
+      [["all", "All reports"], ["hot", "Hot core only"], ["recent", "This year"]].map(function (x) {
+        return '<button type="button" data-idf="' + x[0] + '" aria-pressed="' + (f === x[0]) + '">' + x[1] + "</button>";
+      }).join("") + '<span style="margin-left:8px">Columns</span>' +
+      [["prices", "Day prices"], ["moves", "Moves only"]].map(function (x) {
+        return '<button type="button" data-idv="' + x[0] + '" aria-pressed="' + (v === x[0]) + '">' + x[1] + "</button>";
+      }).join("") + "</div>";
+    var per = v === "prices" ? 4 : 2;
+    var g1 = '<tr class="idt-grp"><th class="lft"></th><th class="idt-sep" colspan="3"' + T + '>Core (no food, no fuel)</th><th class="idt-sep" colspan="3"' + T + '>Headline (everything)</th>' +
+      '<th class="idt-sep" colspan="2"' + T + '>This month</th><th class="idt-sep" colspan="2"' + T + '>Before the report</th>' +
+      A.map(function (a) { return '<th class="idt-sep" colspan="' + per + '"' + T + ">" + esc(a.label) + "</th>"; }).join("") + "</tr>";
+    var g2 = '<tr><th class="lft"' + T + '>Report</th><th class="idt-sep"' + T + '>Month</th><th' + T + '>Yearly pace</th><th' + T + '>Last 12 mo</th>' +
+      '<th class="idt-sep"' + T + '>Month</th><th' + T + '>Yearly pace</th><th' + T + '>Last 12 mo</th><th class="idt-sep"' + T + '>Energy</th><th' + T + '>Food</th>' +
+      '<th class="idt-sep"' + T + '>Fed gap</th><th' + T + '>Dollar 20d</th>' +
+      A.map(function () {
+        return v === "prices"
+          ? '<th class="idt-sep"' + T + '>Day before</th><th' + T + '>Report day</th><th' + T + '>Day after</th><th' + T + '>Move</th>'
+          : '<th class="idt-sep"' + T + '>Report day</th><th' + T + '>Move</th>';
+      }).join("") + "</tr>";
+    var span = 11 + per * A.length - 1;
+    var body = "";
+    if (f === "all" && N) {
+      body += '<tr class="idt-next"><td class="lft"><b>' + esc(idMonth(N.month)) + "</b><small>due " + rdrD(N.release) + "</small></td><td colspan=\"" + span + '">Next report. Its row fills in the day after it comes out.</td></tr>';
+    }
+    body += rows.map(function (r) {
+      if (!r.release) {
+        return '<tr class="idt-gap"><td class="lft"><b>' + esc(idMonth(r.month)) + "</b><small>no report</small></td><td colspan=\"" + span + '">' + esc(r.gap || "") + "</td></tr>";
+      }
+      var dd = r.days || [];
+      var cells = '<td class="lft"><b>' + esc(idMonth(r.month)) + "</b><small>out " + rdrD(r.release) + " " + esc(String(r.release).slice(2, 4)) + "</small></td>" +
+        '<td class="idt-sep">' + idChip(r.core) + "</td><td>" + idPace(r.corePace) + "</td><td>" + idNum(r.coreY) + "</td>" +
+        '<td class="idt-sep">' + idNum(r.head) + "</td><td>" + idPace(r.headPace) + "</td><td>" + idNum(r.headY) + "</td>" +
+        '<td class="idt-sep">' + idNum(r.energy) + "</td><td>" + idNum(r.food) + "</td>" +
+        '<td class="idt-sep">' + (r.fedGap == null ? '<span class="idt-mut">&mdash;</span>' : idNum(r.fedGap, 0) + " bp") + '</td><td class="' + cls(r.dollar20) + '">' + (r.dollar20 == null ? '<span class="idt-mut">&mdash;</span>' : idNum(r.dollar20) + "%") + "</td>";
+      cells += A.map(function (a) {
+        var x = (r.px || {})[a.sym] || { p: [] };
+        var mv = '<td class="' + cls(x.move) + '">' + (x.move == null ? '<span class="idt-mut">pending</span>' : idNum(x.move, 1) + "%") + "</td>";
+        if (v !== "prices") return '<td class="idt-sep ' + cls(x.day) + '">' + (x.day == null ? '<span class="idt-mut">&mdash;</span>' : idNum(x.day, 1) + "%") + "</td>" + mv;
+        return '<td class="idt-sep" title="' + esc(dd[0] || "") + '">' + idPx(x.p[0], a.sym) + '</td><td class="idt-rd" title="' + esc(dd[1] || "") + '">' + idPx(x.p[1], a.sym) +
+          '</td><td title="' + esc(dd[2] || "") + '">' + idPx(x.p[2], a.sym) + "</td>" + mv;
+      }).join("");
+      return "<tr" + (r.note ? ' title="' + esc(r.note) + '"' : "") + ">" + cells + "</tr>";
+    }).join("");
+    var nt = D.notes || {};
+    return '<section class="card"><div class="card-hd"><h2' + T + '>Inflation days</h2>' +
+      '<span class="sub">every US inflation report since January 2025 &middot; core first, then headline, energy, food &middot; gold, silver, Bitcoin and the dollar the day before, of and after</span></div>' +
+      '<div class="rdr-pad">' + kpis +
+      '<div class="tablewrap"><table class="dt"><thead>' + sumHead + "</thead><tbody>" + sumRows + "</tbody></table></div>" +
+      '<p class="rdr-note">Average move from the day before to the day after, and how often it rose, grouped by that month&rsquo;s core reading. Small samples: a pattern to watch, not a rule.</p>' +
+      bar + "</div>" +
+      '<div class="tablewrap"><table class="dt idt"><thead>' + g1 + g2 + "</thead><tbody>" + body + "</tbody></table></div>" +
+      '<div class="rdr-pad rdr-note"><span><b>How to read it.</b> Core 0.3 a month is a 3.6% a year pace against the Fed&rsquo;s 2% goal. ' +
+      "&ldquo;Last 12 mo&rdquo; is the actual rise over the past year; a pace above it means inflation is speeding up. " +
+      "The shaded column is the report-day close, which already holds the reaction. " +
+      "Fed gap and Dollar 20d explain why the same print can land differently: a hot print with the market already expecting cuts and the dollar falling (early 2025) did far less than one with hikes expected and the dollar rising (late 2026). Hover a price for its date.</span>" +
+      "<span>" + esc(nt.source || "") + " " + esc(nt.dates || "") + " " + esc(nt.prices || "") + " " + esc(nt.context || "") + "</span></div></section>";
+  }
+
   function intTabs() {
     return '<div class="rdr-tabs" role="tablist" aria-label="International view">' + INT_TABS.map(function (t) {
       return '<button class="rdr-tab" role="tab" data-inttab="' + t[0] + '" aria-selected="' + (t[0] === (state.intTab || "radar")) + '">' +
@@ -14511,7 +14645,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         ["JPY=X", "USD/JPY"], ["CNY=X", "USD/CNY"], ["DX-Y.NYB", "US Dollar Index"],
         ["BTC-USD", "Bitcoin"], ["ETH-USD", "Ethereum"],
         ["^IRX", "US 13-week bill yield"], ["^TNX", "US 10-year yield index"],
-        ["^TYX", "US 30-year yield index"]]) + "</section>" +
+        ["^TYX", "US 30-year yield index"]]) + "</section>" + inflDaysView() +
       '<details class="nfx-more"><summary>Where these numbers come from, and how fresh they must be</summary><div class="coverage-note"><b>Source and freshness rule.</b> Daily FX, selected US yield-index series and BTC/ETH use saved Yahoo Finance observations and history; the US curve and weekly positions use official Treasury and CFTC reports. Central-bank dates come from the Fed, BoJ, ECB and RBI pages and are cross-checked against ForexFactory and your own calendar. Headlines come from Google News and Bing News (thousands of publishers) plus FXStreet, ForexLive and Investing.com, each shown with its publisher, time and a reputation tier. India, euro-area, Japan and China curves and PMI values are still not connected. Every input below shows its as-of date; anything past its freshness limit is flagged stale.</div></details>';
     var rates = '<section class="card"><div class="card-hd"><h2>Sovereign yield curve</h2>' +
       '<span class="sub">Requested benchmark maturities \u00b7 yield levels, not bond prices</span></div>' +
@@ -23770,6 +23904,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "The dollar column is the slope for a 1% dollar rise; the Nasdaq column is the slope times a 5% fall. Strength comes from the correlation: 0.45 or more strong, 0.30 medium, 0.15 weak, below that no link.",
       "The windows overlap, so the links are smoother than any single month. A month with two shocks at once moves far more than the map predicts."
     ],
+    "Inflation days": [
+      "One row per US CPI report since January 2025 (the December 2024 prices). Core, headline, energy and food are BLS indexes stored from FRED and checked against the BLS data service; the monthly change is seasonally adjusted and the 12-month change is not, as BLS prints them.",
+      "Yearly pace is the monthly change times 12. Prices are daily closes on the trading day before the report, the report day and the trading day after; Move is day before to day after.",
+      "Fed gap is the 2-year Treasury yield minus the Fed's rate on the day before, in basis points; Dollar 20d is the dollar index's change over the 20 sessions before the report. October 2025 has no report: the US government shutdown stopped price collection."
+    ],
     "Dollar direction and metals": [
       "Every session since 2016 is sorted by what the dollar did over the previous 20 sessions (rising more than 1.5%, flat, falling more than 1.5%) and by its level (below 100, 100 to 103, 103 to 105, 105 or higher).",
       "Each cell is the median move over the next 20 sessions and the share of times it rose. Today's row is highlighted.",
@@ -24738,6 +24877,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": { deep: "Radar: India", how: function () { return "Red when NIFTY is down more than <b>3%</b> in 20 sessions."; } },
     "Impact map": { deep: "Impact map", how: function () { return "Slopes over <b>20</b>-session windows, last <b>3</b> years."; } },
     "Dollar direction and metals": { deep: "Dollar direction and metals", how: function () { return "Buckets at <b>+/-1.5%</b> over <b>20</b> sessions, since 2016."; } },
+    "Inflation days": { deep: "Inflation days", how: function () { return "Core <b>0.3</b> a month = <b>3.6%</b> a year pace; Fed goal <b>2%</b>."; } },
     "Morning brief": {
       deep: "Morning brief",
       how: function () {
@@ -27961,6 +28101,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": ["Whether the world's shocks are reaching NIFTY and the rupee.", "Green means India is holding up."],
     "Impact map": ["If the dollar or the Nasdaq moves, how much each market has usually moved with it.", "Strong links matter; weak ones do not."],
     "Dollar direction and metals": ["What metals did next, depending on whether the dollar was rising, flat or falling.", "Metals did best after the dollar turned down."],
+    "Inflation days": ["Every US inflation report, and what gold, silver, Bitcoin and the dollar did the day before, of and after.", "Core 0.3 or more is hot: 3.6% a year against the Fed's 2% goal."],
     "Morning brief": [
       "Read this first: why each market moved, what the desk would do today, and how yesterday's call turned out.",
       "Blue tags are the desk's own numbers; grey tags are news headlines. Click a tag to open the article."
@@ -35790,6 +35931,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         RADAR = r || {};
         if (state.page === "international") render();
       }).catch(function () { RADAR = {}; });
+      getJson("inflation_days.json").then(function (d) {
+        INFL = d || {};
+        if (state.page === "international") render();
+      }).catch(function () { INFL = {}; });
       var m = MODEL[state.idx];
       var fr = freshness(m, MANIFEST);
       setFresh(fr.tag, fr.msg, fr.state, fr.age);
@@ -35960,6 +36105,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
     var itab = e.target.closest("[data-inttab]");
     if (itab) { state.intTab = itab.getAttribute("data-inttab"); render(); return; }
+    var idf = e.target.closest("[data-idf]");
+    if (idf) { state.idFilter = idf.getAttribute("data-idf"); render(); return; }
+    var idv = e.target.closest("[data-idv]");
+    if (idv) { state.idView = idv.getAttribute("data-idv"); render(); return; }
     var rgo = e.target.closest("[data-rdrgo]");
     if (rgo) {
       var card = document.getElementById("rdr-" + rgo.getAttribute("data-rdrgo"));
