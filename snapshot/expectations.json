@@ -1,6 +1,6 @@
 {
  "ready": true,
- "builtAt": "2026-11-22T14:22:39+00:00",
+ "builtAt": "2026-11-22T14:30:26+00:00",
  "updated": "2026-11-22",
  "researchAge": 0,
  "about": "Published expectations for upcoming events and assets. Each entry names who said it, what kind of source it is, when it was published and a link. Collected by web research; refreshed by the weekly research run. Nothing here is the desk's own forecast.",
@@ -142,11 +142,30 @@
    "days": 3,
    "views": [
     {
-     "source": "Kalshi",
-     "type": "Prediction market",
-     "view": "81% chance it is above 0.1%",
-     "published": "2026-11-21",
-     "link": "https://kalshi.com/markets/kxpcecore/us-core-pce-inflation/kxpcecore-26oct",
+     "source": "RBC Economics",
+     "type": "Bank",
+     "view": "Core PCE +0.3% m/m, 3.3% y/y (headline +0.3% m/m, 3.8% y/y)",
+     "value": 0.3,
+     "published": "2026-11-20",
+     "link": "https://www.rbc.com/en/economics/us-week-ahead/pce-to-confirm-the-inflation-problem-labor-pulse-still-strong/",
+     "old": false
+    },
+    {
+     "source": "Morgan Stanley (via MNI)",
+     "type": "Bank",
+     "view": "Core PCE +0.29% m/m, cut from 0.35% after the producer-price data",
+     "value": 0.29,
+     "published": "2026-11-13",
+     "link": "https://www.mnimarkets.com/articles/initial-post-ppi-core-pce-estimates-trimmed-now-see-lower-rounded-03percent-1794579742438",
+     "old": false
+    },
+    {
+     "source": "Societe Generale (via FXStreet)",
+     "type": "Bank",
+     "view": "Core PCE about +0.30% m/m, likely range 0.27% to 0.33%",
+     "value": 0.3,
+     "published": "2026-11-11",
+     "link": "https://www.fxstreet.com/news/us-inflation-core-pce-range-guidance-societe-generale-202611110427",
      "old": false
     },
     {
@@ -158,11 +177,16 @@
      "old": false
     }
    ],
-   "summary": null,
+   "summary": {
+    "n": 3,
+    "low": 0.29,
+    "high": 0.3,
+    "median": 0.3
+   },
    "actual": null,
    "verdict": null,
    "types": [
-    "Prediction market",
+    "Bank",
     "Research house"
    ],
    "dateSources": [
@@ -800,20 +824,20 @@
   }
  ],
  "byType": {
-  "Bank": 17,
+  "Bank": 20,
   "Poll of economists": 5,
   "Central bank": 5,
   "Research house": 4,
   "Rating agency": 3,
-  "Prediction market": 2,
   "Government": 2,
   "Market pricing": 2,
-  "Media": 1
+  "Media": 1,
+  "Prediction market": 1
  },
  "counts": {
   "events": 14,
   "withViews": 9,
-  "views": 21,
+  "views": 23,
   "outlooks": 20
  }
 }
