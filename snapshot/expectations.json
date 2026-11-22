@@ -1,6 +1,6 @@
 {
  "ready": true,
- "builtAt": "2026-11-22T14:30:26+00:00",
+ "builtAt": "2026-11-22T15:08:16+00:00",
  "updated": "2026-11-22",
  "researchAge": 0,
  "about": "Published expectations for upcoming events and assets. Each entry names who said it, what kind of source it is, when it was published and a link. Collected by web research; refreshed by the weekly research run. Nothing here is the desk's own forecast.",
@@ -73,27 +73,101 @@
    "metric": "GDP, annualised",
    "unit": "%",
    "previous": 3.4,
-   "previousNote": "Advance estimate 3.4%",
+   "previousNote": "Advance estimate 3.4% annualised (29 Oct), up from 2.2% in Q2 and above the 3.2% expected then. Out at the same minute as core PCE.",
    "why": "Strong growth gives the Fed room to keep raising rates.",
+   "coverageNote": "Bloomberg, Reuters and WSJ surveys (typically 60-80 economists) are behind paywalls and could not be listed one by one; the published consensus they feed is 3.5%. Since 2021 the second estimate has moved about 0.3 points from the advance on average.",
+   "scenarios": [
+    {
+     "if": "Revised to 3.8% or higher (0.3 or more above the 3.5% consensus)",
+     "then": "Overheating worry: January hike odds rise; dollar and US 2-year up, gold under pressure, US stocks dip, rupee softer."
+    },
+    {
+     "if": "3.4% to 3.7% (in line)",
+     "then": "Little effect on its own: core PCE, out the same minute, decides the move."
+    },
+    {
+     "if": "Revised down to 3.2% or lower",
+     "then": "Slightly less pressure on the Fed: 2-year and dollar ease, gold and stocks get some relief; the December hike stays priced."
+    },
+    {
+     "if": "GDP beats and core PCE is 0.4% or more",
+     "then": "Double hawkish hit: 50 bp December odds jump, dollar and yields up, gold, US stocks and NIFTY sell off, rupee weaker."
+    }
+   ],
+   "thin": false,
    "countryName": "United States",
    "days": 3,
    "views": [
     {
-     "source": "Bloomberg survey",
+     "source": "Consensus (Globe and Mail week-ahead calendar)",
      "type": "Poll of economists",
-     "view": "3.2% (made before the advance estimate)",
-     "value": 3.2,
-     "published": "2026-10",
-     "link": "https://www.dailysabah.com/business/economy/us-economy-grows-at-34-in-q3-beating-estimates/amp",
+     "view": "About 3.5% annualised, a small upward revision from 3.4%; the same 3.5% appears on FXEmpire's and U.S. Bank's calendars",
+     "value": 3.5,
+     "published": "2026-11-20",
+     "link": "https://www.theglobeandmail.com/investing/markets/inside-the-market/article-calendar-what-investors-need-to-know-for-the-week-ahead-167/",
+     "old": false
+    },
+    {
+     "source": "Goldman Sachs (via CNBC)",
+     "type": "Bank",
+     "view": "3.8%, raised after strong October retail sales; Q4 tracking 2.4%",
+     "value": 3.8,
+     "published": "2026-11-17",
+     "link": "https://www.cnbc.com/2026/11/16/stock-market-today-live-updates.html",
+     "old": false
+    },
+    {
+     "source": "Continuum Economics",
+     "type": "Research house",
+     "view": "3.6%: consumer spending, non-residential building and inventories revised up; price indexes unrevised",
+     "value": 3.6,
+     "published": "2026-11-19",
+     "link": "https://continuumeconomics.com/a/3ea53404/preview-due-novemeber-25-us-preliminary-second-estimate-q3-gdp-even-stronger",
+     "old": false
+    },
+    {
+     "source": "U.S. Bank Economics",
+     "type": "Bank",
+     "view": "Expects 3.4% to stand unrevised",
+     "value": 3.4,
+     "published": "2026-11-20",
+     "link": "https://www.usbank.com/corporate-and-commercial-banking/insights/economy/outlook/weekly.html",
+     "old": false
+    },
+    {
+     "source": "Atlas Analytics",
+     "type": "Independent analyst",
+     "view": "Downward revision to about 2.4%; written before the October data",
+     "value": 2.4,
+     "published": "2026-11-01",
+     "link": "https://www.atlasanalytics.info/p/q3-gdp-why-we-expect-a-downward-revision",
      "stale": true,
      "old": true
+    },
+    {
+     "source": "Atlanta Fed GDPNow (for Q4, context only)",
+     "type": "Model",
+     "view": "Q4 2026 tracking 3.2% (from 3.4%) on 18 Nov",
+     "published": "2026-11-18",
+     "link": "https://www.newsquawk.com/headlines/atlanta-fed-gdpnow-q4-26-32-prev-34",
+     "old": false
     }
    ],
-   "summary": null,
+   "summary": {
+    "n": 4,
+    "low": 3.4,
+    "high": 3.8,
+    "median": 3.55
+   },
    "actual": null,
    "verdict": null,
+   "printGuide": null,
    "types": [
-    "Poll of economists"
+    "Bank",
+    "Independent analyst",
+    "Model",
+    "Poll of economists",
+    "Research house"
    ],
    "dateSources": [
     "ForexFactory"
@@ -138,6 +212,26 @@
    "previous": 0.3,
    "previousNote": "September: 0.3 m/m, 3.1% y/y",
    "why": "The Fed's own preferred inflation gauge. Another 0.3 keeps the December hike locked in.",
+   "coverageNote": "TD Securities (0.26%) and BofA (0.32%) were seen only in paywalled snippets and are left out. Cleveland Fed's figure is quoted at 0.27% by others but its own page shows no October core PCE, so it is left out.",
+   "scenarios": [
+    {
+     "if": "Core 0.4% or more (above the 0.3% consensus)",
+     "then": "50 bp December odds rise: 2-year above 4.70%, dollar up, gold under pressure, US stocks and NIFTY lower, rupee weaker."
+    },
+    {
+     "if": "Core 0.3% (0.25-0.34 unrounded, in line)",
+     "then": "December 25 bp hike stays locked; small moves; past 0.3 core prints saw gold slip 0.27% on average."
+    },
+    {
+     "if": "Core 0.2%",
+     "then": "January hike odds fall and yields ease, but past 0.2 core prints still saw gold fall 1.0% on average."
+    },
+    {
+     "if": "Core 0.1% or lower",
+     "then": "Real relief: past cool prints saw gold up 2.76% on average and the dollar down; stocks, NIFTY and the rupee gain."
+    }
+   ],
+   "thin": false,
    "countryName": "United States",
    "days": 3,
    "views": [
@@ -157,6 +251,7 @@
      "value": 0.29,
      "published": "2026-11-13",
      "link": "https://www.mnimarkets.com/articles/initial-post-ppi-core-pce-estimates-trimmed-now-see-lower-rounded-03percent-1794579742438",
+     "revisedFrom": 0.35,
      "old": false
     },
     {
@@ -166,27 +261,234 @@
      "value": 0.3,
      "published": "2026-11-11",
      "link": "https://www.fxstreet.com/news/us-inflation-core-pce-range-guidance-societe-generale-202611110427",
+     "range": [
+      0.27,
+      0.33
+     ],
      "old": false
     },
     {
-     "source": "Oxford Economics",
+     "source": "Goldman Sachs (via Admiral Markets)",
+     "type": "Bank",
+     "view": "Core 0.30% m/m (cut from 0.35% after producer prices), 3.24% y/y",
+     "value": 0.3,
+     "published": "2026-11-13",
+     "link": "https://admiralmarkets.com/analytics/traders-blog/pce-inflation-october-2026-preview",
+     "revisedFrom": 0.35,
+     "old": false
+    },
+    {
+     "source": "JPMorgan (via TheStreet Pro)",
+     "type": "Bank",
+     "view": "Core 0.29% m/m, 3.2% y/y",
+     "value": 0.29,
+     "published": "2026-11-15",
+     "link": "https://pro.thestreet.com/market-commentary/the-week-ahead-have-we-seen-the-q4-bottom",
+     "old": false
+    },
+    {
+     "source": "U.S. Bank Economics",
+     "type": "Bank",
+     "view": "Headline and core both +0.3% m/m",
+     "value": 0.3,
+     "published": "2026-11-20",
+     "link": "https://www.usbank.com/corporate-and-commercial-banking/insights/economy/outlook/weekly.html",
+     "old": false
+    },
+    {
+     "source": "Pantheon Macroeconomics (via Newsquawk)",
      "type": "Research house",
-     "view": "Headline PCE rises to 3.8% a year from 3.6%; energy feeding into core",
-     "published": "2026-11",
-     "link": "https://www.oxfordeconomics.com/resource/us-pce-nowcast-broadening-pressures-lock-in-december-rate-hike/",
+     "view": "Core 0.31% m/m (cut from 0.37%), 3.2% y/y",
+     "value": 0.31,
+     "published": "2026-11-20",
+     "link": "https://www.newsquawk.com/headlines/week-in-focus--november-23rd-27th-highlights-include-us-pce-flash-pmis-aussie-cpi-and-ecb-minutes",
+     "revisedFrom": 0.37,
+     "old": false
+    },
+    {
+     "source": "Oxford Economics (via Newsquawk)",
+     "type": "Research house",
+     "view": "Core 0.27% m/m, 3.2% y/y; headline 0.3% m/m, 3.8% y/y",
+     "value": 0.27,
+     "published": "2026-11-20",
+     "link": "https://www.newsquawk.com/headlines/week-in-focus--november-23rd-27th-highlights-include-us-pce-flash-pmis-aussie-cpi-and-ecb-minutes",
+     "old": false
+    },
+    {
+     "source": "Consensus (Globe and Mail calendar)",
+     "type": "Poll of economists",
+     "view": "Core +0.3% m/m, 3.2% y/y",
+     "value": 0.3,
+     "published": "2026-11-20",
+     "link": "https://www.theglobeandmail.com/investing/markets/inside-the-market/article-calendar-what-investors-need-to-know-for-the-week-ahead-167/",
+     "old": false
+    },
+    {
+     "source": "Michelle Bowman, Fed governor",
+     "type": "Central bank",
+     "view": "Core PCE likely 3.3% y/y in October (no monthly figure)",
+     "published": "2026-11-10",
+     "link": "https://admiralmarkets.com/analytics/traders-blog/pce-inflation-october-2026-preview",
      "old": false
     }
    ],
    "summary": {
-    "n": 3,
-    "low": 0.29,
-    "high": 0.3,
-    "median": 0.3
+    "n": 9,
+    "low": 0.27,
+    "high": 0.31,
+    "median": 0.3,
+    "spanLow": 0.27,
+    "spanHigh": 0.33
    },
    "actual": null,
    "verdict": null,
+   "printGuide": {
+    "rows": [
+     {
+      "prints": "0.4 or more",
+      "needs": "0.35 or more",
+      "vs": "hotter than forecasts",
+      "group": "Core 0.3 or more",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -0.27,
+        "up": 44
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": 0.55,
+        "up": 56
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 0.3,
+        "up": 56
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": 0.12,
+        "up": 56
+       }
+      ]
+     },
+     {
+      "prints": "0.3",
+      "needs": "0.25 to 0.34",
+      "vs": "in line with forecasts",
+      "group": "Core 0.3 or more",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -0.27,
+        "up": 44
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": 0.55,
+        "up": 56
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 0.3,
+        "up": 56
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": 0.12,
+        "up": 56
+       }
+      ]
+     },
+     {
+      "prints": "0.2",
+      "needs": "0.15 to 0.24",
+      "vs": "cooler than forecasts",
+      "group": "Core 0.2",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -1.0,
+        "up": 22
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": -0.19,
+        "up": 33
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 2.28,
+        "up": 78
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": -0.0,
+        "up": 44
+       }
+      ]
+     },
+     {
+      "prints": "0.1 or less",
+      "needs": "below 0.15",
+      "vs": "cooler than forecasts",
+      "group": "Core 0.1 or less",
+      "n": 3,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 3,
+        "avg": 2.76,
+        "up": 100
+       },
+       {
+        "label": "Silver",
+        "n": 3,
+        "avg": 1.05,
+        "up": 33
+       },
+       {
+        "label": "Bitcoin",
+        "n": 3,
+        "avg": 0.35,
+        "up": 67
+       },
+       {
+        "label": "Dollar index",
+        "n": 3,
+        "avg": -1.65,
+        "up": 0
+       }
+      ]
+     }
+    ],
+    "assets": [
+     "Gold",
+     "Silver",
+     "Bitcoin",
+     "Dollar index"
+    ],
+    "note": "History: every US core CPI report since January 2025, average move from the day before to the day after, and how often it rose. 0.3 and 0.4 share the hot group. Core PCE comes after CPI, so much of it is already known and its moves are usually smaller; markets react to the surprise against forecasts, not the level."
+   },
    "types": [
     "Bank",
+    "Central bank",
+    "Poll of economists",
     "Research house"
    ],
    "dateSources": [
@@ -204,15 +506,49 @@
    "metric": "Tokyo core CPI, year on year",
    "unit": "%",
    "previous": 2.6,
-   "previousNote": "October 2.6%",
+   "previousNote": "October 2.6% (in line), down from 2.7% in September; the first slowdown in 5 months. Core excluding fresh food and energy 2.6%.",
    "why": "The first look at Japan's November inflation, three weeks before the Bank of Japan meets.",
+   "coverageNote": "Reuters, Bloomberg, QUICK and Nikkei polls usually appear 1-2 days before the release (about 25-26 Nov). Only the calendar consensus could be verified so far; no bank has published a named Tokyo forecast.",
+   "scenarios": [
+    {
+     "if": "Tokyo core 3.0% or higher (above the 2.9% consensus)",
+     "then": "Locks in a December BoJ hike; USD/JPY dips toward 157-158; Japan's 10-year yield tests 2.95-3.0%; gold firm on a softer dollar."
+    },
+    {
+     "if": "2.8% to 2.9% (in line)",
+     "then": "December hike pricing (72-86%) holds; USD/JPY stays near 159-160 with intervention risk; little spillover to NIFTY or the rupee."
+    },
+    {
+     "if": "2.6% or lower (no pickup)",
+     "then": "December hike odds slip; the yen weakens through 160, raising Ministry of Finance intervention risk; Japan's 10-year eases toward 2.80%."
+    }
+   ],
+   "thin": true,
    "countryName": "Japan",
    "days": 4,
-   "views": [],
-   "summary": null,
+   "views": [
+    {
+     "source": "Investing.com economic calendar (consensus)",
+     "type": "Media",
+     "view": "Consensus 2.9% y/y (previous 2.6%)",
+     "value": 2.9,
+     "published": "2026-11-22",
+     "link": "https://www.investing.com/economic-calendar/tokyo-core-cpi-328",
+     "old": false
+    }
+   ],
+   "summary": {
+    "n": 1,
+    "low": 2.9,
+    "high": 2.9,
+    "median": 2.9
+   },
    "actual": null,
    "verdict": null,
-   "types": [],
+   "printGuide": null,
+   "types": [
+    "Media"
+   ],
    "dateSources": [
     "ForexFactory"
    ],
@@ -228,26 +564,52 @@
    "metric": "Manufacturing PMI",
    "unit": "",
    "previous": 49.3,
-   "previousNote": null,
+   "previousNote": "October 49.3 against a 50.0 Reuters-poll median (September 50.1); new export orders 48.7. The private RatingDog (S&P Global) survey read 52.0.",
    "why": "Below 50 means factories are shrinking: less demand for copper, silver and oil.",
+   "coverageNote": "Reuters and Bloomberg polls for the official PMI usually publish about 26-28 Nov; as of 22 Nov only one model forecast exists and no bank has published a number.",
+   "scenarios": [
+    {
+     "if": "PMI 50.0 or higher (back to growth)",
+     "then": "The yuan firms toward 6.65; copper up 1-2%, oil and silver supported; China and metal stocks up; NIFTY Metal gains."
+    },
+    {
+     "if": "49.4 to 49.9 (small rebound, still shrinking)",
+     "then": "Muted: copper range-bound, USD/CNY near 6.68; little impact on NIFTY or the rupee."
+    },
+    {
+     "if": "49.0 or lower (deeper contraction)",
+     "then": "Copper and oil fall 1-2%; the yuan weaker; China stocks down but stimulus bets rise; NIFTY Metal dips; cheaper oil helps the rupee."
+    },
+    {
+     "if": "Headline beats but export orders stay below 49",
+     "then": "The rally fades; copper gains capped; deflation worries persist; mild risk-off for Asian exporters."
+    }
+   ],
+   "thin": true,
    "countryName": "China",
    "days": 8,
    "views": [
     {
-     "source": "Reuters poll (for October)",
-     "type": "Poll of economists",
-     "view": "October poll expected 50.0; the outcome was 49.3. No November poll yet.",
-     "published": "2026-10-30",
-     "link": "https://investinglive.com/news/china-s-factory-and-services-pmi-gauges-both-drop-below-50-as-fourth-quarter-starts-on-a-weak-note/",
-     "stale": true,
-     "old": true
+     "source": "Trading Economics model",
+     "type": "Model",
+     "view": "NBS manufacturing PMI 49.7 (previous 49.3)",
+     "value": 49.7,
+     "published": "2026-11-22",
+     "link": "https://tradingeconomics.com/china/business-confidence",
+     "old": false
     }
    ],
-   "summary": null,
+   "summary": {
+    "n": 1,
+    "low": 49.7,
+    "high": 49.7,
+    "median": 49.7
+   },
    "actual": null,
    "verdict": null,
+   "printGuide": null,
    "types": [
-    "Poll of economists"
+    "Model"
    ]
   },
   {
@@ -259,70 +621,167 @@
    "event": "India GDP, July-September (Q2 FY27)",
    "metric": "Real GDP, year on year",
    "unit": "%",
-   "previous": null,
-   "previousNote": null,
+   "previous": 7.8,
+   "previousNote": "Q1 FY27 (Apr-Jun 2026): 7.8% y/y, GVA 8.2%. A year earlier (Q2 FY26): 8.2%.",
    "why": "Strong growth with inflation above 6% strengthens the case for an RBI hike on 4 December.",
+   "coverageNote": "Kotak, Emkay, DBS and J.P. Morgan commented without a number; an Economic Times poll (median 7.7%, range 6.7% to 8%) could not be opened and is left out.",
+   "scenarios": [
+    {
+     "if": "GDP 8.0% or higher (beats the ~7.6% consensus)",
+     "then": "NIFTY and Bank Nifty rally, the rupee firms slightly, bond yields rise; the RBI has room to hike 25 bp on 4 Dec and a 50 bp move becomes more plausible."
+    },
+    {
+     "if": "GDP 7.3% to 7.9% (in line)",
+     "then": "Muted reaction; a 25 bp RBI hike on 4 Dec stays the base case; the rupee and bonds keep trading on the Fed and crude."
+    },
+    {
+     "if": "GDP 6.9% to 7.2% (miss, at or below the RBI's 7.2%)",
+     "then": "NIFTY dips, Bank Nifty lags, short-end yields ease; still a 25 bp hike but a softer tone and fewer bets on a February hike."
+    },
+    {
+     "if": "GDP below 6.9% (sharp miss)",
+     "then": "Stagflation fear: stocks sell off, the rupee weakens past 93, the curve steepens; talk of an RBI hold; banks hit hardest."
+    }
+   ],
+   "thin": false,
    "countryName": "India",
    "days": 8,
    "views": [
     {
-     "source": "SBI Research",
+     "source": "Reuters poll (43 economists, Nov 13-18)",
+     "type": "Poll of economists",
+     "view": "Median 7.6% y/y, range 6.6% to 8.2%; GVA seen at 7.7%",
+     "value": 7.6,
+     "range": [
+      6.6,
+      8.2
+     ],
+     "published": "2026-11-18",
+     "link": "https://www.investing.com/news/economy-news/indian-economicgrowth-seen-at-annual-76-in-julyseptember-quarter-reuters-poll-5034938",
+     "old": false
+    },
+    {
+     "source": "Financial Express poll (12 economists)",
+     "type": "Poll of economists",
+     "view": "About 7.7%, above the RBI and government estimates; GVA 8.1%",
+     "value": 7.7,
+     "published": "2026-11-16",
+     "link": "https://ipanewspack.com/q2-gdp-growth-seen-at-7-7-above-rbi-government-expectations-economists/",
+     "old": false
+    },
+    {
+     "source": "SBI Research (Ecowrap)",
      "type": "Bank",
-     "view": "7.8%",
+     "view": "About 7.8%; GVA 8.0-8.2%; nominal GDP 11-11.5%",
      "value": 7.8,
-     "published": "2026-11",
+     "published": "2026-11-11",
      "link": "https://www.devdiscourse.com/article/business/4005076-indias-q2-fy27-gdp-growth-pegged-at-78-gva-growth-seen-at-8-82-sbi-research",
+     "old": false
+    },
+    {
+     "source": "IDFC FIRST Bank",
+     "type": "Bank",
+     "view": "8.0%",
+     "value": 8.0,
+     "published": "2026-11-16",
+     "link": "https://www.dynamitenews.com/national/indias-gdp-growth-likely-to-remain-strong-in-q2-but-economic-momentum-may-ease-in-second-half-of-fy27",
+     "old": false
+    },
+    {
+     "source": "BofA Securities",
+     "type": "Bank",
+     "view": "7.7%",
+     "value": 7.7,
+     "published": "2026-11-16",
+     "link": "https://www.dynamitenews.com/national/indias-gdp-growth-likely-to-remain-strong-in-q2-but-economic-momentum-may-ease-in-second-half-of-fy27",
+     "old": false
+    },
+    {
+     "source": "HSBC",
+     "type": "Bank",
+     "view": "Range 7.5% to 8.0%",
+     "range": [
+      7.5,
+      8.0
+     ],
+     "published": "2026-11-16",
+     "link": "https://www.dynamitenews.com/national/indias-gdp-growth-likely-to-remain-strong-in-q2-but-economic-momentum-may-ease-in-second-half-of-fy27",
+     "old": false
+    },
+    {
+     "source": "ICICI Securities Primary Dealership",
+     "type": "Bank",
+     "view": "Range 7.5% to 8.0%",
+     "range": [
+      7.5,
+      8.0
+     ],
+     "published": "2026-11-16",
+     "link": "https://www.dynamitenews.com/national/indias-gdp-growth-likely-to-remain-strong-in-q2-but-economic-momentum-may-ease-in-second-half-of-fy27",
      "old": false
     },
     {
      "source": "ICRA",
      "type": "Rating agency",
-     "view": "7.5%, a five-quarter low",
+     "view": "7.5%, a five-quarter low; GVA 7.2%; FY27 7.1%",
      "value": 7.5,
+     "published": "2026-11-17",
+     "link": "https://lapaasvoice.com/indias-gdp-growth-likely-to-ease-to-7-5-in-q2-fy27-a-five-quarter-low-icra",
+     "old": false
+    },
+    {
+     "source": "Bank of Baroda (Madan Sabnavis)",
+     "type": "Bank",
+     "view": "7.4%",
+     "value": 7.4,
      "published": "2026-11-13",
      "link": "https://www.businesstoday.in/india/story/indias-growth-engine-holds-firm-q2-gdp-seen-at-7-5-567277-2026-11-13",
      "old": false
     },
     {
-     "source": "Ministry of Finance (DEA) nowcast",
+     "source": "Ministry of Finance (Monthly Economic Review nowcast)",
      "type": "Government",
      "view": "7.35%",
      "value": 7.35,
-     "published": "2026-10",
-     "link": "https://www.newsbytesapp.com/news/business/india-s-q2-growth-pegged-at-7-35/story",
-     "old": true
-    },
-    {
-     "source": "Reserve Bank of India projection",
-     "type": "Central bank",
-     "view": "7.2%",
-     "value": 7.2,
-     "published": "2026-10",
+     "published": "2026-11-13",
      "link": "https://www.businesstoday.in/india/story/indias-growth-engine-holds-firm-q2-gdp-seen-at-7-5-567277-2026-11-13",
-     "old": true
+     "old": false
     },
     {
-     "source": "Brickwork Ratings",
+     "source": "Reserve Bank of India (projection)",
+     "type": "Central bank",
+     "view": "7.2% for Q2 FY27",
+     "value": 7.2,
+     "published": "2026-11-13",
+     "link": "https://www.businesstoday.in/india/story/indias-growth-engine-holds-firm-q2-gdp-seen-at-7-5-567277-2026-11-13",
+     "old": false
+    },
+    {
+     "source": "Brickwork Ratings (Pranjal Ghate)",
      "type": "Rating agency",
-     "view": "7.0%",
+     "view": "About 7.0%",
      "value": 7.0,
-     "published": "2026-11",
-     "link": "https://asianews.network/?p=315900",
+     "published": "2026-11-13",
+     "link": "https://www.businesstoday.in/india/story/indias-growth-engine-holds-firm-q2-gdp-seen-at-7-5-567277-2026-11-13",
      "old": false
     }
    ],
    "summary": {
-    "n": 3,
+    "n": 10,
     "low": 7.0,
-    "high": 7.8,
-    "median": 7.5
+    "high": 8.0,
+    "median": 7.55,
+    "spanLow": 6.6,
+    "spanHigh": 8.2
    },
    "actual": null,
    "verdict": null,
+   "printGuide": null,
    "types": [
     "Bank",
     "Central bank",
     "Government",
+    "Poll of economists",
     "Rating agency"
    ]
   },
@@ -335,41 +794,148 @@
    "event": "RBI policy decision",
    "metric": "Repo rate change",
    "unit": "bp",
-   "previous": null,
-   "previousNote": null,
+   "previous": 25,
+   "previousNote": "Repo rate 5.50% after a 25 bp hike on 7 Oct 2026 (first since Feb 2023); stance 'calibrated tightening'.",
    "why": "October inflation was 6.09%, above the RBI's 6% ceiling. A hike would support the rupee but weigh on NIFTY rate-sensitive stocks.",
+   "coverageNote": "No market-pricing (OIS) figure found; nothing from Nomura, Goldman or Morgan Stanley.",
+   "scenarios": [
+    {
+     "if": "Hike of 50 bp to 6.00% (surprise)",
+     "then": "Short-term yields jump 15-20 bp, NIFTY and Bank Nifty fall, the rupee firms toward 92; read as one-and-done, so February hike bets fade."
+    },
+    {
+     "if": "Hike of 25 bp to 5.75% with firm guidance (consensus)",
+     "then": "Largely priced in: Bank Nifty steady to slightly weak, the 10-year yield edges up, the rupee supported; a February hike to 6% gets priced."
+    },
+    {
+     "if": "Hike of 25 bp with a pause signal",
+     "then": "Relief rally in NIFTY and rate-sensitive banks, autos and realty; bond yields fall; the rupee slightly weaker as the gap with a hiking Fed narrows."
+    },
+    {
+     "if": "Hold at 5.50% (3 of 61 economists)",
+     "then": "A brief bond and stock rally, but the rupee comes under pressure past 93 with inflation above 6% and the Fed hiking."
+    }
+   ],
+   "thin": false,
    "countryName": "India",
    "days": 12,
    "views": [
     {
-     "source": "Economists quoted by ThePrint",
+     "source": "Reuters poll (61 economists, Nov 13-20)",
      "type": "Poll of economists",
-     "view": "At least six expect a 0.25 point hike",
+     "view": "56 of 61 see +25 bp to 5.75%; 3 see hold; 2 see +50 bp. 34 of 46 see a final hike to 6% in February",
      "value": 25,
-     "published": "2026-11-13",
-     "link": "https://theprint.in/economy/indias-october-retail-inflation-breaches-rbis-6-ceiling-odds-of-december-repo-rate-hike-rise/3097181/",
+     "published": "2026-11-20",
+     "link": "https://www.1049thewolf.com/2026/11/20/indias-rbi-expected-to-raise-rates-in-december-deliver-final-hike-in-february-reuters-poll/",
      "old": false
     },
     {
-     "source": "5paisa research",
-     "type": "Media",
-     "view": "Economists expect a December hike after the 6.09% print",
-     "published": "2026-11",
+     "source": "SBI Research (Ecowrap)",
+     "type": "Bank",
+     "view": "+25 bp in December, revised down from +50 bp; terminal rate 5.75% or 6%",
+     "value": 25,
+     "published": "2026-11-12",
+     "link": "https://www.businesstoday.in/latest/economy/story/rbi-rate-hike-in-december-sbi-now-expects-just-25-bps-despite-inflation-crossing-6-567200-2026-11-12",
+     "old": false
+    },
+    {
+     "source": "Union Bank of India",
+     "type": "Bank",
+     "view": "+25 bp to 5.75%; a one-and-done 50 bp hike not ruled out",
+     "value": 25,
+     "published": "2026-11-13",
+     "link": "https://newsable.asianetnews.com/business/rbi-may-hike-repo-rate-in-december-as-inflation-tracks-near-6-30-percent-articleshow-m1gk92x",
+     "old": false
+    },
+    {
+     "source": "Barclays",
+     "type": "Bank",
+     "view": "+25 bp in December, +25 bp in February 2027 to a 6% terminal rate",
+     "value": 25,
+     "published": "2026-11-13",
+     "link": "https://www.tradingview.com/news/moneycontrol:635d9f0a8094b:0-rising-rate-hike-bets-cloud-market-outlook-as-inflation-breaches-rbi-s-upper-band/",
+     "old": false
+    },
+    {
+     "source": "Emkay Global (Madhavi Arora)",
+     "type": "Research house",
+     "view": "+25 bp in December 2026 and in February 2027",
+     "value": 25,
+     "published": "2026-11-13",
      "link": "https://www.5paisa.com/blog/october-inflation-6-09-percent-december-rate-hike-expectations",
+     "old": false
+    },
+    {
+     "source": "ICRA (Aditi Nayar)",
+     "type": "Rating agency",
+     "view": "A further 25 bp increase appears almost certain",
+     "value": 25,
+     "published": "2026-11-17",
+     "link": "https://www.tradingandinvestmentnews.co.uk/rbi-repo-rate-hike-december/",
+     "old": false
+    },
+    {
+     "source": "Choice Institutional Equities",
+     "type": "Research house",
+     "view": "+25 bp to 5.75% in December and +25 bp in February; terminal near 6.25%",
+     "value": 25,
+     "published": "2026-11-17",
+     "link": "https://www.socialnews.xyz/2026/11/17/rbi-may-hike-repo-rate-by-25-bps-each-during-next-2-mpc-reviews-as-inflation-rises-report/",
+     "old": false
+    },
+    {
+     "source": "CareEdge Ratings (Rajani Sinha)",
+     "type": "Rating agency",
+     "view": "+25 bp at each of the December and February meetings",
+     "value": 25,
+     "published": "2026-11",
+     "link": "https://www.tradingview.com/news/moneycontrol:635d9f0a8094b:0-rising-rate-hike-bets-cloud-market-outlook-as-inflation-breaches-rbi-s-upper-band/",
+     "old": false
+    },
+    {
+     "source": "Crisil (Dipti Deshpande)",
+     "type": "Rating agency",
+     "view": "Tightening bias continues; a further 25 bp hike possible in December",
+     "value": 25,
+     "published": "2026-11-13",
+     "link": "https://www.5paisa.com/blog/october-inflation-6-09-percent-december-rate-hike-expectations",
+     "old": false
+    },
+    {
+     "source": "Bank of Baroda (Madan Sabnavis)",
+     "type": "Bank",
+     "view": "RBI could consider a 25 to 50 bp hike",
+     "range": [
+      25,
+      50
+     ],
+     "published": "2026-11-12",
+     "link": "https://www.businesstoday.in/latest/economy/story/rbi-rate-hike-in-december-sbi-now-expects-just-25-bps-despite-inflation-crossing-6-567200-2026-11-12",
+     "old": false
+    },
+    {
+     "source": "Kotak Mahindra Bank (Upasna Bhardwaj)",
+     "type": "Bank",
+     "view": "Expects two more rate hikes (size not stated)",
+     "published": "2026-11-20",
+     "link": "https://www.1049thewolf.com/2026/11/20/indias-rbi-expected-to-raise-rates-in-december-deliver-final-hike-in-february-reuters-poll/",
      "old": false
     }
    ],
    "summary": {
-    "n": 1,
+    "n": 9,
     "low": 25,
     "high": 25,
     "median": 25
    },
    "actual": null,
    "verdict": null,
+   "printGuide": null,
    "types": [
-    "Media",
-    "Poll of economists"
+    "Bank",
+    "Poll of economists",
+    "Rating agency",
+    "Research house"
    ],
    "dateSources": [
     "Reserve Bank of India"
@@ -385,16 +951,82 @@
    "event": "US jobs report, November",
    "metric": "Non-farm payrolls",
    "unit": "k",
-   "previous": null,
-   "previousNote": null,
+   "previous": 165,
+   "previousNote": "October +165k against about 60-65k expected; unemployment 4.1%; hourly pay +0.4% m/m; August and September revised up 84k in total (BLS, 6 Nov).",
    "why": "Strong hiring plus hot inflation is the mix that makes the Fed keep raising rates.",
+   "coverageNote": "Too early: Bloomberg and Reuters consensus usually appears in the week of the release. Kalshi's payrolls market exists but could not be read.",
+   "scenarios": [
+    {
+     "if": "150k or more, unemployment 4.0-4.1%",
+     "then": "Meets Morgan Stanley's 50 bp test: 50 bp odds jump, 2-year and dollar up, gold, stocks and NIFTY softer, rupee weaker."
+    },
+    {
+     "if": "60k to 130k, unemployment 4.1-4.2%",
+     "then": "Keeps the 25 bp December hike locked in; modest moves."
+    },
+    {
+     "if": "Below 50k or unemployment 4.3% or higher",
+     "then": "January and March hike odds fall (December stays likely): 2-year and dollar ease, gold rebounds, rupee firmer, NIFTY supported."
+    },
+    {
+     "if": "Hourly pay +0.4% m/m or more",
+     "then": "Wage-inflation worry adds hawkishness even with modest hiring: yields and dollar up, gold and growth stocks pressured."
+    }
+   ],
+   "thin": true,
    "countryName": "United States",
    "days": 12,
-   "views": [],
-   "summary": null,
+   "views": [
+    {
+     "source": "Continuum Economics",
+     "type": "Research house",
+     "view": "+95k (private 95k); unemployment 4.1% (risk 4.2%); hourly pay +0.2% m/m",
+     "value": 95,
+     "published": "2026-11-20",
+     "link": "https://continuumeconomics.com/a/13d43c4f/preview-due-december-4-us-november-employment-non-farm-payrolls-slower-but-far-from-weak",
+     "old": false
+    },
+    {
+     "source": "Forecasts.org model",
+     "type": "Model",
+     "view": "+62k (plus or minus 48k); page from early October",
+     "value": 62,
+     "published": "2026-10-07",
+     "link": "https://www.forecasts.org/jobs-growth-forecast.htm",
+     "stale": true,
+     "old": true
+    },
+    {
+     "source": "Morgan Stanley (via TheStreet Pro)",
+     "type": "Bank",
+     "view": "Not a forecast: says 150k or more would be needed to justify a 50 bp December hike",
+     "published": "2026-11-15",
+     "link": "https://pro.thestreet.com/market-commentary/the-week-ahead-have-we-seen-the-q4-bottom",
+     "old": false
+    },
+    {
+     "source": "JPMorgan (via TheStreet Pro)",
+     "type": "Bank",
+     "view": "Not November-specific: gains of 100k a month fit its hike forecast",
+     "published": "2026-11-15",
+     "link": "https://pro.thestreet.com/market-commentary/the-week-ahead-have-we-seen-the-q4-bottom",
+     "old": false
+    }
+   ],
+   "summary": {
+    "n": 1,
+    "low": 95,
+    "high": 95,
+    "median": 95
+   },
    "actual": null,
    "verdict": null,
-   "types": []
+   "printGuide": null,
+   "types": [
+    "Bank",
+    "Model",
+    "Research house"
+   ]
   },
   {
    "id": "us-fomc-2026-12",
@@ -405,60 +1037,191 @@
    "event": "Fed rate decision",
    "metric": "Fed funds rate change",
    "unit": "bp",
-   "previous": null,
-   "previousNote": "Target 3.75-4.00% after the September hike",
+   "previous": 0,
+   "previousNote": "Held at 3.75-4.00% on 28 Oct (two dissents for a hike). FedWatch odds of a December hike rose from about 71% (2 Nov) to over 90% (20 Nov).",
    "why": "A hike is priced in; the dollar and gold will move on what the Fed signals for 2027.",
+   "coverageNote": "FedWatch odds differ by source and time (88-99%); the live CME page was not read directly. Citi, Wells Fargo, RBC, TD, Nomura and ING December calls were not found on open pages.",
+   "scenarios": [
+    {
+     "if": "+25 bp with firm guidance toward January",
+     "then": "Largely priced: 2-year holds 4.60-4.70%, dollar firm, gold capped, US stocks choppy, rupee slightly weaker."
+    },
+    {
+     "if": "+50 bp (priced only 4-7%)",
+     "then": "Hawkish shock: 2-year above 4.80%, dollar toward 105, gold and NIFTY fall, rupee to fresh lows."
+    },
+    {
+     "if": "+25 bp but signals a pause",
+     "then": "Dovish hike: 2-year and dollar ease, gold and stocks rally, NIFTY and rupee gain."
+    },
+    {
+     "if": "Hold (priced about 4-11%)",
+     "then": "Large dovish surprise: yields drop 15 bp or more, dollar below 103, gold jumps, foreign money lifts NIFTY and the rupee."
+    }
+   ],
+   "thin": false,
    "countryName": "United States",
    "days": 17,
    "views": [
     {
-     "source": "CME FedWatch",
+     "source": "CME FedWatch (via MLQ.ai)",
      "type": "Market pricing",
-     "view": "91.5% chance of +0.25 point; the rest on +0.50",
+     "view": "92.7% for +25 bp, 7.2% for +50 bp; 73% for another hike in January (other snapshots 20-22 Nov: 91.5% to 99.2%)",
+     "value": 25,
+     "published": "2026-11-19",
+     "link": "https://mlq.ai/news/jpmorgan-now-expects-fed-rate-hikes-at-the-next-three-meetings-as-jefferson-says-the-ai-buildout-is-pushing-up-inflation/",
+     "old": false
+    },
+    {
+     "source": "Kalshi (via PredictionMarketsPicks)",
+     "type": "Prediction market",
+     "view": "Hike 95%, hold 4%, cut 1%; 50 bp contract 6-7 cents",
+     "value": 25,
+     "published": "2026-11-20",
+     "link": "https://predictionmarketspicks.com/articles/anthropic-ipo-selloff-fed-hike-odds-kalshi-polymarket-november-2026",
+     "old": false
+    },
+    {
+     "source": "Polymarket (via PredictionMarketsPicks)",
+     "type": "Prediction market",
+     "view": "+25 bp 92%, +50 bp 4%",
+     "value": 25,
+     "published": "2026-11-20",
+     "link": "https://predictionmarketspicks.com/articles/anthropic-ipo-selloff-fed-hike-odds-kalshi-polymarket-november-2026",
+     "old": false
+    },
+    {
+     "source": "JPMorgan (Michael Feroli)",
+     "type": "Bank",
+     "view": "+25 bp in December, January and March to 4.50-4.75%",
+     "value": 25,
+     "published": "2026-11-19",
+     "link": "https://mlq.ai/news/jpmorgan-now-expects-fed-rate-hikes-at-the-next-three-meetings-as-jefferson-says-the-ai-buildout-is-pushing-up-inflation/",
+     "old": false
+    },
+    {
+     "source": "Deutsche Bank",
+     "type": "Bank",
+     "view": "+25 bp in December, January and March",
+     "value": 25,
+     "published": "2026-11-19",
+     "link": "https://mlq.ai/news/jpmorgan-now-expects-fed-rate-hikes-at-the-next-three-meetings-as-jefferson-says-the-ai-buildout-is-pushing-up-inflation/",
+     "old": false
+    },
+    {
+     "source": "BofA Global Research",
+     "type": "Bank",
+     "view": "+25 bp at each of the next three meetings; peak 4.50-4.75%",
      "value": 25,
      "published": "2026-11-22",
      "link": "https://finance.biggo.com/news/434931a6-db33-4ffc-8083-7d5e02ae395d",
      "old": false
     },
     {
-     "source": "CME FedWatch",
-     "type": "Market pricing",
-     "view": "95.7% chance of +0.25 point, 4.3% of +0.50",
+     "source": "Goldman Sachs",
+     "type": "Bank",
+     "view": "+25 bp in December and March",
      "value": 25,
-     "published": "2026-11-19",
-     "link": "https://en.sedaily.com/society/2026/11/19/us-dec-rate-hike-odds-at-957-percent-as-fed-resists-bigger",
+     "published": "2026-11-11",
+     "link": "https://www.newsquawk.com/headlines/goldman-sachs-expects-the-fed-to-deliver-25bp-rate-hikes-in-december-and-in-march-vs-prior-forecast-of-a-hike-in-december-this-year",
+     "old": false
+    },
+    {
+     "source": "Morgan Stanley",
+     "type": "Bank",
+     "view": "+25 bp December and March; high bar for 50 bp",
+     "value": 25,
+     "published": "2026-11-15",
+     "link": "https://pro.thestreet.com/market-commentary/the-week-ahead-have-we-seen-the-q4-bottom",
+     "old": false
+    },
+    {
+     "source": "U.S. Bank Economics",
+     "type": "Bank",
+     "view": "+25 bp December and March; risks toward faster tightening",
+     "value": 25,
+     "published": "2026-11-20",
+     "link": "https://www.usbank.com/corporate-and-commercial-banking/insights/economy/outlook/weekly.html",
+     "old": false
+    },
+    {
+     "source": "Pantheon Macroeconomics",
+     "type": "Research house",
+     "view": "+25 bp December and January, then pause",
+     "value": 25,
+     "published": "2026-11-20",
+     "link": "https://www.newsquawk.com/headlines/week-in-focus--november-23rd-27th-highlights-include-us-pce-flash-pmis-aussie-cpi-and-ecb-minutes",
+     "old": false
+    },
+    {
+     "source": "Oxford Economics",
+     "type": "Research house",
+     "view": "+25 bp in December; markets overpricing 50 bp",
+     "value": 25,
+     "published": "2026-11-16",
+     "link": "https://www.oxfordeconomics.com/resource/us-pce-nowcast-broadening-pressures-lock-in-december-rate-hike/",
+     "old": false
+    },
+    {
+     "source": "BMO (Ian Lyngen)",
+     "type": "Bank",
+     "view": "December hike near certain; 50 bp will be discussed",
+     "value": 25,
+     "published": "2026-11-10",
+     "link": "https://www.cnbc.com/2026/11/10/market-spooked-because-now-the-fed-may-need-a-supersized-hike-in-december.html",
      "old": false
     },
     {
      "source": "Christopher Waller, Fed governor",
      "type": "Central bank",
-     "view": "Argues for a 0.50 point hike",
+     "view": "Wants 50 bp in December, or clear guidance of further hikes",
      "value": 50,
-     "published": "2026-11-19",
-     "link": "https://en.sedaily.com/society/2026/11/19/us-dec-rate-hike-odds-at-957-percent-as-fed-resists-bigger",
+     "published": "2026-11-18",
+     "link": "https://www.businessday.co.za/world/americas/2026-11-18-waller-hints-at-more-aggressive-fed-response-over-inflation/",
      "old": false
     },
     {
      "source": "John Williams, New York Fed",
      "type": "Central bank",
-     "view": "Ruled out a 0.50 point move",
+     "view": "Rules out a half point; no need for dramatic action",
      "value": 25,
-     "published": "2026-11-19",
-     "link": "https://en.sedaily.com/society/2026/11/19/us-dec-rate-hike-odds-at-957-percent-as-fed-resists-bigger",
+     "published": "2026-11-18",
+     "link": "https://247wallst.com/investing/2026/11/18/traders-now-see-a-95-chance-the-fed-hikes-rates-in-december/",
      "old": false
+    },
+    {
+     "source": "Alberto Musalem, St. Louis Fed",
+     "type": "Central bank",
+     "view": "Several more hikes likely needed before spring 2027",
+     "published": "2026-11-17",
+     "link": "https://www.cnbc.com/2026/11/16/stock-market-today-live-updates.html",
+     "old": false
+    },
+    {
+     "source": "Barclays, UBS, HSBC and others (TokenPost roundup)",
+     "type": "Bank",
+     "view": "All forecast +25 bp in December; none 50 bp",
+     "value": 25,
+     "published": "2026-10-28",
+     "link": "https://www.tokenpost.com/news/investing/42830",
+     "old": true
     }
    ],
    "summary": {
-    "n": 4,
+    "n": 14,
     "low": 25,
     "high": 50,
     "median": 25.0
    },
    "actual": null,
    "verdict": null,
+   "printGuide": null,
    "types": [
+    "Bank",
     "Central bank",
-    "Market pricing"
+    "Market pricing",
+    "Prediction market",
+    "Research house"
    ],
    "dateSources": [
     "Federal Reserve"
@@ -475,31 +1238,223 @@
    "metric": "Core CPI, month on month",
    "unit": "%",
    "previous": 0.3,
-   "previousNote": "Three 0.3 readings in a row",
+   "previousNote": "Core 0.3% in August, September and October. Out the day after the 9 Dec Fed decision.",
    "why": "A fourth 0.3 supports the dollar's path to 105; a 0.2 or lower is the likeliest trigger for a turn.",
+   "coverageNote": "Too early for the Bloomberg and Reuters consensus; banks usually publish after the 4 Dec jobs report.",
+   "scenarios": [
+    {
+     "if": "Core 0.4% or more (above forecasts)",
+     "then": "Locks a January hike and revives 50 bp talk: 2-year and dollar up, gold, stocks and NIFTY down, rupee weaker."
+    },
+    {
+     "if": "Core 0.3% (in line, fourth in a row)",
+     "then": "Confirms sticky inflation: January hike odds firm; dollar and yields steady to higher; past 0.3 prints saw gold slip 0.27% on average."
+    },
+    {
+     "if": "Core 0.2% (the Cleveland Fed nowcast)",
+     "then": "January hike odds fall and yields ease, but in past 0.2 prints gold still fell 1.0% on average: relief for metals is not assured."
+    },
+    {
+     "if": "Core 0.1% or lower",
+     "then": "First real relief: past cool prints saw gold up 2.76% on average and the dollar down; stocks, NIFTY and the rupee gain."
+    }
+   ],
+   "thin": false,
    "countryName": "United States",
    "days": 18,
    "views": [
     {
-     "source": "Kalshi",
+     "source": "Continuum Economics",
+     "type": "Research house",
+     "view": "Core +0.3% m/m (0.28 unrounded), a fourth straight 0.3; headline 0.0%",
+     "value": 0.3,
+     "published": "2026-11-20",
+     "link": "https://continuumeconomics.com/a/709c624a/preview-due-december-10-us-november-cpi-gasoline-to-slip-but-core-rate-to-remain-firm",
+     "old": false
+    },
+    {
+     "source": "Cleveland Fed inflation nowcast",
+     "type": "Central bank",
+     "view": "Core 0.21% m/m, headline 0.07% m/m (updated 20 Nov)",
+     "value": 0.21,
+     "published": "2026-11-20",
+     "link": "https://www.clevelandfed.org/indicators-and-data/inflation-nowcasting",
+     "old": false
+    },
+    {
+     "source": "Nowflation model",
+     "type": "Model",
+     "view": "Core 0.29% m/m, headline 0.03% m/m (provisional)",
+     "value": 0.29,
+     "published": "2026-11-11",
+     "link": "https://nowflation.com/live",
+     "old": false
+    },
+    {
+     "source": "Kalshi (via Nowflation)",
      "type": "Prediction market",
-     "view": "Median 0.2% m/m core, 2.9% y/y; headline -0.1% m/m, 3.7% y/y",
-     "value": 0.2,
-     "published": "2026-11-18",
-     "link": "https://kalshi.com/economics/cpi-predictions",
+     "view": "Implied core 2.90% y/y and headline 3.71% y/y; no monthly core figure",
+     "published": "2026-11-11",
+     "link": "https://nowflation.com/live",
      "old": false
     }
    ],
    "summary": {
-    "n": 1,
-    "low": 0.2,
-    "high": 0.2,
-    "median": 0.2
+    "n": 3,
+    "low": 0.21,
+    "high": 0.3,
+    "median": 0.29
    },
    "actual": null,
    "verdict": null,
+   "printGuide": {
+    "rows": [
+     {
+      "prints": "0.4 or more",
+      "needs": "0.35 or more",
+      "vs": "hotter than forecasts",
+      "group": "Core 0.3 or more",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -0.27,
+        "up": 44
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": 0.55,
+        "up": 56
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 0.3,
+        "up": 56
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": 0.12,
+        "up": 56
+       }
+      ]
+     },
+     {
+      "prints": "0.3",
+      "needs": "0.25 to 0.34",
+      "vs": "in line with forecasts",
+      "group": "Core 0.3 or more",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -0.27,
+        "up": 44
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": 0.55,
+        "up": 56
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 0.3,
+        "up": 56
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": 0.12,
+        "up": 56
+       }
+      ]
+     },
+     {
+      "prints": "0.2",
+      "needs": "0.15 to 0.24",
+      "vs": "cooler than forecasts",
+      "group": "Core 0.2",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -1.0,
+        "up": 22
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": -0.19,
+        "up": 33
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 2.28,
+        "up": 78
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": -0.0,
+        "up": 44
+       }
+      ]
+     },
+     {
+      "prints": "0.1 or less",
+      "needs": "below 0.15",
+      "vs": "cooler than forecasts",
+      "group": "Core 0.1 or less",
+      "n": 3,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 3,
+        "avg": 2.76,
+        "up": 100
+       },
+       {
+        "label": "Silver",
+        "n": 3,
+        "avg": 1.05,
+        "up": 33
+       },
+       {
+        "label": "Bitcoin",
+        "n": 3,
+        "avg": 0.35,
+        "up": 67
+       },
+       {
+        "label": "Dollar index",
+        "n": 3,
+        "avg": -1.65,
+        "up": 0
+       }
+      ]
+     }
+    ],
+    "assets": [
+     "Gold",
+     "Silver",
+     "Bitcoin",
+     "Dollar index"
+    ],
+    "note": "History: every US core CPI report since January 2025, average move from the day before to the day after, and how often it rose. 0.3 and 0.4 share the hot group. Core PCE comes after CPI, so much of it is already known and its moves are usually smaller; markets react to the surprise against forecasts, not the level."
+   },
    "types": [
-    "Prediction market"
+    "Central bank",
+    "Model",
+    "Prediction market",
+    "Research house"
    ]
   },
   {
@@ -512,44 +1467,88 @@
    "metric": "CPI, year on year",
    "unit": "%",
    "previous": 6.09,
-   "previousNote": "October 6.09%, above the RBI's 6% ceiling",
+   "previousNote": "October: 6.09% (up from 5.54%), a two-year high and above the RBI's 6% ceiling. Released after the 4 Dec RBI decision, so it mainly shapes February.",
    "why": "Decides whether the RBI keeps hiking in February.",
+   "coverageNote": "Reuters, Bloomberg and Mint polls for November usually appear around 8-10 Dec. Bank of Baroda and Kotak commented without a November number.",
+   "scenarios": [
+    {
+     "if": "CPI 6.6% or higher (well above ~6.3%)",
+     "then": "Markets price a February hike and maybe a third; short-term yields up 10-15 bp; Bank Nifty weak."
+    },
+    {
+     "if": "CPI 6.1% to 6.5% (in line)",
+     "then": "A February hike to 6% stays the base case; limited moves in NIFTY and bonds; the rupee follows the Fed and crude."
+    },
+    {
+     "if": "CPI 5.7% to 6.0% (back inside the band)",
+     "then": "Peak-rate story firms: yields fall, Bank Nifty and rate-sensitive stocks rally; February hike odds drop toward even."
+    },
+    {
+     "if": "CPI below 5.7% (big downside surprise)",
+     "then": "Markets see the RBI done at 5.75%: strong bond rally, NIFTY up, the rupee softens as the gap with the Fed narrows."
+    }
+   ],
+   "thin": false,
    "countryName": "India",
    "days": 20,
    "views": [
     {
-     "source": "SBI Research",
+     "source": "SBI Research (Ecowrap)",
      "type": "Bank",
-     "view": "Above 6.5% in October-November, easing below 6% in early 2027",
-     "value": 6.5,
-     "published": "2026-10-03",
-     "link": "https://www.businesstoday.in/latest/economy/story/inflation-may-cross-6-in-october-november-sbi-research-warns-of-temporary-spike-548877-2026-08-12",
-     "old": true
-    },
-    {
-     "source": "Bank of Baroda",
-     "type": "Bank",
-     "view": "Food inflation above 8%; edible oil, tomatoes and pulses getting entrenched",
-     "published": "2026-11",
-     "link": "https://www.devdiscourse.com/article/business/4003917-cpi-expected-around-6-in-october-amid-food-price-pressures-bank-of-baroda",
+     "view": "About 6.3%, from weekly prices; replaces its earlier 6.5% and 6.7-6.8% peak calls",
+     "value": 6.3,
+     "published": "2026-11-12",
+     "link": "https://www.businesstoday.in/latest/economy/story/rbi-rate-hike-in-december-sbi-now-expects-just-25-bps-despite-inflation-crossing-6-567200-2026-11-12",
      "old": false
     },
     {
-     "source": "Reserve Bank of India",
-     "type": "Central bank",
-     "view": "Projects 6.0% average for October-December",
+     "source": "Union Bank of India",
+     "type": "Bank",
+     "view": "Tracking close to 6.30% with an upward bias",
+     "value": 6.3,
+     "published": "2026-11-13",
+     "link": "https://newsable.asianetnews.com/business/rbi-may-hike-repo-rate-in-december-as-inflation-tracks-near-6-30-percent-articleshow-m1gk92x",
+     "old": false
+    },
+    {
+     "source": "Barclays",
+     "type": "Bank",
+     "view": "Around 6%, though the pace of increases may slow",
      "value": 6.0,
-     "published": "2026-10",
+     "published": "2026-11",
+     "link": "https://www.tradingview.com/news/moneycontrol:635d9f0a8094b:0-rising-rate-hike-bets-cloud-market-outlook-as-inflation-breaches-rbi-s-upper-band/",
+     "old": false
+    },
+    {
+     "source": "Reuters poll (economists)",
+     "type": "Poll of economists",
+     "view": "October-December quarter to average 6% (a quarterly figure, not November alone)",
+     "published": "2026-11-20",
+     "link": "https://www.1049thewolf.com/2026/11/20/indias-rbi-expected-to-raise-rates-in-december-deliver-final-hike-in-february-reuters-poll/",
+     "old": false
+    },
+    {
+     "source": "Reserve Bank of India (Q3 FY27 projection)",
+     "type": "Central bank",
+     "view": "6.0% average for October-December (quarterly, not November alone)",
+     "published": "2026-11-13",
      "link": "https://www.5paisa.com/blog/october-inflation-6-09-percent-december-rate-hike-expectations",
-     "old": true
+     "old": false
     }
    ],
-   "summary": null,
+   "summary": {
+    "n": 3,
+    "low": 6.0,
+    "high": 6.3,
+    "median": 6.3
+   },
    "actual": null,
    "verdict": null,
+   "printGuide": null,
    "types": [
     "Bank",
-    "Central bank"
+    "Central bank",
+    "Poll of economists"
    ]
   },
   {
@@ -561,29 +1560,117 @@
    "event": "Bank of Japan rate decision",
    "metric": "Policy rate change",
    "unit": "bp",
-   "previous": null,
-   "previousNote": "Policy rate 1.25% after September",
+   "previous": 0,
+   "previousNote": "Policy rate 1.25% (raised 25 bp in September; held on 30 Oct with one dissent for 1.5%). A December hike would be the third of 2026.",
    "why": "A hike lifts Japan's yields, can pull Japanese money out of US bonds and firms the yen.",
+   "coverageNote": "The bank calls are from a 16 Oct Reuters factbox and are older than 21 days, so they are shown as old and left out of the spread; Goldman's early-2027 call may since have changed.",
+   "scenarios": [
+    {
+     "if": "Hike 25 bp to 1.50% with firm guidance (1.75% by March)",
+     "then": "USD/JPY falls toward 155-157; Japan's 10-year above 3.0%; Japanese banks up, exporters down; brief carry-trade unwind hits Asia; gold up on a weaker dollar."
+    },
+    {
+     "if": "Hike 25 bp but vague on what comes next",
+     "then": "Sell the news: the yen's rally fades, USD/JPY back toward 160; Japan's 10-year 2.85-2.95%; neutral for NIFTY and the rupee."
+    },
+    {
+     "if": "Hold at 1.25% (against 72-86% priced for a hike)",
+     "then": "The yen gaps weaker above 160, intervention likely; Japan's 10-year drops toward 2.75%; Nikkei rallies; gold and silver swing on intervention."
+    },
+    {
+     "if": "Hike with 2 or more dissents",
+     "then": "Read as the last hike for a while; yen gains capped near 158-160; rupee little moved, follows the Fed."
+    }
+   ],
+   "thin": true,
    "countryName": "Japan",
    "days": 26,
    "views": [
     {
-     "source": "Reuters poll (71 economists)",
+     "source": "Reuters poll (71 economists, 11-18 Nov)",
      "type": "Poll of economists",
-     "view": "86% expect +0.25 point to 1.50%, and another hike by end-March",
+     "view": "61 of 71 (86%) expect +25 bp to 1.50%; nearly 60% see 1.75% by end-March",
      "value": 25,
-     "published": "2026-11-20",
+     "published": "2026-11-18",
      "link": "https://investinglive.com/central-banks/boj-tipped-to-hike-to-1-50-in-december-its-first-three-hike-year-in-37-years/",
      "old": false
     },
     {
-     "source": "Daiwa Securities",
-     "type": "Bank",
-     "view": "Hike in December, again in April 2027, peak around 2%",
-     "value": 25,
-     "published": "2026-11",
-     "link": "https://investinglive.com/central-banks/daiwa-sees-next-boj-rate-hike-in-december-as-ueda-signals-shift-in-policy-phase/",
+     "source": "Swaps (OIS), via TradingNews",
+     "type": "Market pricing",
+     "view": "86% chance of a 25 bp hike to 1.50%",
+     "published": "2026-11-20",
+     "link": "https://www.tradingnews.com/news/usd-jpy-forecast-dollar-slips-to-158-86-from-the-160-ceiling-as-yen-leads-g10-160-00-upside-target-capped",
      "old": false
+    },
+    {
+     "source": "LSEG data and BBH (via TMGM)",
+     "type": "Market pricing",
+     "view": "LSEG: 72% chance of a 25 bp hike; BBH: about 85% priced",
+     "published": "2026-11-20",
+     "link": "https://www.tmgm.com/en-in/analysis/market-news/article/japanese-yen-edges-higher-as-cpi-data-reinforces-december-boj-rate-hike-expectations-202611200630",
+     "old": false
+    },
+    {
+     "source": "Rakuten Securities ERI (Nobuyasu Atago, ex-BoJ)",
+     "type": "Research house",
+     "view": "December hike to 1.50% nearly certain; 1.75% next, timing unclear",
+     "value": 25,
+     "published": "2026-11-02",
+     "link": "https://www.933thedrive.com/2026/11/01/analysis-boj-locks-in-december-hike-but-neutral-rate-uncertainty-muddies-outlook/",
+     "old": false
+    },
+    {
+     "source": "BoJ Governor Kazuo Ueda",
+     "type": "Central bank",
+     "view": "Expects to keep raising rates; conditions still accommodative; underlying inflation could overshoot 2%",
+     "published": "2026-11-19",
+     "link": "https://investinglive.com/central-banks/boj-s-ueda-expects-to-keep-raising-rates-warning-inflation-could-overshoot-2-target/",
+     "old": false
+    },
+    {
+     "source": "BoJ board (Takata, Tamura, Koeda)",
+     "type": "Central bank",
+     "view": "Takata proposed a hike to 1.5% on 30 Oct (outvoted); Tamura sees neutral near 2%",
+     "published": "2026-11-02",
+     "link": "https://www.933thedrive.com/2026/11/01/analysis-boj-locks-in-december-hike-but-neutral-rate-uncertainty-muddies-outlook/",
+     "old": false
+    },
+    {
+     "source": "Bloomberg survey of BoJ watchers",
+     "type": "Poll of economists",
+     "view": "83% expect the next hike on 18 Dec; median end-point 1.75%",
+     "value": 25,
+     "published": "2026-10-22",
+     "link": "https://investinglive.com/central-banks/most-analysts-now-expect-the-next-boj-rate-hike-in-december-none-see-october-move-bloomberg/",
+     "old": true
+    },
+    {
+     "source": "J.P. Morgan, Nomura, Morgan Stanley, Citigroup, BofA, Macquarie, TD (Reuters factbox)",
+     "type": "Bank",
+     "view": "All see a December 2026 hike",
+     "value": 25,
+     "published": "2026-10-16",
+     "link": "https://wsau.com/?p=1026818",
+     "old": true
+    },
+    {
+     "source": "Goldman Sachs, Deutsche Bank, UBS, HSBC, Standard Chartered (Reuters factbox)",
+     "type": "Bank",
+     "view": "Next hike in early 2027, so no December move (as of 16 Oct)",
+     "value": 0,
+     "published": "2026-10-16",
+     "link": "https://wsau.com/?p=1026818",
+     "old": true
+    },
+    {
+     "source": "Daiwa Securities (Kenji Yamamoto)",
+     "type": "Bank",
+     "view": "Next hike December 2026, then April 2027; peak around 2%",
+     "value": 25,
+     "published": "2026-09-25",
+     "link": "https://investinglive.com/central-banks/daiwa-sees-next-boj-rate-hike-in-december-as-ueda-signals-shift-in-policy-phase/",
+     "old": true
     }
    ],
    "summary": {
@@ -594,9 +1681,13 @@
    },
    "actual": null,
    "verdict": null,
+   "printGuide": null,
    "types": [
     "Bank",
-    "Poll of economists"
+    "Central bank",
+    "Market pricing",
+    "Poll of economists",
+    "Research house"
    ],
    "dateSources": [
     "Bank of Japan"
@@ -824,20 +1915,23 @@
   }
  ],
  "byType": {
-  "Bank": 20,
-  "Poll of economists": 5,
-  "Central bank": 5,
-  "Research house": 4,
-  "Rating agency": 3,
+  "Bank": 48,
+  "Research house": 13,
+  "Central bank": 10,
+  "Poll of economists": 9,
+  "Rating agency": 6,
+  "Model": 4,
+  "Market pricing": 3,
+  "Prediction market": 3,
   "Government": 2,
-  "Market pricing": 2,
-  "Media": 1,
-  "Prediction market": 1
+  "Independent analyst": 1,
+  "Media": 1
  },
  "counts": {
   "events": 14,
-  "withViews": 9,
-  "views": 23,
+  "withViews": 11,
+  "thin": 4,
+  "views": 80,
   "outlooks": 20
  }
 }
