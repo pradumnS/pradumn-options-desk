@@ -584,6 +584,24 @@ body {
 .ev-guide { border-top: 1px solid var(--line-soft); padding-top: 8px; }
 .ev-gh { font-size: 12px; font-weight: 650; color: var(--ink-2); padding: 0 14px 4px; letter-spacing: .02em; }
 .ev-gn { padding: 4px 14px 10px; margin: 0; }
+/* Plans */
+.sw-t td { padding: 4px 6px; }
+.sw-go, .sw-mk { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; text-align: left; }
+.sw-mk { font-weight: 600; } .sw-mk:hover, .sw-go:hover .sw-cell { text-decoration: underline; text-underline-offset: 3px; }
+.sw-cell { display: inline-grid; gap: 0; line-height: 1.15; font-size: 12px; }
+.sw-cell b { font-weight: 650; } .sw-cell small { font-size: 10px; color: var(--ink-3); }
+.sw-pos b { color: var(--up); } .sw-neg b { color: var(--down); } .sw-neu b { color: var(--ink-3); font-weight: 500; }
+.sw-pick { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 6px; }
+.sw-pick button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.sw-pick button[aria-pressed=true] { border-color: var(--calls); color: var(--ink); background: var(--calls-dim); font-weight: 600; }
+.rdr-tabs .rdr-tab .sw-cell { margin-left: 6px; vertical-align: middle; }
+.dt tr.sw-on td { background: var(--calls-dim); }
+.sw-rec .idt-kpis { margin-bottom: 8px; }
+.sw-ev { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 12.5px; }
+.sw-ev > li { border-left: 2px solid var(--line); padding-left: 9px; }
+.sw-ev ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; color: var(--ink-2); font-size: 12px; }
+.sw-ev i { font-style: normal; font-weight: 600; color: var(--ink); }
+@media (max-width: 640px) { .rdr-tabs .rdr-tab .sw-cell small { display: none; } }
 .idt-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-3); }
 .idt-bar button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
 .idt-bar button[aria-pressed=true] { border-color: var(--calls); color: var(--ink); background: var(--calls-dim); font-weight: 600; }
@@ -2227,6 +2245,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   var INFL = {};             /* inflation_days.json -- International > Markets: Inflation days */
   var ASIA = {};             /* asia.json -- International > China & Japan */
   var EXPECT = {};           /* expectations.json -- Events page: upcoming events and who expects what */
+  var SWING = {};            /* swing.json -- Plans: every market at every holding period */
   var SIMPLE = { terms: {}, alias: {} };  /* simple_terms.json -- simple-language layer of every card */
   var LEARN_MODE = false;    /* Learn mode: glossary marks stand out, hover shows the simple line */
 
@@ -2246,6 +2265,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
 
   var PAGES = [
     { key:"market-overview", label:"Overview", mark:"OV" },
+    { key:"plans", label:"Plans", mark:"PL" },
     { key:"india-index", label:"Nifty Index", mark:"NF" },
     { key:"metal-index", label:"Metal Index", mark:"MT" },
     { key:"energy-index", label:"Energy Index", mark:"EN" },
@@ -2486,7 +2506,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   /* ==========================================================
      4. STATE
      ========================================================== */
-  var state = { idx: "NIFTY", page: "market-overview", view: "today", strike: null,
+  var state = { idx: "NIFTY", page: "market-overview", view: "today", strike: null, plMkt: "NIFTY", plH: "w4",
                 wl: null, wlExpiry: 0, anaSym: "JPY=X" };
 
   /* Keep the open tab across a refresh. The address carries it:
@@ -2505,6 +2525,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (state.page === "india-index" && NAV_HASH.sub) state.view = NAV_HASH.sub;
     /* #international/<tab> opens that International tab (radar, asia, markets...). */
     if (state.page === "international" && /^[a-z]+$/.test(NAV_HASH.sub)) state.intTab = NAV_HASH.sub;
+    /* #plans/gold/w4 opens that market and holding period. */
+    if (state.page === "plans") {
+      if (/^[a-z]+$/i.test(NAV_HASH.sub)) state.plMkt = NAV_HASH.sub.toUpperCase();
+      if (/^[a-z]\d$/.test(NAV_HASH.exp)) state.plH = NAV_HASH.exp;
+    }
     /* #india-index/learning/<tab> reopens the Learning sub-tab. */
     if (state.page === "india-index" && state.view === "learning" && NAV_HASH.exp) state.lcTab = NAV_HASH.exp;
   } else if (NAV_HASH.page === "learning") {
@@ -2517,8 +2542,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       var sub = state.page === "india-index" ? state.view :
         (state.page === "metal-index" || state.page === "energy-index") && typeof cmHashSub === "function" ? cmHashSub() :
         state.page === "agri-index" && typeof agHashSub === "function" ? agHashSub() :
-        state.page === "metal-index" ? mtlState.metal : "";
+        state.page === "metal-index" ? mtlState.metal :
+        state.page === "plans" ? String(state.plMkt || "").toLowerCase() : "";
       var h = "#" + state.page + (sub ? "/" + sub : "");
+      if (state.page === "plans" && sub && state.plH) h += "/" + state.plH;
       /* The open expiry tab on Nifty Today, so a refresh lands on it. */
       if (state.page === "india-index" && (state.view === "today" || state.view === "options") &&
           typeof hzState !== "undefined" && hzState.exp) h += "/" + hzState.exp;
@@ -3188,7 +3215,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return pageIntro("Market overview",
       "NIFTY, metals, energy and global macro on one page: what moved, why, and what to do today. Each quote carries its own date; missing feeds are named, never estimated.",
       "NIFTY settlement " + esc(m.tradeDate || "\u2014")) +
-      briefSection() +
+      briefSection() + swBoard(true) +
       '<div class="market-grid">' +
       marketGroup("Nifty Index", "NIFTY 50", "india-index", [
         marketAsset("NIFTY 50", n2(m.cfg.spot),
@@ -15214,6 +15241,190 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     return intro + intRibbon() + intTabs() + body + intSourcesDrawer(pmiRows);
   }
 
+  /* ---------- Plans (swing.json) ----------
+     One plan per market per holding period, from 3 sessions to a year:
+     which way, how to enter, how big, through what instrument, what is
+     scheduled inside the window, and what the same rule did out of sample.
+     Built by swing.py from the long daily histories; the signals are
+     declared in that file before any result was seen, and a direction only
+     shows where the rule beat a call with no timing on history it had not
+     seen. Nothing here is typed in by a user. */
+  var SW_DIR = { up: ["Up", "pos"], down: ["Down", "neg"], neutral: ["No call", "neu"] };
+  function swPct(v, k) { return v == null || !isFinite(v) ? "&mdash;" : (v > 0 ? "+" : v < 0 ? "&minus;" : "") + Math.abs(v).toFixed(k == null ? 1 : k) + "%"; }
+  function swRs(v) { return v == null || !isFinite(v) ? "&mdash;" : (v < 0 ? "&minus;" : "") + "Rs " + n0(Math.abs(Math.round(v))); }
+  function swHit(r) { return r && r.hit != null ? Math.round(r.hit * 100) + "%" : "&mdash;"; }
+  function swMarket() {
+    var ms = (SWING.markets || []).filter(function (m) { return m.ready; });
+    return ms.filter(function (m) { return m.key === state.plMkt; })[0] || ms[0];
+  }
+  function swPlan(mk) {
+    return (mk.plans || []).filter(function (p) { return p.h === state.plH; })[0] || mk.plans[3] || mk.plans[0];
+  }
+  function swCell(p) {
+    var d = SW_DIR[p.direction] || SW_DIR.neutral, r = p.replay || {};
+    var lean = p.gated ? ' <small>' + (p.lean === "up" ? "&uarr;" : "&darr;") + ' unproven</small>' : "";
+    return '<span class="sw-cell sw-' + d[1] + (p.reliable ? " sw-rel" : "") + '"><b>' + d[0] + "</b>" + lean +
+      '<small>' + (r.n ? swHit(r) + (p.reliable ? " &#10003;" : "") : "no record") + "</small></span>";
+  }
+  function swBoard(compact) {
+    var T = ' data-term="Plan board"';
+    var ms = (SWING.markets || []).filter(function (m) { return m.ready; });
+    if (!SWING.ready && !ms.length) {
+      return '<section class="card"><div class="card-hd"><h2' + T + '>Plans by holding period</h2></div><div class="rdr-pad">Built by <b>swing.py</b> during export_snapshot.py; not in this snapshot yet.</div></section>';
+    }
+    var hs = SWING.horizons || [];
+    var head = '<tr><th class="lft"' + T + '>Market</th>' + hs.map(function (h) { return "<th" + T + ">" + esc(h.label) + "</th>"; }).join("") + "</tr>";
+    var rows = ms.map(function (m) {
+      return '<tr><td class="lft"><button type="button" class="sw-mk" data-plmkt="' + esc(m.key) + '">' + esc(m.label) + "</button>" +
+        '<div class="kpi-m">' + esc(String(m.spot.toLocaleString("en-IN", { maximumFractionDigits: 2 }))) + " &middot; " + rdrD(m.asOf) + "</div></td>" +
+        m.plans.map(function (p) { return '<td><button type="button" class="sw-go" data-plmkt="' + esc(m.key) + '" data-plh="' + esc(p.h) + '">' + swCell(p) + "</button></td>"; }).join("") + "</tr>";
+    }).join("");
+    var rel = 0, calls = 0;
+    ms.forEach(function (m) { m.plans.forEach(function (p) { if (p.reliable) rel++; if (p.direction !== "neutral") calls++; }); });
+    return '<section class="card sw-board"><div class="card-hd"><h2' + T + '>Plans by holding period</h2>' +
+      '<span class="sub">' + ms.length + " markets &times; " + hs.length + " holding periods &middot; " + calls + " live calls today &middot; " + rel +
+      " market-period pairs have a proven record &middot; prices to " + rdrD(SWING.asOf) + "</span></div>" +
+      '<div class="tablewrap"><table class="dt sw-t"><thead>' + head + "</thead><tbody>" + rows + "</tbody></table></div>" +
+      '<div class="rdr-pad rdr-note">Up or Down: the signals agree and this rule has beaten a call with no timing on history it had not seen (the tick). ' +
+      "No call: the proven signals are quiet today, or they cancel. A small arrow means the signals lean that way but the rule has not proved itself here, so no position. " +
+      "The percentage is the out-of-sample hit rate for this market and period." +
+      (compact ? ' <button type="button" class="int-link" data-page="plans">Open the plans &rarr;</button>' : "") + "</div></section>";
+  }
+  function swEvidence(p) {
+    var T = ' data-term="Swing plans"';
+    var rows = (p.evidence || []).map(function (e) {
+      var st = e.state > 0 ? '<span class="pos">says up</span>' : e.state < 0 ? '<span class="neg">says down</span>' : '<span class="idt-mut">quiet</span>';
+      var proof = e.state ? (e.proven ? '<span class="pos">proven</span>' : '<span class="idt-mut">not proven</span>') : "";
+      var val = e.value == null ? "" : '<span class="idt-mut"> (' + (Math.abs(e.value) >= 100 ? n0(e.value) : e.value.toFixed(1)) + ")</span>";
+      return "<tr" + (e.proven ? ' class="sw-on"' : "") + '><td class="lft">' + esc(e.label) + val + "</td><td>" + st + "</td>" +
+        "<td>" + (e.n != null ? n0(e.n) + (e.episodes ? " / " + e.episodes : "") : "&mdash;") + "</td>" +
+        "<td>" + (e.hit != null ? Math.round(e.hit * 100) + "%" : "&mdash;") + "</td><td>" + (e.base != null ? Math.round(e.base * 100) + "%" : "&mdash;") + "</td>" +
+        '<td class="' + cls(e.median) + '">' + swPct(e.median, 2) + "</td><td>" + proof + "</td></tr>";
+    }).join("");
+    return '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + ">Signal</th><th" + T + ">Today</th><th" + T + ">Cases / spells</th>" +
+      "<th" + T + ">Went its way</th><th" + T + ">Base rate</th><th" + T + ">Median move</th><th" + T + ">Vote</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<p class="rdr-note">Cases: past days in the same state whose ' + esc(p.label) + " outcome is known. Went its way: how often the market then moved the way the signal says. " +
+      "Base rate: how often it moved that way regardless. A signal votes only when it has at least " + SWING.rule.minN + " cases over " + SWING.rule.minEpisodes +
+      " spells, " + Math.round(SWING.rule.minHit * 100) + "% or better, and " + Math.round(SWING.rule.minEdge * 100) + " points above the base rate.</p>";
+  }
+  function swRecord(p, mk) {
+    var T = ' data-term="Walk-forward record"';
+    var r = p.replay;
+    if (!r || !r.n) return '<p class="rdr-note">No out-of-sample calls at this horizon: the signals were never proven here in the replay since ' + rdrD(mk.replayFrom) + ".</p>";
+    var halves = (r.halves || []).map(function (h) { return "<td>" + (h.hit != null ? Math.round(h.hit * 100) + "%" : "&mdash;") + '<div class="kpi-m">' + rdrD(h.from) + " to " + rdrD(h.to) + " &middot; " + n0(h.n) + "</div></td>"; }).join("");
+    var sig = Object.keys(r.signals || {}).map(function (k) {
+      var s = r.signals[k];
+      return '<tr><td class="lft">' + esc((SWING.signals[k] || {}).label || k) + "</td><td>" + n0(s.n) + " / " + (s.episodes || "&mdash;") + "</td><td>" + Math.round(s.hit * 100) + "%</td><td>" +
+        (s.naiveHit != null ? Math.round(s.naiveHit * 100) + "%" : "&mdash;") + '</td><td class="' + cls(s.mean) + '">' + swPct(s.mean, 2) + "</td></tr>";
+    }).join("");
+    return '<div class="sw-rec"><div class="idt-kpis">' +
+      asTile("Right", Math.round(r.hit * 100) + "%", n0(r.n) + " days, " + n0(r.episodes) + " spells", r.skill > 0 ? "pos" : "neg") +
+      asTile("Same call, no timing", Math.round(r.naiveHit * 100) + "%", "the bar to beat") +
+      asTile("Average move, signed", swPct(r.mean, 2), "median " + swPct(r.median, 2), cls(r.mean)) +
+      asTile("Worst single outcome", swPct(r.worst, 1), "non-overlapping windows: " + n0(r.independent), "neg") +
+      '</div><div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>Period</th><th' + T + '>First half</th><th' + T + '>Second half</th></tr></thead><tbody>' +
+      '<tr><td class="lft">Hit rate</td>' + halves + "</tr></tbody></table></div>" +
+      (sig ? '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>Signal alone</th><th' + T + '>Days / spells</th><th' + T + '>Right</th><th' + T + '>No timing</th><th' + T + '>Avg move</th></tr></thead><tbody>' + sig + "</tbody></table></div>" : "") +
+      '<p class="rdr-note">' + esc(p.reliableWhy) + ". Replayed from " + rdrD(mk.replayFrom) + " " + esc(String(mk.replayFrom || "").slice(0, 4)) +
+      ": on each day the plan was built from history before that day only, then graded on what followed. Days overlap inside a window, so spells and non-overlapping windows are the honest sample sizes.</p></div>";
+  }
+  function swGap(p, mk) {
+    var T = ' data-term="Gap risk"';
+    var g = p.gap;
+    if (!g || !g.n) return "";
+    var tl = g.touchLong || {};
+    return '<div class="idt-kpis">' +
+      asTile("Typical " + p.label + " move", "&plusmn;" + g.typical.toFixed(1) + "%", "median size, " + n0(g.n) + " windows since " + String(mk.historyFrom).slice(0, 4)) +
+      asTile("1-in-20 bad / good", swPct(g.p05, 1) + " / " + swPct(g.p95, 1), "5th and 95th percentile") +
+      asTile("Worst ever / last 3 years", swPct(g.worst, 1) + " / " + swPct(g.worst3y, 1), "end to end", "neg") +
+      asTile("Worst point inside, 1-in-20", g.adverseLong ? swPct(g.adverseLong.p05, 1) : "&mdash;", "for a long; worst ever " + (g.adverseLong ? swPct(g.adverseLong.worst, 1) : "&mdash;"), "neg") +
+      "</div>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>A long touched a loss of</th>' + Object.keys(tl).map(function (k) { return "<th" + T + ">" + k + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      '<tr><td class="lft">How often inside ' + esc(p.label) + "</td>" + Object.keys(tl).map(function (k) { return "<td>" + Math.round(tl[k] * 100) + "% of windows</td>"; }).join("") + "</tr></tbody></table></div>" +
+      '<p class="rdr-note">This is the gap you must survive: in the age of algorithms a ' + esc(p.label) + " hold can see the whole move in a day. A stop is a wish, not a guarantee; size for the worst point inside the window, not for the average.</p>";
+  }
+  function swSize(p) {
+    var s = p.size;
+    if (!s) return "";
+    return '<div class="idt-kpis">' +
+      asTile("Risk budget", swRs(s.budgetRs), Math.round(SWING.riskPct * 100) + "% of Rs " + n0(SWING.capital)) +
+      asTile("Position size", swRs(s.notionalRs), s.pctOfCapital.toFixed(0) + "% of capital, so the 1-in-20 bad path (" + s.p05PathPct.toFixed(1) + "%) costs the budget") +
+      asTile("If the worst path repeats", swRs(-s.worstLossRs), s.worstPathPct.toFixed(1) + "% against you", "neg") +
+      "</div><p class=\"rdr-note\">" + esc(s.note) + " With a bought option or debit spread, the premium is the whole loss: buy premium up to the budget, never more.</p>";
+  }
+  function swEvents(p) {
+    var ev = p.events || [];
+    if (!ev.length) return '<p class="rdr-note">Nothing scheduled in this window from the Events page.</p>';
+    return '<ul class="sw-ev">' + ev.map(function (e) {
+      return "<li><b>" + rdrD(e.date) + "</b> " + esc(e.country) + " &middot; " + esc(e.event) + (e.median != null ? ' <span class="idt-mut">expected ' + esc(evVal(e.median, e.unit)) + "</span>" : "") +
+        ((e.scenarios || []).length ? "<ul>" + e.scenarios.map(function (s) { return "<li><i>" + esc(s["if"]) + ":</i> " + esc(s.then) + "</li>"; }).join("") + "</ul>" : "") + "</li>";
+    }).join("") + "</ul>" + intEventsLink("Every expectation and who holds it: Events page");
+  }
+  function swLongView(mk) {
+    var T = ' data-term="Long view"';
+    var lv = mk.longView;
+    if (!lv) return "";
+    var rows = lv.rows.map(function (r) {
+      return '<tr><td class="lft"><b>' + esc(r.vehicle) + "</b></td><td>" + swRs(r.capitalRs) + "</td><td>" + (r.exposureRs == null ? "&mdash;" : swRs(r.exposureRs)) + "</td>" +
+        '<td class="' + cls(r.ifTargetRs) + '">' + (r.ifTargetRs == null ? "depends on timing" : swRs(r.ifTargetRs)) + '</td><td class="' + cls(r.ifFlatRs) + '">' + swRs(r.ifFlatRs) + '</td><td class="' + cls(r.ifDownRs) + '">' + swRs(r.ifDownRs) + "</td></tr>";
+    }).join("");
+    var views = lv.target.views.map(function (v) { return esc(v.who) + " " + esc(String(v.value)) + " (" + rdrD(v.date) + ")"; }).join("; ");
+    return '<section class="card"><div class="card-hd"><h2' + T + ">How to hold a view to " + rdrD(lv.target.by) + " " + String(lv.target.by).slice(0, 4) + "</h2>" +
+      '<span class="sub">published targets: ' + esc(String(lv.target.low)) + " to " + esc(String(lv.target.high)) + " " + esc(lv.target.unit) + ", middle " + esc(String(lv.target.median)) +
+      " &middot; from " + esc(String(mk.spot.toLocaleString("en-IN", { maximumFractionDigits: 2 }))) + " that is " + swPct(lv.upPct, 0) + " in " + lv.years.toFixed(1) + " years</span></div>" +
+      '<div class="rdr-pad"><p class="rdr-line">Indian exchanges list nothing that holds a year. Each way of carrying the view is priced on a Rs ' + n0(lv.sliceRs) + " slice: what it makes if the middle target is hit, what it costs if nothing happens, and what it loses if the market instead falls " + Math.abs(lv.downPct).toFixed(0) + "% (its 1-year 1-in-20 move).</p>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + '>Vehicle</th><th' + T + '>Capital used</th><th' + T + '>Exposure</th><th' + T + '>If target hit</th><th' + T + '>If flat</th><th' + T + '>If it falls ' + Math.abs(lv.downPct).toFixed(0) + '%</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      '<ul class="sw-ev">' + lv.rows.map(function (r) { return "<li><i>" + esc(r.vehicle) + ":</i> " + esc(r.note) + "</li>"; }).join("") + "</ul>" +
+      '<p class="rdr-note">' + esc(lv.wrong) + "</p><p class=\"rdr-note\">Targets: " + views + ". A target is someone's view, not a fact; the Events page keeps them with their dates.</p></div></section>";
+  }
+  function viewPlans() {
+    var T = ' data-term="Swing plans"';
+    var intro = pageIntro("Plans",
+      "For a position held for days, weeks or months instead of minutes: which way, when to enter, how big, through what instrument, what is scheduled inside the window, and what this same rule did on history it had not seen. Information from every other page stays as it is; this page only sets the target and the holding period.",
+      SWING.asOf ? "Prices to " + rdrD(SWING.asOf) + " &middot; replay to " + rdrD(SWING.replayBuilt) : "");
+    var ms = (SWING.markets || []).filter(function (m) { return m.ready; });
+    if (!ms.length) return intro + swBoard(false);
+    var mk = swMarket(); var p = swPlan(mk);
+    var tabs = '<div class="rdr-tabs" role="tablist" aria-label="Holding period">' + mk.plans.map(function (x) {
+      return '<button class="rdr-tab" role="tab" data-plh="' + esc(x.h) + '" aria-selected="' + (x.h === p.h) + '">' + esc(x.label) + " " + swCell(x) + "</button>";
+    }).join("") + "</div>";
+    var d = SW_DIR[p.direction];
+    var head = '<section class="card"><div class="card-hd"><span class="rdr-chip rdr-c-' + (p.direction === "up" ? "green" : p.direction === "down" ? "red" : "amber") + '">' + d[0] + "</span>" +
+      "<h2" + T + ">" + esc(mk.label) + " &middot; " + esc(p.label) + '</h2><span class="sub">' + esc(String(mk.spot.toLocaleString("en-IN", { maximumFractionDigits: 2 }))) + " " + esc(mk.unit) +
+      " &middot; " + swPct(mk.chg20, 1) + " in 20 sessions &middot; " + (p.reliable ? "proven record at this period" : "no proven record at this period") + "</span></div>" +
+      '<div class="rdr-pad"><p class="rdr-line">' + esc(p.entry.text) + "</p>" +
+      (p.entry.invalidationText ? '<p class="rdr-note"><b>Out:</b> ' + esc(p.entry.invalidationText) + "</p>" : "") +
+      (mk.cancels && mk.cancels.length ? '<p class="rdr-note"><b>What switches the signals off:</b> ' + mk.cancels.map(esc).join(" ") + "</p>" : "") +
+      "</div></section>";
+    var grid = '<section class="card"><div class="rdr-grid">' +
+      '<div class="rdr-cell rdr-wide"><h3' + T + ">Why: the signals and their proof</h3>" + swEvidence(p) + "</div>" +
+      '<div class="rdr-cell rdr-wide"><h3 data-term="Walk-forward record">What this rule did out of sample</h3>' + swRecord(p, mk) + "</div>" +
+      '<div class="rdr-cell rdr-wide"><h3 data-term="Gap risk">What ' + esc(p.label) + " can do to you</h3>" + swGap(p, mk) + "</div>" +
+      '<div class="rdr-cell"><h3' + T + ">Size</h3>" + (swSize(p) || '<p class="rdr-note">No position, so no size.</p>') + "</div>" +
+      '<div class="rdr-cell"><h3 data-term="Vehicles by horizon">Through what</h3><ul>' + (p.vehicles || []).map(function (v) { return "<li>" + esc(v) + "</li>"; }).join("") + "</ul>" +
+      (mk.facts && mk.facts.mcxFutures ? '<p class="rdr-note">' + esc(mk.facts.mcxFutures) + (mk.facts.mcxMarginNote ? " Margin: " + esc(mk.facts.mcxMarginNote) : "") + "</p>" : "") +
+      (mk.facts && mk.facts.options ? '<p class="rdr-note">' + esc(mk.facts.options) + "</p>" : "") +
+      (mk.carry ? '<p class="rdr-note"><b>Measured roll cost:</b> ' + swPct(mk.carry.medianPct, 1) + " a year (median of " + n0(mk.carry.n) + " days since " + rdrD(mk.carry.since) + ", last " + swPct(mk.carry.lastPct, 1) + "). Positive means you pay to roll a long.</p>" : "") + "</div>" +
+      '<div class="rdr-cell rdr-wide"><h3' + T + ">Scheduled inside the window (to " + rdrD(p.horizonDate) + ")</h3>" + swEvents(p) + "</div>" +
+      "</div></section>";
+    var sc = SWING.scorecard || {};
+    var scRows = Object.keys(sc.byHorizon || {}).map(function (k) {
+      var r = sc.byHorizon[k]; var lab = (SWING.horizons.filter(function (h) { return h.key === k; })[0] || {}).label || k;
+      return '<tr><td class="lft">' + esc(lab) + "</td><td>" + n0(r.n) + "</td><td>" + (r.hit != null ? Math.round(r.hit * 100) + "%" : "&mdash;") + '</td><td class="' + cls(r.mean) + '">' + swPct(r.mean, 2) + "</td></tr>";
+    }).join("");
+    var score = '<section class="card"><div class="card-hd"><h2 data-term="Walk-forward record">Live scorecard</h2><span class="sub">every plan since ' + rdrD(sc.since) + " is stored the day it is made and graded when its period ends &middot; " + n0(sc.pending || 0) + " waiting</span></div>" +
+      (scRows ? '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft" data-term="Walk-forward record">Period</th><th data-term="Walk-forward record">Graded</th><th data-term="Walk-forward record">Right</th><th data-term="Walk-forward record">Avg move</th></tr></thead><tbody>' + scRows + "</tbody></table></div>"
+        : '<div class="rdr-pad rdr-note">No plan has reached its period yet. The first 3-day plans grade this week.</div>') + "</section>";
+    var how = '<details class="nfx-more"><summary>How the plans are built, and why most cells say No call</summary><div class="coverage-note">' +
+      "<b>Signals.</b> " + Object.keys(SWING.signals).map(function (k) { var s = SWING.signals[k]; return "<i>" + esc(s.label) + ":</i> " + esc(s.why) + " " + esc(s.rule); }).join(" ") +
+      " <b>Proof.</b> A signal votes at a period only where its own history shows at least " + SWING.rule.minN + " cases over " + SWING.rule.minEpisodes + " spells, right " + Math.round(SWING.rule.minHit * 100) + "% of the time and " + Math.round(SWING.rule.minEdge * 100) + " points above the base rate, recomputed daily. " +
+      "<b>Replay.</b> The whole rule is then rerun on every day since " + rdrD(SWING.replaySince) + " " + String(SWING.replaySince || "").slice(0, 4) + " using only earlier data, and a market-period pair earns a tick only if that record beat a call with no timing over at least 10 spells and 8 non-overlapping windows. " +
+      "Most pairs fail that bar: that is the honest finding, and it is why the plan says No call rather than guessing. The edge that survives is in a few places (sharp sell-offs over 1 to 4 weeks, trends over 3 to 6 months) and in sizing for the gap, entering after the turn, and picking an instrument that does not bleed.</div></details>";
+    return intro + swBoard(false) + '<div class="sw-pick">' + ms.map(function (m) {
+      return '<button type="button" data-plmkt="' + esc(m.key) + '" aria-pressed="' + (m.key === mk.key) + '">' + esc(m.label) + "</button>";
+    }).join("") + "</div>" + tabs + head + grid + swLongView(mk) + score + how;
+  }
+
   /* The chain and the build-up were two tabs reading the same rows. Only
      "Chg OI" appeared in both, so merging them costs nothing and stops you
      paging back and forth to line a strike's OI up against what that OI
@@ -24333,6 +24544,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "agri-index": viewAgriIndex,
     international: viewInternational,
     events: viewEvents,
+    plans: viewPlans,
     model: viewModelData,
     metoil: viewMetOil,
     /* Merged away, kept as aliases so a saved view key still resolves. */
@@ -24423,6 +24635,36 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "For each asset, its 20-session move regressed on the dollar's 20-session move and on the Nasdaq-100's, over the last 3 years (about 750 sessions).",
       "The dollar column is the slope for a 1% dollar rise; the Nasdaq column is the slope times a 5% fall. Strength comes from the correlation: 0.45 or more strong, 0.30 medium, 0.15 weak, below that no link.",
       "The windows overlap, so the links are smoother than any single month. A month with two shocks at once moves far more than the map predicts."
+    ],
+    "Swing plans": [
+      "One plan per market for each holding period from 3 sessions to a year: direction, entry, size, instrument, the events inside the window, and the out-of-sample record of the same rule. Built by swing.py from the desk's long daily histories (metals and energy since 2000, NIFTY and Bank Nifty since 2007, Bitcoin since 2014).",
+      "Signals are declared before any result is seen, each with a written reason and a round-number threshold: 200-day trend, 12-month momentum, snap-back after a 20-session move in the worst or best 5%, India VIX above 25, dollar direction over 20 sessions, US real-yield and 2-year shifts over 60 sessions, the Fed gap, CFTC crowding and a 20% drawdown. A signal votes at a period only where its own history proves it: 30 cases over 8 spells, right 55% of the time and 3 points above the base rate.",
+      "Votes are counted, never weighted. Up or down needs a majority of the proven signals that are active today. The plan is written to the swing_calls table the day it is made and graded when the period ends."
+    ],
+    "Plan board": [
+      "The grid of markets by holding period. Each cell is today's call, the out-of-sample hit rate for that market and period, and a tick where the record is proven.",
+      "No call means the proven signals are quiet or cancel out. A small arrow with 'unproven' means the signals lean that way but the rule failed its own replay there, so the desk takes no position on it.",
+      "Click a cell to open the full plan."
+    ],
+    "Walk-forward record": [
+      "The rule rerun on every day since 2012 using only the history before that day, including only forward returns that had finished by then, and graded on what followed. Nothing is fitted to the period being graded.",
+      "Right is the share of calls whose direction matched the move to the end of the period. The bar to beat is the same calls with no timing: an up call scores the market's unconditional up-rate, a down call its down-rate. Skill is the difference.",
+      "Days inside a window overlap, so the honest sample sizes are spells (separate runs of one call) and non-overlapping windows. A pair earns a tick only with at least 100 days, 10 spells, 8 windows, 55% right and positive skill."
+    ],
+    "Gap risk": [
+      "What this holding period has done to this market across every window in the stored history: the typical size of the move, the 1-in-20 bad and good outcomes, the worst ever and the worst in the last 3 years, and the worst point reached inside the window (from daily lows and highs where stored).",
+      "The touch table says how often a long saw a 3%, 5%, 10% or 20% loss at some point inside the window, even if it ended higher: that is where stops get hit and margin calls arrive.",
+      "Size is set so the 1-in-20 worst path inside the window loses 2% of capital, and the loss if the worst path repeats is shown beside it."
+    ],
+    "Vehicles by horizon": [
+      "Which Indian product can carry a view for this long: NIFTY weeklies and monthlies, quarterly and half-yearly expiries (thin), MCX futures and options on the near months, ETFs and funds for 6 months and beyond. Facts are dated: MCX margins from broker lists of 22 Nov 2026, listed months from exchange circulars.",
+      "Roll cost is measured from the desk's stored MCX contracts as the annualised gap between the front and the next contract: positive means a long pays it at every roll (gold about 9 to 10% a year, silver about 11%), negative means a long earns it (crude, usually in backwardation).",
+      "Fixed-loss structures (bought options, debit spreads) come first at short periods; for a year only a fund or ETF holds without rolling."
+    ],
+    "Long view": [
+      "For markets with published 2027 targets (gold, silver, crude, copper, NIFTY), each way of holding the view to that date is priced on a 10% slice of capital: ETF or fund, MCX futures rolled at the measured carry, and bought options rolled each expiry.",
+      "Three outcomes are shown side by side: the middle target is hit, nothing happens, or the market instead falls by its 1-year 1-in-20 move. The futures row shows the cash the bad path needs for daily mark-to-market.",
+      "Targets are named with their dates and are someone's view, not a fact."
     ],
     "Events and expectations": [
       "Each upcoming event lists every published expectation we found: who said it, what kind of source it is (bank, asset manager, hedge fund, research house, rating agency, prediction market, market pricing, poll of economists, government, central bank, model, university, independent analyst or media), when, and a link.",
@@ -25422,6 +25664,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": { deep: "Radar: India", how: function () { return "Red when NIFTY is down more than <b>3%</b> in 20 sessions."; } },
     "Impact map": { deep: "Impact map", how: function () { return "Slopes over <b>20</b>-session windows, last <b>3</b> years."; } },
     "Dollar direction and metals": { deep: "Dollar direction and metals", how: function () { return "Buckets at <b>+/-1.5%</b> over <b>20</b> sessions, since 2016."; } },
+    "Swing plans": { deep: "Swing plans", how: function () { return "Vote needs <b>30</b> cases, <b>8</b> spells, <b>55%</b> right, <b>+3</b> points over base; periods <b>3</b> to <b>252</b> sessions."; } },
+    "Plan board": { deep: "Plan board", how: function () { return "<b>16</b> markets by <b>7</b> periods; a tick needs <b>100</b> days, <b>10</b> spells, <b>55%</b> right."; } },
+    "Walk-forward record": { deep: "Walk-forward record", how: function () { return "Replayed daily since <b>2012</b>; tick at <b>100</b> days, <b>10</b> spells, <b>8</b> windows, <b>55%</b>."; } },
+    "Gap risk": { deep: "Gap risk", how: function () { return "Size so the <b>1-in-20</b> worst path loses <b>2%</b> of capital; touch table at <b>3/5/10/20%</b>."; } },
+    "Vehicles by horizon": { deep: "Vehicles by horizon", how: function () { return "Roll cost = front-to-next spread annualised; gold about <b>+9.5%</b>, silver <b>+11.6%</b>, crude <b>-20%</b> (2025-26)."; } },
+    "Long view": { deep: "Long view", how: function () { return "A <b>10%</b> slice; three outcomes: target, flat, and the 1-year <b>1-in-20</b> fall."; } },
     "Events and expectations": { deep: "Events and expectations", how: function () { return "Spread = low, median, high of views up to <b>21</b> days old; calendar <b>35</b> days ahead."; } },
     "International headline strip": { deep: "International headline strip", how: function () { return "<b>10</b> numbers, one source each; amber after <b>4</b> days."; } },
     "Positioning crowding": { deep: "Positioning crowding", how: function () { return "Index <b>0</b> to <b>100</b> over <b>156</b> weeks; extremes below <b>10</b> or above <b>90</b>."; } },
@@ -28655,6 +28903,12 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Radar: India": ["Whether the world's shocks are reaching NIFTY and the rupee.", "Green means India is holding up."],
     "Impact map": ["If the dollar or the Nasdaq moves, how much each market has usually moved with it.", "Strong links matter; weak ones do not."],
     "Dollar direction and metals": ["What metals did next, depending on whether the dollar was rising, flat or falling.", "Metals did best after the dollar turned down."],
+    "Swing plans": ["For a trade held days to months: which way, when to enter, how big, through what, and what the same rule did before.", "Up or down shows only where the rule has a proven record."],
+    "Plan board": ["Every market by every holding period on one grid.", "A tick means the record is proven; No call means stand aside."],
+    "Walk-forward record": ["The rule replayed on the past using only what was known each day.", "Right must beat the same call with no timing."],
+    "Gap risk": ["How big a move this holding period can bring, including the worst point inside it.", "Size for the 1-in-20 bad path, not the average."],
+    "Vehicles by horizon": ["Which Indian product can hold the view this long, and what it costs to stay in.", "Fixed-loss first; funds for a year."],
+    "Long view": ["Three ways to hold a 2027 target, priced side by side with what each loses if wrong.", "Only a fund holds a year without rolling."],
     "Events and expectations": ["What is coming up, and what each bank, fund, poll or market expects from it.", "The actual sits next to the views once it is out."],
     "International headline strip": ["The ten numbers to check first, each from one source with its date.", "Every tab below uses the same figures."],
     "Positioning crowding": ["Who is betting which way in futures, and whether the bet is at a 3-year extreme.", "Below 10 or above 90 means crowded: moves can be sharp when they unwind."],
@@ -36498,6 +36752,10 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         ASIA = d || {};
         if (state.page === "international") render();
       }).catch(function () { ASIA = {}; });
+      getJson("swing.json").then(function (d) {
+        SWING = d || {}; SWING.ready = !!(d && d.markets);
+        if (state.page === "plans" || state.page === "market-overview") render();
+      }).catch(function () { SWING = {}; });
       getJson("expectations.json").then(function (d) {
         EXPECT = d || {};
         if (state.page === "events") render();
@@ -36674,6 +36932,14 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     if (itab) { state.intTab = itab.getAttribute("data-inttab"); render(); return; }
     var evc = e.target.closest("[data-evc]");
     if (evc) { state.evCountry = evc.getAttribute("data-evc"); render(); return; }
+    var plh = e.target.closest("[data-plh]");
+    if (plh) {
+      state.plH = plh.getAttribute("data-plh");
+      if (plh.getAttribute("data-plmkt")) state.plMkt = plh.getAttribute("data-plmkt");
+      state.page = "plans"; closeDrawer(); render(); return;
+    }
+    var plm = e.target.closest("[data-plmkt]");
+    if (plm) { state.plMkt = plm.getAttribute("data-plmkt"); state.page = "plans"; closeDrawer(); render(); return; }
     var asg = e.target.closest("[data-asgo]");
     if (asg) {
       var ac = document.getElementById("as-" + asg.getAttribute("data-asgo"));
