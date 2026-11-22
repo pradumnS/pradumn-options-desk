@@ -3000,7 +3000,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
         "<td>" + n0(p.openInterest) + "</td><td>" + netOi + "</td>" +
         '<td class="lft">' + esc(p.asOf) + "</td></tr>";
     }).join("");
-    return '<div class="tablewrap tall"><table class="dt"><thead><tr>' +
+    return '<div class="tablewrap"><table class="dt"><thead><tr>' +
       '<th class="lft">Futures market</th><th class="lft">CFTC category</th>' +
       "<th>Net</th><th>Weekly \u0394 net</th><th>Open interest</th>" +
       "<th>Net / OI</th><th class=\"lft\">Position date</th>" +
@@ -14858,16 +14858,25 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
   function viewInternational() {
     var regions = ["United States", "India", "Euro area", "Japan", "China"];
     var tenors = ["2M", "6M", "1Y", "2Y", "10Y", "30Y"];
+    /* Japan's curve comes from the Ministry of Finance file asia.py stores;
+       it publishes 1Y and longer, so 2M and 6M say "Not published". */
+    var jg = ASIA && ASIA.ready ? (ASIA.japan || {}).jgb || {} : null;
+    var jgMap = jg ? { "1Y": jg.y1, "2Y": jg.y2, "10Y": jg.y10, "30Y": jg.y30 } : {};
+    var rateSrc = {};
     var rateRows = regions.map(function (region) {
       var cells = tenors.map(function (tenor) {
         var item = internationalRate(region, tenor);
+        if (!item && region === "Japan" && jg && jgMap[tenor] != null) {
+          item = { yieldPct: jgMap[tenor], asOf: jg.date, source: "Japan Ministry of Finance JGB curve" };
+        }
+        if (item) rateSrc[region] = item.source || "official source";
         var value = item
-          ? n3(item.yieldPct) + "%" + '<div class="kpi-m">' +
-            esc(item.asOf || "") + " \u00b7 " + esc(item.source || "official source") + "</div>"
+          ? n3(item.yieldPct) + "%" + '<div class="kpi-m">' + esc(item.asOf || "") + "</div>"
+          : region === "Japan" && jg ? '<span class="source-unavailable">Not published</span>'
           : '<span class="source-unavailable">Not connected</span>';
         return "<td>" + value + "</td>";
       }).join("");
-      return '<tr><td class="lft">' + esc(region) + "</td>" + cells + "</tr>";
+      return '<tr><td class="lft">' + esc(region) + (rateSrc[region] ? '<div class="kpi-m">' + esc(rateSrc[region]) + "</div>" : "") + "</td>" + cells + "</tr>";
     }).join("");
     var pmiRows = regions.map(function (region) {
       return '<tr><td class="lft">' + esc(region) + '</td><td><span class="source-unavailable">Not connected</span></td>' +
@@ -14891,7 +14900,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "</tr></thead><tbody>" + rateRows + "</tbody></table></div>" +
       '<div class="mo-sub">United States \u00b7 official par-yield changes</div>' +
       internationalYieldMovesTable() +
-      '<div class="caution"><p><b>Coverage limit.</b> US tenors use the U.S. Treasury daily par-yield curve and show its observation date. India, euro-area, Japan and China curves remain unconnected; blank cells do not imply zero movement.</p></div></section>';
+      '<div class="caution"><p><b>Coverage limit.</b> US tenors use the U.S. Treasury daily par-yield curve; Japan uses the Ministry of Finance JGB curve (1-year and longer). India, euro-area and China curves are not connected yet; blank cells do not imply zero movement.</p></div></section>';
     var positioning = '<section class="card"><div class="card-hd"><h2>Positioning, hedging &amp; build-up</h2>' +
       '<span class="sub">CFTC Traders in Financial Futures (TFF) and Disaggregated reports \u00b7 contracts, not intent</span></div>' +
       internationalPositionsTable() +
