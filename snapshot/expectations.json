@@ -1,6 +1,6 @@
 {
  "ready": true,
- "builtAt": "2026-11-22T16:22:20+00:00",
+ "builtAt": "2026-11-22T17:15:37+00:00",
  "updated": "2026-11-22",
  "researchAge": 0,
  "about": "Published expectations for upcoming events and assets. Each entry names who said it, what kind of source it is, when it was published and a link. Collected by web research; refreshed by the weekly research run. Nothing here is the desk's own forecast.",
@@ -508,7 +508,7 @@
    "previous": 2.6,
    "previousNote": "October 2.6% (in line), down from 2.7% in September; the first slowdown in 5 months. Core excluding fresh food and energy 2.6%.",
    "why": "The first look at Japan's November inflation, three weeks before the Bank of Japan meets.",
-   "coverageNote": "Reuters, Bloomberg, QUICK and Nikkei polls usually appear 1-2 days before the release (about 25-26 Nov). Only the calendar consensus could be verified so far; no bank has published a named Tokyo forecast.",
+   "coverageNote": "Reuters, Bloomberg, QUICK and Nikkei polls usually appear 1-2 days before the release (about 25-26 Nov). Only the calendar consensus could be verified so far; no bank has published a named Tokyo forecast. Re-searched 22 Nov: still no 2026 poll.",
    "scenarios": [
     {
      "if": "Tokyo core 3.0% or higher (above the 2.9% consensus)",
@@ -566,7 +566,7 @@
    "previous": 49.3,
    "previousNote": "October 49.3 against a 50.0 Reuters-poll median (September 50.1); new export orders 48.7. The private RatingDog (S&P Global) survey read 52.0.",
    "why": "Below 50 means factories are shrinking: less demand for copper, silver and oil.",
-   "coverageNote": "Reuters and Bloomberg polls for the official PMI usually publish about 26-28 Nov; as of 22 Nov only one model forecast exists and no bank has published a number.",
+   "coverageNote": "Reuters and Bloomberg polls for the official PMI usually publish about 26-28 Nov; as of 22 Nov only one model forecast exists and no bank has published a number. October missed the Bloomberg consensus of 49.9 (Commerzbank).",
    "scenarios": [
     {
      "if": "PMI 50.0 or higher (back to growth)",
@@ -954,7 +954,7 @@
    "previous": 165,
    "previousNote": "October +165k against about 60-65k expected; unemployment 4.1%; hourly pay +0.4% m/m; August and September revised up 84k in total (BLS, 6 Nov).",
    "why": "Strong hiring plus hot inflation is the mix that makes the Fed keep raising rates.",
-   "coverageNote": "Too early: Bloomberg and Reuters consensus usually appears in the week of the release. Kalshi's payrolls market exists but could not be read.",
+   "coverageNote": "Too early: Bloomberg and Reuters consensus usually appears in the week of the release. Kalshi's payrolls market exists but could not be read. Re-searched 22 Nov: no consensus number published yet.",
    "scenarios": [
     {
      "if": "150k or more, unemployment 4.0-4.1%",
@@ -1027,6 +1027,91 @@
     "Model",
     "Research house"
    ]
+  },
+  {
+   "id": "cn-trade-2026-11",
+   "date": "2026-12-07",
+   "time": "about 11:00 am Beijing (customs usually publishes on the 7th)",
+   "country": "CN",
+   "category": "Activity",
+   "event": "China trade, November",
+   "metric": "Exports, year on year",
+   "unit": "%",
+   "previous": 28.7,
+   "previousNote": "October: exports +28.7% y/y and imports +34.7% y/y in yuan terms; January-October trade +20% to 44.81 trillion yuan (customs, 10 Nov).",
+   "why": "China's export boom is what keeps copper, oil and the yuan bid while its own factories report contraction; a slowdown would hit metals first.",
+   "coverageNote": "Searched 22 Nov: no Reuters or Bloomberg poll yet for November exports; polls usually publish 4-6 Dec. The one named view is on imports only, so it has no value in the event's unit.",
+   "scenarios": [
+    {
+     "if": "Exports grow 25% or more again, imports 30% or more",
+     "then": "Copper and oil firm, the yuan toward 6.65, China and Asian exporters up; NIFTY Metal gains; little effect on the dollar or US yields."
+    },
+    {
+     "if": "Exports 15% to 24% (slowing but strong)",
+     "then": "Muted: metals range-bound, USD/CNY near 6.67; NIFTY and the rupee trade on the Fed and crude instead."
+    },
+    {
+     "if": "Exports below 15% or imports slow sharply",
+     "then": "Demand worry: copper and silver fall 1-2%, oil softer, the yuan weaker, China stocks down; cheaper oil cushions the rupee."
+    }
+   ],
+   "thin": true,
+   "countryName": "China",
+   "days": 15,
+   "views": [
+    {
+     "source": "Orient Golden Credit Rating International (Feng, via China Daily HK)",
+     "type": "Rating agency",
+     "view": "Imports in dollar terms to keep growing about 30% y/y in November (no export figure)",
+     "published": "2026-11-13",
+     "link": "https://www.chinadailyhk.com/article/642668",
+     "old": false
+    }
+   ],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "printGuide": null,
+   "types": [
+    "Rating agency"
+   ]
+  },
+  {
+   "id": "cn-cpi-2026-11",
+   "date": "2026-12-09",
+   "time": "9:30 am Beijing",
+   "country": "CN",
+   "category": "Inflation",
+   "event": "China consumer and producer prices, November",
+   "metric": "CPI, year on year",
+   "unit": "%",
+   "previous": 0.7,
+   "previousNote": "October: CPI 0.7% y/y (September 0.9%), core 0.8%; PPI +5.7% y/y, the fastest of 2026 (NBS, 11 Nov).",
+   "why": "Rising Chinese producer prices feed global goods inflation, which keeps the Fed hiking; a soft CPI would revive stimulus bets instead.",
+   "coverageNote": "Searched 22 Nov: no forecast for November CPI or PPI yet. Reuters, Bloomberg and Caixin polls (Caixin surveyed 13 institutions last year) usually publish 7-8 Dec. The desk fills the actual from the NBS release.",
+   "scenarios": [
+    {
+     "if": "CPI 1.0% or higher with PPI above 6%",
+     "then": "Read as China exporting inflation: US yields and the dollar firm, gold capped, copper supported; NIFTY and the rupee slightly weaker."
+    },
+    {
+     "if": "CPI 0.6% to 0.9% (near October)",
+     "then": "Little reaction; metals and the yuan trade on the trade data and the Fed instead."
+    },
+    {
+     "if": "CPI 0.5% or lower and PPI slowing",
+     "then": "Stimulus bets rise: China stocks up, copper mixed, the yuan softer; cooler goods prices help US yields ease and gold hold."
+    }
+   ],
+   "thin": true,
+   "countryName": "China",
+   "days": 17,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "printGuide": null,
+   "types": []
   },
   {
    "id": "us-fomc-2026-12",
@@ -1738,6 +1823,7 @@
    "value": 5000,
    "published": "2026-08-13",
    "link": "https://www.kitco.com/news/article/2026-08-13/ubs-sees-gold-price-challenging-5000oz-h1-2027-lower-real-rates-softer-usd",
+   "stale": true,
    "old": true
   },
   {
@@ -1749,6 +1835,62 @@
    "value": 4925,
    "published": "2026",
    "link": "https://channel8.com/english/news/61694",
+   "stale": true,
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "2027 average",
+   "source": "HSBC (via FXNX tracker)",
+   "type": "Bank",
+   "view": "$4,825, cut from $4,925",
+   "value": 4825,
+   "published": "2026-10-01",
+   "link": "https://fxnx.com/en/blog/gold-price-forecasts-2027-every-published-bank-target-dated",
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "2027 average",
+   "source": "Bank of America (via FXNX tracker)",
+   "type": "Bank",
+   "view": "$4,813",
+   "value": 4813,
+   "published": "2026-10-13",
+   "link": "https://fxnx.com/en/blog/gold-price-forecasts-2027-every-published-bank-target-dated",
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "End 2027",
+   "source": "Goldman Sachs (via FXNX tracker)",
+   "type": "Bank",
+   "view": "$4,650 end-2027, after cuts from $5,400 to $4,800 earlier in November",
+   "value": 4650,
+   "published": "2026-11-16",
+   "link": "https://fxnx.com/en/blog/gold-price-forecasts-2027-every-published-bank-target-dated",
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "Q4 2027",
+   "source": "Morgan Stanley (via FXNX tracker)",
+   "type": "Bank",
+   "view": "$5,250 in Q4 2027; $4,850, $5,000 and $5,100 for the first three quarters",
+   "value": 5250,
+   "published": "2026-11-17",
+   "link": "https://fxnx.com/en/blog/gold-price-forecasts-2027-every-published-bank-target-dated",
+   "old": false
+  },
+  {
+   "asset": "Gold",
+   "horizon": "End 2027",
+   "source": "UBS (via FXNX tracker)",
+   "type": "Bank",
+   "view": "$5,000 by end-2027, with $4,600 by June 2027",
+   "value": 5000,
+   "published": "2026-11-18",
+   "link": "https://fxnx.com/en/blog/gold-price-forecasts-2027-every-published-bank-target-dated",
    "old": false
   },
   {
@@ -1915,11 +2057,11 @@
   }
  ],
  "byType": {
-  "Bank": 48,
+  "Bank": 53,
   "Research house": 13,
   "Central bank": 10,
   "Poll of economists": 9,
-  "Rating agency": 6,
+  "Rating agency": 7,
   "Model": 4,
   "Market pricing": 3,
   "Prediction market": 3,
@@ -1928,10 +2070,10 @@
   "Media": 1
  },
  "counts": {
-  "events": 14,
-  "withViews": 11,
-  "thin": 4,
-  "views": 80,
-  "outlooks": 20
+  "events": 16,
+  "withViews": 12,
+  "thin": 6,
+  "views": 81,
+  "outlooks": 25
  }
 }

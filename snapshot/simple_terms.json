@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 926,
-"generatedAt": "2026-11-22T16:24:58Z",
+"count": 932,
+"generatedAt": "2026-11-22T17:09:23Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -6680,6 +6680,47 @@
 },
 "simple": "This shows the position valued as if NIFTY opened that many percent up or down. It uses today's volatility. In a real fall fear usually rises, so the real down-gap loss can be worse."
 },
+"Gap risk": {
+"example": "Gold over 4 weeks: the typical move is 3%, the 1-in-20 bad outcome is -6.6%, the worst ever -21%, and the worst point inside a 4-week window was -8.8% one time in 20.",
+"forYou": "Size every multi-day trade so the 1-in-20 bad path costs 2% of your capital, and check that the worst-ever path would not ruin you.",
+"goodBad": "A position that loses 2% on the bad path and under 10% on the worst-ever path is sized right.",
+"impact": "If the 1-in-20 path is bigger than your stop: expect the stop to be hit on normal weeks. If a position cannot survive the worst ever: it is too big.",
+"readIt": "When you see the gap table, read the 1-in-20 bad path first, then the worst ever. The size tile is built from the 1-in-20 path.",
+"scale": {
+"hi": 30,
+"lo": 0,
+"quick": "Loss on the worst-ever path as % of capital: under 5% safe, 5 to 10% acceptable, 10 to 20% heavy, above 20% ruin risk.",
+"range": "The desk sizes to 2% on the 1-in-20 path, which usually puts the worst-ever path at 5 to 10%.",
+"unit": "%",
+"zones": [
+{
+"label": "Safe",
+"means": "Survives anything seen before.",
+"to": 5,
+"tone": "good"
+},
+{
+"label": "Acceptable",
+"means": "Painful but survivable.",
+"to": 10,
+"tone": "ok"
+},
+{
+"label": "Heavy",
+"means": "One bad week sets you back a year.",
+"to": 20,
+"tone": "wait"
+},
+{
+"label": "Ruin risk",
+"means": "Too big.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "How much a market can move against you inside a holding period, including the worst point along the way, not just where it ends. In fast markets a whole week's move can happen overnight."
+},
 "Gap scenarios": {
 "example": "You plan to sell mangoes at Rs 50, but the mandi opens with everyone at Rs 80. You never got a chance at Rs 50. If NIFTY closed at 25,000 and opens at 25,600 after budget news, your 25,500 short call is already in loss.",
 "forYou": "As a seller, size your trade so the worst gap on this table is a loss you can survive.",
@@ -8125,6 +8166,41 @@
 ]
 },
 "simple": "It is fund longs divided by all fund longs plus shorts. 50% means evenly split; 80% means four longs for each short. It shows how one-sided the funds are."
+},
+"Long view": {
+"example": "On 22 Nov 2026, with gold at $3,515 and the middle 2027 target at $5,000 (+42%): a Rs 1 lakh ETF slice makes about Rs 41,000 if the target is hit and loses about Rs 12,000 if gold falls 12%; the same slice in rolled MCX futures at 4x makes about Rs 1.27 lakh but loses about Rs 42,000 if gold goes nowhere, because of the roll cost.",
+"forYou": "Hold the core of a long view in a fund or ETF. Use futures or options only for the part of the move you expect within the next 1 to 3 months.",
+"goodBad": "A way of holding that loses little if flat is good for a long view; one that bleeds while waiting is bad unless the move is close.",
+"impact": "If gold goes nowhere for a year: the ETF loses almost nothing, the futures lose the roll cost times leverage, the options lose every premium. If gold hits the target: futures pay most, then the ETF.",
+"readIt": "When you see the table, read the If flat column first: that is the cost of being early. Then compare If target hit with If it falls.",
+"scale": {
+"hi": 50,
+"lo": 0,
+"quick": "Cost of waiting a year with no move, as % of the slice: under 2% fine, 2 to 10% heavy, above 10% only if the move is near.",
+"range": "ETF about 0.5%, rolled futures 10 to 40% depending on leverage, rolled options up to 100%.",
+"unit": "%",
+"zones": [
+{
+"label": "Fine",
+"means": "Can wait years.",
+"to": 2,
+"tone": "good"
+},
+{
+"label": "Heavy",
+"means": "Can wait months.",
+"to": 10,
+"tone": "wait"
+},
+{
+"label": "Bleeds",
+"means": "Only for a move you expect soon.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "A side-by-side price of the three ways to hold a view to a far date, such as gold at $5,000 by December 2027: a fund, rolled futures, or rolled options. Each shows what it makes if the target is hit, what it costs if nothing happens, and what it loses if the market falls instead."
 },
 "Longest losing streak": {
 "example": "A batsman out for low scores five matches in a row may be dropped, even if he is good. Streaks test patience.",
@@ -10098,6 +10174,41 @@
 "impact": "If you pass more levels: you skip ahead. If you pass fewer: you start earlier, which is fine.",
 "readIt": "When you see a level fast-tracked, its review cards start at a 3-day gap.",
 "simple": "This is twelve mixed questions across five levels, built from today's numbers. It places you on the path and fast-tracks what you already know. Passing says nothing about trading results."
+},
+"Plan board": {
+"example": "On 22 Nov 2026 the board showed NIFTY No call at 4 weeks, gold Up at 1 week with a tick, and copper Up at 3 months with a tick.",
+"forYou": "Check the board each morning before placing any multi-day trade. Trade only ticked cells.",
+"goodBad": "Ticks are good. A small arrow marked unproven is a warning, not a tip.",
+"impact": "If most cells say No call: markets are not giving a proven signal today, and sitting out is the plan. If several cells in one row show Up with ticks: the market has agreeing signals at more than one period.",
+"readIt": "When you see the board, look for cells with a tick: those are the only places the rule has proved itself. Click a cell to open its plan.",
+"scale": {
+"hi": 30,
+"lo": 0,
+"quick": "Ticked cells out of 112: 0 to 5 quiet, 5 to 15 normal, more than 15 unusual.",
+"range": "Most days about 5 to 15 of the 112 cells are ticked.",
+"unit": "",
+"zones": [
+{
+"label": "Quiet",
+"means": "Few proven edges today.",
+"to": 5,
+"tone": "wait"
+},
+{
+"label": "Normal",
+"means": "Some proven edges to act on.",
+"to": 15,
+"tone": "good"
+},
+{
+"label": "Busy",
+"means": "Many edges at once; usually after a shock.",
+"to": null,
+"tone": "wait"
+}
+]
+},
+"simple": "A grid: every market down the side, every holding period across the top. Each cell is today's call for that market and that period."
 },
 "Plan followed": {
 "example": "Like leaving the party at 10 pm as promised.",
@@ -13454,6 +13565,47 @@
 },
 "simple": "ADX measures how strong a trend is, whatever its direction, on a 0 to 100 scale (14 days). Above 25 counts as a strong trend. +DI on top of -DI means the strong trend is upward."
 },
+"Swing plans": {
+"example": "On 22 Nov 2026 the gold plan for 1 week said Up: gold had just had one of its worst 20-session falls (-12%), and after such falls gold rose over the next week 61% of the time out of sample, against 54% for any week.",
+"forYou": "Pick the holding period you can actually manage. Trade only the cells with a tick, enter the way the plan says, and never bigger than the size it gives.",
+"goodBad": "A tick with 60% or more is good. No call is not bad: it is the desk telling you the truth that there is no edge there today.",
+"impact": "If the call is Up with a tick: the rule has a proven record here; follow the entry rule and size. If it says No call: there is no proven edge at this period today, so do not trade it on direction.",
+"readIt": "When you see a plan, read the call first (Up, Down or No call), then the entry sentence, then the size. Open the signals table to see which signal is voting and its proof.",
+"scale": {
+"hi": 80,
+"lo": 40,
+"quick": "Out-of-sample hit rate: below 50% the rule loses, 50 to 55% no edge, 55 to 60% a real edge, above 60% strong for a single market.",
+"range": "Single markets rarely beat 55 to 65%; anyone claiming 80% on one market is fitting the past.",
+"unit": "%",
+"zones": [
+{
+"label": "Loses",
+"means": "The rule is wrong more than right.",
+"to": 50,
+"tone": "bad"
+},
+{
+"label": "No edge",
+"means": "Not better than no timing.",
+"to": 55,
+"tone": "wait"
+},
+{
+"label": "Edge",
+"means": "A proven, modest edge.",
+"to": 60,
+"tone": "good"
+},
+{
+"label": "Strong",
+"means": "Rare; check the sample size.",
+"to": null,
+"tone": "good"
+}
+]
+},
+"simple": "A plan for holding a trade for days, weeks or months instead of minutes. For each market and each holding period it says which way, when to get in, how big, through which product, and how often the same rule was right before."
+},
 "Swing turning point": {
 "example": "Like a cricket team's run rate that keeps rising and then clearly turns down for several overs. If funds built up to 200,000 net long and then cut by more than the threshold, the 200,000 week gets the dot.",
 "forYou": "As a seller, a fresh turning point after a big build-up is a reason to be more careful on the side the funds were pushing.",
@@ -14236,6 +14388,53 @@
 },
 "simple": "Vega is how much an option's price changes when implied volatility moves by one point. A seller has negative vega. So if fear rises, the sold options get dearer and the seller loses."
 },
+"Vehicles by horizon": {
+"example": "Holding gold for a year through MCX futures means rolling every 2 months and paying about 9.5% a year in roll cost (measured since Aug 2025), so gold must rise 9.5% just to break even. A gold ETF costs about 0.5%.",
+"forYou": "Under a month: bought options or spreads. 1 to 3 months: the futures contract that expires after your horizon. 6 months or more: an ETF or fund.",
+"goodBad": "A roll cost under 3% a year is fine; 5 to 10% is heavy; above 10% kills a year-long futures position.",
+"impact": "If the roll cost is positive and large: a long in futures bleeds every month; use a fund or ETF. If it is negative (backwardation, usual in crude): a rolled long earns it.",
+"readIt": "When you see the list, the first item is the fixed-loss choice. Read the roll cost line before choosing futures for anything longer than a month.",
+"scale": {
+"hi": 20,
+"lo": -20,
+"quick": "Annual roll cost for a long: under 3% fine, 3 to 6% noticeable, 6 to 10% heavy, above 10% avoid.",
+"range": "MCX gold has run at 5 to 13% a year; crude is usually negative.",
+"unit": "%",
+"zones": [
+{
+"label": "Earns",
+"means": "Backwardation pays a long.",
+"to": 0,
+"tone": "good"
+},
+{
+"label": "Fine",
+"means": "Cheap to hold.",
+"to": 3,
+"tone": "good"
+},
+{
+"label": "Noticeable",
+"means": "Fine for months, not years.",
+"to": 6,
+"tone": "ok"
+},
+{
+"label": "Heavy",
+"means": "Needs a big move to pay.",
+"to": 10,
+"tone": "wait"
+},
+{
+"label": "Avoid",
+"means": "Use a fund instead.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "Which product you can actually use to hold a view for a given time in India, and what it costs to stay in. Short holds suit options and futures; long holds suit funds, because futures must be rolled and each roll costs money."
+},
 "Version": {
 "example": "Like a phone software version number: a new number means something inside changed.",
 "forYou": "Note the code in your weekly review.",
@@ -14511,6 +14710,47 @@
 ]
 },
 "simple": "Walk-forward means: choose the rule on 6 past years, trade it for the next 2 years, then repeat. The Sharpe of all those stitched test periods is this number. It copies how you would really use research."
+},
+"Walk-forward record": {
+"example": "For gold at 1 week, the replay since 2012 made 156 calls over 44 separate spells and was right 61% of the time, against 54% for an up call with no timing. Both halves of the period were above 55%.",
+"forYou": "Never act on an in-sample claim. The ticked cells are the ones that passed this test.",
+"goodBad": "Beating the no-timing bar by 5 points or more with 20 or more spells is good. Beating it by 1 point is noise.",
+"impact": "If Right beats the bar in both halves with enough spells: the edge is real. If one half is far below the other: the edge may have gone.",
+"readIt": "When you see the record, compare Right with the no-timing bar. Then check the two halves agree and that spells and windows are not tiny.",
+"scale": {
+"hi": 15,
+"lo": -10,
+"quick": "Skill (Right minus no-timing): below 0 none, 0 to 3 points weak, 3 to 8 real, above 8 strong.",
+"range": "Single markets usually show 0 to 8 points of skill.",
+"unit": " pts",
+"zones": [
+{
+"label": "None",
+"means": "No timing skill.",
+"to": 0,
+"tone": "bad"
+},
+{
+"label": "Weak",
+"means": "Could be noise.",
+"to": 3,
+"tone": "wait"
+},
+{
+"label": "Real",
+"means": "A dependable edge.",
+"to": 8,
+"tone": "good"
+},
+{
+"label": "Strong",
+"means": "Check the sample size.",
+"to": null,
+"tone": "good"
+}
+]
+},
+"simple": "A test that replays the rule on the past as if it were live: on each day it may only use what was known that day, and it is graded on what happened next. It cannot peek at the future."
 },
 "Wall holds claim": {
 "example": "Like a dam that holds water better than the riverbank downstream. Call wall held 92.9%, put wall 80.0%.",
