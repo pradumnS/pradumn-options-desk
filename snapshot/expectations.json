@@ -1,8 +1,8 @@
 {
  "ready": true,
- "builtAt": "2026-11-26T16:14:06+00:00",
- "updated": "2026-11-22",
- "researchAge": 4,
+ "builtAt": "2026-11-26T16:26:08+00:00",
+ "updated": "2026-11-26",
+ "researchAge": 0,
  "about": "Published expectations for upcoming events and assets. Each entry names who said it, what kind of source it is, when it was published and a link. Collected by web research; refreshed by the weekly research run. Nothing here is the desk's own forecast.",
  "countries": {
   "US": "United States",
@@ -23,7 +23,7 @@
    "previous": 3.4,
    "previousNote": "Advance estimate 3.4% annualised (29 Oct), up from 2.2% in Q2 and above the 3.2% expected then. Out at the same minute as core PCE.",
    "why": "Strong growth gives the Fed room to keep raising rates.",
-   "coverageNote": "Bloomberg, Reuters and WSJ surveys (typically 60-80 economists) are behind paywalls and could not be listed one by one; the published consensus they feed is 3.5%. Since 2021 the second estimate has moved about 0.3 points from the advance on average.",
+   "coverageNote": "Bloomberg, Reuters and WSJ surveys (typically 60-80 economists) are behind paywalls and could not be listed one by one; the published consensus they feed is 3.5%. Since 2021 the second estimate has moved about 0.3 points from the advance on average. Released 25 Nov at 4.3%, 0.9 points above the advance estimate and above every listed forecast; investment (software) and consumer spending drove the revision.",
    "scenarios": [
     {
      "if": "Revised to 3.8% or higher (0.3 or more above the 3.5% consensus)",
@@ -107,8 +107,12 @@
     "high": 3.8,
     "median": 3.55
    },
-   "actual": null,
-   "verdict": null,
+   "actual": {
+    "value": 4.3,
+    "source": "US Bureau of Economic Analysis (GDP second estimate, Q3 2026): 4.3% annualised, from 3.4%; real GDI 4.4%; core PCE price index 2.5% unrevised",
+    "link": "https://www.bea.gov/news/2026/gdp-second-estimate-and-corporate-profits-3rd-quarter-2026"
+   },
+   "verdict": "above expectations",
    "printGuide": null,
    "types": [
     "Bank",
@@ -130,7 +134,7 @@
    "previous": 0.3,
    "previousNote": "September: 0.3 m/m, 3.1% y/y",
    "why": "The Fed's own preferred inflation gauge. Another 0.3 keeps the December hike locked in.",
-   "coverageNote": "TD Securities (0.26%) and BofA (0.32%) were seen only in paywalled snippets and are left out. Cleveland Fed's figure is quoted at 0.27% by others but its own page shows no October core PCE, so it is left out.",
+   "coverageNote": "TD Securities (0.26%) and BofA (0.32%) were seen only in paywalled snippets and are left out. Cleveland Fed's figure is quoted at 0.27% by others but its own page shows no October core PCE, so it is left out. Released 25 Nov: core +0.3% m/m (0.29% unrounded per Advisor Perspectives), 3.3% y/y, headline 3.8% y/y; FedWatch moved to about 94% for a December hike.",
    "scenarios": [
     {
      "if": "Core 0.4% or more (above the 0.3% consensus)",
@@ -258,8 +262,12 @@
     "spanLow": 0.27,
     "spanHigh": 0.33
    },
-   "actual": null,
-   "verdict": null,
+   "actual": {
+    "value": 0.3,
+    "source": "US Bureau of Economic Analysis (Personal Income and Outlays, October 2026): core PCE +0.3% m/m, 3.3% y/y; headline +0.3% m/m, 3.8% y/y",
+    "link": "https://www.bea.gov/news/2026/personal-income-and-outlays-october-2026"
+   },
+   "verdict": "in line",
    "printGuide": {
     "rows": [
      {
@@ -422,7 +430,7 @@
    "previous": 2.6,
    "previousNote": "October 2.6% (in line), down from 2.7% in September; the first slowdown in 5 months. Core excluding fresh food and energy 2.6%.",
    "why": "The first look at Japan's November inflation, three weeks before the Bank of Japan meets.",
-   "coverageNote": "Reuters, Bloomberg, QUICK and Nikkei polls usually appear 1-2 days before the release (about 25-26 Nov). Only the calendar consensus could be verified so far; no bank has published a named Tokyo forecast. Re-searched 22 Nov: still no 2026 poll.",
+   "coverageNote": "Re-searched 26 Nov: no Reuters, Bloomberg or QUICK poll could be opened; calendar consensus ranges 2.8% to 3.0% by provider and one note has 3.1%. Trading Economics shows October at 2.8% where the official core figure was 2.6%, so its model may track a different index.",
    "scenarios": [
     {
      "if": "Tokyo core 3.0% or higher (above the 2.9% consensus)",
@@ -437,7 +445,7 @@
      "then": "December hike odds slip; the yen weakens through 160, raising Ministry of Finance intervention risk; Japan's 10-year eases toward 2.80%."
     }
    ],
-   "thin": true,
+   "thin": false,
    "countryName": "Japan",
    "days": 0,
    "views": [
@@ -449,19 +457,58 @@
      "published": "2026-11-22",
      "link": "https://www.investing.com/economic-calendar/tokyo-core-cpi-328",
      "old": false
+    },
+    {
+     "source": "Danske Bank (via Tradingpedia)",
+     "type": "Bank",
+     "view": "Consensus for Tokyo core (ex fresh food) 3.0% y/y, from 2.6%",
+     "value": 3.0,
+     "published": "2026-11-26",
+     "link": "https://www.tradingpedia.com/2026/11/26/eur-jpy-steadies-as-markets-await-tokyo-inflation-data/",
+     "old": false
+    },
+    {
+     "source": "Trading Economics model",
+     "type": "Model",
+     "view": "Tokyo CPI 2.9% y/y (calendar consensus 2.8%)",
+     "value": 2.9,
+     "published": "2026-11-26",
+     "link": "https://tradingeconomics.com/japan/tokyo-cpi",
+     "old": false
+    },
+    {
+     "source": "MetaTrader economic calendar (consensus)",
+     "type": "Media",
+     "view": "Consensus 2.8% y/y (previous 2.6%)",
+     "value": 2.8,
+     "published": "2026-11-26",
+     "link": "https://www.metatrader.com/en/economic-calendar/japan/tokyo-consumer-price-index-ex-fresh-food-yy",
+     "old": false
+    },
+    {
+     "source": "Falkenstein FX note (Substack)",
+     "type": "Independent analyst",
+     "view": "Forecast 3.1% from 2.6%",
+     "value": 3.1,
+     "published": "2026-11-25",
+     "link": "https://falkenstein.substack.com/p/tariffs-a-tech-bear-market-and-a",
+     "old": false
     }
    ],
    "summary": {
-    "n": 1,
-    "low": 2.9,
-    "high": 2.9,
+    "n": 5,
+    "low": 2.8,
+    "high": 3.1,
     "median": 2.9
    },
    "actual": null,
    "verdict": null,
    "printGuide": null,
    "types": [
-    "Media"
+    "Bank",
+    "Independent analyst",
+    "Media",
+    "Model"
    ],
    "dateSources": [
     "ForexFactory"
@@ -480,7 +527,7 @@
    "previous": 49.3,
    "previousNote": "October 49.3 against a 50.0 Reuters-poll median (September 50.1); new export orders 48.7. The private RatingDog (S&P Global) survey read 52.0.",
    "why": "Below 50 means factories are shrinking: less demand for copper, silver and oil.",
-   "coverageNote": "Reuters and Bloomberg polls for the official PMI usually publish about 26-28 Nov; as of 22 Nov only one model forecast exists and no bank has published a number. October missed the Bloomberg consensus of 49.9 (Commerzbank).",
+   "coverageNote": "Re-searched 26 Nov: no Reuters or Bloomberg poll found yet (they usually publish 27-29 Nov); calendar consensus figures disagree (48.6 to 49.7). October missed the Bloomberg consensus of 49.9 (Commerzbank).",
    "scenarios": [
     {
      "if": "PMI 50.0 or higher (back to growth)",
@@ -499,7 +546,7 @@
      "then": "The rally fades; copper gains capped; deflation worries persist; mild risk-off for Asian exporters."
     }
    ],
-   "thin": true,
+   "thin": false,
    "countryName": "China",
    "days": 4,
    "views": [
@@ -511,18 +558,37 @@
      "published": "2026-11-22",
      "link": "https://tradingeconomics.com/china/business-confidence",
      "old": false
+    },
+    {
+     "source": "Rio Times Asia brief (calendar consensus)",
+     "type": "Media",
+     "view": "Manufacturing PMI forecast 49.5 after 49.3",
+     "value": 49.5,
+     "published": "2026-11-26",
+     "link": "https://www.riotimesonline.com/asia-intelligence-brief-thursday-november-26-2026/",
+     "old": false
+    },
+    {
+     "source": "MetaTrader economic calendar (consensus)",
+     "type": "Media",
+     "view": "Consensus 48.6 (previous 49.3)",
+     "value": 48.6,
+     "published": "2026-11-26",
+     "link": "https://www.metatrader.com/en/economic-calendar/china/manufacturing-pmi",
+     "old": false
     }
    ],
    "summary": {
-    "n": 1,
-    "low": 49.7,
+    "n": 3,
+    "low": 48.6,
     "high": 49.7,
-    "median": 49.7
+    "median": 49.5
    },
    "actual": null,
    "verdict": null,
    "printGuide": null,
    "types": [
+    "Media",
     "Model"
    ]
   },
@@ -868,7 +934,7 @@
    "previous": 165,
    "previousNote": "October +165k against about 60-65k expected; unemployment 4.1%; hourly pay +0.4% m/m; August and September revised up 84k in total (BLS, 6 Nov).",
    "why": "Strong hiring plus hot inflation is the mix that makes the Fed keep raising rates.",
-   "coverageNote": "Too early: Bloomberg and Reuters consensus usually appears in the week of the release. Kalshi's payrolls market exists but could not be read. Re-searched 22 Nov: no consensus number published yet.",
+   "coverageNote": "Re-searched 26 Nov: no Bloomberg or Reuters consensus yet (usually the week of release). Kalshi's ladder was read from its own page; TapeAndOdds and usaheadlinex previews were not opened.",
    "scenarios": [
     {
      "if": "150k or more, unemployment 4.0-4.1%",
@@ -925,13 +991,22 @@
      "published": "2026-11-15",
      "link": "https://pro.thestreet.com/market-commentary/the-week-ahead-have-we-seen-the-q4-bottom",
      "old": false
+    },
+    {
+     "source": "Kalshi payrolls market",
+     "type": "Prediction market",
+     "view": "Market median 90k to 100k; ladder centred near 90k with 41% probability of more than 100k; unemployment most likely 4.1% or 4.2% (median 4.1%)",
+     "value": 90,
+     "published": "2026-11-20",
+     "link": "https://kalshi.com/economics/jobs-report-predictions",
+     "old": false
     }
    ],
    "summary": {
-    "n": 1,
-    "low": 95,
+    "n": 2,
+    "low": 90,
     "high": 95,
-    "median": 95
+    "median": 92.5
    },
    "actual": null,
    "verdict": null,
@@ -939,6 +1014,7 @@
    "types": [
     "Bank",
     "Model",
+    "Prediction market",
     "Research house"
    ]
   },
@@ -954,7 +1030,7 @@
    "previous": 28.7,
    "previousNote": "October: exports +28.7% y/y and imports +34.7% y/y in yuan terms; January-October trade +20% to 44.81 trillion yuan (customs, 10 Nov).",
    "why": "China's export boom is what keeps copper, oil and the yuan bid while its own factories report contraction; a slowdown would hit metals first.",
-   "coverageNote": "Searched 22 Nov: no Reuters or Bloomberg poll yet for November exports; polls usually publish 4-6 Dec. The one named view is on imports only, so it has no value in the event's unit.",
+   "coverageNote": "Searched 22 and 26 Nov: no Reuters or Bloomberg poll yet for November exports; polls usually publish 4-6 Dec. The one named view is on imports only, so it has no value in the event's unit.",
    "scenarios": [
     {
      "if": "Exports grow 25% or more again, imports 30% or more",
@@ -1002,7 +1078,7 @@
    "previous": 0.7,
    "previousNote": "October: CPI 0.7% y/y (September 0.9%), core 0.8%; PPI +5.7% y/y, the fastest of 2026 (NBS, 11 Nov).",
    "why": "Rising Chinese producer prices feed global goods inflation, which keeps the Fed hiking; a soft CPI would revive stimulus bets instead.",
-   "coverageNote": "Searched 22 Nov: no forecast for November CPI or PPI yet. Reuters, Bloomberg and Caixin polls (Caixin surveyed 13 institutions last year) usually publish 7-8 Dec. The desk fills the actual from the NBS release.",
+   "coverageNote": "Searched 22 and 26 Nov: no forecast for November CPI or PPI yet. Reuters, Bloomberg and Caixin polls usually publish 7-8 Dec. The desk fills the actual from the NBS release.",
    "scenarios": [
     {
      "if": "CPI 1.0% or higher with PPI above 6%",
@@ -1037,7 +1113,7 @@
    "metric": "Fed funds rate change",
    "unit": "bp",
    "previous": 0,
-   "previousNote": "Held at 3.75-4.00% on 28 Oct (two dissents for a hike). FedWatch odds of a December hike rose from about 71% (2 Nov) to over 90% (20 Nov).",
+   "previousNote": "Held at 3.75-4.00% on 28 Oct (two dissents for a hike). FedWatch odds of a December hike rose from about 71% (2 Nov) to about 94% after the 25 Nov PCE release.",
    "why": "A hike is priced in; the dollar and gold will move on what the Fed signals for 2027.",
    "coverageNote": "FedWatch odds differ by source and time (88-99%); the live CME page was not read directly. Citi, Wells Fargo, RBC, TD, Nomura and ING December calls were not found on open pages.",
    "scenarios": [
@@ -1063,13 +1139,23 @@
    "days": 13,
    "views": [
     {
+     "source": "CME FedWatch (via Fox Business, after the October PCE release)",
+     "type": "Market pricing",
+     "view": "94% for a 25 bp hike, 6% for hold, after core PCE 3.3% y/y on 25 Nov",
+     "value": 25,
+     "published": "2026-11-25",
+     "link": "https://www.foxbusiness.com/economy/october-2026-pce-inflation",
+     "old": false
+    },
+    {
      "source": "CME FedWatch (via MLQ.ai)",
      "type": "Market pricing",
      "view": "92.7% for +25 bp, 7.2% for +50 bp; 73% for another hike in January (other snapshots 20-22 Nov: 91.5% to 99.2%)",
      "value": 25,
      "published": "2026-11-19",
      "link": "https://mlq.ai/news/jpmorgan-now-expects-fed-rate-hikes-at-the-next-three-meetings-as-jefferson-says-the-ai-buildout-is-pushing-up-inflation/",
-     "old": false
+     "stale": true,
+     "old": true
     },
     {
      "source": "Kalshi (via PredictionMarketsPicks)",
@@ -1239,7 +1325,7 @@
    "previous": 0.3,
    "previousNote": "Core 0.3% in August, September and October. Out the day after the 9 Dec Fed decision.",
    "why": "A fourth 0.3 supports the dollar's path to 105; a 0.2 or lower is the likeliest trigger for a turn.",
-   "coverageNote": "Too early for the Bloomberg and Reuters consensus; banks usually publish after the 4 Dec jobs report.",
+   "coverageNote": "Searched 26 Nov: still too early for the Bloomberg and Reuters consensus; banks usually publish after the 4 Dec jobs report. BLS has said it will not publish 12-month changes for some October indexes, so the November annual rate may be incomplete.",
    "scenarios": [
     {
      "if": "Core 0.4% or more (above forecasts)",
@@ -1468,7 +1554,7 @@
    "previous": 6.09,
    "previousNote": "October: 6.09% (up from 5.54%), a two-year high and above the RBI's 6% ceiling. Released after the 4 Dec RBI decision, so it mainly shapes February.",
    "why": "Decides whether the RBI keeps hiking in February.",
-   "coverageNote": "Reuters, Bloomberg and Mint polls for November usually appear around 8-10 Dec. Bank of Baroda and Kotak commented without a November number.",
+   "coverageNote": "Re-searched 26 Nov: Union Bank's 6.3% is still the only November-specific number; Reuters, Bloomberg and Mint polls usually appear around 8-10 Dec. Bank of Baroda and Kotak commented without a November number.",
    "scenarios": [
     {
      "if": "CPI 6.6% or higher (well above ~6.3%)",
@@ -1692,6 +1778,300 @@
     "Bank of Japan"
    ],
    "dateConfirmed": false
+  },
+  {
+   "id": "jp-cpi-2026-11",
+   "date": "2026-12-18",
+   "time": "8:30 am Tokyo (23:30 GMT on 17 Dec)",
+   "country": "JP",
+   "category": "Inflation",
+   "event": "Japan national consumer prices, November",
+   "metric": "Core CPI (ex fresh food), year on year",
+   "unit": "%",
+   "previous": 2.2,
+   "previousNote": "October: core 2.2% y/y, below the 2.3% forecast and a 14-month low.",
+   "why": "Lands the morning of the Bank of Japan decision; a soft print gives the board cover to delay the hike markets price at over 80%.",
+   "coverageNote": "Added 26 Nov from calendar sites (forexfundamentals, financecalendar) that give 18 Dec 8:30 am Tokyo; the Statistics Bureau page found was not updated for this cycle. No forecast exists yet; Reuters polls appear about 2 days before release.",
+   "scenarios": [
+    {
+     "if": "Core 2.5% or higher (Tokyo pickup confirmed nationally)",
+     "then": "BoJ hike the same day looks certain with hawkish guidance; yen firms toward 157, Japan's 10-year above 3%; gold helped by a softer dollar."
+    },
+    {
+     "if": "Core 2.2% to 2.4%",
+     "then": "No change to the 80%-plus hike pricing; USD/JPY holds 158-160; little spillover to NIFTY or the rupee."
+    },
+    {
+     "if": "Core 2.1% or lower",
+     "then": "Doubts over the hike grow; yen weakens through 160 with intervention risk; JGB yields ease; neutral for US yields and gold."
+    }
+   ],
+   "thin": true,
+   "countryName": "Japan",
+   "days": 22,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "printGuide": null,
+   "types": []
+  },
+  {
+   "id": "us-gdp-2026q3-3",
+   "date": "2026-12-23",
+   "time": "8:30 am New York",
+   "country": "US",
+   "category": "Growth",
+   "event": "US GDP, July-September (third estimate)",
+   "metric": "GDP, annualised",
+   "unit": "%",
+   "previous": 4.3,
+   "previousNote": "Second estimate 4.3% annualised (25 Nov), up from the 3.4% advance; real GDI 4.4%. Out the same minute as November core PCE.",
+   "why": "Confirms whether growth really ran above 4% going into the Fed's 2027 decisions; the price indexes matter less since CPI and PCE are already out.",
+   "coverageNote": "Added 26 Nov from the BEA schedule (third estimate due 23 Dec with corporate profits and state GDP). No forecast exists yet; third estimates since 2021 have moved about 0.1-0.2 points from the second.",
+   "scenarios": [
+    {
+     "if": "Revised to 4.6% or higher",
+     "then": "Overheating narrative: January hike odds rise, dollar and 2-year up, gold capped; US stocks mixed, rupee softer."
+    },
+    {
+     "if": "4.1% to 4.5% (near the second estimate)",
+     "then": "No reaction on its own; November core PCE, out at the same time, decides the move."
+    },
+    {
+     "if": "Revised down to 4.0% or lower",
+     "then": "Mild relief for bonds and gold; dollar eases slightly; NIFTY and the rupee follow the PCE print."
+    }
+   ],
+   "thin": true,
+   "countryName": "United States",
+   "days": 27,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "printGuide": null,
+   "types": []
+  },
+  {
+   "id": "us-pce-2026-11",
+   "date": "2026-12-23",
+   "time": "8:30 am New York",
+   "country": "US",
+   "category": "Inflation",
+   "event": "US core PCE prices, November",
+   "metric": "Core PCE, month on month",
+   "unit": "%",
+   "previous": 0.3,
+   "previousNote": "October: core +0.3% m/m (0.29% unrounded), 3.3% y/y, the highest in almost three years; headline +0.3% m/m, 3.8% y/y (BEA, 25 Nov).",
+   "why": "First inflation print after the December hike; sets the tone for the January meeting that markets price at about 73% for another hike.",
+   "coverageNote": "Added 26 Nov from the BEA schedule (Personal Income and Outlays, November 2026, due 23 Dec). No forecast exists yet; banks map core PCE from CPI and PPI after 10-11 Dec.",
+   "scenarios": [
+    {
+     "if": "Core 0.4% or more",
+     "then": "January hike locked and 50 bp talk returns: 2-year and dollar up, gold, US stocks and NIFTY down, rupee weaker."
+    },
+    {
+     "if": "Core 0.3% (in line with the run rate)",
+     "then": "January hike odds stay near 70%; small moves in the dollar and yields; gold drifts."
+    },
+    {
+     "if": "Core 0.2%",
+     "then": "January hike odds fall; yields and the dollar ease; gold and stocks get modest relief, NIFTY and the rupee firmer."
+    },
+    {
+     "if": "Core 0.1% or lower",
+     "then": "Peak-rate narrative: 2-year drops 10-15 bp, dollar down, gold and silver rally; foreign flows help NIFTY and the rupee."
+    }
+   ],
+   "thin": true,
+   "countryName": "United States",
+   "days": 27,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "printGuide": {
+    "rows": [
+     {
+      "prints": "0.4 or more",
+      "needs": "0.35 or more",
+      "vs": null,
+      "group": "Core 0.3 or more",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -0.27,
+        "up": 44
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": 0.55,
+        "up": 56
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 0.3,
+        "up": 56
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": 0.12,
+        "up": 56
+       }
+      ]
+     },
+     {
+      "prints": "0.3",
+      "needs": "0.25 to 0.34",
+      "vs": null,
+      "group": "Core 0.3 or more",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -0.27,
+        "up": 44
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": 0.55,
+        "up": 56
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 0.3,
+        "up": 56
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": 0.12,
+        "up": 56
+       }
+      ]
+     },
+     {
+      "prints": "0.2",
+      "needs": "0.15 to 0.24",
+      "vs": null,
+      "group": "Core 0.2",
+      "n": 9,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 9,
+        "avg": -1.0,
+        "up": 22
+       },
+       {
+        "label": "Silver",
+        "n": 9,
+        "avg": -0.19,
+        "up": 33
+       },
+       {
+        "label": "Bitcoin",
+        "n": 9,
+        "avg": 2.28,
+        "up": 78
+       },
+       {
+        "label": "Dollar index",
+        "n": 9,
+        "avg": -0.0,
+        "up": 44
+       }
+      ]
+     },
+     {
+      "prints": "0.1 or less",
+      "needs": "below 0.15",
+      "vs": null,
+      "group": "Core 0.1 or less",
+      "n": 3,
+      "assets": [
+       {
+        "label": "Gold",
+        "n": 3,
+        "avg": 2.76,
+        "up": 100
+       },
+       {
+        "label": "Silver",
+        "n": 3,
+        "avg": 1.05,
+        "up": 33
+       },
+       {
+        "label": "Bitcoin",
+        "n": 3,
+        "avg": 0.35,
+        "up": 67
+       },
+       {
+        "label": "Dollar index",
+        "n": 3,
+        "avg": -1.65,
+        "up": 0
+       }
+      ]
+     }
+    ],
+    "assets": [
+     "Gold",
+     "Silver",
+     "Bitcoin",
+     "Dollar index"
+    ],
+    "note": "History: every US core CPI report since January 2025, average move from the day before to the day after, and how often it rose. 0.3 and 0.4 share the hot group. Core PCE comes after CPI, so much of it is already known and its moves are usually smaller; markets react to the surprise against forecasts, not the level."
+   },
+   "types": []
+  },
+  {
+   "id": "cn-pmi-2026-12",
+   "date": "2026-12-31",
+   "time": "9:30 am Beijing",
+   "country": "CN",
+   "category": "Activity",
+   "event": "China official PMI, December",
+   "metric": "Manufacturing PMI",
+   "unit": "",
+   "previous": 49.3,
+   "previousNote": "October 49.3 (September 50.1); November due 30 Nov. The NBS publishes on the last day of the month.",
+   "why": "Year-end read on China's factories: below 50 again would weigh on copper, oil and NIFTY Metal into the new year.",
+   "coverageNote": "Added 26 Nov; the date follows the NBS pattern of releasing on the last day of the month and is not yet confirmed on its calendar. No forecast exists yet; polls publish about 28-30 Dec.",
+   "scenarios": [
+    {
+     "if": "PMI 50.0 or higher",
+     "then": "Yuan firms, copper up 1-2%, oil and silver supported; NIFTY Metal gains; stimulus bets fade."
+    },
+    {
+     "if": "49.3 to 49.9",
+     "then": "Muted: copper range-bound; little effect on NIFTY, the rupee or US yields."
+    },
+    {
+     "if": "49.2 or lower",
+     "then": "Copper and oil fall 1-2%, yuan softer, China stocks down but stimulus hopes rise; cheaper oil helps the rupee."
+    }
+   ],
+   "thin": true,
+   "countryName": "China",
+   "days": 35,
+   "views": [],
+   "summary": null,
+   "actual": null,
+   "verdict": null,
+   "printGuide": null,
+   "types": []
   }
  ],
  "outlooks": [
@@ -1968,26 +2348,103 @@
    "published": "2026-10",
    "link": "https://www.outlookindia.com/national/indias-q2-gdp-growth-seen-at-73-by-finance-ministry-ahead-of-rbi-estimate",
    "old": false
+  },
+  {
+   "asset": "Silver",
+   "horizon": "2027 average",
+   "source": "Bank of America (via Finbold)",
+   "type": "Bank",
+   "view": "$70 average in 2027, $75 in Q2 and Q3 2027",
+   "value": 70,
+   "published": "2026-11-16",
+   "link": "https://finbold.com/banking-giant-sets-silver-price-for-2027/",
+   "old": false
+  },
+  {
+   "asset": "Silver",
+   "horizon": "2027 average",
+   "source": "Metals Focus",
+   "type": "Research house",
+   "view": "$84.40 average, above $90 in Q4 2027",
+   "value": 84.4,
+   "published": "2026",
+   "link": "https://news.metal.com/newscontent/HOQVH2TFYYSPYWIWP7N2TKP75PIAWR3QR5VQGFQ-gold-at-usd-6000-silver-at-usd-90-metals-focus-remains-bullish-for-2027",
+   "old": false
+  },
+  {
+   "asset": "Silver",
+   "horizon": "2027",
+   "source": "World Bank (via Finbold)",
+   "type": "Government",
+   "view": "$62 in 2027; warns silver faces a steeper correction than gold",
+   "value": 62,
+   "published": "2026-11-05",
+   "link": "https://www.kitco.com/news/article/2026-11-05/world-bank-sees-gold-holding-above-4000-through-2028-warns-silver-faces",
+   "old": false
+  },
+  {
+   "asset": "Copper",
+   "horizon": "2027 average",
+   "source": "Goldman Sachs (via Newsquawk and Finimize)",
+   "type": "Bank",
+   "view": "$15,400/t average (raised from $13,800), end-2026 $14,700; Goldman has since said $15,400 may be too high after the midterms, with $14,500-14,600 a lower ceiling",
+   "value": 15400,
+   "published": "2026-11",
+   "link": "https://finimize.com/content/goldman-sees-a-lower-ceiling-for-copper-after-the-midterms",
+   "old": false
+  },
+  {
+   "asset": "NIFTY 50",
+   "horizon": "End 2027",
+   "source": "Goldman Sachs (Sunil Koul)",
+   "type": "Bank",
+   "view": "28,500 by December 2027 with India upgraded to overweight; 15% EPS growth in 2027 and 2028",
+   "value": 28500,
+   "published": "2026-11-18",
+   "link": "https://www.businesstoday.in/markets/stocks/story/nifty-at-28500-by-2027-sunil-koul-of-goldman-sachs-on-its-india-overweight-stance-568153-2026-11-18",
+   "old": false
+  },
+  {
+   "asset": "NIFTY 50",
+   "horizon": "End 2027",
+   "source": "Citi Research",
+   "type": "Bank",
+   "view": "28,000 by December 2027, raised from 26,000; P/E 18x from 17x; horizon moved from September 2027",
+   "value": 28000,
+   "published": "2026-11-12",
+   "link": "https://www.newkerala.com/news/a/citi-raises-nifty-target-28000-sees-12-upside-769.htm",
+   "old": false
+  },
+  {
+   "asset": "Sensex",
+   "horizon": "End 2027",
+   "source": "Morgan Stanley",
+   "type": "Bank",
+   "view": "95,000 by December 2027 in the base case, about 16% upside",
+   "value": 95000,
+   "published": "2026-11-16",
+   "link": "https://www.businesstoday.in/markets/stocks/story/morgan-stanley-sees-sensex-rising-16-by-dec-2027-heres-why-567652-2026-11-16",
+   "old": false
   }
  ],
  "byType": {
-  "Bank": 53,
-  "Research house": 13,
+  "Bank": 59,
+  "Research house": 14,
   "Central bank": 10,
   "Poll of economists": 9,
   "Rating agency": 7,
-  "Model": 4,
-  "Market pricing": 3,
-  "Prediction market": 3,
-  "Government": 2,
-  "Independent analyst": 1,
-  "Media": 1
+  "Model": 5,
+  "Media": 4,
+  "Prediction market": 4,
+  "Market pricing": 4,
+  "Government": 3,
+  "Independent analyst": 2
  },
  "counts": {
-  "events": 13,
+  "events": 17,
   "withViews": 12,
-  "thin": 7,
-  "views": 81,
-  "outlooks": 25
+  "thin": 9,
+  "views": 89,
+  "outlooks": 32
  }
 }
