@@ -591,6 +591,9 @@ body {
 .sw-cell { display: inline-grid; gap: 0; line-height: 1.15; font-size: 12px; }
 .sw-cell b { font-weight: 650; } .sw-cell small { font-size: 10px; color: var(--ink-3); }
 .sw-pos b { color: var(--up); } .sw-neg b { color: var(--down); } .sw-neu b { color: var(--ink-3); font-weight: 500; }
+.sw-legs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.sw-leg { font-family: var(--font-num); font-size: 11.5px; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--line); }
+.sw-sell { color: var(--puts); } .sw-buy { color: var(--calls); }
 .sw-pick { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 6px; }
 .sw-pick button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
 .sw-pick button[aria-pressed=true] { border-color: var(--calls); color: var(--ink); background: var(--calls-dim); font-weight: 600; }
@@ -15377,6 +15380,34 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       '<ul class="sw-ev">' + lv.rows.map(function (r) { return "<li><i>" + esc(r.vehicle) + ":</i> " + esc(r.note) + "</li>"; }).join("") + "</ul>" +
       '<p class="rdr-note">' + esc(lv.wrong) + "</p><p class=\"rdr-note\">Targets: " + views + ". A target is someone's view, not a fact; the Events page keeps them with their dates.</p></div></section>";
   }
+  /* The same plan in strikes, for a seller: structures priced from the
+     stored chain, with the odds history gives each one. */
+  function swLeg(l) {
+    return '<span class="sw-leg sw-' + (l.act === "SELL" ? "sell" : "buy") + '">' + l.act + " " + (l.side === "FUT" ? "future" : n0(l.strike) + " " + l.side) +
+      (l.side === "FUT" ? "" : " @ " + l.price.toFixed(1)) + "</span>";
+  }
+  function swSeller(p) {
+    var T = ' data-term="Seller plan"';
+    var S = p.seller;
+    if (!S) return "";
+    if (!S.expiry) return '<p class="rdr-note">' + esc(S.note) + "</p>";
+    var rows = (S.structures || []).map(function (st) {
+      var o = st.odds || {};
+      var lots = st.overBudget ? '<span class="neg">0 (1 lot risks ' + swRs(st.maxLossRs) + ")</span>" : n0(st.lots);
+      return "<tr" + (st.recommended ? ' class="sw-on"' : "") + '><td class="lft"><b>' + esc(st.label) + "</b>" + (st.recommended ? ' <span class="rdr-chip rdr-c-green">fits the call</span>' : "") +
+        '<div class="sw-legs">' + st.legs.map(swLeg).join("") + "</div>" + (st.note ? '<div class="kpi-m">' + esc(st.note) + "</div>" : "") + "</td>" +
+        "<td>" + (st.creditRs ? swRs(st.creditRs) : st.hedgeRs ? "pays " + swRs(st.hedgeRs) : "&mdash;") + "</td>" +
+        '<td class="neg">' + swRs(-st.maxLossRs) + "</td><td>" + lots + "</td>" +
+        "<td>" + (o.pEndInside != null ? Math.round(o.pEndInside * 100) + "%" : "&mdash;") + (o.pEndInside3y != null ? '<div class="kpi-m">last 3 years ' + Math.round(o.pEndInside3y * 100) + "%</div>" : "") + "</td>" +
+        "<td>" + (o.pTouch != null ? Math.round(o.pTouch * 100) + "%" : "&mdash;") + (o.pTouch3y != null ? '<div class="kpi-m">last 3 years ' + Math.round(o.pTouch3y * 100) + "%</div>" : "") + "</td></tr>";
+    }).join("");
+    return '<p class="rdr-line">' + esc(S.expiry) + " expiry (" + S.sessions + " sessions), lot " + S.lot + ": short PE at <b>" + n0(S.levels.shortPut) + "</b> (" + swPct(S.levels.p05, 1) +
+      "), short CE at <b>" + n0(S.levels.shortCall) + "</b> (" + swPct(S.levels.p95, 1) + ").</p>" +
+      '<div class="tablewrap"><table class="dt"><thead><tr><th class="lft"' + T + ">Structure</th><th" + T + ">Credit (1 lot)</th><th" + T + ">Worst loss (1 lot)</th><th" + T + ">Lots in budget</th>" +
+      "<th" + T + ">Ended inside</th><th" + T + ">Touched a short strike</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      '<p class="rdr-note">' + esc(S.note) + " Ended inside: how often the period finished between the short strikes. Touched: how often the path hit one on the way, which is when a seller is stopped or margin-called even if expiry would have paid. " +
+      "The highlighted row is the structure that fits the call; the others are there so you can see what the same levels cost the other way round. The Nifty page's option ladder ranks spreads by today's volatility; this table uses the period's own history, so the two can differ.</p>";
+  }
   function viewPlans() {
     var T = ' data-term="Swing plans"';
     var intro = pageIntro("Plans",
@@ -15405,6 +15436,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       (mk.facts && mk.facts.mcxFutures ? '<p class="rdr-note">' + esc(mk.facts.mcxFutures) + (mk.facts.mcxMarginNote ? " Margin: " + esc(mk.facts.mcxMarginNote) : "") + "</p>" : "") +
       (mk.facts && mk.facts.options ? '<p class="rdr-note">' + esc(mk.facts.options) + "</p>" : "") +
       (mk.carry ? '<p class="rdr-note"><b>Measured roll cost:</b> ' + swPct(mk.carry.medianPct, 1) + " a year (median of " + n0(mk.carry.n) + " days since " + rdrD(mk.carry.since) + ", last " + swPct(mk.carry.lastPct, 1) + "). Positive means you pay to roll a long.</p>" : "") + "</div>" +
+      (p.seller ? '<div class="rdr-cell rdr-wide"><h3 data-term="Seller plan">The same plan in strikes, for a seller</h3>' + swSeller(p) + "</div>" : "") +
       '<div class="rdr-cell rdr-wide"><h3' + T + ">Scheduled inside the window (to " + rdrD(p.horizonDate) + ")</h3>" + swEvents(p) + "</div>" +
       "</div></section>";
     var sc = SWING.scorecard || {};
@@ -24661,6 +24693,11 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
       "Roll cost is measured from the desk's stored MCX contracts as the annualised gap between the front and the next contract: positive means a long pays it at every roll (gold about 9 to 10% a year, silver about 11%), negative means a long earns it (crude, usually in backwardation).",
       "Fixed-loss structures (bought options, debit spreads) come first at short periods; for a year only a fund or ETF holds without rolling."
     ],
+    "Seller plan": [
+      "The swing plan rewritten as option structures for NIFTY, priced from the stored chain: short strikes at the levels the holding period has reached 1 time in 20 in its own history, hedges one 1-in-100 level further out (capped at 1.2% of spot), lots from the 2% risk budget divided by the worst loss of one lot.",
+      "Five structures are priced every day: sell both sides, sell a PE spread, sell a CE spread, buy the future with a bought PE, sell the future with a bought CE. The one that fits the call is highlighted; No call fits selling both sides.",
+      "Ended inside is how often the period finished between the short strikes; Touched is how often the path hit one on the way, the number that matters for stops and margin. The nearest stored expiry that covers the period is used, preferring the monthly over a thin weekly; periods beyond the stored chain say so."
+    ],
     "Long view": [
       "For markets with published 2027 targets (gold, silver, crude, copper, NIFTY), each way of holding the view to that date is priced on a 10% slice of capital: ETF or fund, MCX futures rolled at the measured carry, and bought options rolled each expiry.",
       "Three outcomes are shown side by side: the middle target is hit, nothing happens, or the market instead falls by its 1-year 1-in-20 move. The futures row shows the cash the bad path needs for daily mark-to-market.",
@@ -25669,6 +25706,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Walk-forward record": { deep: "Walk-forward record", how: function () { return "Replayed daily since <b>2012</b>; tick at <b>100</b> days, <b>10</b> spells, <b>8</b> windows, <b>55%</b>."; } },
     "Gap risk": { deep: "Gap risk", how: function () { return "Size so the <b>1-in-20</b> worst path loses <b>2%</b> of capital; touch table at <b>3/5/10/20%</b>."; } },
     "Vehicles by horizon": { deep: "Vehicles by horizon", how: function () { return "Roll cost = front-to-next spread annualised; gold about <b>+9.5%</b>, silver <b>+11.6%</b>, crude <b>-20%</b> (2025-26)."; } },
+    "Seller plan": { deep: "Seller plan", how: function () { return "Short strikes at the <b>1-in-20</b> levels, hedge at <b>1-in-100</b> capped at <b>1.2%</b>; lots = <b>2%</b> budget / worst loss."; } },
     "Long view": { deep: "Long view", how: function () { return "A <b>10%</b> slice; three outcomes: target, flat, and the 1-year <b>1-in-20</b> fall."; } },
     "Events and expectations": { deep: "Events and expectations", how: function () { return "Spread = low, median, high of views up to <b>21</b> days old; calendar <b>35</b> days ahead."; } },
     "International headline strip": { deep: "International headline strip", how: function () { return "<b>10</b> numbers, one source each; amber after <b>4</b> days."; } },
@@ -28908,6 +28946,7 @@ table.dt td.mac-india { white-space: normal; min-width: 260px; max-width: 520px;
     "Walk-forward record": ["The rule replayed on the past using only what was known each day.", "Right must beat the same call with no timing."],
     "Gap risk": ["How big a move this holding period can bring, including the worst point inside it.", "Size for the 1-in-20 bad path, not the average."],
     "Vehicles by horizon": ["Which Indian product can hold the view this long, and what it costs to stay in.", "Fixed-loss first; funds for a year."],
+    "Seller plan": ["The plan as strikes: what to sell, what to buy as the hedge, how many lots, and how often that held before.", "Touched is the number that stops you out."],
     "Long view": ["Three ways to hold a 2027 target, priced side by side with what each loses if wrong.", "Only a fund holds a year without rolling."],
     "Events and expectations": ["What is coming up, and what each bank, fund, poll or market expects from it.", "The actual sits next to the views once it is out."],
     "International headline strip": ["The ten numbers to check first, each from one source with its date.", "Every tab below uses the same figures."],

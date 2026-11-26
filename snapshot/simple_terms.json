@@ -1132,8 +1132,8 @@
 "z (3 years)": "Commodity positioning link",
 "z now": "Reading CFTC positioning"
 },
-"count": 932,
-"generatedAt": "2026-11-22T17:18:43Z",
+"count": 933,
+"generatedAt": "2026-11-26T16:20:58Z",
 "terms": {
 "&ge; 85 (crowded long)": {
 "example": "Like a cinema hall that is already 85% full, so few new people are left to come in. If the funds' net ranged from 50,000 to 250,000 contracts and now sits at 230,000, the COT index is 90.",
@@ -12482,6 +12482,41 @@
 "impact": "If the ratio goes up: selling pays better. If it goes down below 1: selling underpays.",
 "readIt": "When you see this rule missed, you sold cheap premium.",
 "simple": "This rule says sell only when implied volatility is at least realised volatility. That is an IV/RV ratio of 1 or more. Below 1, the seller is paid less than the risk has been costing."
+},
+"Seller plan": {
+"example": "On 20 Nov 2026 the 1-week plan for NIFTY (25,801) said No call, so the fitting structure was to sell both sides for the 1 Dec expiry: sell the 24,700 PE and the 26,950 CE, buy the 24,400 PE and 27,250 CE as hedges, 1 lot, credit about Rs 1,060, worst loss Rs 18,400. Over every past week the market ended inside those levels 90% of the time and touched one of them 18% of the time (8% in the last 3 years).",
+"forYou": "Sell at the strikes the table gives, never nearer, and never more lots than the budget column. If an event sits inside the window, expect the Touched number to run higher than history says.",
+"goodBad": "Touched under 10% in the last 3 years is good for a seller; above 20% means the strikes are too close for the period.",
+"impact": "If the call is No call: sell both sides at the 1-in-20 levels. If the call is Up: sell only the PE spread, or buy the future with a PE as the hedge. If Down: sell only the CE spread.",
+"readIt": "When you see the table, find the highlighted row: it fits today's call. Read Touched before Ended inside: touching a short strike is what forces a seller out early.",
+"scale": {
+"hi": 40,
+"lo": 0,
+"quick": "Touched a short strike inside the period: under 10% comfortable, 10 to 20% normal, above 20% too close.",
+"range": "At the 1-in-20 levels, Touched usually runs 10 to 20% over all history and lower in calm years.",
+"unit": "%",
+"zones": [
+{
+"label": "Comfortable",
+"means": "Rarely stopped out.",
+"to": 10,
+"tone": "good"
+},
+{
+"label": "Normal",
+"means": "Stopped out one time in five or so.",
+"to": 20,
+"tone": "ok"
+},
+{
+"label": "Too close",
+"means": "Move the strikes out or shorten the period.",
+"to": null,
+"tone": "bad"
+}
+]
+},
+"simple": "The swing plan written as option trades for NIFTY: which strike to sell, which to buy as the hedge, how many lots the risk budget allows, and how often that set of strikes held in the past."
 },
 "Seller&rsquo;s math today": {
 "example": "Like re-calculating a recipe after the packet size changed from 500 g to 400 g.",

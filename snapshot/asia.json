@@ -1,21 +1,21 @@
 {
  "ready": true,
- "builtAt": "2026-11-22T17:16:14+00:00",
+ "builtAt": "2026-11-26T16:14:06+00:00",
  "japan": {
   "state": "red",
   "headline": "Japan is adding pressure to US bond yields",
   "flags": [
    "Japan has cut its US bond holdings 5 months in a row",
-   "the yen is weak at 159.7 per dollar, near where Japan has stepped in before"
+   "the yen is weak at 159.3 per dollar, near where Japan has stepped in before"
   ],
   "jgb": {
-   "date": "2026-11-19",
-   "y1": 1.659,
-   "y2": 1.853,
-   "y10": 2.87,
-   "y30": 4.03,
-   "chg20": -5,
-   "chg250": 118,
+   "date": "2026-11-25",
+   "y1": 1.594,
+   "y2": 1.731,
+   "y10": 2.713,
+   "y30": 3.998,
+   "chg20": -11,
+   "chg250": 101,
    "high60": {
     "level": 3.11,
     "since": "1996-08-27",
@@ -24,24 +24,24 @@
    }
   },
   "gap": {
-   "us10": 4.92,
-   "usDate": "2026-11-20",
-   "jgb10": 2.87,
-   "bp": 205,
-   "chg20": -2
+   "us10": 4.85,
+   "usDate": "2026-11-25",
+   "jgb10": 2.713,
+   "bp": 214,
+   "chg20": -3
   },
   "boj": {
    "rate": 1.227,
    "month": "2026-10-01"
   },
   "yen": {
-   "last": 159.71,
-   "chg20": 2.05,
+   "last": 159.32,
+   "chg20": 0.95,
    "high1y": 163.86,
-   "date": "2026-11-20"
+   "date": "2026-11-26"
   },
   "nikkei": {
-   "chg20": -10.29
+   "chg20": -8.33
   },
   "ust": {
    "month": "2026-09-01",
@@ -72,31 +72,31 @@
     "tier": 1
    },
    {
-    "title": "Dollar set for 4-week win streak; yen jumps on safe-haven bid, hot inflation data",
-    "link": "https://www.investing.com/news/forex-news/asia-fx-struggles-as-dollar-holds-near-19mth-high-aussie-hits-11month-low-5040667",
-    "publisher": "Investing.com",
-    "date": "2026-11-20",
-    "tier": 2
-   },
-   {
-    "title": "Japanese Yen outperforms as global stock sell-off lifts safe-haven demand",
-    "link": "https://www.fxstreet.com/news/japanese-yen-outperforms-as-global-stock-sell-off-lifts-safe-haven-demand-202611201348",
+    "title": "Japanese Yen: Safe haven demand and BoJ hikes lend support - MUFG",
+    "link": "https://www.fxstreet.com/news/japanese-yen-safe-haven-demand-and-boj-hikes-lend-support-mufg-202611261232",
     "publisher": "FXStreet",
-    "date": "2026-11-20",
+    "date": "2026-11-26",
     "tier": 2
    },
    {
-    "title": "Japan bond yields fall as US Treasury yields decline; foreign investors drive JGB buying",
-    "link": "https://news.google.com/rss/articles/CBMiiAJBVV95cUxQU0NqMUtBdkZtMjVxc3hOdmtRZEhYRllBVlplNjBwWF9rR1VDNlVXMXJJTHlrNnpvbTBJdVJtRFlLZWRfbkdHZWtOUjFoeGlaNHpFSDBuV25RdnVJRmN0bkF6NDNPa1FUTzZjWHYzemhSeXhCcmtLVjUwbDFXQjQ3YTZmdWNIdDN5aF94SzNsRThNU0pXb2MyYWVKQkl2aGhwZmxuNFJ6VEhoYjlraW1IX3pKV3VNZkdVbTN1SllNd283Sjc2elNFazdwcERWVEJ3X1RVLXlnUEpPT2p1alFZU2ZGZmNHR2xDWVU3MWRIV1JHdzZ2VFlrUGNRa0pfT0tLQWk2NXlSdELSAY4CQVVfeXFMT1VxT0oxbWh6V1JOdmtCMEdUM1hOTDZjRFRkQ2tJWEtOMjhrem1TQ0hxSUp5TmF5ZFJGU1dFbTBtVGhHejRzM2pXTTNaRGJtQXc3aGIxWi1GV2p1NGVTQXdQZi12bUVXbFFWMW9Iejh1bHdFSDhiMlZLUlNEeFRkWDFEOTgxajlraENVNTh1U0toQmRkTjFob0taSWZMYktxWUN4Wk9GcUhROVNwdDhnZVpBMzB0UnpJWTItNG1zMVBSaGVUNF85TlRhY0p6dVJKLVVDSVRTWm9Cc1ZkVm9BcjJFWm9NUlJXSkhubTUxV2pkY3dpbDh3Rk91TW1ub3V4ZHc1dXJ0ckh2MjdGZHNn?oc=5",
+    "title": "Japanese Yen: Scope for gains against US Dollar \u2013 UOB",
+    "link": "https://www.fxstreet.com/news/japanese-yen-scope-for-gains-against-us-dollar-uob-202611261149",
+    "publisher": "FXStreet",
+    "date": "2026-11-26",
+    "tier": 2
+   },
+   {
+    "title": "Japan bond yields rise as BOJ rate hike bets strengthen; Tamura comments in focus",
+    "link": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxOQnlFdHpCUlN6b1hjQWZmRkZqYjU3ZUhPRmFyOGlueXpPdEhVZ2pPbDFkY1RadUVnTlpJRU9YM2lWWXhBdGpGa1BsLXdicDRmUmV2bHRQSDd6R251b2I0NGE0SUNXWlpBakdNQ2JzUVZaNkltaTRhWEZaOHF0TDdUWDBxMjZJQmhjaWZMamJ0YWt4THViNEIwb29KNTB0dFREZDhTb1VhRU5WTml6cTJQWGRMd1NUU2MwTUtwTDNIT0dxbDBUTGQ1SmJKRmJ5U1VTNUpkNHFmWENaSUFYMlpBQi1GWTZDLVZBUnBtOHFCcy1oS2lHS1pkVzV6YlNEMHPSAYQCQVVfeXFMUDAtSDJWODllckxVUHloR3gxWXY4TktvYWJkWlh0cy1Vb21CTG12THZiWWV2a284YkVHWWFPbk5wQ01fQmI0M1cycHRHTjBaQmZIcEluRTRtc0NCNEdseFBDcHB6S3NzalNGX2dSNnZXOFdsdU5pU2lTUks3Q1JONUQ4SXhlMDhka1JOcGRjUmhqY3BFWmcyUGZOcDJxN0pDVTVvMUdqTl9VcHp2X0ZucWJjMUFyLXA1bFRWLXN0cnBsVTJVeVJOUzMydUhsTWl5b1MxbS12ZTNqWFFpLUlrOWczX25Ldk43UEszVnNBU1RIUmJ3WkF1OTJYSVpmQ1lGMFdfb2s?oc=5",
     "publisher": "The Economic Times",
-    "date": "2026-11-20",
+    "date": "2026-11-26",
     "tier": 2
    },
    {
-    "title": "Japan inflation picks up less than forecast as core-core slows to 2.2%",
-    "link": "https://investinglive.com/news/japan-inflation-picks-up-but-misses-forecasts-as-core-core-slows-to-2-2/",
-    "publisher": "ForexLive",
-    "date": "2026-11-19",
+    "title": "Markets pare back Bank of Japan rate hike bets as AI spending concerns mount",
+    "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxQWjdja2xNMlBNOVVXY3B2OEV2YlBaVHY3b21IWktxdXZ5eFR6QThCMkpybUFtc1hWR090MTVJcjFiTGVQcmRYTl9EWTJ2U0ttWnFVU0FhRGQxSGcwY2NpR3VKR1BQMnBOTklCT19iZjFydnRHT0w3cXZHYXpoOHdvNjE1ZkpZVUl2R0dmOWo2OVpULVgyQThpZ0lJS0V1UFJfaUZ3cUJnMGhweXVjUks3TjMyZkNPR3dTSFRjVjIxUXhISHI4M1NZRllJMmFuWGlCbXVmdXF3ZVdSVlNfdGpYOHRMa2dFeldu0gHuAUFVX3lxTE1sTG9mYTczWk1IbkhZZHBQMkRuc0ljaXFsSmtfalkwVzlfREMydHNOTjZ1a19sRjA3ZWtfenBuMmpTMFRZQi04VjExTEJFZ2g5eWgwY0FVeVVZVGRhVG1sRHZvSFBrcVNMbFY3WF9vR3ZjbkQ4V0IyZWZlWG5GWDlKMzRPTks4aXJFX0RhYjg0bE04cmVWTkxRcUUtbnAxRkhqQTdiZDZtUmNJVVZkNFVXSVVJZlh4UjR0cGtjMWJIV25mQVdGVnNodUR3dGluSDNkbENSUG5SNk5RdFRHczl2VFNhd09ha215S2FqdUE?oc=5",
+    "publisher": "The Economic Times",
+    "date": "2026-11-26",
     "tier": 2
    }
   ],
@@ -245,13 +245,13 @@
    }
   ],
   "yuan": {
-   "last": 6.6665,
-   "chg20": -0.17,
-   "date": "2026-11-20"
+   "last": 6.6498,
+   "chg20": -0.24,
+   "date": "2026-11-26"
   },
   "stocks": {
-   "shanghai": -4.25,
-   "hangseng": -2.96
+   "shanghai": -4.78,
+   "hangseng": -3.19
   },
   "ust": {
    "month": "2026-09-01",
@@ -263,6 +263,13 @@
    "bn": 3482.4
   },
   "heads": [
+   {
+    "title": "China hits back at Trump\u2019s latest tariff threat as trade war tensions resurface",
+    "link": "https://investinglive.com/news/china-hits-back-at-trump-s-latest-tariff-threat-as-trade-war-tensions-resurface/",
+    "publisher": "ForexLive",
+    "date": "2026-11-26",
+    "tier": 2
+   },
    {
     "title": "Chinese Yuan: Brief dip against US Dollar prompts controls - Commerzbank",
     "link": "https://www.fxstreet.com/news/chinese-yuan-brief-dip-against-us-dollar-prompts-controls-commerzbank-202611202002",
@@ -290,13 +297,6 @@
     "publisher": "FXStreet",
     "date": "2026-11-20",
     "tier": 2
-   },
-   {
-    "title": "US approved nearly 900,000 Nvidia and AMD AI chips for China. Raises more questions than answers.",
-    "link": "https://investinglive.com/news/us-approved-nearly-900-000-nvidia-and-amd-ai-chips-for-china-raises-more-questions-than-answers/",
-    "publisher": "ForexLive",
-    "date": "2026-11-20",
-    "tier": 2
    }
   ],
   "means": [
@@ -319,7 +319,7 @@
     "label": "Japan 10-year yield",
     "cells": [
      {
-      "corr": 0.35,
+      "corr": 0.36,
       "strength": "medium"
      },
      {
@@ -327,15 +327,15 @@
       "strength": "no link"
      },
      {
-      "corr": 0.0,
+      "corr": 0.02,
       "strength": "no link"
      },
      {
-      "corr": 0.33,
+      "corr": 0.34,
       "strength": "medium"
      },
      {
-      "corr": -0.31,
+      "corr": -0.32,
       "strength": "medium"
      }
     ]
@@ -361,7 +361,7 @@
       "strength": "no link"
      },
      {
-      "corr": -0.15,
+      "corr": -0.16,
       "strength": "weak"
      }
     ]
@@ -387,7 +387,7 @@
       "strength": "weak"
      },
      {
-      "corr": -0.02,
+      "corr": -0.03,
       "strength": "no link"
      }
     ]
@@ -397,23 +397,23 @@
     "label": "Nikkei 225",
     "cells": [
      {
-      "corr": -0.05,
+      "corr": -0.04,
       "strength": "no link"
      },
      {
-      "corr": 0.04,
+      "corr": 0.03,
       "strength": "no link"
      },
      {
-      "corr": 0.07,
+      "corr": 0.09,
       "strength": "no link"
      },
      {
-      "corr": 0.19,
+      "corr": 0.21,
       "strength": "weak"
      },
      {
-      "corr": 0.24,
+      "corr": 0.22,
       "strength": "weak"
      }
     ]
@@ -423,7 +423,7 @@
     "label": "Shanghai Composite",
     "cells": [
      {
-      "corr": -0.06,
+      "corr": -0.05,
       "strength": "no link"
      },
      {
@@ -439,14 +439,14 @@
       "strength": "medium"
      },
      {
-      "corr": -0.08,
+      "corr": -0.09,
       "strength": "no link"
      }
     ]
    }
   ],
   "n": 756,
-  "since": "2022-09-07"
+  "since": "2022-09-13"
  },
  "notes": {
   "sources": "China: National Bureau of Statistics releases (PMI, CPI, PPI, retail sales, industrial output, investment, property). Japan: Ministry of Finance JGB yield curve, METI industrial production; Bank of Japan call rate, reserves and US Treasury holdings via FRED. Japan CPI and PMI come from headlines. Prices from Yahoo daily closes.",

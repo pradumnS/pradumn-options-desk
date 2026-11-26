@@ -1,8 +1,8 @@
 {
  "ready": true,
- "builtAt": "2026-11-22T17:16:14+00:00",
+ "builtAt": "2026-11-26T16:14:06+00:00",
  "updated": "2026-11-22",
- "researchAge": 0,
+ "researchAge": 4,
  "about": "Published expectations for upcoming events and assets. Each entry names who said it, what kind of source it is, when it was published and a link. Collected by web research; refreshed by the weekly research run. Nothing here is the desk's own forecast.",
  "countries": {
   "US": "United States",
@@ -11,58 +11,6 @@
   "IN": "India"
  },
  "events": [
-  {
-   "id": "cal-2026-11-23-US-US PMI",
-   "date": "2026-11-23",
-   "time": null,
-   "country": "US",
-   "countryName": "United States",
-   "category": "Calendar",
-   "event": "US PMI",
-   "metric": null,
-   "unit": null,
-   "previous": null,
-   "previousNote": null,
-   "why": null,
-   "days": 1,
-   "views": [],
-   "summary": null,
-   "actual": null,
-   "verdict": null,
-   "types": [],
-   "calendarOnly": true,
-   "dateSources": [
-    "ForexFactory"
-   ],
-   "dateConfirmed": false,
-   "detail": "09:45 ET, forecast 55.6, previous 57.9"
-  },
-  {
-   "id": "cal-2026-11-24-US-US CB Consumer Confidence",
-   "date": "2026-11-24",
-   "time": null,
-   "country": "US",
-   "countryName": "United States",
-   "category": "Calendar",
-   "event": "US CB Consumer Confidence",
-   "metric": null,
-   "unit": null,
-   "previous": null,
-   "previousNote": null,
-   "why": null,
-   "days": 2,
-   "views": [],
-   "summary": null,
-   "actual": null,
-   "verdict": null,
-   "types": [],
-   "calendarOnly": true,
-   "dateSources": [
-    "ForexFactory"
-   ],
-   "dateConfirmed": false,
-   "detail": "10:00 ET, forecast 92.1, previous 91.7"
-  },
   {
    "id": "us-gdp-2026q3-2",
    "date": "2026-11-25",
@@ -96,7 +44,7 @@
    ],
    "thin": false,
    "countryName": "United States",
-   "days": 3,
+   "days": -1,
    "views": [
     {
      "source": "Consensus (Globe and Mail week-ahead calendar)",
@@ -168,37 +116,7 @@
     "Model",
     "Poll of economists",
     "Research house"
-   ],
-   "dateSources": [
-    "ForexFactory"
-   ],
-   "dateConfirmed": false
-  },
-  {
-   "id": "cal-2026-11-25-US-US Unemployment Claims",
-   "date": "2026-11-25",
-   "time": null,
-   "country": "US",
-   "countryName": "United States",
-   "category": "Calendar",
-   "event": "US Unemployment Claims",
-   "metric": null,
-   "unit": null,
-   "previous": null,
-   "previousNote": null,
-   "why": null,
-   "days": 3,
-   "views": [],
-   "summary": null,
-   "actual": null,
-   "verdict": null,
-   "types": [],
-   "calendarOnly": true,
-   "dateSources": [
-    "ForexFactory"
-   ],
-   "dateConfirmed": false,
-   "detail": "08:30 ET, forecast 201K, previous 203K"
+   ]
   },
   {
    "id": "us-pce-2026-10",
@@ -233,7 +151,7 @@
    ],
    "thin": false,
    "countryName": "United States",
-   "days": 3,
+   "days": -1,
    "views": [
     {
      "source": "RBC Economics",
@@ -490,11 +408,7 @@
     "Central bank",
     "Poll of economists",
     "Research house"
-   ],
-   "dateSources": [
-    "ForexFactory"
-   ],
-   "dateConfirmed": false
+   ]
   },
   {
    "id": "jp-tokyo-cpi-2026-11",
@@ -525,7 +439,7 @@
    ],
    "thin": true,
    "countryName": "Japan",
-   "days": 4,
+   "days": 0,
    "views": [
     {
      "source": "Investing.com economic calendar (consensus)",
@@ -587,7 +501,7 @@
    ],
    "thin": true,
    "countryName": "China",
-   "days": 8,
+   "days": 4,
    "views": [
     {
      "source": "Trading Economics model",
@@ -645,7 +559,7 @@
    ],
    "thin": false,
    "countryName": "India",
-   "days": 8,
+   "days": 4,
    "views": [
     {
      "source": "Reuters poll (43 economists, Nov 13-18)",
@@ -818,7 +732,7 @@
    ],
    "thin": false,
    "countryName": "India",
-   "days": 12,
+   "days": 8,
    "views": [
     {
      "source": "Reuters poll (61 economists, Nov 13-20)",
@@ -890,7 +804,7 @@
      "value": 25,
      "published": "2026-11",
      "link": "https://www.tradingview.com/news/moneycontrol:635d9f0a8094b:0-rising-rate-hike-bets-cloud-market-outlook-as-inflation-breaches-rbi-s-upper-band/",
-     "old": false
+     "old": true
     },
     {
      "source": "Crisil (Dipti Deshpande)",
@@ -923,10 +837,10 @@
     }
    ],
    "summary": {
-    "n": 9,
+    "n": 8,
     "low": 25,
     "high": 25,
-    "median": 25
+    "median": 25.0
    },
    "actual": null,
    "verdict": null,
@@ -975,7 +889,7 @@
    ],
    "thin": true,
    "countryName": "United States",
-   "days": 12,
+   "days": 8,
    "views": [
     {
      "source": "Continuum Economics",
@@ -1057,7 +971,7 @@
    ],
    "thin": true,
    "countryName": "China",
-   "days": 15,
+   "days": 11,
    "views": [
     {
      "source": "Orient Golden Credit Rating International (Feng, via China Daily HK)",
@@ -1105,7 +1019,7 @@
    ],
    "thin": true,
    "countryName": "China",
-   "days": 17,
+   "days": 13,
    "views": [],
    "summary": null,
    "actual": null,
@@ -1146,7 +1060,7 @@
    ],
    "thin": false,
    "countryName": "United States",
-   "days": 17,
+   "days": 13,
    "views": [
     {
      "source": "CME FedWatch (via MLQ.ai)",
@@ -1346,7 +1260,7 @@
    ],
    "thin": false,
    "countryName": "United States",
-   "days": 18,
+   "days": 14,
    "views": [
     {
      "source": "Continuum Economics",
@@ -1573,9 +1487,9 @@
      "then": "Markets see the RBI done at 5.75%: strong bond rally, NIFTY up, the rupee softens as the gap with the Fed narrows."
     }
    ],
-   "thin": false,
+   "thin": true,
    "countryName": "India",
-   "days": 20,
+   "days": 16,
    "views": [
     {
      "source": "SBI Research (Ecowrap)",
@@ -1602,7 +1516,7 @@
      "value": 6.0,
      "published": "2026-11",
      "link": "https://www.tradingview.com/news/moneycontrol:635d9f0a8094b:0-rising-rate-hike-bets-cloud-market-outlook-as-inflation-breaches-rbi-s-upper-band/",
-     "old": false
+     "old": true
     },
     {
      "source": "Reuters poll (economists)",
@@ -1622,8 +1536,8 @@
     }
    ],
    "summary": {
-    "n": 3,
-    "low": 6.0,
+    "n": 2,
+    "low": 6.3,
     "high": 6.3,
     "median": 6.3
    },
@@ -1669,7 +1583,7 @@
    ],
    "thin": true,
    "countryName": "Japan",
-   "days": 26,
+   "days": 22,
    "views": [
     {
      "source": "Reuters poll (71 economists, 11-18 Nov)",
@@ -1703,7 +1617,7 @@
      "value": 25,
      "published": "2026-11-02",
      "link": "https://www.933thedrive.com/2026/11/01/analysis-boj-locks-in-december-hike-but-neutral-rate-uncertainty-muddies-outlook/",
-     "old": false
+     "old": true
     },
     {
      "source": "BoJ Governor Kazuo Ueda",
@@ -1719,7 +1633,7 @@
      "view": "Takata proposed a hike to 1.5% on 30 Oct (outvoted); Tamura sees neutral near 2%",
      "published": "2026-11-02",
      "link": "https://www.933thedrive.com/2026/11/01/analysis-boj-locks-in-december-hike-but-neutral-rate-uncertainty-muddies-outlook/",
-     "old": false
+     "old": true
     },
     {
      "source": "Bloomberg survey of BoJ watchers",
@@ -1759,10 +1673,10 @@
     }
    ],
    "summary": {
-    "n": 2,
+    "n": 1,
     "low": 25,
     "high": 25,
-    "median": 25.0
+    "median": 25
    },
    "actual": null,
    "verdict": null,
@@ -2070,9 +1984,9 @@
   "Media": 1
  },
  "counts": {
-  "events": 16,
+  "events": 13,
   "withViews": 12,
-  "thin": 6,
+  "thin": 7,
   "views": 81,
   "outlooks": 25
  }
