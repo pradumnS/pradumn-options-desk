@@ -1,6 +1,6 @@
 {
  "ready": true,
- "builtAt": "2026-11-26T16:14:06+00:00",
+ "builtAt": "2026-11-28T06:02:56+00:00",
  "japan": {
   "state": "red",
   "headline": "Japan is adding pressure to US bond yields",
@@ -36,7 +36,7 @@
   },
   "yen": {
    "last": 159.32,
-   "chg20": 0.95,
+   "chg20": 0.94,
    "high1y": 163.86,
    "date": "2026-11-26"
   },
@@ -72,6 +72,13 @@
     "tier": 1
    },
    {
+    "title": "Japanese Yen struggles for direction amid thin Thanksgiving trading",
+    "link": "https://www.fxstreet.com/news/japanese-yen-struggles-for-direction-amid-thin-thanksgiving-trading-202611261532",
+    "publisher": "FXStreet",
+    "date": "2026-11-26",
+    "tier": 2
+   },
+   {
     "title": "Japanese Yen: Safe haven demand and BoJ hikes lend support - MUFG",
     "link": "https://www.fxstreet.com/news/japanese-yen-safe-haven-demand-and-boj-hikes-lend-support-mufg-202611261232",
     "publisher": "FXStreet",
@@ -88,13 +95,6 @@
    {
     "title": "Japan bond yields rise as BOJ rate hike bets strengthen; Tamura comments in focus",
     "link": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxOQnlFdHpCUlN6b1hjQWZmRkZqYjU3ZUhPRmFyOGlueXpPdEhVZ2pPbDFkY1RadUVnTlpJRU9YM2lWWXhBdGpGa1BsLXdicDRmUmV2bHRQSDd6R251b2I0NGE0SUNXWlpBakdNQ2JzUVZaNkltaTRhWEZaOHF0TDdUWDBxMjZJQmhjaWZMamJ0YWt4THViNEIwb29KNTB0dFREZDhTb1VhRU5WTml6cTJQWGRMd1NUU2MwTUtwTDNIT0dxbDBUTGQ1SmJKRmJ5U1VTNUpkNHFmWENaSUFYMlpBQi1GWTZDLVZBUnBtOHFCcy1oS2lHS1pkVzV6YlNEMHPSAYQCQVVfeXFMUDAtSDJWODllckxVUHloR3gxWXY4TktvYWJkWlh0cy1Vb21CTG12THZiWWV2a284YkVHWWFPbk5wQ01fQmI0M1cycHRHTjBaQmZIcEluRTRtc0NCNEdseFBDcHB6S3NzalNGX2dSNnZXOFdsdU5pU2lTUks3Q1JONUQ4SXhlMDhka1JOcGRjUmhqY3BFWmcyUGZOcDJxN0pDVTVvMUdqTl9VcHp2X0ZucWJjMUFyLXA1bFRWLXN0cnBsVTJVeVJOUzMydUhsTWl5b1MxbS12ZTNqWFFpLUlrOWczX25Ldk43UEszVnNBU1RIUmJ3WkF1OTJYSVpmQ1lGMFdfb2s?oc=5",
-    "publisher": "The Economic Times",
-    "date": "2026-11-26",
-    "tier": 2
-   },
-   {
-    "title": "Markets pare back Bank of Japan rate hike bets as AI spending concerns mount",
-    "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxQWjdja2xNMlBNOVVXY3B2OEV2YlBaVHY3b21IWktxdXZ5eFR6QThCMkpybUFtc1hWR090MTVJcjFiTGVQcmRYTl9EWTJ2U0ttWnFVU0FhRGQxSGcwY2NpR3VKR1BQMnBOTklCT19iZjFydnRHT0w3cXZHYXpoOHdvNjE1ZkpZVUl2R0dmOWo2OVpULVgyQThpZ0lJS0V1UFJfaUZ3cUJnMGhweXVjUks3TjMyZkNPR3dTSFRjVjIxUXhISHI4M1NZRllJMmFuWGlCbXVmdXF3ZVdSVlNfdGpYOHRMa2dFeldu0gHuAUFVX3lxTE1sTG9mYTczWk1IbkhZZHBQMkRuc0ljaXFsSmtfalkwVzlfREMydHNOTjZ1a19sRjA3ZWtfenBuMmpTMFRZQi04VjExTEJFZ2g5eWgwY0FVeVVZVGRhVG1sRHZvSFBrcVNMbFY3WF9vR3ZjbkQ4V0IyZWZlWG5GWDlKMzRPTks4aXJFX0RhYjg0bE04cmVWTkxRcUUtbnAxRkhqQTdiZDZtUmNJVVZkNFVXSVVJZlh4UjR0cGtjMWJIV25mQVdGVnNodUR3dGluSDNkbENSUG5SNk5RdFRHczl2VFNhd09ha215S2FqdUE?oc=5",
     "publisher": "The Economic Times",
     "date": "2026-11-26",
     "tier": 2
@@ -245,8 +245,8 @@
    }
   ],
   "yuan": {
-   "last": 6.6498,
-   "chg20": -0.24,
+   "last": 6.6505,
+   "chg20": -0.23,
    "date": "2026-11-26"
   },
   "stocks": {
