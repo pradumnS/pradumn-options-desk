@@ -1,6 +1,6 @@
 {
  "ready": true,
- "builtAt": "2026-11-28T06:02:56+00:00",
+ "builtAt": "2026-11-28T06:21:44+00:00",
  "japan": {
   "state": "red",
   "headline": "Japan is adding pressure to US bond yields",
@@ -9,13 +9,13 @@
    "the yen is weak at 159.3 per dollar, near where Japan has stepped in before"
   ],
   "jgb": {
-   "date": "2026-11-25",
-   "y1": 1.594,
-   "y2": 1.731,
-   "y10": 2.713,
-   "y30": 3.998,
-   "chg20": -11,
-   "chg250": 101,
+   "date": "2026-11-26",
+   "y1": 1.606,
+   "y2": 1.747,
+   "y10": 2.704,
+   "y30": 3.956,
+   "chg20": -12,
+   "chg250": 100,
    "high60": {
     "level": 3.11,
     "since": "1996-08-27",
@@ -24,10 +24,10 @@
    }
   },
   "gap": {
-   "us10": 4.85,
-   "usDate": "2026-11-25",
-   "jgb10": 2.713,
-   "bp": 214,
+   "us10": 4.94,
+   "usDate": "2026-11-27",
+   "jgb10": 2.704,
+   "bp": 224,
    "chg20": -3
   },
   "boj": {
@@ -35,13 +35,13 @@
    "month": "2026-10-01"
   },
   "yen": {
-   "last": 159.32,
+   "last": 159.28,
    "chg20": 0.94,
    "high1y": 163.86,
-   "date": "2026-11-26"
+   "date": "2026-11-27"
   },
   "nikkei": {
-   "chg20": -8.33
+   "chg20": -8.2
   },
   "ust": {
    "month": "2026-09-01",
@@ -72,31 +72,31 @@
     "tier": 1
    },
    {
-    "title": "Japanese Yen struggles for direction amid thin Thanksgiving trading",
-    "link": "https://www.fxstreet.com/news/japanese-yen-struggles-for-direction-amid-thin-thanksgiving-trading-202611261532",
+    "title": "Japanese Yen: Domestic growth signals in focus against US Dollar - ING",
+    "link": "https://www.fxstreet.com/news/japanese-yen-domestic-growth-signals-in-focus-against-us-dollar-ing-202611271647",
     "publisher": "FXStreet",
-    "date": "2026-11-26",
+    "date": "2026-11-27",
     "tier": 2
    },
    {
-    "title": "Japanese Yen: Safe haven demand and BoJ hikes lend support - MUFG",
-    "link": "https://www.fxstreet.com/news/japanese-yen-safe-haven-demand-and-boj-hikes-lend-support-mufg-202611261232",
+    "title": "Japanese Yen slips as calmer equity markets lifts US Treasury yields",
+    "link": "https://www.fxstreet.com/news/japanese-yen-slips-as-calmer-equity-markets-lifts-us-treasury-yields-202611271539",
     "publisher": "FXStreet",
-    "date": "2026-11-26",
+    "date": "2026-11-27",
     "tier": 2
    },
    {
-    "title": "Japanese Yen: Scope for gains against US Dollar \u2013 UOB",
-    "link": "https://www.fxstreet.com/news/japanese-yen-scope-for-gains-against-us-dollar-uob-202611261149",
+    "title": "Japanese Yen: Inflation supports cautious BoJ hiking path \u2013 MUFG",
+    "link": "https://www.fxstreet.com/news/japanese-yen-inflation-supports-cautious-boj-hiking-path-mufg-202611271444",
     "publisher": "FXStreet",
-    "date": "2026-11-26",
+    "date": "2026-11-27",
     "tier": 2
    },
    {
-    "title": "Japan bond yields rise as BOJ rate hike bets strengthen; Tamura comments in focus",
-    "link": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxOQnlFdHpCUlN6b1hjQWZmRkZqYjU3ZUhPRmFyOGlueXpPdEhVZ2pPbDFkY1RadUVnTlpJRU9YM2lWWXhBdGpGa1BsLXdicDRmUmV2bHRQSDd6R251b2I0NGE0SUNXWlpBakdNQ2JzUVZaNkltaTRhWEZaOHF0TDdUWDBxMjZJQmhjaWZMamJ0YWt4THViNEIwb29KNTB0dFREZDhTb1VhRU5WTml6cTJQWGRMd1NUU2MwTUtwTDNIT0dxbDBUTGQ1SmJKRmJ5U1VTNUpkNHFmWENaSUFYMlpBQi1GWTZDLVZBUnBtOHFCcy1oS2lHS1pkVzV6YlNEMHPSAYQCQVVfeXFMUDAtSDJWODllckxVUHloR3gxWXY4TktvYWJkWlh0cy1Vb21CTG12THZiWWV2a284YkVHWWFPbk5wQ01fQmI0M1cycHRHTjBaQmZIcEluRTRtc0NCNEdseFBDcHB6S3NzalNGX2dSNnZXOFdsdU5pU2lTUks3Q1JONUQ4SXhlMDhka1JOcGRjUmhqY3BFWmcyUGZOcDJxN0pDVTVvMUdqTl9VcHp2X0ZucWJjMUFyLXA1bFRWLXN0cnBsVTJVeVJOUzMydUhsTWl5b1MxbS12ZTNqWFFpLUlrOWczX25Ldk43UEszVnNBU1RIUmJ3WkF1OTJYSVpmQ1lGMFdfb2s?oc=5",
-    "publisher": "The Economic Times",
-    "date": "2026-11-26",
+    "title": "Japanese Yen: Upside momentum fades against US Dollar - UOB",
+    "link": "https://www.fxstreet.com/news/japanese-yen-upside-momentum-fades-against-us-dollar-uob-202611271150",
+    "publisher": "FXStreet",
+    "date": "2026-11-27",
     "tier": 2
    }
   ],
@@ -245,13 +245,13 @@
    }
   ],
   "yuan": {
-   "last": 6.6505,
-   "chg20": -0.23,
-   "date": "2026-11-26"
+   "last": 6.664,
+   "chg20": 0.05,
+   "date": "2026-11-27"
   },
   "stocks": {
-   "shanghai": -4.78,
-   "hangseng": -3.19
+   "shanghai": 0.21,
+   "hangseng": -2.57
   },
   "ust": {
    "month": "2026-09-01",
@@ -263,6 +263,20 @@
    "bn": 3482.4
   },
   "heads": [
+   {
+    "title": "China's industrial profits jump 20.1% in October as electronics do the heavy lifting",
+    "link": "https://investinglive.com/news/china-s-industrial-profits-jump-20-1-in-october-as-electronics-do-the-heavy-lifting/",
+    "publisher": "ForexLive",
+    "date": "2026-11-27",
+    "tier": 2
+   },
+   {
+    "title": "China's industrial profits growth speeds up to 20.1% y/y in October",
+    "link": "https://investinglive.com/news/china-s-industrial-profits-growth-speeds-up-to-20-1-y-y-in-october/",
+    "publisher": "ForexLive",
+    "date": "2026-11-27",
+    "tier": 2
+   },
    {
     "title": "China hits back at Trump\u2019s latest tariff threat as trade war tensions resurface",
     "link": "https://investinglive.com/news/china-hits-back-at-trump-s-latest-tariff-threat-as-trade-war-tensions-resurface/",
@@ -280,20 +294,6 @@
    {
     "title": "Chinese Yuan: Gradual appreciation under tight management \u2013 BNY",
     "link": "https://www.fxstreet.com/news/chinese-yuan-gradual-appreciation-under-tight-management-bny-202611201837",
-    "publisher": "FXStreet",
-    "date": "2026-11-20",
-    "tier": 2
-   },
-   {
-    "title": "Greer says US-China trade truce extension hinges on rare earths",
-    "link": "https://investinglive.com/news/greer-says-us-china-trade-truce-extension-hinges-on-rare-earths/",
-    "publisher": "ForexLive",
-    "date": "2026-11-20",
-    "tier": 2
-   },
-   {
-    "title": "China: Policy backstop offsets weak macro \u2013 BNY",
-    "link": "https://www.fxstreet.com/news/china-policy-backstop-offsets-weak-macro-bny-202611201333",
     "publisher": "FXStreet",
     "date": "2026-11-20",
     "tier": 2
